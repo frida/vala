@@ -3957,7 +3957,11 @@ namespace GLib {
 		}
 	}
 
+#if VALA_OS_WINDOWS
+	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h", has_type_id = false)]
+#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h", has_type_id = false)]
+#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -4003,7 +4007,11 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
+#if VALA_OS_WINDOWS
+		[CCode (cname = "_close", cheader_filename = "io.h")]
+#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
+#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
