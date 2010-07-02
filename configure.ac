@@ -45,6 +45,10 @@ AC_PROG_MKDIR_P
 
 AC_CANONICAL_HOST
 
+VALA_HOST_OS=`echo $host_os | cut -f1 -d'-'`
+AC_SUBST(VALA_HOST_OS)
+AC_DEFINE_UNQUOTED(VALA_HOST_OS, "$VALA_HOST_OS", [Define to the host OS name])
+
 # Detect the target system
 build_linux=no
 case "${host_os}" in
