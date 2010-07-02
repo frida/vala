@@ -32,6 +32,7 @@ conf.set_quoted('PACKAGE_VERSION', vala_version)
 conf.set_quoted('VERSION', vala_version)
 conf.set_quoted('API_VERSION', vala_api_version)
 conf.set_quoted('BUILD_VERSION', vala_version)
+conf.set_quoted('VALA_HOST_OS', host_machine.system())
 configure_file(input: 'config.h.meson', output: 'config.h', configuration: conf)
 
 
