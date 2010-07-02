@@ -32,3 +32,6 @@
 
 /* API-Version of package */
 #mesondefine API_VERSION
+
+/* Define to the host OS name */
+#mesondefine VALA_HOST_OS
