@@ -26,5 +26,6 @@ namespace Config {
 	public const string PACKAGE_SUFFIX;
 	public const string PACKAGE_VALADOC_LIBDIR;
 	public const string PACKAGE_VALADOC_ICONDIR;
+	public const string VALA_HOST_OS;
 	public const string GI_GIRDIR;
 }
