@@ -3572,7 +3572,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-		[CCode (cname = "close", cheader_filename = "unistd.h")]
+		[CCode (cname = "_close", cheader_filename = "io.h")]
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
