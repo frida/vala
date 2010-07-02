@@ -24,4 +24,5 @@
 namespace Config {
 	public const string PACKAGE_DATADIR;
 	public const string PACKAGE_SUFFIX;
+	public const string VALA_HOST_OS;
 }
