@@ -33,7 +33,7 @@ namespace GLib {
 
 	public class DBusConnection : GLib.Object, GLib.AsyncInitable, GLib.Initable {
 		[CCode (cname = "g_dbus_connection_new", finish_function = "g_dbus_connection_new_finish")]
-		public static async GLib.DBusConnection @new (GLib.IOStream stream, string guid, GLib.DBusConnectionFlags flags, GLib.DBusAuthObserver? observer = null, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public static async GLib.DBusConnection @new (GLib.IOStream stream, string? guid, GLib.DBusConnectionFlags flags, GLib.DBusAuthObserver? observer = null, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[CCode (cname = "g_dbus_connection_new_for_address", finish_function = "g_dbus_connection_new_for_address_finish")]
 		public static async GLib.DBusConnection @new_for_address (string address, GLib.DBusConnectionFlags flags, GLib.DBusAuthObserver? observer = null, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public async T get_proxy<T> (string? name, string object_path, GLib.DBusProxyFlags flags = 0, GLib.Cancellable? cancellable = null) throws GLib.IOError; 
