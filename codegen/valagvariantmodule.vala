@@ -266,6 +266,28 @@ public class Vala.GVariantModule : GAsyncModule {
 	CCodeExpression deserialize_array (ArrayType array_type, CCodeExpression variant_expr, CCodeExpression? expr) {
 		string temp_name = "_tmp%d_".printf (next_temp_var_id++);
 
+		var full_element_type_name = array_type.element_type.data_type.get_full_name ();
+		if (array_type.rank == 1 && (full_element_type_name == "uint8" || full_element_type_name == "int8")) {
+			var get_data_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_get_data"));
+			get_data_call.add_argument (variant_expr);
+
+			var get_size_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_get_size"));
+			get_size_call.add_argument (variant_expr);
+			ccode.add_declaration ("int", new CCodeVariableDeclarator (temp_name + "_length", get_size_call));
+			var length = new CCodeIdentifier (temp_name + "_length");
+
+			var dup_call = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup"));
+			dup_call.add_argument (get_data_call);
+			dup_call.add_argument (length);
+
+			ccode.add_declaration (get_ccode_name (array_type), new CCodeVariableDeclarator (temp_name, dup_call));
+			if (expr != null) {
+				ccode.add_assignment (get_array_length (expr, 1), length);
+			}
+
+			return new CCodeIdentifier (temp_name);
+		}
+
 		var new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_new"));
 		new_call.add_argument (new CCodeIdentifier (get_ccode_name (array_type.element_type)));
 		// add one extra element for NULL-termination
@@ -575,6 +597,27 @@ public class Vala.GVariantModule : GAsyncModule {
 
 	CCodeExpression? serialize_array (ArrayType array_type, CCodeExpression array_expr) {
 		string array_iter_name = "_tmp%d_".printf (next_temp_var_id++);
+
+		var full_element_type_name = array_type.element_type.data_type.get_full_name ();
+		if (array_type.rank == 1 && (full_element_type_name == "uint8" || full_element_type_name == "int8")) {
+			var gvariant_type = new CCodeFunctionCall (new CCodeIdentifier ("G_VARIANT_TYPE"));
+			gvariant_type.add_argument (new CCodeConstant ("\"%s\"".printf (get_type_signature (array_type))));
+
+			var dup_call = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup"));
+			dup_call.add_argument (array_expr);
+			dup_call.add_argument (get_array_length (array_expr, 1));
+			ccode.add_declaration (get_ccode_name (array_type), new CCodeVariableDeclarator (array_iter_name, dup_call));
+
+			var new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_new_from_data"));
+			new_call.add_argument (gvariant_type);
+			new_call.add_argument (new CCodeIdentifier (array_iter_name));
+			new_call.add_argument (get_array_length (array_expr, 1));
+			new_call.add_argument (new CCodeConstant ("TRUE"));
+			new_call.add_argument (new CCodeIdentifier ("g_free"));
+			new_call.add_argument (new CCodeIdentifier (array_iter_name));
+
+			return new_call;
+		}
 
 		ccode.add_declaration (get_ccode_name (array_type), new CCodeVariableDeclarator (array_iter_name));
 		ccode.add_assignment (new CCodeIdentifier (array_iter_name), array_expr);
