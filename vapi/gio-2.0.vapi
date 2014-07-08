@@ -672,13 +672,12 @@ namespace GLib {
 		public string address { construct; }
 		public GLib.DBusAuthObserver authentication_observer { construct; }
 		public GLib.DBusCapabilityFlags capabilities { get; }
-		[NoAccessorMethod]
-		public bool closed { get; }
 		public bool exit_on_close { get; set; }
 		public GLib.DBusConnectionFlags flags { construct; }
 		public string guid { get; construct; }
 		public GLib.IOStream stream { get; construct; }
 		public string unique_name { get; }
+		public signal void closed (bool remote_peer_vanished, GLib.Error? error);
 	}
 	[CCode (cheader_filename = "gio/gio.h", ref_function = "g_dbus_interface_info_ref", type_id = "g_dbus_interface_info_get_type ()", unref_function = "g_dbus_interface_info_unref")]
 	[Compact]
