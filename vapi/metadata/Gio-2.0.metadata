@@ -321,6 +321,10 @@ AsyncInitable
 DBusConnection
   .register_object skip
 
+// Bug #684358: GDBusConnection `closed` signal is not exposed
+DBusConnection
+  .closed#property skip
+
 // Bug #: Reparenting instance method breaks arguments
 Socket
   .connection_factory_create_connection skip // parent="GLib.SocketConnection" name="factory_create_connection"
