@@ -310,6 +310,10 @@ AsyncInitable
 DBusConnection
   .register_object skip
 
+// Bug #772424: GDBusConnection `closed` signal is not exposed
+DBusConnection
+  .closed#property skip
+
 // Bug #: Construct methods not detected as such
 DBusMessage
   .new_method_* skip
