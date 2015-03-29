@@ -4,7 +4,7 @@ NULL =
 
 AM_CPPFLAGS = \
 	$(COVERAGE_CFLAGS) \
-	-I$(top_srcdir)/gee \
+	-I$(top_builddir)/gee \
 	$(GLIB_CFLAGS) \
 	$(GMODULE_CFLAGS) \
 	-DPACKAGE_DATADIR=\"$(pkgdatadir)\" \
@@ -186,7 +186,7 @@ vala.vapi vala.vala.stamp: $(libvala_la_VALASOURCES)
 		$(VALAFLAGS) \
 		-C \
 		--vapidir $(top_srcdir)/vapi --pkg gmodule-2.0 --pkg gobject-2.0 \
-		--vapidir $(top_srcdir)/gee --pkg gee \
+		--vapidir $(top_builddir)/gee --pkg gee \
 		--pkg config \
 		--use-header \
 		-H vala.h \
@@ -208,7 +208,7 @@ libvala@PACKAGE_SUFFIX@_la_LIBADD = \
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = libvala@PACKAGE_SUFFIX@.vapi
 
-libvala@PACKAGE_SUFFIX@.vapi: $(top_srcdir)/gee/gee.vapi $(top_srcdir)/vala/vala.vapi
+libvala@PACKAGE_SUFFIX@.vapi: $(top_builddir)/gee/gee.vapi $(top_builddir)/vala/vala.vapi
 	cat $^ > $@
 
 EXTRA_DIST = $(libvala_la_VALASOURCES) vala.vapi vala.vala.stamp vala.h

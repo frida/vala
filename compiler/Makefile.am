@@ -4,10 +4,10 @@ NULL =
 
 AM_CPPFLAGS = \
 	$(COVERAGE_CFLAGS) \
-	-I$(top_srcdir)/gee \
-	-I$(top_srcdir)/ccode \
-	-I$(top_srcdir)/vala \
-	-I$(top_srcdir)/codegen \
+	-I$(top_builddir)/gee \
+	-I$(top_builddir)/ccode \
+	-I$(top_builddir)/vala \
+	-I$(top_builddir)/codegen \
 	$(GLIB_CFLAGS) \
 	-DPACKAGE_DATADIR=\"$(pkgdatadir)\" \
 	$(NULL)
@@ -33,10 +33,10 @@ valac.vala.stamp: $(valac_VALASOURCES)
 		$(VALAFLAGS) \
 		-C \
 		--vapidir $(top_srcdir)/vapi --pkg gobject-2.0 \
-		--vapidir $(top_srcdir)/gee --pkg gee \
-		--vapidir $(top_srcdir)/ccode --pkg ccode \
-		--vapidir $(top_srcdir)/vala --pkg vala \
-		--vapidir $(top_srcdir)/codegen --pkg codegen \
+		--vapidir $(top_builddir)/gee --pkg gee \
+		--vapidir $(top_builddir)/ccode --pkg ccode \
+		--vapidir $(top_builddir)/vala --pkg vala \
+		--vapidir $(top_builddir)/codegen --pkg codegen \
 		--pkg config \
 		$^
 	@touch $@
