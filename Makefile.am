@@ -29,7 +29,7 @@ libvala@PACKAGE_SUFFIX@.pc: libvala.pc
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = libvala@PACKAGE_SUFFIX@.vapi
 
-libvala@PACKAGE_SUFFIX@.vapi: $(top_srcdir)/gee/gee.vapi $(top_srcdir)/vala/vala.vapi
+libvala@PACKAGE_SUFFIX@.vapi: $(top_builddir)/gee/gee.vapi $(top_builddir)/vala/vala.vapi
 	cat $^ > $@
 
 .PHONY: bootstrap
