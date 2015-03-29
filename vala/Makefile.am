@@ -4,7 +4,7 @@ NULL =
 
 AM_CPPFLAGS = \
 	$(COVERAGE_CFLAGS) \
-	-I$(top_srcdir)/gee \
+	-I$(top_builddir)/gee \
 	$(GLIB_CFLAGS) \
 	$(GMODULE_CFLAGS) \
 	-DPACKAGE_DATADIR=\"$(pkgdatadir)\" \
@@ -185,7 +185,7 @@ vala.vapi vala.vala.stamp: $(libvalacore_la_VALASOURCES)
 		$(VALAFLAGS) \
 		-C \
 		--vapidir $(top_srcdir)/vapi --pkg gmodule-2.0 --pkg gobject-2.0 \
-		--vapidir $(top_srcdir)/gee --pkg gee \
+		--vapidir $(top_builddir)/gee --pkg gee \
 		--pkg config \
 		-H vala.h \
 		--library vala \
