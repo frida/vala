@@ -835,6 +835,10 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				ccode.add_expression (mem_profiler_init_call);
 			}
 
+			var init_cond = new CCodeIfSection ("GLIB_CHECK_VERSION (2,46,0)");
+			ccode.add_statement (init_cond);
+			init_cond.append (new CCodeExpressionStatement (new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
+
 			if (context.thread) {
 				var thread_init_call = new CCodeFunctionCall (new CCodeIdentifier ("g_thread_init"));
 				thread_init_call.line = cmain.line;
