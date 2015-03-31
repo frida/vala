@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(MSBuildExtensionsPath)\HSBuild\HSBuild.C.Default.props" />
+
+  <PropertyGroup>
+    <VersionMajor>0</VersionMajor>
+    <VersionMinor>28</VersionMinor>
+    <VersionMicro>0</VersionMicro>
+    <VersionExtra>-frida</VersionExtra>
+    <Version>$(VersionMajor).$(VersionMinor).$(VersionMicro)$(VersionExtra)</Version>
+    <VersionApi>0.28</VersionApi>
+    <PackageSuffix>-$(VersionApi)</PackageSuffix>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildExtensionsPath)\HSBuild\HSBuild.Vala.props" />
+  <Import Project="$(MSBuildExtensionsPath)\HSBuild\Frida.props" />
+
+  <ItemDefinitionGroup>
+    <ValaCompile>
+      <VapiDirectory>
+        vapi;
+        %(VapiDirectory)
+      </VapiDirectory>
+    </ValaCompile>
+    <ClCompile>
+      <PreprocessorDefinitions>
+        %(PreprocessorDefinitions);
+        PACKAGE_SUFFIX=&quot;$(PackageSuffix)&quot;
+      </PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>
