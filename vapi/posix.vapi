@@ -388,6 +388,55 @@ namespace Posix {
 		RAW,
 	}
 
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_NODELAY;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_MAXSEG;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_CORK;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_KEEPIDLE;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_KEEPINTVL;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_KEEPCNT;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_SYNCNT;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_LINGER2;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_DEFER_ACCEPT;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_WINDOW_CLAMP;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_INFO;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_QUICKACK;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_CONGESTION;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_MD5SIG;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_COOKIE_TRANSACTIONS;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_THIN_LINEAR_TIMEOUTS;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_THIN_DUPACK;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_USER_TIMEOUT;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_REPAIR;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_REPAIR_QUEUE;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_QUEUE_SEQ;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_REPAIR_OPTIONS;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_FASTOPEN;
+	[CCode (cheader_filename = "netinet/tcp.h")]
+	public const int TCP_TIMESTAMP;
+
 	[CCode (cheader_filename = "arpa/inet.h")]
 	public uint32 inet_addr (string host);
 	[CCode (cheader_filename = "arpa/inet.h")]
@@ -1282,7 +1331,7 @@ namespace Posix {
 	[CCode (cheader_filename = "syslog.h")]
 	public int LOG_UPTO (int pri);
 
-	[CCode (cheader_filename = "syslog.h")]
+	[CCode (cheader_filename = "syslog.h"), PrintfFormat]
 	public void syslog (int priority, string format, ... );
 
 	[CCode (cheader_filename = "syslog.h")]
@@ -1432,6 +1481,8 @@ namespace Posix {
 	public void freeaddrinfo (AddrInfo *res);
 	[CCode (cheader_filename = "netdb.h")]
 	public unowned string gai_strerror (int errcode);
+	[CCode (cheader_filename = "netdb.h")]
+	public unowned HostEnt gethostbyname (string name);
 
 	[CCode (cname = "socklen_t", cheader_filename = "sys/socket.h", default_value = "0", has_type_id = false)]
 	public struct socklen_t : int {
@@ -1481,6 +1532,17 @@ namespace Posix {
 		public SockAddr *ai_addr;
 		public string ai_canonname;
 		public AddrInfo *ai_next;
+	}
+
+	[CCode (cname = "struct hostent", cheader_filename = "netdb.h", destroy_function = "", has_type_id = false)]
+	public class HostEnt {
+		public string h_name;
+		[CCode (array_length=false, array_null_terminated=true)]
+		public string[] h_aliases;
+		public int h_addrtype;
+		public int h_length;
+		[CCode (array_length=false, array_null_terminated=true)]
+		public string[] h_addr_list;
 	}
 
 	[CCode (cheader_filename = "sys/stat.h")]
@@ -1851,8 +1913,19 @@ namespace Posix {
 	public void setusershell ();
 	[CCode (cheader_filename = "unistd.h")]
 	public int chroot (string path);
+	[Version (deprecated_since = "POSIX.2", replacement = "termios ECHO flag")]
 	[CCode (cheader_filename = "unistd.h")]
 	public unowned string getpass (string promt);
+	/**
+	 * Encodes a string
+	 *
+	 * To expose Posix crypt() GNU's libc and others require the feature test
+	 * macro _XOPEN_SOURCE to be defined. See man 3 crypt.
+	 * A VAPI is unable to define and emit this macro before all include files
+	 * Instead use valac -X -D_XOPEN_SOURCE
+	 */
+	[CCode (cheader_filename = "unistd.h")]
+	public unowned string crypt (string key, string salt);
 	[CCode (cheader_filename = "unistd.h")]
 	public int getpagesize ();
 	[CCode (cheader_filename = "unistd.h")]

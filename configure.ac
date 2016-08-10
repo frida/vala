@@ -6,7 +6,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip])
 AM_MAINTAINER_MODE([enable])
 
-PACKAGE_SUFFIX=-0.28
+PACKAGE_SUFFIX=-0.34
 
 dnl http://people.gnome.org/~walters/docs/build-api.txt
 dnl We don't support separate builddir when building from git
@@ -65,7 +65,7 @@ AC_SUBST(COVERAGE_VALAFLAGS)
 AC_SUBST(COVERAGE_CFLAGS)
 AC_SUBST(COVERAGE_LIBS)
 
-GLIB_REQUIRED=2.24.0
+GLIB_REQUIRED=2.32.0
 
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED)
 

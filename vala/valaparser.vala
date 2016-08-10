@@ -1039,6 +1039,14 @@ public class Vala.Parser : CodeVisitor {
 		if (operator != UnaryOperator.NONE) {
 			next ();
 			var op = parse_unary_expression ();
+			var lit = op as IntegerLiteral;
+			if (lit != null) {
+				if (operator == UnaryOperator.PLUS) {
+					return lit;
+				} else if (operator == UnaryOperator.MINUS) {
+					return new IntegerLiteral ("-"+lit.value, get_src (begin));
+				}
+			}
 			return new UnaryExpression (operator, op, get_src (begin));
 		}
 		switch (current ()) {
@@ -2563,6 +2571,10 @@ public class Vala.Parser : CodeVisitor {
 			c.hides = true;
 		}
 		set_attributes (c, attrs);
+
+		if (ModifierFlags.STATIC in flags) {
+			Report.warning (c.source_reference, "the modifier `static' is not applicable to constants");
+		}
 
 		parent.add_constant (c);
 	}

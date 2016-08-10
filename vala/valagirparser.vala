@@ -52,6 +52,7 @@ public class Vala.GirParser : CodeVisitor {
 		DEPRECATED,
 		REPLACEMENT,
 		DEPRECATED_SINCE,
+		SINCE,
 		ARRAY,
 		ARRAY_LENGTH_IDX,
 		ARRAY_NULL_TERMINATED,
@@ -1161,7 +1162,14 @@ public class Vala.GirParser : CodeVisitor {
 
 				// experimental
 				if (metadata.has_argument (ArgumentType.EXPERIMENTAL)) {
-					symbol.set_attribute ("Experimental", metadata.get_bool (ArgumentType.EXPERIMENTAL));
+					symbol.set_attribute_bool ("Version", "experimental", metadata.get_bool (ArgumentType.EXPERIMENTAL));
+				}
+
+				// since
+				if (metadata.has_argument (ArgumentType.SINCE)) {
+					symbol.version.since = metadata.get_string (ArgumentType.SINCE);
+				} else if (symbol is Namespace == false && girdata["version"] != null) {
+					symbol.version.since = girdata.get ("version");
 				}
 
 				if (parent.symbol is Namespace) {
@@ -1201,13 +1209,13 @@ public class Vala.GirParser : CodeVisitor {
 						}
 					}
 					if (node.deprecated) {
-						node.symbol.set_attribute ("Deprecated", true);
+						node.symbol.version.deprecated = true;
 					}
 					if (node.deprecated_since != null) {
-						node.symbol.set_attribute_string ("Deprecated", "since", node.deprecated_since);
+						node.symbol.version.deprecated_since = node.deprecated_since;
 					}
 					if (node.deprecated_replacement != null) {
-						node.symbol.set_attribute_string ("Deprecated", "replacement", node.deprecated_replacement);
+						node.symbol.version.replacement = node.deprecated_replacement;
 					}
 
 					if (node.new_symbol && !node.merged && !metadata.get_bool (ArgumentType.HIDDEN)) {
@@ -1455,8 +1463,6 @@ public class Vala.GirParser : CodeVisitor {
 				ns.add_interface ((Interface) sym);
 			} else if (sym is Method) {
 				ns.add_method ((Method) sym);
-			} else if (sym is Namespace) {
-				ns.add_namespace ((Namespace) sym);
 			} else if (sym is Struct) {
 				ns.add_struct ((Struct) sym);
 			}
@@ -1852,6 +1858,7 @@ public class Vala.GirParser : CodeVisitor {
 				parse_include ();
 			} else if (reader.name == "package") {
 				var pkg = parse_package ();
+				this.current_source_file.package_name = pkg;
 				if (context.has_package (pkg)) {
 					// package already provided elsewhere, stop parsing this GIR
 					return;
@@ -2477,6 +2484,7 @@ public class Vala.GirParser : CodeVisitor {
 		string type_name = reader.get_attribute ("name");
 		ctype = null;
 
+		var fixed_length = -1;
 		array_length_idx = -1;
 		no_array_length = true;
 		array_null_terminated = true;
@@ -2494,6 +2502,7 @@ public class Vala.GirParser : CodeVisitor {
 					array_null_terminated = false;
 				}
 				if (reader.get_attribute ("fixed-size") != null) {
+					fixed_length = int.parse (reader.get_attribute ("fixed-size"));
 					array_null_terminated = false;
 				}
 				if (reader.get_attribute ("c:type") == "GStrv") {
@@ -2505,9 +2514,15 @@ public class Vala.GirParser : CodeVisitor {
 				}
 				next ();
 				var element_type = parse_type ();
-				element_type.value_owned = true;
+				element_type.value_owned = transfer_elements;
 				end_element ("array");
-				return new ArrayType (element_type, 1, src);
+
+				var array_type = new ArrayType (element_type, 1, src);
+				if (fixed_length > 0) {
+					array_type.fixed_length = true;
+					array_type.length = new IntegerLiteral (fixed_length.to_string ());
+				}
+				return array_type;
 			}
 		} else if (reader.name == "callback"){
 			parse_callback ();
@@ -2577,12 +2592,16 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (type_name == "glong") {
 				if (ctype != null && ctype.has_prefix ("gssize")) {
 					type_name = "ssize_t";
+				} else if (ctype != null && ctype.has_prefix ("gintptr")) {
+					type_name = "intptr";
 				} else {
 					type_name = "long";
 				}
 			} else if (type_name == "gulong") {
 				if (ctype != null && ctype.has_prefix ("gsize")) {
 					type_name = "size_t";
+				} else if (ctype != null && ctype.has_prefix ("guintptr")) {
+					type_name = "uintptr";
 				} else {
 					type_name = "ulong";
 				}
@@ -2614,6 +2633,10 @@ public class Vala.GirParser : CodeVisitor {
 				type_name = "size_t";
 			} else if (type_name == "gssize") {
 				type_name = "ssize_t";
+			} else if (type_name == "guintptr") {
+				type_name = "uintptr";
+			} else if (type_name == "gintptr") {
+				type_name = "intptr";
 			} else if (type_name == "GType") {
 				type_name = "GLib.Type";
 			} else if (type_name == "GLib.String") {
@@ -2877,7 +2900,9 @@ public class Vala.GirParser : CodeVisitor {
 			if (no_array_length) {
 				field.set_attribute_bool ("CCode", "array_length", false);
 			}
-			field.set_attribute_bool ("CCode", "array_null_terminated", true);
+			if (array_null_terminated) {
+				field.set_attribute_bool ("CCode", "array_null_terminated", true);
+			}
 		}
 		if (nullable == "1" || allow_none == "1") {
 			type.nullable = true;
@@ -2892,6 +2917,7 @@ public class Vala.GirParser : CodeVisitor {
 		start_element ("property");
 		push_node (element_get_name().replace ("-", "_"), false);
 		bool is_abstract = metadata.get_bool (ArgumentType.ABSTRACT, current.parent.symbol is Interface);
+		string transfer = reader.get_attribute ("transfer-ownership");
 
 		next ();
 
@@ -2899,7 +2925,7 @@ public class Vala.GirParser : CodeVisitor {
 
 		bool no_array_length;
 		bool array_null_terminated;
-		var type = parse_type (null, null, false, out no_array_length, out array_null_terminated);
+		var type = parse_type (null, null, transfer != "container", out no_array_length, out array_null_terminated);
 		type = element_get_type (type, true, ref no_array_length, ref array_null_terminated);
 		var prop = new Property (current.name, type, null, null, current.source_reference);
 		prop.comment = comment;
@@ -3708,8 +3734,13 @@ public class Vala.GirParser : CodeVisitor {
 					var d = ((DelegateType) resolved_type).delegate_symbol;
 					if (!(d.name == "DestroyNotify" && d.parent_symbol.name == "GLib")) {
 						info.param.set_attribute_string ("CCode", "scope", "async");
-						info.param.variable_type.value_owned = true;
+						info.param.variable_type.value_owned = (info.closure_idx != -1 && info.destroy_idx != -1);
 					}
+				}
+			} else {
+				var resolved_type = info.param.variable_type;
+				if (resolved_type is DelegateType) {
+					info.param.variable_type.value_owned = (info.closure_idx != -1 && info.destroy_idx != -1);
 				}
 			}
 		}

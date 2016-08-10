@@ -39,6 +39,8 @@ namespace Gst {
 			public virtual bool packet_lost (Gst.Event event);
 			[NoWrapper]
 			public virtual Gst.Buffer process (Gst.Buffer @in);
+			[NoWrapper]
+			public virtual Gst.Buffer process_rtp_packet (Gst.RTP.Buffer rtp_buffer);
 			public Gst.FlowReturn push (Gst.Buffer out_buf);
 			public Gst.FlowReturn push_list (Gst.BufferList out_list);
 			[NoWrapper]
@@ -96,18 +98,19 @@ namespace Gst {
 		[Compact]
 		[GIR (name = "RTPBuffer")]
 		public class Buffer : Gst.Buffer {
-			[CCode (array_length = false, array_null_terminated = true)]
-			public weak void*[] data;
-			[CCode (array_length = false, array_null_terminated = true)]
-			public Gst.MapInfo[] map;
-			[CCode (array_length = false, array_null_terminated = true)]
-			public weak size_t[] size;
+			[CCode (array_length = false)]
+			public weak void* data[4];
+			[CCode (array_length = false)]
+			public Gst.MapInfo map[4];
+			[CCode (array_length = false)]
+			public weak size_t size[4];
 			public uint state;
 			public bool add_extension_onebyte_header (uint8 id, [CCode (array_length_cname = "size", array_length_pos = 2.1, array_length_type = "guint")] uint8[] data);
 			public bool add_extension_twobytes_header (uint8 appbits, uint8 id, [CCode (array_length_cname = "size", array_length_pos = 3.1, array_length_type = "guint")] uint8[] data);
 			public uint32 get_csrc (uint8 idx);
 			public uint8 get_csrc_count ();
 			public bool get_extension ();
+			[Version (since = "1.2")]
 			public GLib.Bytes get_extension_bytes (out uint16 bits);
 			public bool get_extension_data (out uint16 bits, [CCode (array_length = false)] out unowned uint8[] data, out uint wordlen);
 			public bool get_extension_onebyte_header (uint8 id, uint nth, [CCode (array_length_cname = "size", array_length_pos = 3.1, array_length_type = "guint")] out unowned uint8[] data);
@@ -119,6 +122,7 @@ namespace Gst {
 			[CCode (array_length = false)]
 			public unowned uint8[] get_payload ();
 			public Gst.Buffer get_payload_buffer ();
+			[Version (since = "1.2")]
 			public GLib.Bytes get_payload_bytes ();
 			public uint get_payload_len ();
 			public Gst.Buffer get_payload_subbuffer (uint offset, uint len);
@@ -151,7 +155,15 @@ namespace Gst {
 			public weak string encoding_parameters;
 			public uint bitrate;
 		}
-		[CCode (cheader_filename = "gst/rtp/rtp.h", cprefix = "GST_RTP_PAYLOAD_", has_type_id = false)]
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cprefix = "GST_RTP_BUFFER_MAP_FLAG_", type_id = "gst_rtp_buffer_map_flags_get_type ()")]
+		[Flags]
+		[GIR (name = "RTPBufferMapFlags")]
+		[Version (since = "1.6.1")]
+		public enum BufferMapFlags {
+			SKIP_PADDING,
+			LAST
+		}
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cprefix = "GST_RTP_PAYLOAD_", type_id = "gst_rtp_payload_get_type ()")]
 		[GIR (name = "RTPPayload")]
 		public enum Payload {
 			PCMU,
@@ -215,6 +227,16 @@ namespace Gst {
 			public const string TS41_STRING;
 			public const int TS48;
 			public const string TS48_STRING;
+		}
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cprefix = "GST_RTP_PROFILE_", type_id = "gst_rtp_profile_get_type ()")]
+		[GIR (name = "RTPProfile")]
+		[Version (since = "1.6")]
+		public enum Profile {
+			UNKNOWN,
+			AVP,
+			SAVP,
+			AVPF,
+			SAVPF
 		}
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GST_RTP_HDREXT_BASE")]
 		public const string HDREXT_BASE;
@@ -285,8 +307,37 @@ namespace Gst {
 		public struct Packet {
 			public weak Gst.RTPC.Buffer rtcp;
 			public uint offset;
+			[CCode (cname = "gst_rtcp_packet_add_profile_specific_ext")]
+			public bool add_profile_specific_ext (uint8 data, uint len);
 			[CCode (cname = "gst_rtcp_packet_add_rb")]
 			public bool add_rb (uint32 ssrc, uint8 fractionlost, int32 packetslost, uint32 exthighestseq, uint32 jitter, uint32 lsr, uint32 dlsr);
+			[CCode (cname = "gst_rtcp_packet_app_get_data")]
+			[Version (since = "1.10")]
+			public uint8 app_get_data ();
+			[CCode (cname = "gst_rtcp_packet_app_get_data_length")]
+			[Version (since = "1.10")]
+			public uint16 app_get_data_length ();
+			[CCode (cname = "gst_rtcp_packet_app_get_name")]
+			[Version (since = "1.10")]
+			public unowned string app_get_name ();
+			[CCode (cname = "gst_rtcp_packet_app_get_ssrc")]
+			[Version (since = "1.10")]
+			public uint32 app_get_ssrc ();
+			[CCode (cname = "gst_rtcp_packet_app_get_subtype")]
+			[Version (since = "1.10")]
+			public uint8 app_get_subtype ();
+			[CCode (cname = "gst_rtcp_packet_app_set_data_length")]
+			[Version (since = "1.10")]
+			public bool app_set_data_length (uint16 wordlen);
+			[CCode (cname = "gst_rtcp_packet_app_set_name")]
+			[Version (since = "1.10")]
+			public void app_set_name (string name);
+			[CCode (cname = "gst_rtcp_packet_app_set_ssrc")]
+			[Version (since = "1.10")]
+			public void app_set_ssrc (uint32 ssrc);
+			[CCode (cname = "gst_rtcp_packet_app_set_subtype")]
+			[Version (since = "1.10")]
+			public void app_set_subtype (uint8 subtype);
 			[CCode (cname = "gst_rtcp_packet_bye_add_ssrc")]
 			public bool bye_add_ssrc (uint32 ssrc);
 			[CCode (cname = "gst_rtcp_packet_bye_add_ssrcs")]
@@ -301,6 +352,8 @@ namespace Gst {
 			public uint bye_get_ssrc_count ();
 			[CCode (cname = "gst_rtcp_packet_bye_set_reason")]
 			public bool bye_set_reason (string reason);
+			[CCode (cname = "gst_rtcp_packet_copy_profile_specific_ext")]
+			public bool copy_profile_specific_ext ([CCode (array_length_cname = "len", array_length_pos = 1.1, array_length_type = "guint")] out uint8[] data);
 			[CCode (cname = "gst_rtcp_packet_fb_get_fci")]
 			public uint8 fb_get_fci ();
 			[CCode (cname = "gst_rtcp_packet_fb_get_fci_length")]
@@ -325,6 +378,10 @@ namespace Gst {
 			public uint16 get_length ();
 			[CCode (cname = "gst_rtcp_packet_get_padding")]
 			public bool get_padding ();
+			[CCode (cname = "gst_rtcp_packet_get_profile_specific_ext")]
+			public bool get_profile_specific_ext ([CCode (array_length_cname = "len", array_length_pos = 1.1, array_length_type = "guint")] out unowned uint8[] data);
+			[CCode (cname = "gst_rtcp_packet_get_profile_specific_ext_length")]
+			public uint16 get_profile_specific_ext_length ();
 			[CCode (cname = "gst_rtcp_packet_get_rb")]
 			public void get_rb (uint nth, uint32 ssrc, uint8 fractionlost, int32 packetslost, uint32 exthighestseq, uint32 jitter, uint32 lsr, uint32 dlsr);
 			[CCode (cname = "gst_rtcp_packet_get_rb_count")]
@@ -366,14 +423,14 @@ namespace Gst {
 			[CCode (cname = "gst_rtcp_packet_sr_set_sender_info")]
 			public void sr_set_sender_info (uint32 ssrc, uint64 ntptime, uint32 rtptime, uint32 packet_count, uint32 octet_count);
 		}
-		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPFBType", cprefix = "GST_RTCP_", has_type_id = false)]
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPFBType", cprefix = "GST_RTCP_", type_id = "gst_rtcpfb_type_get_type ()")]
 		[GIR (name = "RTCPFBType")]
 		public enum FBType {
 			FB_TYPE_INVALID,
 			RTPFB_TYPE_NACK,
 			RTPFB_TYPE_TMMBR,
 			RTPFB_TYPE_TMMBN,
-			RTPFB_TYPE_RCTP_SR_REQ,
+			RTPFB_TYPE_RTCP_SR_REQ,
 			PSFB_TYPE_PLI,
 			PSFB_TYPE_SLI,
 			PSFB_TYPE_RPSI,
@@ -383,7 +440,7 @@ namespace Gst {
 			PSFB_TYPE_TSTN,
 			PSFB_TYPE_VBCN
 		}
-		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPSDESType", cprefix = "GST_RTCP_SDES_", has_type_id = false)]
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPSDESType", cprefix = "GST_RTCP_SDES_", type_id = "gst_rtcpsdes_type_get_type ()")]
 		[GIR (name = "RTCPSDESType")]
 		public enum SDESType {
 			INVALID,
@@ -397,7 +454,7 @@ namespace Gst {
 			NOTE,
 			PRIV
 		}
-		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPType", cprefix = "GST_RTCP_TYPE_", has_type_id = false)]
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPType", cprefix = "GST_RTCP_TYPE_", type_id = "gst_rtcp_type_get_type ()")]
 		[GIR (name = "RTCPType")]
 		public enum Type {
 			INVALID,
@@ -417,6 +474,8 @@ namespace Gst {
 		public const int MAX_SDES;
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GST_RTCP_MAX_SDES_ITEM_COUNT")]
 		public const int MAX_SDES_ITEM_COUNT;
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GST_RTCP_REDUCED_SIZE_VALID_MASK")]
+		public const int REDUCED_SIZE_VALID_MASK;
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GST_RTCP_VALID_MASK")]
 		public const int VALID_MASK;
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GST_RTCP_VALID_VALUE")]
@@ -435,6 +494,12 @@ namespace Gst {
 		public static bool buffer_validate (Gst.Buffer buffer);
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "gst_rtcp_buffer_validate_data")]
 		public static bool buffer_validate_data ([CCode (array_length_cname = "len", array_length_pos = 1.1, array_length_type = "guint")] uint8[] data);
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "gst_rtcp_buffer_validate_data_reduced")]
+		[Version (since = "1.6")]
+		public static bool buffer_validate_data_reduced ([CCode (array_length_cname = "len", array_length_pos = 1.1, array_length_type = "guint")] uint8[] data);
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "gst_rtcp_buffer_validate_reduced")]
+		[Version (since = "1.6")]
+		public static bool buffer_validate_reduced (Gst.Buffer buffer);
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "gst_rtcp_ntp_to_unix")]
 		public static uint64 ntp_to_unix (uint64 ntptime);
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "gst_rtcp_sdes_name_to_type")]

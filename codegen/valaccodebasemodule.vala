@@ -464,16 +464,12 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		gvariant_type = (Class) glib_ns.scope.lookup ("Variant");
 		gsource_type = (Class) glib_ns.scope.lookup ("Source");
 
-		if (context.require_glib_version (2, 32)) {
-			gmutex_type = (Struct) glib_ns.scope.lookup ("Mutex");
-			grecmutex_type = (Struct) glib_ns.scope.lookup ("RecMutex");
-			grwlock_type = (Struct) glib_ns.scope.lookup ("RWLock");
-			gcond_type = (Struct) glib_ns.scope.lookup ("Cond");
+		gmutex_type = (Struct) glib_ns.scope.lookup ("Mutex");
+		grecmutex_type = (Struct) glib_ns.scope.lookup ("RecMutex");
+		grwlock_type = (Struct) glib_ns.scope.lookup ("RWLock");
+		gcond_type = (Struct) glib_ns.scope.lookup ("Cond");
 
-			mutex_type = grecmutex_type;
-		} else {
-			mutex_type = (Struct) glib_ns.scope.lookup ("StaticRecMutex");
-		}
+		mutex_type = grecmutex_type;
 
 		type_module_type = (TypeSymbol) glib_ns.scope.lookup ("TypeModule");
 
@@ -788,7 +784,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 		var cenum = new CCodeEnum (get_ccode_name (en));
 
-		cenum.deprecated = en.deprecated;
+		cenum.deprecated = en.version.deprecated;
 
 		int flag_shift = 0;
 		foreach (EnumValue ev in en.get_values ()) {
@@ -803,7 +799,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				ev.value.emit (this);
 				c_ev = new CCodeEnumValue (get_ccode_name (ev), get_cvalue (ev.value));
 			}
-			c_ev.deprecated = ev.deprecated;
+			c_ev.deprecated = ev.version.deprecated;
 			cenum.add_value (c_ev);
 		}
 
@@ -885,15 +881,8 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			pop_context ();
 
 			if (finalize_context != null) {
-				string mutex_clear;
-				if (context.require_glib_version (2, 32)) {
-					mutex_clear = "g_rec_mutex_clear";
-				} else {
-					mutex_clear = "g_static_rec_mutex_free";
-				}
-
 				push_context (finalize_context);
-				var fc = new CCodeFunctionCall (new CCodeIdentifier (mutex_clear));
+				var fc = new CCodeFunctionCall (new CCodeIdentifier ("g_rec_mutex_clear"));
 				fc.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, l));
 				ccode.add_expression (fc);
 				pop_context ();
@@ -1003,7 +992,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		} else {
 			cdecl.modifiers = CCodeModifiers.EXTERN;
 		}
-		if (f.deprecated) {
+		if (f.version.deprecated) {
 			cdecl.modifiers |= CCodeModifiers.DEPRECATED;
 		}
 		decl_space.add_type_member_declaration (cdecl);
@@ -2622,7 +2611,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				dup_function = get_ccode_ref_function ((ObjectTypeSymbol) type.data_type);
 				if (type.data_type is Interface && dup_function == null) {
 					Report.error (source_reference, "missing class prerequisite for interface `%s', add GLib.Object to interface declaration if unsure".printf (type.data_type.get_full_name ()));
-					return null;
+					return new CCodeInvalidExpression();
 				}
 			} else if (cl != null && cl.is_immutable) {
 				// allow duplicates of immutable instances as for example strings
@@ -2646,7 +2635,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			} else {
 				// duplicating non-reference counted objects may cause side-effects (and performance issues)
 				Report.error (source_reference, "duplicating %s instance, use unowned variable or explicitly invoke copy method".printf (type.data_type.name));
-				return null;
+				return new CCodeInvalidExpression();
 			}
 
 			return new CCodeIdentifier (dup_function);
@@ -2736,15 +2725,15 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 	}
 
 	private string generate_struct_equal_function (Struct st) {
+		if (st.base_struct != null) {
+			return generate_struct_equal_function (st.base_struct);
+		}
+
 		string equal_func = "_%sequal".printf (get_ccode_lower_case_prefix (st));
 
 		if (!add_wrapper (equal_func)) {
 			// wrapper already defined
 			return equal_func;
-		}
-
-		if (st.base_struct != null) {
-			return generate_struct_equal_function (st.base_struct);
 		}
 
 		var function = new CCodeFunction (equal_func, "gboolean");
@@ -3314,8 +3303,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				ccomma.append_expression (new CCodeConstant ("NULL"));
 
 				return new CCodeConditionalExpression (cisvalid, ccomma, new CCodeConstant ("NULL"));
-			} else if (context.require_glib_version (2, 32) &&
-			           (type.data_type == gmutex_type ||
+			} else if ((type.data_type == gmutex_type ||
 			            type.data_type == grecmutex_type ||
 			            type.data_type == grwlock_type ||
 			            type.data_type == gcond_type)) {
@@ -3700,14 +3688,20 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			}
 		}
 
+		// TODO: don't duplicate the code in CCodeMethodModule, we do this right now because it needs to be before return
 		if (current_method != null && current_method.get_attribute ("Profile") != null) {
 			string prefix = "_vala_prof_%s".printf (get_ccode_real_name (current_method));
+
+			var level = new CCodeIdentifier (prefix + "_level");
+			ccode.open_if (new CCodeUnaryExpression (CCodeUnaryOperator.LOGICAL_NEGATION, new CCodeUnaryExpression (CCodeUnaryOperator.PREFIX_DECREMENT, level)));
 
 			var timer = new CCodeIdentifier (prefix + "_timer");
 
 			var stop_call = new CCodeFunctionCall (new CCodeIdentifier ("g_timer_stop"));
 			stop_call.add_argument (timer);
 			ccode.add_expression (stop_call);
+
+			ccode.close ();
 		}
 
 		if (is_in_constructor ()) {
@@ -6060,6 +6054,16 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			} else {
 				return get_ccode_lower_case_name (type.error_code, infix);
 			}
+		} else if (node is DelegateType) {
+			var type = (DelegateType) node;
+			return get_ccode_lower_case_name (type.delegate_symbol, infix);
+		} else if (node is PointerType) {
+			var type = (PointerType) node;
+			return get_ccode_lower_case_name (type.base_type, infix);
+		} else if (node is GenericType) {
+			return "valageneric";
+		} else if (node is VoidType) {
+			return "valavoid";
 		} else {
 			var type = (DataType) node;
 			return get_ccode_lower_case_name (type.data_type, infix);

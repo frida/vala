@@ -30,6 +30,7 @@ public class Vala.GIRWriter : CodeVisitor {
 	private string directory;
 	private string gir_namespace;
 	private string gir_version;
+	private string gir_shared_library;
 
 	protected virtual string? get_interface_comment (Interface iface) {
 		return null;
@@ -138,14 +139,15 @@ public class Vala.GIRWriter : CodeVisitor {
 	 * Writes the public interface of the specified code context into the
 	 * specified file.
 	 *
-	 * @param context  a code context
-	 * @param filename a relative or absolute filename
+	 * @param context      a code context
+	 * @param gir_filename a relative or absolute filename
 	 */
-	public void write_file (CodeContext context, string directory, string gir_filename, string gir_namespace, string gir_version, string package) {
+	public void write_file (CodeContext context, string directory, string gir_filename, string gir_namespace, string gir_version, string package, string? gir_shared_library = null) {
 		this.context = context;
 		this.directory = directory;
 		this.gir_namespace = gir_namespace;
 		this.gir_version = gir_version;
+		this.gir_shared_library = gir_shared_library;
 
 		var root_symbol = context.root;
 		var glib_ns = root_symbol.scope.lookup ("GLib");
@@ -256,6 +258,9 @@ public class Vala.GIRWriter : CodeVisitor {
 		write_indent ();
 		buffer.append_printf ("<namespace name=\"%s\" version=\"%s\"", gir_namespace, gir_version);
 		string? cprefix = CCodeBaseModule.get_ccode_prefix (ns);
+		if (gir_shared_library != null) {
+			buffer.append_printf(" shared-library=\"%s\"", gir_shared_library);
+		}
 		if (cprefix != null) {
 			buffer.append_printf (" c:prefix=\"%s\"", cprefix);
 		}
@@ -277,11 +282,14 @@ public class Vala.GIRWriter : CodeVisitor {
 	}
 
 	private void write_symbol_attributes (Symbol symbol) {
-		if (symbol.deprecated) {
-			buffer.append_printf (" deprecated=\"%s\"", (symbol.replacement == null) ? "" : "Use %s".printf (symbol.replacement));
-			if (symbol.deprecated_since != null) {
-				buffer.append_printf (" deprecated-version=\"%s\"", symbol.deprecated_since);
+		if (symbol.version.deprecated) {
+			buffer.append_printf (" deprecated=\"%s\"", (symbol.version.replacement == null) ? "" : "Use %s".printf (symbol.version.replacement));
+			if (symbol.version.deprecated_since != null) {
+				buffer.append_printf (" deprecated-version=\"%s\"", symbol.version.deprecated_since);
 			}
+		}
+		if (symbol.version.since != null) {
+			buffer.append_printf (" version=\"%s\"", symbol.version.since);
 		}
 	}
 

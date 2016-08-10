@@ -507,12 +507,12 @@ public class Vala.GIdlParser : CodeVisitor {
 					ns.set_attribute_string ("CCode", "gir_version", eval (nv[1]));
 				} else if (nv[0] == "deprecated") {
 					if (eval (nv[1]) == "1") {
-						ns.set_attribute ("Deprecated", true);
+						ns.set_attribute_bool ("Version", "deprecated", true);
 					}
 				} else if (nv[0] == "replacement") {
-					ns.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+					ns.set_attribute_string ("Version", "replacement", eval (nv[1]));
 				} else if (nv[0] == "deprecated_since") {
-					ns.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+					ns.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 				}
 			}
 		}
@@ -618,12 +618,12 @@ public class Vala.GIdlParser : CodeVisitor {
 					cb.return_type = return_type = parse_type_from_string (eval (nv[1]), return_type.value_owned);
 				} else if (nv[0] == "deprecated") {
 					if (eval (nv[1]) == "1") {
-						cb.set_attribute ("Deprecated", true);
+						cb.set_attribute_bool ("Version", "deprecated", true);
 					}
 				} else if (nv[0] == "replacement") {
-					cb.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+					cb.set_attribute_string ("Version", "replacement", eval (nv[1]));
 				} else if (nv[0] == "deprecated_since") {
-					cb.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+					cb.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 				} else if (nv[0] == "type_arguments") {
 					parse_type_arguments_from_string (return_type, eval (nv[1]));
 				} else if (nv[0] == "instance_pos") {
@@ -634,7 +634,7 @@ public class Vala.GIdlParser : CodeVisitor {
 					}
 				} else if (nv[0] == "experimental") {
 					if (eval (nv[1]) == "1") {
-						cb.set_attribute ("Experimental", true);
+						cb.set_attribute_bool ("Version", "experimental", true);
 					}
 				}
 			}
@@ -820,19 +820,19 @@ public class Vala.GIdlParser : CodeVisitor {
 							}
 						} else if (nv[0] == "deprecated") {
 							if (eval (nv[1]) == "1") {
-								st.set_attribute ("Deprecated", true);
+								st.set_attribute_bool ("Version", "deprecated", true);
 							}
 						} else if (nv[0] == "replacement") {
-							st.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+							st.set_attribute_string ("Version", "replacement", eval (nv[1]));
 						} else if (nv[0] == "deprecated_since") {
-							st.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+							st.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 						} else if (nv[0] == "has_destroy_function") {
 							if (eval (nv[1]) == "0") {
 								st.set_attribute_bool ("CCode", "has_destroy_function", false);
 							}
 						} else if (nv[0] == "experimental") {
 							if (eval (nv[1]) == "1") {
-								st.set_attribute ("Experimental", true);
+								st.set_attribute_bool ("Version", "experimental", true);
 							}
 						}
 					}
@@ -914,19 +914,19 @@ public class Vala.GIdlParser : CodeVisitor {
 							}
 						} else if (nv[0] == "deprecated") {
 							if (eval (nv[1]) == "1") {
-								cl.set_attribute ("Deprecated", true);
+								cl.set_attribute_bool ("Version", "deprecated", true);
 							}
 						} else if (nv[0] == "replacement") {
-							cl.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+							cl.set_attribute_string ("Version", "replacement", eval (nv[1]));
 						} else if (nv[0] == "deprecated_since") {
-							cl.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+							cl.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 						} else if (nv[0] == "type_parameters") {
 							foreach (string type_param_name in eval (nv[1]).split (",")) {
 								cl.add_type_parameter (new TypeParameter (type_param_name, current_source_reference));
 							}
 						} else if (nv[0] == "experimental") {
 							if (eval (nv[1]) == "1") {
-								cl.set_attribute ("Experimental", true);
+								cl.set_attribute_bool ("Version", "experimental", true);
 							}
 						} else if (nv[0] == "delegate_target_cname") {
 							cl.set_attribute_string ("CCode", "delegate_target_cname", eval (nv[1]));
@@ -1015,19 +1015,19 @@ public class Vala.GIdlParser : CodeVisitor {
 							st.set_attribute_string ("CCode", "cheader_filename", eval (nv[1]));
 						} else if (nv[0] == "deprecated") {
 							if (eval (nv[1]) == "1") {
-								st.set_attribute ("Deprecated", true);
+								st.set_attribute_bool ("Version", "deprecated", true);
 							}
 						} else if (nv[0] == "replacement") {
-							st.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+							st.set_attribute_string ("Version", "replacement", eval (nv[1]));
 						} else if (nv[0] == "deprecated_since") {
-							st.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+							st.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 						} else if (nv[0] == "hidden") {
 							if (eval (nv[1]) == "1") {
 								return;
 							}
 						} else if (nv[0] == "experimental") {
 							if (eval (nv[1]) == "1") {
-								st.set_attribute ("Experimental", true);
+								st.set_attribute_bool ("Version", "experimental", true);
 							}
 						}
 					}
@@ -1160,12 +1160,12 @@ public class Vala.GIdlParser : CodeVisitor {
 							st.set_attribute_string ("CCode", "cheader_filename", eval (nv[1]));
 						} else if (nv[0] == "deprecated") {
 							if (eval (nv[1]) == "1") {
-								st.set_attribute ("Deprecated", true);
+								st.set_attribute_bool ("Version", "deprecated", true);
 							}
 						} else if (nv[0] == "replacement") {
-							st.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+							st.set_attribute_string ("Version", "replacement", eval (nv[1]));
 						} else if (nv[0] == "deprecated_since") {
-							st.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+							st.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 						} else if (nv[0] == "immutable") {
 							if (eval (nv[1]) == "1") {
 								st.set_attribute ("Immutable", true);
@@ -1180,7 +1180,7 @@ public class Vala.GIdlParser : CodeVisitor {
 							}
 						} else if (nv[0] == "experimental") {
 							if (eval (nv[1]) == "1") {
-								st.set_attribute ("Experimental", true);
+								st.set_attribute_bool ("Version", "experimental", true);
 							}
 						}
 					}
@@ -1239,12 +1239,12 @@ public class Vala.GIdlParser : CodeVisitor {
 							}
 						} else if (nv[0] == "deprecated") {
 							if (eval (nv[1]) == "1") {
-								cl.set_attribute ("Deprecated", true);
+								cl.set_attribute_bool ("Version", "deprecated", true);
 							}
 						} else if (nv[0] == "replacement") {
-							cl.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+							cl.set_attribute_string ("Version", "replacement", eval (nv[1]));
 						} else if (nv[0] == "deprecated_since") {
-							cl.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+							cl.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 						} else if (nv[0] == "const_cname") {
 							cl.set_attribute_string ("CCode", "const_cname", eval (nv[1]));
 						} else if (nv[0] == "free_function") {
@@ -1261,7 +1261,7 @@ public class Vala.GIdlParser : CodeVisitor {
 							}
 						} else if (nv[0] == "experimental") {
 							if (eval (nv[1]) == "1") {
-								cl.set_attribute ("Experimental", true);
+								cl.set_attribute_bool ("Version", "experimental", true);
 							}
 						}
 					}
@@ -1401,14 +1401,14 @@ public class Vala.GIdlParser : CodeVisitor {
 					}
 				} else if (nv[0] == "deprecated") {
 					if (eval (nv[1]) == "1") {
-						en.set_attribute ("Deprecated", true);
+						en.set_attribute_bool ("Version", "deprecated", true);
 					}
 				} else if (nv[0] == "default_value") {
 					en.set_attribute_string ("CCode", "default_value", eval (nv[1]));
 				} else if (nv[0] == "replacement") {
-					en.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+					en.set_attribute_string ("Version", "replacement", eval (nv[1]));
 				} else if (nv[0] == "deprecated_since") {
-					en.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+					en.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 				} else if (nv[0] == "rename_to") {
 					en.name = eval (nv[1]);
 				} else if (nv[0] == "errordomain") {
@@ -1425,7 +1425,7 @@ public class Vala.GIdlParser : CodeVisitor {
 					en.add_method (m);
 				} else if (nv[0] == "experimental") {
 					if (eval (nv[1]) == "1") {
-						en.set_attribute ("Experimental", true);
+						en.set_attribute_bool ("Version", "experimental", true);
 					}
 				}
 			}
@@ -1445,12 +1445,12 @@ public class Vala.GIdlParser : CodeVisitor {
 						is_hidden = true;
 					} else if (nv[0] == "deprecated") {
 						if (eval (nv[1]) == "1") {
-							ev.set_attribute ("Deprecated", true);
+							ev.set_attribute_bool ("Version", "deprecated", true);
 						}
 					}  else if (nv[0] == "replacement") {
-						ev.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+						ev.set_attribute_string ("Version", "replacement", eval (nv[1]));
 					} else if (nv[0] == "deprecated_since") {
-						ev.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+						ev.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 					}
 				}
 			}
@@ -1512,12 +1512,12 @@ public class Vala.GIdlParser : CodeVisitor {
 						cl.set_attribute_string ("CCode", "type_check_function", eval (nv[1]));
 					} else if (nv[0] == "deprecated") {
 						if (eval (nv[1]) == "1") {
-							cl.set_attribute ("Deprecated", true);
+							cl.set_attribute_bool ("Version", "deprecated", true);
 						}
 					} else if (nv[0] == "replacement") {
-						cl.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+						cl.set_attribute_string ("Version", "replacement", eval (nv[1]));
 					} else if (nv[0] == "deprecated_since") {
-						cl.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+						cl.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 					} else if (nv[0] == "type_id") {
 						cl.set_attribute_string ("CCode", "type_id", eval (nv[1]));
 					} else if (nv[0] == "abstract") {
@@ -1526,7 +1526,7 @@ public class Vala.GIdlParser : CodeVisitor {
 						}
 					} else if (nv[0] == "experimental") {
 						if (eval (nv[1]) == "1") {
-							cl.set_attribute ("Experimental", true);
+							cl.set_attribute_bool ("Version", "experimental", true);
 						}
 					} else if (nv[0] == "compact") {
 						if (eval (nv[1]) == "1") {
@@ -1896,6 +1896,18 @@ public class Vala.GIdlParser : CodeVisitor {
 			type.unresolved_symbol = new UnresolvedSymbol (new UnresolvedSymbol (null, "GLib"), "HashTable");
 		} else if (type_node.tag == TypeTag.ERROR) {
 			type.unresolved_symbol = new UnresolvedSymbol (new UnresolvedSymbol (null, "GLib"), "Error");
+		} else if (type_node.unparsed.has_prefix ("cairo_device_t") || type_node.unparsed.has_prefix ("cairo_pattern_t") ||
+		    type_node.unparsed.has_prefix ("cairo_surface_t")) {
+			if (type_node.unparsed.has_prefix ("cairo_device_t")) {
+				type.unresolved_symbol = new UnresolvedSymbol (new UnresolvedSymbol (null, "Cairo"), "Device");
+			} else if (type_node.unparsed.has_prefix ("cairo_pattern_t")) {
+				type.unresolved_symbol = new UnresolvedSymbol (new UnresolvedSymbol (null, "Cairo"), "Pattern");
+			} else if (type_node.unparsed.has_prefix ("cairo_surface_t")) {
+				type.unresolved_symbol = new UnresolvedSymbol (new UnresolvedSymbol (null, "Cairo"), "Surface");
+			}
+			if (type_node.unparsed.has_suffix ("**")) {
+				direction = ParameterDirection.OUT;
+			}
 		} else if (type_node.is_interface) {
 			var n = type_node.@interface;
 			
@@ -2261,9 +2273,21 @@ public class Vala.GIdlParser : CodeVisitor {
 					if (eval (nv[1]) == "1") {
 						return_type.value_owned = true;
 					}
+				} else if (nv[0] == "transfer_container") {
+					if (eval (nv[1]) == "1") {
+						return_type.value_owned = true;
+						if (return_type is ArrayType) {
+							((ArrayType) return_type).element_type.value_owned = false;
+						}
+					}
 				} else if (nv[0] == "destroys_instance") {
 					if (eval (nv[1]) == "1") {
 						m.set_attribute ("DestroysInstance", true, m.source_reference);
+					}
+				} else if (nv[0] == "returns_floating_reference") {
+					if (eval (nv[1]) == "1") {
+						m.set_attribute_bool ("CCode", "returns_floating_reference", true);
+						m.return_type.value_owned = true;
 					}
 				} else if (nv[0] == "nullable") {
 					if (eval (nv[1]) == "1" && !(return_type is VoidType)) {
@@ -2307,12 +2331,12 @@ public class Vala.GIdlParser : CodeVisitor {
 					parse_type_arguments_from_string (return_type, eval (nv[1]));
 				} else if (nv[0] == "deprecated") {
 					if (eval (nv[1]) == "1") {
-						m.set_attribute ("Deprecated", true);
+						m.set_attribute_bool ("Version", "deprecated", true);
 					}
 				} else if (nv[0] == "replacement") {
-					m.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+					m.set_attribute_string ("Version", "replacement", eval (nv[1]));
 				} else if (nv[0] == "deprecated_since") {
-					m.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+					m.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 				} else if (nv[0] == "cheader_filename") {
 					m.set_attribute_string ("CCode", "cheader_filename", eval (nv[1]));
 				} else if (nv[0] == "abstract") {
@@ -2340,7 +2364,7 @@ public class Vala.GIdlParser : CodeVisitor {
 					}
 				} else if (nv[0] == "experimental") {
 					if (eval (nv[1]) == "1") {
-						m.set_attribute ("Experimental", true);
+						m.set_attribute_bool ("Version", "experimental", true);
 					}
 				} else if (nv[0] == "simple_generics") {
 					if (eval (nv[1]) == "1") {
@@ -2502,6 +2526,8 @@ public class Vala.GIdlParser : CodeVisitor {
 						p.variable_type = param_type = parse_type_from_string (eval (nv[1]), false);
 					} else if (nv[0] == "ctype") {
 						p.set_attribute_string ("CCode", "type", eval (nv[1]));
+					} else if (nv[0] == "scope") {
+						p.set_attribute_string ("CCode", "scope", eval (nv[1]));
 					} else if (nv[0] == "type_arguments") {
 						parse_type_arguments_from_string (param_type, eval (nv[1]));
 					} else if (nv[0] == "default_value") {
@@ -2723,12 +2749,12 @@ public class Vala.GIdlParser : CodeVisitor {
 					parse_type_arguments_from_string (prop.property_type, eval (nv[1]));
 				} else if (nv[0] == "deprecated") {
 					if (eval (nv[1]) == "1") {
-						prop.set_attribute ("Deprecated", true);
+						prop.set_attribute_bool ("Version", "deprecated", true);
 					}
 				} else if (nv[0] == "replacement") {
-					prop.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+					prop.set_attribute_string ("Version", "replacement", eval (nv[1]));
 				} else if (nv[0] == "deprecated_since") {
-					prop.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+					prop.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 				} else if (nv[0] == "accessor_method") {
 					if (eval (nv[1]) == "0") {
 						prop.set_attribute ("NoAccessorMethod", true);
@@ -2741,7 +2767,7 @@ public class Vala.GIdlParser : CodeVisitor {
 					prop.property_type = parse_type_from_string (eval (nv[1]), false);
 				} else if (nv[0] == "experimental") {
 					if (eval (nv[1]) == "1") {
-						prop.set_attribute ("Experimental", true);
+						prop.set_attribute_bool ("Version", "experimental", true);
 					}
 				} else if (nv[0] == "nullable") {
 					if (eval (nv[1]) == "1" && !(prop.property_type is VoidType)) {
@@ -2781,19 +2807,19 @@ public class Vala.GIdlParser : CodeVisitor {
 					c.set_attribute_string ("CCode", "cheader_filename", eval (nv[1]));
 				} else if (nv[0] == "deprecated") {
 					if (eval (nv[1]) == "1") {
-						c.set_attribute ("Deprecated", true);
+						c.set_attribute_bool ("Version", "deprecated", true);
 					}
 				} else if (nv[0] == "replacement") {
-					c.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+					c.set_attribute_string ("Version", "replacement", eval (nv[1]));
 				} else if (nv[0] == "deprecated_since") {
-					c.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+					c.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 				} else if (nv[0] == "hidden") {
 					if (eval (nv[1]) == "1") {
 						return null;
 					}
 				} else if (nv[0] == "experimental") {
 					if (eval (nv[1]) == "1") {
-						c.set_attribute ("Experimental", true);
+						c.set_attribute_bool ("Version", "experimental", true);
 					}
 				}
 			}
@@ -2907,19 +2933,19 @@ public class Vala.GIdlParser : CodeVisitor {
 		}
 
 		if (deprecated) {
-			field.set_attribute ("Deprecated", true);
+			field.set_attribute_bool ("Version", "deprecated", true);
 
 			if (deprecated_since != null) {
-				field.set_attribute_string ("Deprecated", "since", deprecated_since);
+				field.set_attribute_string ("Version", "deprecated_since", deprecated_since);
 			}
 
 			if (replacement != null) {
-				field.set_attribute_string ("Deprecated", "replacement", replacement);
+				field.set_attribute_string ("Version", "replacement", replacement);
 			}
 		}
 
 		if (experimental) {
-			field.set_attribute ("Experimental", true);
+			field.set_attribute_bool ("Version", "experimental", true);
 		}
 
 		if (ctype != null) {
@@ -3049,12 +3075,12 @@ public class Vala.GIdlParser : CodeVisitor {
 					}
 				} else if (nv[0] == "deprecated") {
 					if (eval (nv[1]) == "1") {
-						sig.set_attribute ("Deprecated", true);
+						sig.set_attribute_bool ("Version", "deprecated", true);
 					}
 				} else if (nv[0] == "replacement") {
-					sig.set_attribute_string ("Deprecated", "replacement", eval (nv[1]));
+					sig.set_attribute_string ("Version", "replacement", eval (nv[1]));
 				} else if (nv[0] == "deprecated_since") {
-					sig.set_attribute_string ("Deprecated", "since", eval (nv[1]));
+					sig.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 				} else if (nv[0] == "transfer_ownership") {
 					if (eval (nv[1]) == "1") {
 						sig.return_type.value_owned = true;
@@ -3067,7 +3093,7 @@ public class Vala.GIdlParser : CodeVisitor {
 					parse_type_arguments_from_string (sig.return_type, eval (nv[1]));
 				} else if (nv[0] == "experimental") {
 					if (eval (nv[1]) == "1") {
-						sig.set_attribute ("Experimental", true);
+						sig.set_attribute_bool ("Version", "experimental", true);
 					}
 				}
 			}

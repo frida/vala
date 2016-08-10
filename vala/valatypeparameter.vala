@@ -29,10 +29,10 @@ public class Vala.TypeParameter : Symbol {
 	/**
 	 * Creates a new generic type parameter.
 	 *
-	 * @param name   parameter name
-	 * @param source reference to source code
-	 * @return       newly created generic type parameter
-	 */	
+	 * @param name              parameter name
+	 * @param source_reference  reference to source code
+	 * @return                  newly created generic type parameter
+	 */
 	public TypeParameter (string name, SourceReference source_reference) {
 		base (name, source_reference);
 	}
@@ -49,10 +49,12 @@ public class Vala.TypeParameter : Symbol {
 	 *              otherwise
 	 */
 	public bool equals (TypeParameter param2) {
-		// FIXME check whether the corresponding data type of one of the
-		//       parameters is a base type of the corresponding data
-		//       type of the other parameter and check along the path
-		//       whether one parameter maps to the other
-		return true;
+		/* only type parameters with the same parent are comparable */
+		if (parent_symbol != param2.parent_symbol) {
+			Report.error (source_reference, "internal error: comparing type parameters with different parents");
+			return false;
+		}
+
+		return name == param2.name;
 	}
 }

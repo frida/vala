@@ -47,7 +47,7 @@ namespace Gst {
 		[NoWrapper]
 		public virtual bool add_element (Gst.Element element);
 		public void add_many (params Gst.Element[] elements);
-		[Deprecated (replacement = "Gst.Bin.find_unlinked_pad")]
+		[Version (replacement = "Gst.Bin.find_unlinked_pad")]
 		public Gst.Pad? find_unconnected_pad (Gst.PadDirection direction);
 		public Gst.Pad? find_unlinked_pad (Gst.PadDirection direction);
 		public Gst.Element? get_by_interface (GLib.Type iface);
@@ -122,7 +122,7 @@ namespace Gst {
 		public static void replace (ref Gst.Buffer? oldobj, Gst.Buffer? newobj);
 		public void set_caps (Gst.Caps caps);
 		public Gst.Buffer span (uint32 offset, Gst.Buffer buf2, uint32 len);
-		[Deprecated (replacement = "Gst.Buffer.copy_metadata")]
+		[Version (replacement = "Gst.Buffer.copy_metadata")]
 		public void stamp (Gst.Buffer src);
 		[CCode (cname = "GST_BUFFER_TIMESTAMP_IS_VALID")]
 		public bool timestamp_is_valid ();
@@ -246,7 +246,7 @@ namespace Gst {
 	public abstract class Clock : Gst.Object {
 		public weak Gst.ClockID clockid;
 		public weak GLib.List<Gst.ClockEntry> entries;
-		public weak GLib.Cond entries_changed;
+		public GLib.Cond entries_changed;
 		public Gst.ClockTime external_calibration;
 		public bool filling;
 		public Gst.ClockTime internal_calibration;
@@ -255,7 +255,7 @@ namespace Gst {
 		public Gst.ClockTime rate_denominator;
 		public Gst.ClockTime rate_numerator;
 		public Gst.ClockTime resolution;
-		public weak GLib.Mutex slave_lock;
+		public GLib.Mutex slave_lock;
 		public int time_index;
 		[CCode (array_length = false)]
 		public weak Gst.ClockTime[] times;
@@ -405,7 +405,7 @@ namespace Gst {
 		public Gst.State pending_state;
 		public weak GLib.List<Gst.Pad> sinkpads;
 		public weak GLib.List<Gst.Pad> srcpads;
-		public weak GLib.Cond state_cond;
+		public GLib.Cond state_cond;
 		public uint32 state_cookie;
 		public GLib.StaticRecMutex state_lock;
 		[CCode (cname = "abidata.ABI.target_state")]
@@ -428,7 +428,7 @@ namespace Gst {
 		public unowned Gst.PadTemplate? get_compatible_pad_template (Gst.PadTemplate compattempl);
 		public unowned Gst.ElementFactory? get_factory ();
 		public virtual Gst.Index? get_index ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public Gst.Pad? get_pad (string name);
 		[CCode (cname = "gst_element_class_get_pad_template")]
 		public class unowned Gst.PadTemplate? get_pad_template (string name);
@@ -436,7 +436,7 @@ namespace Gst {
 		public class unowned GLib.List<Gst.PadTemplate> get_pad_template_list ();
 		[CCode (array_length = false)]
 		public virtual unowned Gst.QueryType[]? get_query_types ();
-		[Deprecated (replacement = "Gst.Element.request_pad")]
+		[Version (replacement = "Gst.Element.request_pad")]
 		public Gst.Pad? get_request_pad (string name);
 		public Gst.ClockTime get_start_time ();
 		public virtual Gst.StateChangeReturn get_state (out Gst.State state, out Gst.State pending, Gst.ClockTime timeout);
@@ -485,7 +485,7 @@ namespace Gst {
 		public virtual void set_bus (Gst.Bus? bus);
 		public virtual bool set_clock (Gst.Clock? clock);
 		[CCode (cname = "gst_element_class_set_details")]
-		[Deprecated (replacement = "Gst.Element.set_details_simple")]
+		[Version (replacement = "Gst.Element.set_details_simple")]
 		public class void set_details (Gst.ElementDetails details);
 		[CCode (cname = "gst_element_class_set_details_simple")]
 		public class void set_details_simple (string longname, string classification, string description, string author);
@@ -513,11 +513,11 @@ namespace Gst {
 		[CCode (has_construct_function = false)]
 		protected ElementFactory ();
 		public bool can_sink_all_caps (Gst.Caps caps);
-		[Deprecated (replacement = "Gst.ElementFactory.can_sink_all_caps")]
+		[Version (replacement = "Gst.ElementFactory.can_sink_all_caps")]
 		public bool can_sink_any_caps (Gst.Caps caps);
 		public bool can_sink_caps (Gst.Caps caps);
 		public bool can_src_all_caps (Gst.Caps caps);
-		[Deprecated (replacement = "Gst.ElementFactory.can_src_all_caps")]
+		[Version (replacement = "Gst.ElementFactory.can_src_all_caps")]
 		public bool can_src_any_caps (Gst.Caps caps);
 		public bool can_src_caps (Gst.Caps caps);
 		[CCode (returns_floating_reference = true)]
@@ -665,6 +665,8 @@ namespace Gst {
 	[Compact]
 	public class IndexEntry {
 		public Gst.IndexEntryType type;
+		[CCode (cname = "GST_INDEX_ID_INVALID")]
+		public const int ID_INVALID;
 		[CCode (cname = "GST_INDEX_ASSOC_FLAGS")]
 		public Gst.AssocFlags assoc_flags ();
 		[CCode (cname = "GST_INDEX_ASSOC_FORMAT")]
@@ -697,7 +699,7 @@ namespace Gst {
 	[Compact]
 	public class Iterator<T> {
 		public uint32 cookie;
-		public weak GLib.Mutex @lock;
+		public GLib.Mutex @lock;
 		public void* master_cookie;
 		public weak Gst.Iterator pushed;
 		public GLib.Type type;
@@ -839,7 +841,7 @@ namespace Gst {
 	[CCode (cheader_filename = "gst/gst.h", ref_function = "gst_object_ref", ref_sink_function = "gst_object_ref_sink", unref_function = "gst_object_unref")]
 	public abstract class Object : GLib.Object {
 		public Gst.ObjectFlags flags;
-		public weak GLib.Mutex @lock;
+		public GLib.Mutex @lock;
 		public weak string name_prefix;
 		public weak Gst.Object parent;
 		[CCode (has_construct_function = false)]
@@ -931,9 +933,9 @@ namespace Gst {
 		public Gst.PadDirection get_direction ();
 		public void* get_element_private ();
 		public Gst.Caps get_fixed_caps_func ();
-		[Deprecated (replacement = "Gst.Pad.iterate_internal_links")]
+		[Version (replacement = "Gst.Pad.iterate_internal_links")]
 		public GLib.List<Gst.Pad> get_internal_links ();
-		[Deprecated (replacement = "Gst.Pad.iterate_internal_links_default")]
+		[Version (replacement = "Gst.Pad.iterate_internal_links_default")]
 		public GLib.List<Gst.Pad> get_internal_links_default ();
 		public Gst.Caps get_negotiated_caps ();
 		public unowned Gst.PadTemplate get_pad_template ();
@@ -995,7 +997,7 @@ namespace Gst {
 		public void set_fixatecaps_function (Gst.PadFixateCapsFunction fixatecaps);
 		public void set_getcaps_function (Gst.PadGetCapsFunction getcaps);
 		public void set_getrange_function (Gst.PadGetRangeFunction @get);
-		[Deprecated (replacement = "Gst.Pad.set_iterate_internal_links_function")]
+		[Version (replacement = "Gst.Pad.set_iterate_internal_links_function")]
 		public void set_internal_link_function (Gst.PadIntLinkFunction intlink);
 		public void set_iterate_internal_links_function (Gst.PadIterIntLinkFunction iterintlink);
 		public void set_link_function (Gst.PadLinkFunction link);
@@ -1064,12 +1066,12 @@ namespace Gst {
 		public Gst.Bus get_bus ();
 		public Gst.Clock? get_clock ();
 		public Gst.ClockTime get_delay ();
-		[Deprecated (replacement = "Gst.Element.get_start_time")]
+		[Version (replacement = "Gst.Element.get_start_time")]
 		public Gst.ClockTime get_last_stream_time ();
 		public void set_auto_flush_bus (bool auto_flush);
 		public bool set_clock (Gst.Clock? clock);
 		public void set_delay (Gst.ClockTime delay);
-		[Deprecated (replacement = "Gst.Element.set_start_time")]
+		[Version (replacement = "Gst.Element.set_start_time")]
 		public void set_new_stream_time (Gst.ClockTime time);
 		public void use_clock (Gst.Clock? clock);
 		public bool auto_flush_bus { get; set; }
@@ -1409,7 +1411,7 @@ namespace Gst {
 	[CCode (cheader_filename = "gst/gst.h")]
 	public class Task : Gst.Object {
 		public void* abidata;
-		public weak GLib.Cond cond;
+		public GLib.Cond cond;
 		public void* data;
 		public weak Gst.TaskFunction func;
 		public GLib.StaticRecMutex @lock;
@@ -1523,21 +1525,21 @@ namespace Gst {
 		public void* ns;
 		public weak GLib.List<Gst.Element> topelements;
 		[CCode (has_construct_function = false)]
-		[Deprecated]
+		[Version (deprecated = true)]
 		public XML ();
 		public unowned Gst.Element get_element (string name);
 		public unowned GLib.List<Gst.Element> get_topelements ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public static unowned Gst.Element make_element (void* cur, Gst.Object parent);
 		[NoWrapper]
 		public virtual void object_saved (Gst.Object object, void* self);
 		public bool parse_doc (void* doc, string root);
 		public bool parse_file (string fname, string root);
-		[Deprecated]
+		[Version (deprecated = true)]
 		public bool parse_memory (uchar[] buffer, uint size, string root);
-		[Deprecated]
+		[Version (deprecated = true)]
 		public static void* write (Gst.Element element);
-		[Deprecated]
+		[Version (deprecated = true)]
 		public static int write_file (Gst.Element element, GLib.FileStream @out);
 		public virtual signal void object_loaded (Gst.Object object, void* self);
 	}

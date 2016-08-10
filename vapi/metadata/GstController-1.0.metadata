@@ -1,5 +1,13 @@
 * parent="Gst.Controller"
 
+*.ABI._gst_reserved* skip
+
+ControlPoint
+	.cache._gst_reserved skip
+
+DirectControlBinding
+	.new_absolute name="with_absolute"
+
 TimedValueControlSource
   .find_control_point_iter skip=false
   .values type="GLib.Sequence<Gst.Controller.ControlPoint?>"

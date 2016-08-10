@@ -1,6 +1,6 @@
 /* linux.vapi
  *
- * Copyright (C) 2009-2011 Michael 'Mickey' Lauer <mlauer@vanille-media.de>
+ * Copyright (C) 2009-2015 Michael 'Mickey' Lauer <mlauer@vanille-media.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1025,13 +1025,13 @@ namespace Linux {
         DT_WHT
     }
 
-    [Deprecated (since = "vala-0.26", replacement = "Backtrace.get"), CCode (cheader_filename = "execinfo.h")]
+    [Version (deprecated_since = "vala-0.26", replacement = "Backtrace.get"), CCode (cheader_filename = "execinfo.h")]
     public int backtrace (void* buffer, int size);
 
-    [Deprecated (since = "vala-0.26", replacement = "Backtrace.symbols"), CCode (cheader_filename = "execinfo.h", array_length = false)]
+    [Version (deprecated_since = "vala-0.26", replacement = "Backtrace.symbols"), CCode (cheader_filename = "execinfo.h", array_length = false)]
     public (unowned string)[]? backtrace_symbols (void* buffer, int size);
 
-    [Deprecated (since = "vala-0.26", replacement = "Backtrace.symbols_fd"), CCode (cheader_filename = "execinfo.h")]
+    [Version (deprecated_since = "vala-0.26", replacement = "Backtrace.symbols_fd"), CCode (cheader_filename = "execinfo.h")]
     public void backtrace_symbols_fd (void* buffer, int size, int fd);
 
     namespace Backtrace {
@@ -1250,7 +1250,7 @@ namespace Linux {
     namespace Network {
 
         // interface consts, structs, and methods
-        [CCode (cname = "IFNAMSIZ", cheader_filename = "linux/if.h")]
+        [CCode (cname = "IFNAMSIZ", cheader_filename = "sys/socket.h,linux/if.h")]
         public const int INTERFACE_NAME_SIZE;
 
         [CCode (cheader_filename = "net/if.h")]
@@ -1260,7 +1260,7 @@ namespace Linux {
         [CCode (cheader_filename = "net/if.h")]
         public IfNameindex if_nameindex ();
 
-        [CCode (cname = "int", cprefix = "IFF_", has_type_id = false, cheader_filename = "linux/if.h")]
+        [CCode (cname = "int", cprefix = "IFF_", has_type_id = false, cheader_filename = "sys/socket.h,linux/if.h")]
         public enum IfFlag {
             UP,
             BROADCAST,
@@ -1279,13 +1279,13 @@ namespace Linux {
             DYNAMIC
         }
 
-        [CCode (cname = "struct if_nameindex", has_type_id = false, cheader_filename = "linux/if.h", destroy_function = "if_freenameindex")]
+        [CCode (cname = "struct if_nameindex", has_type_id = false, cheader_filename = "sys/socket.h,linux/if.h", destroy_function = "if_freenameindex")]
         public struct IfNameindex {
             public uint if_index;
             public string if_name;
         }
 
-        [CCode (cname = "struct ifmap", has_type_id = false, cheader_filename = "linux/if.h", destroy_function = "")]
+        [CCode (cname = "struct ifmap", has_type_id = false, cheader_filename = "sys/socket.h,linux/if.h", destroy_function = "")]
         public struct IfMap {
             public ulong mem_start;
             public ulong mem_end;
@@ -1316,7 +1316,7 @@ namespace Linux {
             public char[] ifr_newname;
         }
 
-        [CCode (cname = "struct ifconf", has_type_id = false, cheader_filename = "linux/if.h", destroy_function = "")]
+        [CCode (cname = "struct ifconf", has_type_id = false, cheader_filename = "sys/socket.h,linux/if.h", destroy_function = "")]
         public struct IfConf {
             public int ifc_len;
             public string ifc_buf;
@@ -3786,8 +3786,72 @@ namespace Linux {
     [CCode (cprefix = "", lower_case_cprefix = "")]
     namespace WirelessExtensions {
 
-        /* structs */
-        // TBD
+        [CCode (cname = "struct iw_point", has_type_id = false, cheader_filename = "linux/wireless.h", destroy_function = "")]
+        public struct IwPoint
+        {
+            public void *pointer;
+            public uint16 length;
+            public uint16 flags;
+        }
+
+        [CCode (cname = "struct iw_param", has_type_id = false, cheader_filename = "linux/wireless.h", destroy_function = "")]
+        public struct IwParam
+        {
+            public int32 value;
+            public uint8 fixed;
+            public uint8 disabled;
+            public uint16 flags;
+        }
+
+        [CCode (cname = "struct iw_freq", has_type_id = false, cheader_filename = "linux/wireless.h", destroy_function = "")]
+        public struct IwFreq
+        {
+            public int32 m;
+            public int16 e;
+            public uint8 i;
+            public uint8 flags;
+        }
+
+        [CCode (cname = "struct iw_quality", has_type_id = false, cheader_filename = "linux/wireless.h", destroy_function = "")]
+        public struct IwQuality
+        {
+            public uint8 qual;
+            public uint8 level;
+            public uint8 noise;
+            public uint8 updated;
+        }
+
+        [CCode (cname = "struct iwreq_data", has_type_id = false, cheader_filename = "linux/wireless.h", destroy_function = "")]
+        public struct IwReqData
+        {
+            [CCode (array_length = false)]
+            public string name;
+            public IwPoint essid;
+            public IwParam nwid;
+            public IwFreq freq;
+            public IwParam sens;
+            public IwParam bitrate;
+            public IwParam txpower;
+            public IwParam rts;
+            public IwParam frag;
+            public uint32 mode;
+            public IwParam retry;
+            public IwPoint encoding;
+            public IwParam power;
+            public IwQuality qual;
+            public Posix.SockAddr ap_addr;
+            public Posix.SockAddr addr;
+            public IwParam param;
+            public IwPoint data;
+        }
+
+        [CCode (cname = "struct iwreq", has_type_id = false, cheader_filename = "linux/wireless.h", destroy_function = "")]
+        public struct IwReq
+        {
+            [CCode (array_length = false)]
+            public char[] ifr_name;
+            public IwReqData u;
+        }
 
         /* constants */
         // TBD

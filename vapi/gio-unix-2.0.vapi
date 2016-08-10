@@ -17,6 +17,7 @@ namespace GLib {
 		public unowned string get_generic_name ();
 		public static GLib.List<GLib.DesktopAppInfo> get_implementations (string @interface);
 		public bool get_is_hidden ();
+		[CCode (array_length = false, array_null_terminated = true)]
 		public unowned string[] get_keywords ();
 		public bool get_nodisplay ();
 		public bool get_show_in (string desktop_env);
@@ -24,7 +25,7 @@ namespace GLib {
 		public unowned string get_string (string key);
 		public bool has_key (string key);
 		public void launch_action (string action_name, GLib.AppLaunchContext launch_context);
-		public bool launch_uris_as_manager (GLib.List uris, GLib.AppLaunchContext launch_context, GLib.SpawnFlags spawn_flags, GLib.SpawnChildSetupFunc user_setup, void* user_setup_data, GLib.DesktopAppLaunchCallback pid_callback, void* pid_callback_data) throws GLib.Error;
+		public bool launch_uris_as_manager (GLib.List<string> uris, GLib.AppLaunchContext? launch_context, GLib.SpawnFlags spawn_flags, GLib.SpawnChildSetupFunc? user_setup = null, GLib.DesktopAppLaunchCallback? pid_callback = null) throws GLib.Error;
 		[CCode (array_length = false, array_null_terminated = true)]
 		public unowned string[] list_actions ();
 		[CCode (array_length = false, array_null_terminated = true)]
@@ -95,7 +96,7 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gunixmounts.h")]
 	public class UnixMountMonitor : GLib.Object {
 		[CCode (has_construct_function = false)]
-		[Deprecated (replacement = "UnixMountMonitor.get", since = "2.44")]
+		[Version (deprecated_since = "2.44", replacement = "UnixMountMonitor.get")]
 		public UnixMountMonitor ();
 		public static GLib.UnixMountMonitor @get ();
 		public void set_rate_limit (int limit_msec);

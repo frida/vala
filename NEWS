@@ -1,3 +1,36 @@
+Vala 0.32.0
+===========
+
+ * Bug fixes and binding updates.
+
+Vala 0.31.1
+===========
+
+ * Introduce [Version] attribute.
+ * Require and target GLib >= 2.32.
+ * Bug fixes and binding updates.
+
+Vala 0.30.0
+===========
+
+ * Binding updates.
+
+Vala 0.29.3
+===========
+
+ * Add --shared-library option for GIR files.
+ * Bug fixes and binding updates.
+
+Vala 0.29.2
+===========
+
+ * Bug fixes and binding updates.
+
+Vala 0.29.1
+===========
+
+ * Binding updates.
+
 Vala 0.28.0
 ===========
 

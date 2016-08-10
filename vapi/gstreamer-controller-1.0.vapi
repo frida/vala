@@ -17,11 +17,35 @@ namespace Gst {
 			[NoAccessorMethod]
 			public Gst.ControlSource control_source_r { owned get; set construct; }
 		}
+		[CCode (cheader_filename = "gst/controller/controller.h", cname = "GstControlPoint", copy_function = "g_boxed_copy", free_function = "g_boxed_free", lower_case_cprefix = "gst_control_point_", type_id = "gst_control_point_get_type ()")]
+		[Compact]
+		[GIR (name = "ControlPoint")]
+		public class ControlPoint {
+			[CCode (cname = "cache.cubic.h")]
+			public double cache_cubic_h;
+			[CCode (cname = "cache.cubic_monotonic.c1s")]
+			public double cache_cubic_monotonic_c1s;
+			[CCode (cname = "cache.cubic_monotonic.c2s")]
+			public double cache_cubic_monotonic_c2s;
+			[CCode (cname = "cache.cubic_monotonic.c3s")]
+			public double cache_cubic_monotonic_c3s;
+			[CCode (cname = "cache.cubic.z")]
+			public double cache_cubic_z;
+			public Gst.ClockTime timestamp;
+			public double value;
+		}
 		[CCode (cheader_filename = "gst/controller/controller.h", cname = "GstDirectControlBinding", lower_case_cprefix = "gst_direct_control_binding_", type_id = "gst_direct_control_binding_get_type ()")]
 		[GIR (name = "DirectControlBinding")]
 		public class DirectControlBinding : Gst.ControlBinding {
+			[CCode (cname = "ABI.abi.want_absolute")]
+			public bool ABI_abi_want_absolute;
 			[CCode (has_construct_function = false, type = "GstControlBinding*")]
 			public DirectControlBinding (Gst.Object object, string property_name, Gst.ControlSource cs);
+			[CCode (cname = "gst_direct_control_binding_new_absolute", has_construct_function = false, type = "GstControlBinding*")]
+			[Version (since = "1.6")]
+			public DirectControlBinding.with_absolute (Gst.Object object, string property_name, Gst.ControlSource cs);
+			[NoAccessorMethod]
+			public bool absolute { get; construct; }
 			[NoAccessorMethod]
 			public Gst.ControlSource control_source { owned get; set construct; }
 		}
@@ -52,7 +76,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/controller/controller.h", cname = "GstTimedValueControlSource", lower_case_cprefix = "gst_timed_value_control_source_", type_id = "gst_timed_value_control_source_get_type ()")]
 		[GIR (name = "TimedValueControlSource")]
 		public abstract class TimedValueControlSource : Gst.ControlSource {
-			public weak GLib.Mutex @lock;
+			public GLib.Mutex @lock;
 			public int nvalues;
 			public bool valid_cache;
 			public GLib.Sequence<Gst.Controller.ControlPoint?> values;
@@ -65,6 +89,12 @@ namespace Gst {
 			public bool set_from_list (GLib.SList<Gst.TimedValue?> timedvalues);
 			public bool unset (Gst.ClockTime timestamp);
 			public void unset_all ();
+			[Version (since = "1.6")]
+			public signal void value_added (Gst.Controller.ControlPoint timed_value);
+			[Version (since = "1.6")]
+			public signal void value_changed (Gst.Controller.ControlPoint timed_value);
+			[Version (since = "1.6")]
+			public signal void value_removed (Gst.Controller.ControlPoint timed_value);
 		}
 		[CCode (cheader_filename = "gst/controller/controller.h", cname = "GstTriggerControlSource", lower_case_cprefix = "gst_trigger_control_source_", type_id = "gst_trigger_control_source_get_type ()")]
 		[GIR (name = "TriggerControlSource")]
@@ -74,22 +104,13 @@ namespace Gst {
 			[NoAccessorMethod]
 			public int64 tolerance { get; set; }
 		}
-		[CCode (cheader_filename = "gst/controller/controller.h", cname = "GstControlPoint", has_type_id = false)]
-		[GIR (name = "ControlPoint")]
-		public struct ControlPoint {
-			public Gst.ClockTime timestamp;
-			public double value;
-			[CCode (cname = "cache.cubic.h")]
-			public double cache_cubic_h;
-			[CCode (cname = "cache.cubic.z")]
-			public double cache_cubic_z;
-		}
 		[CCode (cheader_filename = "gst/controller/controller.h", cname = "GstInterpolationMode", cprefix = "GST_INTERPOLATION_MODE_", type_id = "gst_interpolation_mode_get_type ()")]
 		[GIR (name = "InterpolationMode")]
 		public enum InterpolationMode {
 			NONE,
 			LINEAR,
-			CUBIC
+			CUBIC,
+			CUBIC_MONOTONIC
 		}
 		[CCode (cheader_filename = "gst/controller/controller.h", cname = "GstLFOWaveform", cprefix = "GST_LFO_WAVEFORM_", type_id = "gst_lfo_waveform_get_type ()")]
 		[GIR (name = "LFOWaveform")]

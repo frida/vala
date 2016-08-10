@@ -169,7 +169,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			function.modifiers |= CCodeModifiers.INTERNAL;
 		}
 
-		if (m.deprecated) {
+		if (m.version.deprecated) {
 			function.modifiers |= CCodeModifiers.DEPRECATED;
 		}
 
@@ -696,7 +696,8 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			m.body.emit (this);
 		}
 
-		if (profile) {
+		// we generate the same code if we see a return statement, this handles the case without returns
+		if (profile && m.return_type is VoidType) {
 			string prefix = "_vala_prof_%s".printf (real_name);
 
 			var level = new CCodeIdentifier (prefix + "_level");
@@ -834,10 +835,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				mem_profiler_init_call.add_argument (new CCodeConstant ("glib_mem_profiler_table"));
 				ccode.add_expression (mem_profiler_init_call);
 			}
-
-			var init_cond = new CCodeIfSection ("GLIB_CHECK_VERSION (2,46,0)");
-			ccode.add_statement (init_cond);
-			init_cond.append (new CCodeExpressionStatement (new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
 
 			if (context.thread) {
 				var thread_init_call = new CCodeFunctionCall (new CCodeIdentifier ("g_thread_init"));

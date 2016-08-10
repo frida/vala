@@ -141,7 +141,12 @@ InputStream
   .skip throws="GLib.IOError"
   .skip_finish throws="GLib.IOError"
 ListModel
+  .get_item#virtual_method skip
   .get_item#method skip=false abstract
+MemoryInputStream
+  .add_data.destroy default=GLib.g_free
+MemoryInputStream
+  .new_from_data.destroy default=GLib.g_free
 MemoryOutputStream
   .get_data type="unowned uint8[]"
   .steal_data type="uint8[]"
@@ -197,17 +202,20 @@ SimpleAsyncResult
   .new_error skip
   .new_from_error skip
 Socket
-  .condition_wait throws="GLib.IOError"
-  .create_source skip=false type="GLib.SocketSource"
+  .condition_wait skip
+  .create_source skip
+  .receive_messages skip
+  .send_messages skip
 SocketControlMessage
   .serialize.data type="uint8[]"
 SocketListener
   .accept*.source_object#parameter default=null
 srv_target_list_sort type_arguments="GLib.SrvTarget" skip=false
 srv_target_list_sort.targets type_arguments="GLib.SrvTarget" owned
-StaticResource
-  .next type="StaticResource*"
 Subprocess
+  .new skip=false throws="GLib.Error"
+  .new.error skip
+  .new.argv0 skip
   .communicate*.cancellable#parameter default=()
 TlsDatabase
   .create_certificate_handle nullable
@@ -329,10 +337,6 @@ initable_* skip
 FileAttributeInfoList
   .lookup nullable
 
-// Bug #561619: fields
-StaticResource
-  .resource unowned=false
-
 // Bug #: virtual vs. abstract
 Icon
   .serialize#virtual_method virtual
@@ -357,7 +361,7 @@ DataInputStream
   .read_line.length default=null
 
 // Forward upstream
-*_autoptr skip
+NativeSocketAddress skip
 content_type_from_mime_type nullable
 content_type_get_mime_type nullable
 ActionGroup
@@ -365,6 +369,8 @@ ActionGroup
   .get_action_enabled nullable=false
   .get_action_state_type unowned
 AsyncReadyCallback.source_object nullable
+Converter
+  .convert.inbuf nullable=false
 DBusMessage
   .get_body unowned
 DBusSubtreeVTable.enumerate skip=false
@@ -379,9 +385,9 @@ FileAttributeInfoList
   .infos array array_length_field="n_infos" unowned=false
 LoadableIcon
   .load_finish.type out nullable unowned=false default=null
-StaticResource
-  .data array array_length_field="data_len"
-  .padding skip
+Socket
+  .receive_message.messages out unowned=false
+  .receive_message.flags ref
 Task
   .get_source_object type="GLib.Object"
 TlsBackend

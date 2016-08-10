@@ -4,9 +4,10 @@
 namespace Soup {
 	namespace Form {
 		[CCode (cheader_filename = "libsoup/soup.h")]
-		public static GLib.HashTable<string,string> decode (string encoded_form);
+		public static GLib.HashTable<weak string,weak string> decode (string encoded_form);
 		[CCode (cheader_filename = "libsoup/soup.h")]
-		public static GLib.HashTable<string,string>? decode_multipart (Soup.Message msg, string? file_control_name, out string filename, out string content_type, out Soup.Buffer file);
+		[Version (since = "2.26")]
+		public static GLib.HashTable<weak string,weak string>? decode_multipart (Soup.Message msg, string? file_control_name, out string filename, out string content_type, out Soup.Buffer file);
 		[CCode (cheader_filename = "libsoup/soup.h")]
 		public static string encode (...);
 		[CCode (cheader_filename = "libsoup/soup.h")]
@@ -22,6 +23,7 @@ namespace Soup {
 		[CCode (cheader_filename = "libsoup/soup.h")]
 		public static Soup.Message request_new_from_hash (string method, string uri, GLib.HashTable<string,string> form_data_set);
 		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.26")]
 		public static Soup.Message request_new_from_multipart (string uri, Soup.Multipart multipart);
 	}
 	namespace XMLRPC {
@@ -49,28 +51,64 @@ namespace Soup {
 		[PrintfFormat]
 		public static string build_fault (int fault_code, string fault_format, ...);
 		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (deprecated = true)]
 		public static string? build_method_call (string method_name, [CCode (array_length_cname = "n_params", array_length_pos = 2.1)] GLib.Value[] @params);
 		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (deprecated = true)]
 		public static string? build_method_response (GLib.Value value);
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static string build_request (string method_name, GLib.Variant @params) throws GLib.Error;
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static string build_response (GLib.Variant value) throws GLib.Error;
 		[CCode (cheader_filename = "libsoup/soup.h")]
 		public static GLib.Quark error_quark ();
 		[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
+		[Version (deprecated = true)]
 		public static bool extract_method_call (string method_call, int length, out string method_name, ...);
 		[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
+		[Version (deprecated = true)]
 		public static bool extract_method_response (string method_response, int length, ...) throws Soup.XMLRPC.Fault;
 		[CCode (cheader_filename = "libsoup/soup.h")]
 		public static GLib.Quark fault_quark ();
 		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static Soup.Message message_new (string uri, string method_name, GLib.Variant @params) throws GLib.Error;
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static void message_set_fault (Soup.Message msg, int fault_code, string fault_format, ...);
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static bool message_set_response (Soup.Message msg, GLib.Variant value) throws GLib.Error;
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (deprecated = true)]
 		public static bool parse_method_call (string method_call, int length, out string method_name, out GLib.ValueArray @params);
 		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (deprecated = true)]
 		public static bool parse_method_response (string method_response, int length, out GLib.Value value) throws Soup.XMLRPC.Fault;
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static string parse_request (string method_call, int length, out Soup.XMLRPCParams @params) throws GLib.Error;
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static GLib.Variant parse_response (string method_response, int length, string? signature) throws GLib.Error;
 		[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
+		[Version (deprecated = true)]
 		public static Soup.Message request_new (string uri, string method_name, ...);
 		[CCode (cheader_filename = "libsoup/soup.h")]
 		[PrintfFormat]
+		[Version (deprecated = true)]
 		public static void set_fault (Soup.Message msg, int fault_code, string fault_format, ...);
 		[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
+		[Version (deprecated = true)]
 		public static void set_response (Soup.Message msg, ...);
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static Soup.Date variant_get_datetime (GLib.Variant variant) throws GLib.Error;
+		[CCode (cheader_filename = "libsoup/soup.h")]
+		[Version (since = "2.52")]
+		public static GLib.Variant variant_new_datetime (Soup.Date date);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_address_get_type ()")]
 	public class Address : GLib.Object, GLib.SocketConnectable {
@@ -78,19 +116,24 @@ namespace Soup {
 		public Address (string name, uint port);
 		[CCode (has_construct_function = false)]
 		public Address.any (Soup.AddressFamily family, uint port);
+		[Version (since = "2.26")]
 		public bool equal_by_ip (Soup.Address addr2);
+		[Version (since = "2.26")]
 		public bool equal_by_name (Soup.Address addr2);
 		[CCode (has_construct_function = false)]
 		public Address.from_sockaddr (void* sa, int len);
+		[Version (since = "2.32")]
 		public GLib.SocketAddress get_gsockaddr ();
 		public unowned string? get_name ();
 		public unowned string? get_physical ();
 		public uint get_port ();
 		public void* get_sockaddr (int len);
+		[Version (since = "2.26")]
 		public uint hash_by_ip ();
+		[Version (since = "2.26")]
 		public uint hash_by_name ();
 		public bool is_resolved ();
-		public void resolve_async (GLib.MainContext? async_context, GLib.Cancellable? cancellable, [CCode (scope = "async")] owned Soup.AddressCallback callback);
+		public void resolve_async (GLib.MainContext? async_context, GLib.Cancellable? cancellable, [CCode (scope = "async")] Soup.AddressCallback callback);
 		public uint resolve_sync (GLib.Cancellable? cancellable = null);
 		[NoAccessorMethod]
 		public Soup.AddressFamily family { get; construct; }
@@ -107,6 +150,8 @@ namespace Soup {
 		[CCode (has_construct_function = false)]
 		public Auth (GLib.Type type, Soup.Message msg, string auth_header);
 		public virtual void authenticate (string username, string password);
+		[Version (since = "2.54")]
+		public virtual bool can_authenticate ();
 		public virtual string get_authorization (Soup.Message msg);
 		public unowned string get_host ();
 		public string get_info ();
@@ -116,6 +161,7 @@ namespace Soup {
 		public GLib.SList<string> get_saved_users ();
 		public unowned string get_scheme_name ();
 		public void has_saved_password (string username, string password);
+		[Version (since = "2.42")]
 		public virtual bool is_ready (Soup.Message msg);
 		public void save_password (string username, string password);
 		public virtual bool update (Soup.Message msg, GLib.HashTable<void*,void*> auth_header);
@@ -192,6 +238,7 @@ namespace Soup {
 	public class AuthManager : GLib.Object, Soup.SessionFeature {
 		[CCode (has_construct_function = false)]
 		protected AuthManager ();
+		[Version (since = "2.42")]
 		public void use_auth (Soup.URI uri, Soup.Auth auth);
 		public virtual signal void authenticate (Soup.Message msg, Soup.Auth auth, bool retrying);
 	}
@@ -200,6 +247,13 @@ namespace Soup {
 		[CCode (has_construct_function = false)]
 		protected AuthNTLM ();
 	}
+	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_auth_negotiate_get_type ()")]
+	public class AuthNegotiate : Soup.Auth {
+		[CCode (has_construct_function = false)]
+		protected AuthNegotiate ();
+		[Version (since = "2.54")]
+		public static bool supported ();
+	}
 	[CCode (cheader_filename = "libsoup/soup.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "soup_buffer_get_type ()")]
 	[Compact]
 	public class Buffer {
@@ -207,16 +261,19 @@ namespace Soup {
 		public uint8[] data;
 		public size_t length;
 		[CCode (has_construct_function = false)]
-		[Deprecated (replacement = "Buffer.take", since = "2.32")]
+		[Version (deprecated = true, deprecated_since = "2.32", replacement = "Buffer.take")]
 		public Buffer (Soup.MemoryUse use, [CCode (array_length_cname = "length", array_length_pos = 2.1, array_length_type = "gsize")] uint8[] data);
 		public Soup.Buffer copy ();
 		public void free ();
+		[Version (since = "2.40")]
 		public GLib.Bytes get_as_bytes ();
+		[Version (since = "2.32")]
 		public void get_data ([CCode (array_length_cname = "length", array_length_pos = 1.1, array_length_type = "gsize")] out unowned uint8[] data);
 		public void* get_owner ();
 		[CCode (has_construct_function = false)]
 		public Buffer.subbuffer (Soup.Buffer parent, size_t offset, size_t length);
 		[CCode (has_construct_function = false)]
+		[Version (since = "2.32")]
 		public Buffer.take ([CCode (array_length_cname = "length", array_length_pos = 1.1, array_length_type = "gsize")] owned uint8[] data);
 		[CCode (has_construct_function = false)]
 		public Buffer.with_owner ([CCode (array_length_cname = "length", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] data, void* owner, GLib.DestroyNotify? owner_dnotify);
@@ -228,14 +285,21 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_cache_get_type ()")]
 	public class Cache : GLib.Object, Soup.SessionFeature {
 		[CCode (has_construct_function = false)]
+		[Version (since = "2.34")]
 		public Cache (string cache_dir, Soup.CacheType cache_type);
+		[Version (since = "2.34")]
 		public void clear ();
+		[Version (since = "2.34.")]
 		public void dump ();
+		[Version (since = "2.34")]
 		public void flush ();
 		[NoWrapper]
 		public virtual Soup.Cacheability get_cacheability (Soup.Message msg);
+		[Version (since = "2.34")]
 		public uint get_max_size ();
+		[Version (since = "2.34")]
 		public void load ();
+		[Version (since = "2.34")]
 		public void set_max_size (uint max_size);
 		[NoAccessorMethod]
 		public string cache_dir { owned get; construct; }
@@ -245,16 +309,20 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "soup_client_context_get_type ()")]
 	[Compact]
 	public class ClientContext {
-		[Deprecated]
+		[Version (deprecated = true)]
 		public unowned Soup.Address? get_address ();
 		public unowned Soup.AuthDomain? get_auth_domain ();
 		public unowned string? get_auth_user ();
+		[Version (since = "2.48")]
 		public unowned GLib.Socket? get_gsocket ();
 		public unowned string? get_host ();
+		[Version (since = "2.48")]
 		public unowned GLib.SocketAddress? get_local_address ();
+		[Version (since = "2.48")]
 		public unowned GLib.SocketAddress? get_remote_address ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public unowned Soup.Socket get_socket ();
+		[Version (since = "2.50")]
 		public GLib.IOStream steal_connection ();
 	}
 	[CCode (cheader_filename = "libsoup/soup.h")]
@@ -269,12 +337,16 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_content_sniffer_get_type ()")]
 	public class ContentSniffer : GLib.Object, Soup.SessionFeature {
 		[CCode (has_construct_function = false)]
+		[Version (since = "2.28")]
 		public ContentSniffer ();
+		[Version (since = "2.28")]
 		public virtual size_t get_buffer_size ();
+		[Version (since = "2.28")]
 		public virtual string sniff (Soup.Message msg, Soup.Buffer buffer, out GLib.HashTable<string,string>? @params);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "soup_cookie_get_type ()")]
 	[Compact]
+	[Version (since = "2.24")]
 	public class Cookie {
 		public weak string domain;
 		public weak Soup.Date expires;
@@ -287,15 +359,23 @@ namespace Soup {
 		public Cookie (string name, string value, string domain, string path, int max_age);
 		public bool applies_to_uri (Soup.URI uri);
 		public Soup.Cookie copy ();
+		[Version (since = "2.30")]
 		public bool domain_matches (string host);
 		public bool equal (Soup.Cookie cookie2);
 		public void free ();
+		[Version (since = "2.32")]
 		public unowned string get_domain ();
+		[Version (since = "2.32")]
 		public unowned Soup.Date get_expires ();
+		[Version (since = "2.32")]
 		public bool get_http_only ();
+		[Version (since = "2.32")]
 		public unowned string get_name ();
+		[Version (since = "2.32")]
 		public unowned string get_path ();
+		[Version (since = "2.32")]
 		public bool get_secure ();
+		[Version (since = "2.32")]
 		public unowned string get_value ();
 		public static Soup.Cookie? parse (string header, Soup.URI origin);
 		public void set_domain (string domain);
@@ -312,20 +392,33 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_cookie_jar_get_type ()")]
 	public class CookieJar : GLib.Object, Soup.SessionFeature {
 		[CCode (has_construct_function = false)]
+		[Version (since = "2.24")]
 		public CookieJar ();
+		[Version (since = "2.26")]
 		public void add_cookie (owned Soup.Cookie cookie);
+		[Version (since = "2.40")]
 		public void add_cookie_with_first_party (Soup.URI first_party, owned Soup.Cookie cookie);
+		[Version (since = "2.26")]
 		public GLib.SList<Soup.Cookie> all_cookies ();
+		[Version (since = "2.26")]
 		public void delete_cookie (Soup.Cookie cookie);
+		[Version (since = "2.30")]
 		public Soup.CookieJarAcceptPolicy get_accept_policy ();
+		[Version (since = "2.40")]
 		public GLib.SList<Soup.Cookie> get_cookie_list (Soup.URI uri, bool for_http);
+		[Version (since = "2.24")]
 		public string? get_cookies (Soup.URI uri, bool for_http);
+		[Version (since = "2.40")]
 		public virtual bool is_persistent ();
-		[Deprecated]
+		[Version (deprecated = true, since = "2.24")]
 		public virtual void save ();
+		[Version (since = "2.30")]
 		public void set_accept_policy (Soup.CookieJarAcceptPolicy policy);
+		[Version (since = "2.24")]
 		public void set_cookie (Soup.URI uri, string cookie);
+		[Version (since = "2.30")]
 		public void set_cookie_with_first_party (Soup.URI uri, Soup.URI first_party, string cookie);
+		[Version (since = "2.30")]
 		public Soup.CookieJarAcceptPolicy accept_policy { get; set; }
 		[NoAccessorMethod]
 		public bool read_only { get; construct; }
@@ -334,6 +427,7 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_cookie_jar_db_get_type ()")]
 	public class CookieJarDB : Soup.CookieJar, Soup.SessionFeature {
 		[CCode (has_construct_function = false, type = "SoupCookieJar*")]
+		[Version (since = "2.42")]
 		public CookieJarDB (string filename, bool read_only);
 		[NoAccessorMethod]
 		public string filename { owned get; construct; }
@@ -341,6 +435,7 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_cookie_jar_text_get_type ()")]
 	public class CookieJarText : Soup.CookieJar, Soup.SessionFeature {
 		[CCode (has_construct_function = false, type = "SoupCookieJar*")]
+		[Version (since = "2.26")]
 		public CookieJarText (string filename, bool read_only);
 		[NoAccessorMethod]
 		public string filename { owned get; construct; }
@@ -358,7 +453,9 @@ namespace Soup {
 		public int year;
 		[CCode (has_construct_function = false)]
 		public Date (int year, int month, int day, int hour, int minute, int second);
+		[Version (since = "2.24")]
 		public Soup.Date copy ();
+		[Version (since = "2.24")]
 		public void free ();
 		[CCode (has_construct_function = false)]
 		public Date.from_now (int offset_seconds);
@@ -366,17 +463,27 @@ namespace Soup {
 		public Date.from_string (string date_string);
 		[CCode (has_construct_function = false)]
 		public Date.from_time_t ([CCode (type = "time_t")] time_t when);
+		[Version (since = "2.32")]
 		public int get_day ();
+		[Version (since = "2.32")]
 		public int get_hour ();
+		[Version (since = "2.32")]
 		public int get_minute ();
+		[Version (since = "2.32")]
 		public int get_month ();
+		[Version (since = "2.32")]
 		public int get_offset ();
+		[Version (since = "2.32")]
 		public int get_second ();
+		[Version (since = "2.32")]
 		public int get_utc ();
+		[Version (since = "2.32")]
 		public int get_year ();
+		[Version (since = "2.24")]
 		public bool is_past ();
 		public string to_string (Soup.DateFormat format);
 		public time_t to_time_t ();
+		[Version (since = "2.24")]
 		public GLib.TimeVal to_timeval ();
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_logger_get_type ()")]
@@ -386,6 +493,12 @@ namespace Soup {
 		public void set_printer (owned Soup.LoggerPrinter printer);
 		public void set_request_filter (owned Soup.LoggerFilter request_filter);
 		public void set_response_filter (owned Soup.LoggerFilter response_filter);
+		[NoAccessorMethod]
+		[Version (since = "2.56")]
+		public Soup.LoggerLogLevel level { get; set; }
+		[NoAccessorMethod]
+		[Version (since = "2.56")]
+		public int max_body_size { get; set; }
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_message_get_type ()")]
 	public class Message : GLib.Object {
@@ -397,30 +510,40 @@ namespace Soup {
 		public Message (string method, string uri_string);
 		public uint add_header_handler (string @signal, string header, GLib.Callback callback);
 		public uint add_status_code_handler (string @signal, uint status_code, GLib.Callback callback);
+		[Version (since = "2.28")]
 		public void disable_feature (GLib.Type feature_type);
 		[CCode (has_construct_function = false)]
 		public Message.from_uri (string method, Soup.URI uri);
+		[Version (since = "2.26")]
 		public unowned Soup.Address get_address ();
+		[Version (since = "2.30")]
 		public unowned Soup.URI get_first_party ();
 		public Soup.MessageFlags get_flags ();
 		public Soup.HTTPVersion get_http_version ();
+		[Version (since = "2.34")]
 		public bool get_https_status (out unowned GLib.TlsCertificate certificate, out GLib.TlsCertificateFlags errors);
+		[Version (since = "2.44")]
 		public Soup.MessagePriority get_priority ();
+		[Version (since = "2.42")]
 		public unowned Soup.Request get_soup_request ();
 		public unowned Soup.URI get_uri ();
 		public bool is_keepalive ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public void set_chunk_allocator (owned Soup.ChunkAllocator allocator);
+		[Version (since = "2.30")]
 		public void set_first_party (Soup.URI first_party);
 		public void set_flags (Soup.MessageFlags flags);
 		public void set_http_version (Soup.HTTPVersion version);
+		[Version (since = "2.44")]
 		public void set_priority (Soup.MessagePriority priority);
+		[Version (since = "2.38")]
 		public void set_redirect (uint status_code, string redirect_uri);
 		public void set_request (string? content_type, Soup.MemoryUse req_use, [CCode (array_length_cname = "req_length", array_length_pos = 3.1, array_length_type = "gsize")] uint8[] req_body);
 		public void set_response (string? content_type, Soup.MemoryUse resp_use, [CCode (array_length_cname = "resp_length", array_length_pos = 3.1, array_length_type = "gsize")] uint8[]? resp_body);
 		public void set_status (uint status_code);
 		public void set_status_full (uint status_code, string reason_phrase);
 		public void set_uri (Soup.URI uri);
+		[Version (since = "2.30")]
 		public Soup.URI first_party { get; set; }
 		public Soup.MessageFlags flags { get; set; }
 		public Soup.HTTPVersion http_version { get; set; }
@@ -434,11 +557,14 @@ namespace Soup {
 		[NoAccessorMethod]
 		public uint status_code { get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.34")]
 		public GLib.TlsCertificate tls_certificate { owned get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.34")]
 		public GLib.TlsCertificateFlags tls_errors { get; set; }
 		public Soup.URI uri { get; set; }
 		[HasEmitter]
+		[Version (since = "2.28")]
 		public signal void content_sniffed (string content_type, GLib.HashTable<string,string> @params);
 		[HasEmitter]
 		public virtual signal void finished ();
@@ -450,14 +576,17 @@ namespace Soup {
 		public virtual signal void got_headers ();
 		[HasEmitter]
 		public virtual signal void got_informational ();
+		[Version (since = "2.38")]
 		public signal void network_event (GLib.SocketClientEvent event, GLib.IOStream connection);
 		[HasEmitter]
 		public virtual signal void restarted ();
 		[HasEmitter]
+		[Version (since = "2.50")]
 		public virtual signal void starting ();
 		[HasEmitter]
 		public virtual signal void wrote_body ();
 		[HasEmitter]
+		[Version (since = "2.24")]
 		public signal void wrote_body_data (Soup.Buffer chunk);
 		[HasEmitter]
 		public virtual signal void wrote_chunk ();
@@ -474,18 +603,23 @@ namespace Soup {
 		public int64 length;
 		[CCode (has_construct_function = false)]
 		public MessageBody ();
-		[Deprecated (replacement = "MessageBody.append_take", since = "2.32")]
+		[Version (deprecated = true, deprecated_since = "2.32", replacement = "MessageBody.append_take")]
 		public void append (Soup.MemoryUse use, [CCode (array_length_cname = "length", array_length_pos = 2.1, array_length_type = "gsize")] uint8[] data);
 		public void append_buffer (Soup.Buffer buffer);
+		[Version (since = "2.32")]
 		public void append_take ([CCode (array_length_cname = "length", array_length_pos = 1.1, array_length_type = "gsize")] owned uint8[] data);
 		public void complete ();
 		public Soup.Buffer flatten ();
 		public void free ();
+		[Version (since = "2.24")]
 		public bool get_accumulate ();
 		public Soup.Buffer? get_chunk (int64 offset);
+		[Version (since = "2.24")]
 		public void got_chunk (Soup.Buffer chunk);
+		[Version (since = "2.24")]
 		public void set_accumulate (bool accumulate);
 		public void truncate ();
+		[Version (since = "2.24")]
 		public void wrote_chunk (Soup.Buffer chunk);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "soup_message_headers_get_type ()")]
@@ -494,34 +628,50 @@ namespace Soup {
 		[CCode (has_construct_function = false)]
 		public MessageHeaders (Soup.MessageHeadersType type);
 		public void append (string name, string value);
+		[Version (since = "2.36")]
 		public void clean_connection_headers ();
 		public void clear ();
 		public void @foreach (Soup.MessageHeadersForeachFunc func);
 		public void free ();
+		[Version (since = "2.26")]
 		public void free_ranges (Soup.Range ranges);
-		[Deprecated]
+		[Version (deprecated = true)]
 		public unowned string? @get (string name);
+		[Version (since = "2.26")]
 		public bool get_content_disposition (out string disposition, out GLib.HashTable<string,string> @params);
 		public int64 get_content_length ();
+		[Version (since = "2.26")]
 		public bool get_content_range (int64 start, int64 end, int64 total_length);
+		[Version (since = "2.26")]
 		public unowned string? get_content_type (out GLib.HashTable<string,string> @params);
 		public Soup.Encoding get_encoding ();
 		public Soup.Expectation get_expectations ();
+		[Version (since = "2.50")]
 		public Soup.MessageHeadersType get_headers_type ();
+		[Version (since = "2.28")]
 		public unowned string? get_list (string name);
+		[Version (since = "2.28")]
 		public unowned string? get_one (string name);
+		[Version (since = "2.26")]
 		public bool get_ranges (int64 total_length, [CCode (array_length_cname = "length", array_length_pos = 2.1)] out Soup.Range[] ranges);
+		[Version (since = "2.50")]
 		public bool header_contains (string name, string token);
+		[Version (since = "2.50")]
 		public bool header_equals (string name, string value);
 		public void remove (string name);
 		public void replace (string name, string value);
+		[Version (since = "2.26")]
 		public void set_content_disposition (string disposition, GLib.HashTable<string,string>? @params);
 		public void set_content_length (int64 content_length);
+		[Version (since = "2.26")]
 		public void set_content_range (int64 start, int64 end, int64 total_length);
+		[Version (since = "2.26")]
 		public void set_content_type (string content_type, GLib.HashTable<string,string>? @params);
 		public void set_encoding (Soup.Encoding encoding);
 		public void set_expectations (Soup.Expectation expectations);
+		[Version (since = "2.26")]
 		public void set_range (int64 start, int64 end);
+		[Version (since = "2.26")]
 		public void set_ranges (Soup.Range ranges, int length);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h")]
@@ -534,6 +684,7 @@ namespace Soup {
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "soup_multipart_get_type ()")]
 	[Compact]
+	[Version (since = "2.26")]
 	public class Multipart {
 		[CCode (has_construct_function = false)]
 		public Multipart (string mime_type);
@@ -550,9 +701,13 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_multipart_input_stream_get_type ()")]
 	public class MultipartInputStream : GLib.FilterInputStream, GLib.PollableInputStream {
 		[CCode (has_construct_function = false)]
+		[Version (since = "2.40")]
 		public MultipartInputStream (Soup.Message msg, GLib.InputStream base_stream);
+		[Version (since = "2.40")]
 		public unowned Soup.MessageHeaders? get_headers ();
+		[Version (since = "2.40")]
 		public GLib.InputStream? next_part (GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[Version (since = "2.40")]
 		public async GLib.InputStream? next_part_async (int io_priority, GLib.Cancellable? cancellable) throws GLib.Error;
 		[NoAccessorMethod]
 		public Soup.Message message { owned get; construct; }
@@ -565,6 +720,7 @@ namespace Soup {
 		public GLib.ProxyResolver gproxy_resolver { set; }
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_request_get_type ()")]
+	[Version (since = "2.42")]
 	public class Request : GLib.Object, GLib.Initable {
 		[CCode (has_construct_function = false)]
 		protected Request ();
@@ -588,16 +744,18 @@ namespace Soup {
 	public class RequestFile : Soup.Request, GLib.Initable {
 		[CCode (has_construct_function = false)]
 		protected RequestFile ();
+		[Version (since = "2.40")]
 		public GLib.File get_file ();
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_request_http_get_type ()")]
 	public class RequestHTTP : Soup.Request, GLib.Initable {
 		[CCode (has_construct_function = false)]
 		protected RequestHTTP ();
+		[Version (since = "2.40")]
 		public Soup.Message get_message ();
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_requester_get_type ()")]
-	[Deprecated (replacement = "Session", since = "2.42")]
+	[Version (deprecated = true, deprecated_since = "2.42", replacement = "Session")]
 	public class Requester : GLib.Object, Soup.SessionFeature {
 		[CCode (has_construct_function = false)]
 		public Requester ();
@@ -608,61 +766,73 @@ namespace Soup {
 	public class Server : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public Server (string optname1, ...);
+		[Version (since = "2.50")]
 		public bool accept_iostream (GLib.IOStream stream, GLib.SocketAddress? local_addr, GLib.SocketAddress? remote_addr) throws GLib.Error;
 		public void add_auth_domain (Soup.AuthDomain auth_domain);
+		[Version (since = "2.50")]
 		public void add_early_handler (string? path, owned Soup.ServerCallback callback);
 		public void add_handler (string? path, owned Soup.ServerCallback callback);
 		public void add_websocket_handler (string? path, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols, owned Soup.ServerWebsocketCallback callback);
 		public void disconnect ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public unowned GLib.MainContext? get_async_context ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public unowned Soup.Socket get_listener ();
 		public GLib.SList<weak GLib.Socket> get_listeners ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public uint get_port ();
+		[Version (since = "2.48")]
 		public GLib.SList<Soup.URI> get_uris ();
 		public bool is_https ();
+		[Version (since = "2.48")]
 		public bool listen (GLib.SocketAddress address, Soup.ServerListenOptions options) throws GLib.Error;
+		[Version (since = "2.48")]
 		public bool listen_all (uint port, Soup.ServerListenOptions options) throws GLib.Error;
+		[Version (since = "2.48")]
 		public bool listen_fd (int fd, Soup.ServerListenOptions options) throws GLib.Error;
+		[Version (since = "2.48")]
 		public bool listen_local (uint port, Soup.ServerListenOptions options) throws GLib.Error;
+		[Version (since = "2.48")]
 		public bool listen_socket (GLib.Socket socket, Soup.ServerListenOptions options) throws GLib.Error;
 		public void pause_message (Soup.Message msg);
-		[Deprecated]
+		[Version (deprecated = true)]
 		public void quit ();
 		public void remove_auth_domain (Soup.AuthDomain auth_domain);
 		public void remove_handler (string path);
-		[Deprecated]
+		[Version (deprecated = true)]
 		public void run ();
-		[Deprecated]
+		[Version (deprecated = true)]
 		public void run_async ();
+		[Version (since = "2.48")]
 		public bool set_ssl_cert_file (string ssl_cert_file, string ssl_key_file) throws GLib.Error;
 		public void unpause_message (Soup.Message msg);
-		[Deprecated]
+		[Version (deprecated = true)]
 		public GLib.MainContext async_context { get; owned construct; }
 		[CCode (array_length = false, array_null_terminated = true)]
 		[NoAccessorMethod]
+		[Version (since = "2.44")]
 		public string[] http_aliases { owned get; set; }
 		[CCode (array_length = false, array_null_terminated = true)]
 		[NoAccessorMethod]
+		[Version (since = "2.44")]
 		public string[] https_aliases { owned get; set; }
-		[Deprecated]
 		[NoAccessorMethod]
+		[Version (deprecated = true)]
 		public Soup.Address @interface { owned get; construct; }
-		[Deprecated]
+		[Version (deprecated = true)]
 		public uint port { get; construct; }
 		[NoAccessorMethod]
 		public bool raw_paths { get; construct; }
 		[NoAccessorMethod]
 		public string server_header { owned get; set construct; }
-		[Deprecated]
 		[NoAccessorMethod]
+		[Version (deprecated = true)]
 		public string ssl_cert_file { owned get; construct; }
-		[Deprecated]
 		[NoAccessorMethod]
+		[Version (deprecated = true)]
 		public string ssl_key_file { owned get; construct; }
 		[NoAccessorMethod]
+		[Version (since = "2.38")]
 		public GLib.TlsCertificate tls_certificate { owned get; construct; }
 		public virtual signal void request_aborted (Soup.Message msg, Soup.ClientContext client);
 		public virtual signal void request_finished (Soup.Message msg, Soup.ClientContext client);
@@ -672,9 +842,12 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_session_get_type ()")]
 	public class Session : GLib.Object {
 		[CCode (has_construct_function = false)]
+		[Version (since = "2.42")]
 		public Session ();
 		public void abort ();
+		[Version (since = "2.24")]
 		public void add_feature (Soup.SessionFeature feature);
+		[Version (since = "2.24")]
 		public void add_feature_by_type (GLib.Type feature_type);
 		[NoWrapper]
 		public virtual void auth_required (Soup.Message msg, Soup.Auth auth, bool retrying);
@@ -682,108 +855,142 @@ namespace Soup {
 		[NoWrapper]
 		public virtual void flush_queue ();
 		public unowned GLib.MainContext? get_async_context ();
+		[Version (since = "2.26")]
 		public unowned Soup.SessionFeature? get_feature (GLib.Type feature_type);
+		[Version (since = "2.28")]
 		public unowned Soup.SessionFeature? get_feature_for_message (GLib.Type feature_type, Soup.Message msg);
+		[Version (since = "2.26")]
 		public GLib.SList<Soup.SessionFeature> get_features (GLib.Type feature_type);
+		[Version (since = "2.42")]
 		public bool has_feature (GLib.Type feature_type);
 		[NoWrapper]
 		public virtual void kick ();
 		public void pause_message (Soup.Message msg);
-		public void prefetch_dns (string hostname, GLib.Cancellable? cancellable, [CCode (scope = "async")] owned Soup.AddressCallback? callback);
-		[Deprecated (since = "2.38")]
+		[Version (since = "2.38")]
+		public void prefetch_dns (string hostname, GLib.Cancellable? cancellable, [CCode (scope = "async")] Soup.AddressCallback? callback);
+		[Version (deprecated = true, deprecated_since = "2.38", since = "2.30")]
 		public void prepare_for_uri (Soup.URI uri);
-		public virtual void queue_message (owned Soup.Message msg, [CCode (scope = "async")] owned Soup.SessionCallback? callback);
+		public virtual void queue_message (owned Soup.Message msg, [CCode (scope = "async")] Soup.SessionCallback? callback);
+		[Version (since = "2.38")]
 		public bool redirect_message (Soup.Message msg);
+		[Version (since = "2.24")]
 		public void remove_feature (Soup.SessionFeature feature);
+		[Version (since = "2.24")]
 		public void remove_feature_by_type (GLib.Type feature_type);
+		[Version (since = "2.42")]
 		public Soup.Request request (string uri_string) throws GLib.Error;
+		[Version (since = "2.42")]
 		public Soup.RequestHTTP request_http (string method, string uri_string) throws GLib.Error;
+		[Version (since = "2.42")]
 		public Soup.RequestHTTP request_http_uri (string method, Soup.URI uri) throws GLib.Error;
+		[Version (since = "2.42")]
 		public Soup.Request request_uri (Soup.URI uri) throws GLib.Error;
 		public virtual void requeue_message (Soup.Message msg);
+		[Version (since = "2.42")]
 		public GLib.InputStream send (Soup.Message msg, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[Version (since = "2.42")]
 		public async GLib.InputStream send_async (Soup.Message msg, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public virtual uint send_message (Soup.Message msg);
+		[Version (since = "2.50")]
 		public GLib.IOStream steal_connection (Soup.Message msg);
 		public void unpause_message (Soup.Message msg);
+		[Version (since = "2.50")]
 		public async Soup.WebsocketConnection websocket_connect_async (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols, GLib.Cancellable? cancellable) throws GLib.Error;
 		[CCode (has_construct_function = false)]
+		[Version (since = "2.42")]
 		public Session.with_options (string optname1, ...);
+		[Version (since = "2.38")]
 		public bool would_redirect (Soup.Message msg);
 		[NoAccessorMethod]
+		[Version (since = "2.30")]
 		public string accept_language { owned get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.30")]
 		public bool accept_language_auto { get; set; }
 		public GLib.MainContext async_context { get; owned construct; }
 		[CCode (array_length = false, array_null_terminated = true)]
 		[NoAccessorMethod]
+		[Version (since = "2.38")]
 		public string[] http_aliases { owned get; set; }
 		[CCode (array_length = false, array_null_terminated = true)]
 		[NoAccessorMethod]
+		[Version (since = "2.38")]
 		public string[] https_aliases { owned get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.24")]
 		public uint idle_timeout { get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.42")]
 		public Soup.Address local_address { owned get; construct; }
 		[NoAccessorMethod]
 		public int max_conns { get; set; }
 		[NoAccessorMethod]
 		public int max_conns_per_host { get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.42")]
 		public GLib.ProxyResolver proxy_resolver { owned get; set; }
 		[NoAccessorMethod]
 		public Soup.URI proxy_uri { owned get; set; }
-		[Deprecated]
 		[NoAccessorMethod]
+		[Version (deprecated = true)]
 		public string ssl_ca_file { owned get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.30")]
 		public bool ssl_strict { get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.38")]
 		public bool ssl_use_system_ca_file { get; set; }
 		[NoAccessorMethod]
 		public uint timeout { get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.38")]
 		public GLib.TlsDatabase tls_database { owned get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.48")]
 		public GLib.TlsInteraction tls_interaction { owned get; set; }
-		[Deprecated]
 		[NoAccessorMethod]
+		[Version (deprecated = true)]
 		public bool use_ntlm { get; set; }
 		[NoAccessorMethod]
+		[Version (since = "2.38")]
 		public bool use_thread_context { get; set; }
 		[NoAccessorMethod]
 		public string user_agent { owned get; set; }
 		public virtual signal void authenticate (Soup.Message msg, Soup.Auth auth, bool retrying);
+		[Version (since = "2.30")]
 		public signal void connection_created (GLib.Object connection);
+		[Version (since = "2.24")]
 		public signal void request_queued (Soup.Message msg);
-		[Deprecated (since = "2.50.")]
+		[Version (deprecated = true, deprecated_since = "2.50.")]
 		public virtual signal void request_started (Soup.Message msg, Soup.Socket socket);
+		[Version (since = "2.24")]
 		public signal void request_unqueued (Soup.Message msg);
+		[Version (since = "2.30")]
 		public signal void tunneling (GLib.Object connection);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_session_async_get_type ()")]
 	public class SessionAsync : Soup.Session {
 		[CCode (has_construct_function = false, type = "SoupSession*")]
-		[Deprecated]
+		[Version (deprecated = true)]
 		public SessionAsync ();
 		[CCode (has_construct_function = false, type = "SoupSession*")]
-		[Deprecated]
+		[Version (deprecated = true)]
 		public SessionAsync.with_options (string optname1, ...);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_session_sync_get_type ()")]
 	public class SessionSync : Soup.Session {
 		[CCode (has_construct_function = false, type = "SoupSession*")]
-		[Deprecated]
+		[Version (deprecated = true)]
 		public SessionSync ();
 		[CCode (has_construct_function = false, type = "SoupSession*")]
-		[Deprecated]
+		[Version (deprecated = true)]
 		public SessionSync.with_options (string optname1, ...);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_socket_get_type ()")]
 	public class Socket : GLib.Object, GLib.Initable {
 		[CCode (has_construct_function = false)]
 		public Socket (string optname1, ...);
-		public void connect_async (GLib.Cancellable? cancellable, [CCode (scope = "async")] owned Soup.SocketCallback callback);
+		public void connect_async (GLib.Cancellable? cancellable, [CCode (scope = "async")] Soup.SocketCallback callback);
 		public uint connect_sync (GLib.Cancellable? cancellable = null);
 		public void disconnect ();
 		public int get_fd ();
@@ -825,8 +1032,10 @@ namespace Soup {
 		[NoAccessorMethod]
 		public bool trusted_certificate { get; }
 		[NoAccessorMethod]
+		[Version (since = "2.38")]
 		public bool use_thread_context { get; construct; }
 		public virtual signal void disconnected ();
+		[Version (since = "2.38")]
 		public signal void event (GLib.SocketClientEvent event, GLib.IOStream connection);
 		public virtual signal void new_connection (Soup.Socket new_sock);
 		public virtual signal void readable ();
@@ -846,22 +1055,33 @@ namespace Soup {
 		[CCode (has_construct_function = false)]
 		public URI (string? uri_string);
 		public Soup.URI copy ();
+		[Version (since = "2.28")]
 		public Soup.URI copy_host ();
 		public static string decode (string part);
 		public static string encode (string part, string? escape_extra);
 		public bool equal (Soup.URI uri2);
 		public void free ();
+		[Version (since = "2.32")]
 		public unowned string get_fragment ();
+		[Version (since = "2.32")]
 		public unowned string get_host ();
+		[Version (since = "2.32")]
 		public unowned string get_password ();
+		[Version (since = "2.32")]
 		public unowned string get_path ();
+		[Version (since = "2.32")]
 		public uint get_port ();
+		[Version (since = "2.32")]
 		public unowned string get_query ();
+		[Version (since = "2.32")]
 		public unowned string get_scheme ();
+		[Version (since = "2.32")]
 		public unowned string get_user ();
+		[Version (since = "2.28")]
 		public bool host_equal (Soup.URI v2);
+		[Version (since = "2.28")]
 		public uint host_hash ();
-		public static string normalize (string part, string unescape_extra);
+		public static string normalize (string part, string? unescape_extra);
 		public void set_fragment (string? fragment);
 		public void set_host (string? host);
 		public void set_password (string? password);
@@ -878,6 +1098,7 @@ namespace Soup {
 		public URI.with_base (Soup.URI @base, string uri_string);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_websocket_connection_get_type ()")]
+	[Version (since = "2.50")]
 	public class WebsocketConnection : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public WebsocketConnection (GLib.IOStream stream, Soup.URI uri, Soup.WebsocketConnectionType type, string? origin, string? protocol);
@@ -903,30 +1124,41 @@ namespace Soup {
 		public virtual signal void error (GLib.Error error);
 		public virtual signal void message (int type, GLib.Bytes message);
 	}
+	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Compact]
+	[Version (since = "2.52")]
+	public class XMLRPCParams {
+		public void free ();
+		public GLib.Variant parse (string? signature) throws GLib.Error;
+	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_cname = "SoupPasswordManagerInterface", type_id = "soup_password_manager_get_type ()")]
 	public interface PasswordManager : Soup.SessionFeature, GLib.Object {
-		public abstract void get_passwords_async (Soup.Message msg, Soup.Auth auth, bool retrying, GLib.MainContext async_context, GLib.Cancellable? cancellable, [CCode (scope = "async")] owned Soup.PasswordManagerCallback callback);
+		public abstract void get_passwords_async (Soup.Message msg, Soup.Auth auth, bool retrying, GLib.MainContext async_context, GLib.Cancellable? cancellable, [CCode (scope = "async")] Soup.PasswordManagerCallback callback);
 		public abstract void get_passwords_sync (Soup.Message msg, Soup.Auth auth, GLib.Cancellable? cancellable = null);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_cname = "SoupProxyResolverInterface", type_id = "soup_proxy_resolver_get_type ()")]
-	[Deprecated (replacement = "Soup.ProxyURIResolver")]
+	[Version (replacement = "Soup.ProxyURIResolver")]
 	public interface ProxyResolver : Soup.SessionFeature, GLib.Object {
 		public abstract void get_proxy_async (Soup.Message msg, GLib.MainContext async_context, GLib.Cancellable? cancellable, Soup.ProxyResolverCallback callback);
 		public abstract uint get_proxy_sync (Soup.Message msg, GLib.Cancellable? cancellable, out unowned Soup.Address addr);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_cname = "SoupProxyURIResolverInterface", type_id = "soup_proxy_uri_resolver_get_type ()")]
 	public interface ProxyURIResolver : Soup.SessionFeature, GLib.Object {
-		[Deprecated]
-		public abstract void get_proxy_uri_async (Soup.URI uri, GLib.MainContext? async_context, GLib.Cancellable? cancellable, [CCode (scope = "async")] owned Soup.ProxyURIResolverCallback callback);
-		[Deprecated]
+		[Version (deprecated = true, since = "2.26.3")]
+		public abstract void get_proxy_uri_async (Soup.URI uri, GLib.MainContext? async_context, GLib.Cancellable? cancellable, [CCode (scope = "async")] Soup.ProxyURIResolverCallback callback);
+		[Version (deprecated = true, since = "2.26.3")]
 		public abstract uint get_proxy_uri_sync (Soup.URI uri, GLib.Cancellable? cancellable, out Soup.URI proxy_uri);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_cname = "SoupSessionFeatureInterface", type_id = "soup_session_feature_get_type ()")]
+	[Version (since = "2.24")]
 	public interface SessionFeature : GLib.Object {
+		[Version (since = "2.34")]
 		public abstract bool add_feature (GLib.Type type);
 		public abstract void attach (Soup.Session session);
 		public abstract void detach (Soup.Session session);
+		[Version (since = "2.34")]
 		public abstract bool has_feature (GLib.Type type);
+		[Version (since = "2.34")]
 		public abstract bool remove_feature (GLib.Type type);
 		[NoWrapper]
 		public abstract void request_queued (Soup.Session session, Soup.Message msg);
@@ -941,6 +1173,7 @@ namespace Soup {
 		public bool next (out unowned string name, out unowned string value);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
+	[Version (since = "2.26")]
 	public struct Range {
 		public int64 start;
 		public int64 end;
@@ -958,6 +1191,7 @@ namespace Soup {
 		STALE
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_CACHE_", type_id = "soup_cache_type_get_type ()")]
+	[Version (since = "2.34")]
 	public enum CacheType {
 		SINGLE_USER,
 		SHARED
@@ -980,6 +1214,7 @@ namespace Soup {
 		DISCONNECTED
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_COOKIE_JAR_ACCEPT_", type_id = "soup_cookie_jar_accept_policy_get_type ()")]
+	[Version (since = "2.30")]
 	public enum CookieJarAcceptPolicy {
 		ALWAYS,
 		NEVER,
@@ -1016,7 +1251,7 @@ namespace Soup {
 		@1_1
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_STATUS_", type_id = "soup_known_status_code_get_type ()")]
-	[Deprecated (replacement = "Status", since = "vala-0.22")]
+	[Version (deprecated_since = "vala-0.22", replacement = "Status")]
 	public enum KnownStatusCode {
 		NONE,
 		CANCELLED,
@@ -1124,6 +1359,7 @@ namespace Soup {
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_SERVER_LISTEN_", type_id = "soup_server_listen_options_get_type ()")]
 	[Flags]
+	[Version (since = "2.48")]
 	public enum ServerListenOptions {
 		HTTPS,
 		IPV4_ONLY,
@@ -1202,9 +1438,11 @@ namespace Soup {
 		INSUFFICIENT_STORAGE,
 		NOT_EXTENDED;
 		public static unowned string get_phrase (uint status_code);
+		[Version (since = "2.26")]
 		public static uint proxify (uint status_code);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_WEBSOCKET_CLOSE_", type_id = "soup_websocket_close_code_get_type ()")]
+	[Version (since = "2.50")]
 	public enum WebsocketCloseCode {
 		NORMAL,
 		GOING_AWAY,
@@ -1220,17 +1458,20 @@ namespace Soup {
 		TLS_HANDSHAKE
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_WEBSOCKET_CONNECTION_", type_id = "soup_websocket_connection_type_get_type ()")]
+	[Version (since = "2.50")]
 	public enum WebsocketConnectionType {
 		UNKNOWN,
 		CLIENT,
 		SERVER
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_WEBSOCKET_DATA_", type_id = "soup_websocket_data_type_get_type ()")]
+	[Version (since = "2.50")]
 	public enum WebsocketDataType {
 		TEXT,
 		BINARY
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_WEBSOCKET_ERROR_", type_id = "soup_websocket_error_get_type ()")]
+	[Version (since = "2.50")]
 	public enum WebsocketError {
 		FAILED,
 		NOT_WEBSOCKET,
@@ -1239,12 +1480,14 @@ namespace Soup {
 		public static GLib.Quark get_quark ();
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_WEBSOCKET_STATE_", type_id = "soup_websocket_state_get_type ()")]
+	[Version (since = "2.50")]
 	public enum WebsocketState {
 		OPEN,
 		CLOSING,
 		CLOSED
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_REQUEST_ERROR_")]
+	[Version (since = "2.42")]
 	public errordomain RequestError {
 		BAD_URI,
 		UNSUPPORTED_URI_SCHEME,
@@ -1267,6 +1510,7 @@ namespace Soup {
 		public static GLib.Quark quark ();
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_TLD_ERROR_")]
+	[Version (since = "2.40")]
 	public errordomain TLDError {
 		INVALID_HOSTNAME,
 		IS_IP_ADDRESS,
@@ -1285,7 +1529,7 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", instance_pos = 3.9)]
 	public delegate bool AuthDomainGenericAuthCallback (Soup.AuthDomain domain, Soup.Message msg, string username);
 	[CCode (cheader_filename = "libsoup/soup.h", instance_pos = 2.9)]
-	[Deprecated]
+	[Version (deprecated = true)]
 	public delegate Soup.Buffer? ChunkAllocator (Soup.Message msg, size_t max_len);
 	[CCode (cheader_filename = "libsoup/soup.h", instance_pos = 2.9)]
 	public delegate Soup.LoggerLogLevel LoggerFilter (Soup.Logger logger, Soup.Message msg);
@@ -1384,6 +1628,7 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_H")]
 	public const int COOKIE_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_JAR_ACCEPT_POLICY")]
+	[Version (since = "2.30")]
 	public const string COOKIE_JAR_ACCEPT_POLICY;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_JAR_DB_FILENAME")]
 	public const string COOKIE_JAR_DB_FILENAME;
@@ -1398,28 +1643,41 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_JAR_TEXT_H")]
 	public const int COOKIE_JAR_TEXT_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_MAX_AGE_ONE_DAY")]
+	[Version (since = "2.24")]
 	public const int COOKIE_MAX_AGE_ONE_DAY;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_MAX_AGE_ONE_HOUR")]
+	[Version (since = "2.24")]
 	public const int COOKIE_MAX_AGE_ONE_HOUR;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_MAX_AGE_ONE_WEEK")]
+	[Version (since = "2.24")]
 	public const int COOKIE_MAX_AGE_ONE_WEEK;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_COOKIE_MAX_AGE_ONE_YEAR")]
+	[Version (since = "2.24")]
 	public const int COOKIE_MAX_AGE_ONE_YEAR;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_DATE_H")]
 	public const int DATE_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_FORM_H")]
 	public const int FORM_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_FORM_MIME_TYPE_MULTIPART")]
+	[Version (since = "2.26")]
 	public const string FORM_MIME_TYPE_MULTIPART;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_FORM_MIME_TYPE_URLENCODED")]
+	[Version (since = "2.26")]
 	public const string FORM_MIME_TYPE_URLENCODED;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_HEADERS_H")]
 	public const int HEADERS_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_LOGGER_H")]
 	public const int LOGGER_H;
+	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_LOGGER_LEVEL")]
+	[Version (since = "2.56")]
+	public const string LOGGER_LEVEL;
+	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_LOGGER_MAX_BODY_SIZE")]
+	[Version (since = "2.56")]
+	public const string LOGGER_MAX_BODY_SIZE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_BODY_H")]
 	public const int MESSAGE_BODY_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_FIRST_PARTY")]
+	[Version (since = "2.30")]
 	public const string MESSAGE_FIRST_PARTY;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_FLAGS")]
 	public const string MESSAGE_FLAGS;
@@ -1432,18 +1690,21 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_METHOD")]
 	public const string MESSAGE_METHOD;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_PRIORITY")]
+	[Version (since = "2.44")]
 	public const string MESSAGE_PRIORITY;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_REASON_PHRASE")]
 	public const string MESSAGE_REASON_PHRASE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_REQUEST_BODY")]
 	public const string MESSAGE_REQUEST_BODY;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_REQUEST_BODY_DATA")]
+	[Version (since = "2.46")]
 	public const string MESSAGE_REQUEST_BODY_DATA;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_REQUEST_HEADERS")]
 	public const string MESSAGE_REQUEST_HEADERS;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_RESPONSE_BODY")]
 	public const string MESSAGE_RESPONSE_BODY;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_RESPONSE_BODY_DATA")]
+	[Version (since = "2.46")]
 	public const string MESSAGE_RESPONSE_BODY_DATA;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_RESPONSE_HEADERS")]
 	public const string MESSAGE_RESPONSE_HEADERS;
@@ -1452,8 +1713,10 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_STATUS_CODE")]
 	public const string MESSAGE_STATUS_CODE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_TLS_CERTIFICATE")]
+	[Version (since = "2.34")]
 	public const string MESSAGE_TLS_CERTIFICATE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_TLS_ERRORS")]
+	[Version (since = "2.34")]
 	public const string MESSAGE_TLS_ERRORS;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_URI")]
 	public const string MESSAGE_URI;
@@ -1482,39 +1745,46 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_REQUEST_HTTP_H")]
 	public const int REQUEST_HTTP_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_REQUEST_SESSION")]
+	[Version (since = "2.42")]
 	public const string REQUEST_SESSION;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_REQUEST_URI")]
+	[Version (since = "2.42")]
 	public const string REQUEST_URI;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_ASYNC_CONTEXT")]
-	[Deprecated]
+	[Version (deprecated = true)]
 	public const string SERVER_ASYNC_CONTEXT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_H")]
 	public const int SERVER_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_HTTPS_ALIASES")]
+	[Version (since = "2.44")]
 	public const string SERVER_HTTPS_ALIASES;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_HTTP_ALIASES")]
+	[Version (since = "2.44")]
 	public const string SERVER_HTTP_ALIASES;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_INTERFACE")]
-	[Deprecated]
+	[Version (deprecated = true)]
 	public const string SERVER_INTERFACE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_PORT")]
-	[Deprecated]
+	[Version (deprecated = true)]
 	public const string SERVER_PORT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_RAW_PATHS")]
 	public const string SERVER_RAW_PATHS;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_SERVER_HEADER")]
 	public const string SERVER_SERVER_HEADER;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_SSL_CERT_FILE")]
-	[Deprecated]
+	[Version (deprecated = true)]
 	public const string SERVER_SSL_CERT_FILE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_SSL_KEY_FILE")]
-	[Deprecated]
+	[Version (deprecated = true)]
 	public const string SERVER_SSL_KEY_FILE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SERVER_TLS_CERTIFICATE")]
+	[Version (since = "2.38")]
 	public const string SERVER_TLS_CERTIFICATE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_ACCEPT_LANGUAGE")]
+	[Version (since = "2.30")]
 	public const string SESSION_ACCEPT_LANGUAGE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_ACCEPT_LANGUAGE_AUTO")]
+	[Version (since = "2.30")]
 	public const string SESSION_ACCEPT_LANGUAGE_AUTO;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_ASYNC_CONTEXT")]
 	public const string SESSION_ASYNC_CONTEXT;
@@ -1525,12 +1795,16 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_H")]
 	public const int SESSION_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_HTTPS_ALIASES")]
+	[Version (since = "2.38")]
 	public const string SESSION_HTTPS_ALIASES;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_HTTP_ALIASES")]
+	[Version (since = "2.38")]
 	public const string SESSION_HTTP_ALIASES;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_IDLE_TIMEOUT")]
+	[Version (since = "2.24")]
 	public const string SESSION_IDLE_TIMEOUT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_LOCAL_ADDRESS")]
+	[Version (since = "2.42")]
 	public const string SESSION_LOCAL_ADDRESS;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_MAX_CONNS")]
 	public const string SESSION_MAX_CONNS;
@@ -1543,22 +1817,27 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_SSL_CA_FILE")]
 	public const string SESSION_SSL_CA_FILE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_SSL_STRICT")]
+	[Version (since = "2.30")]
 	public const string SESSION_SSL_STRICT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_SSL_USE_SYSTEM_CA_FILE")]
+	[Version (since = "2.38")]
 	public const string SESSION_SSL_USE_SYSTEM_CA_FILE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_SYNC_H")]
 	public const int SESSION_SYNC_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_TIMEOUT")]
 	public const string SESSION_TIMEOUT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_TLS_DATABASE")]
+	[Version (since = "2.38")]
 	public const string SESSION_TLS_DATABASE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_TLS_INTERACTION")]
+	[Version (since = "2.48")]
 	public const string SESSION_TLS_INTERACTION;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_USER_AGENT")]
 	public const string SESSION_USER_AGENT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_USE_NTLM")]
 	public const string SESSION_USE_NTLM;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SESSION_USE_THREAD_CONTEXT")]
+	[Version (since = "2.38")]
 	public const string SESSION_USE_THREAD_CONTEXT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SOCKET_ASYNC_CONTEXT")]
 	public const string SOCKET_ASYNC_CONTEXT;
@@ -1581,12 +1860,15 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SOCKET_TIMEOUT")]
 	public const string SOCKET_TIMEOUT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SOCKET_TLS_CERTIFICATE")]
+	[Version (since = "2.34")]
 	public const string SOCKET_TLS_CERTIFICATE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SOCKET_TLS_ERRORS")]
+	[Version (since = "2.34")]
 	public const string SOCKET_TLS_ERRORS;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SOCKET_TRUSTED_CERTIFICATE")]
 	public const string SOCKET_TRUSTED_CERTIFICATE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_SOCKET_USE_THREAD_CONTEXT")]
+	[Version (since = "2.38")]
 	public const string SOCKET_USE_THREAD_CONTEXT;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_STATUS_H")]
 	public const int STATUS_H;
@@ -1598,7 +1880,10 @@ namespace Soup {
 	public const int VALUE_UTILS_H;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_XMLRPC_H")]
 	public const int XMLRPC_H;
+	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_XMLRPC_OLD_H")]
+	public const int XMLRPC_OLD_H;
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.24")]
 	public static unowned GLib.TimeoutSource add_completion (GLib.MainContext? async_context, GLib.SourceFunc function);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static unowned GLib.TimeoutSource add_idle (GLib.MainContext? async_context, GLib.SourceFunc function);
@@ -1607,52 +1892,59 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static unowned GLib.TimeoutSource add_timeout (GLib.MainContext? async_context, uint interval, GLib.SourceFunc function);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.24")]
 	public static GLib.SList<Soup.Cookie> cookies_from_request (Soup.Message msg);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.24")]
 	public static GLib.SList<Soup.Cookie> cookies_from_response (Soup.Message msg);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.24")]
 	public static string cookies_to_cookie_header (GLib.SList<Soup.Cookie> cookies);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.24")]
 	public static void cookies_to_request (GLib.SList<Soup.Cookie> cookies, Soup.Message msg);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.24")]
 	public static void cookies_to_response (GLib.SList<Soup.Cookie> cookies, Soup.Message msg);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.decode", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.decode")]
 	public static GLib.HashTable<string,string> form_decode (string encoded_form);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.decode_multipart", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.decode_multipart")]
 	public static GLib.HashTable<string,string> form_decode_multipart (Soup.Message msg, string file_control_name, out string filename, out string content_type, out Soup.Buffer file);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.encode", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.encode")]
 	public static string form_encode (...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.encode_datalist", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.encode_datalist")]
 	public static string form_encode_datalist (void* form_data_set);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.encode_hash", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.encode_hash")]
 	public static string form_encode_hash (GLib.HashTable<string,string> form_data_set);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12")]
 	public static string form_encode_valist (string first_field, void* args);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.request_new", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.request_new")]
 	public static Soup.Message form_request_new (string method, string uri, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.request_new_from_datalist", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.request_new_from_datalist")]
 	public static Soup.Message form_request_new_from_datalist (string method, string uri, void* form_data_set);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.request_new_from_hash", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.request_new_from_hash")]
 	public static Soup.Message form_request_new_from_hash (string method, string uri, GLib.HashTable<string,string> form_data_set);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Form.request_new_from_multipart", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "Form.request_new_from_multipart")]
 	public static Soup.Message form_request_new_from_multipart (string uri, Soup.Multipart multipart);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static bool header_contains (string header, string token);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static void header_free_param_list (GLib.HashTable<string,string> param_list);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.26")]
 	public static void header_g_string_append_param (GLib.StringBuilder string, string name, string value);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.30")]
 	public static void header_g_string_append_param_quoted (GLib.StringBuilder string, string name, string value);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static GLib.SList<string> header_parse_list (string header);
@@ -1661,8 +1953,10 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static GLib.SList<string> header_parse_quality_list (string header, out GLib.SList<string> unacceptable);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.24")]
 	public static GLib.HashTable<string,string> header_parse_semi_param_list (string header);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.26")]
 	public static bool headers_parse (string str, int len, Soup.MessageHeaders dest);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static uint headers_parse_request (string str, int len, Soup.MessageHeaders req_headers, out string req_method, out string req_path, out Soup.HTTPVersion ver);
@@ -1673,96 +1967,117 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static GLib.Quark http_error_quark ();
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "SSLError.quark", since = "vala-0.14")]
+	[Version (deprecated_since = "vala-0.14", replacement = "SSLError.quark")]
 	public static GLib.Quark ssl_error_quark ();
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Status.get_phrase", since = "vala-0.22")]
+	[Version (deprecated_since = "vala-0.22", replacement = "Status.get_phrase")]
 	public static unowned string status_get_phrase (uint status_code);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "Status.proxify", since = "vala-0.22")]
+	[Version (deprecated_since = "vala-0.22", replacement = "Status.proxify")]
 	public static uint status_proxify (uint status_code);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static bool str_case_equal (void* v1, void* v2);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static uint str_case_hash (void* key);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.40")]
 	public static bool tld_domain_is_public_suffix (string domain);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.40")]
 	public static unowned string tld_get_base_domain (string hostname) throws GLib.Error;
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static void value_array_append (GLib.ValueArray array, GLib.Type type, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static void value_array_append_vals (GLib.ValueArray array, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static GLib.ValueArray? value_array_from_args (va_list args);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static bool value_array_get_nth (GLib.ValueArray array, uint index_, GLib.Type type, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static void value_array_insert (GLib.ValueArray array, uint index_, GLib.Type type, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static GLib.ValueArray value_array_new ();
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static GLib.ValueArray value_array_new_with_vals (...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static bool value_array_to_args (GLib.ValueArray array, va_list args);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static void value_hash_insert (GLib.HashTable<string,GLib.Value?> hash, string key, GLib.Type type, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static void value_hash_insert_vals (GLib.HashTable<string,GLib.Value?> hash, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static void value_hash_insert_value (GLib.HashTable<string,GLib.Value?> hash, string key, GLib.Value value);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static bool value_hash_lookup (GLib.HashTable<string,GLib.Value?> hash, string key, GLib.Type type, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static bool value_hash_lookup_vals (GLib.HashTable<string,GLib.Value?> hash, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static GLib.HashTable<string,GLib.Value?> value_hash_new ();
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (deprecated = true)]
 	public static GLib.HashTable<string,GLib.Value?> value_hash_new_with_vals (...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.50")]
 	public static void websocket_client_prepare_handshake (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.50")]
 	public static bool websocket_client_verify_handshake (Soup.Message msg) throws GLib.Error;
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.50")]
 	public static bool websocket_server_check_handshake (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols) throws GLib.Error;
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	public static bool websocket_server_process_handshake (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols);
+	[Version (since = "2.50")]
+	public static bool websocket_server_process_handshake (Soup.Message msg, string? expected_origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.build_fault", since = "vala-0.12")]
 	[PrintfFormat]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.build_fault")]
 	public static unowned string xmlrpc_build_fault (int fault_code, string fault_format, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.build_method_call", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.build_method_call")]
 	public static unowned string xmlrpc_build_method_call (string method_name, GLib.Value[] @params);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.build_method_response", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.build_method_response")]
 	public static unowned string xmlrpc_build_method_response (GLib.Value value);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.error_quark", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.error_quark")]
 	public static GLib.Quark xmlrpc_error_quark ();
 	[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
-	[Deprecated (replacement = "XMLRPC.extract_method_call", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.extract_method_call")]
 	public static bool xmlrpc_extract_method_call (string method_call, int length, out unowned string method_name, ...);
 	[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
-	[Deprecated (replacement = "XMLRPC.extract_method_response", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.extract_method_response")]
 	public static bool xmlrpc_extract_method_response (string method_response, int length, ...) throws GLib.Error;
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.fault_quark", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.fault_quark")]
 	public static GLib.Quark xmlrpc_fault_quark ();
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.parse_method_call", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.parse_method_call")]
 	public static bool xmlrpc_parse_method_call (string method_call, int length, out unowned string method_name, out unowned GLib.ValueArray @params);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.parse_method_response", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.parse_method_response")]
 	public static bool xmlrpc_parse_method_response (string method_response, int length, GLib.Value value) throws GLib.Error;
 	[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
-	[Deprecated (replacement = "XMLRPC.request_new", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.request_new")]
 	public static unowned Soup.Message xmlrpc_request_new (string uri, string method_name, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	[Deprecated (replacement = "XMLRPC.set_fault", since = "vala-0.12")]
 	[PrintfFormat]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.set_fault")]
 	public static void xmlrpc_set_fault (Soup.Message msg, int fault_code, string fault_format, ...);
 	[CCode (cheader_filename = "libsoup/soup.h", sentinel = "G_TYPE_INVALID")]
-	[Deprecated (replacement = "XMLRPC.set_response", since = "vala-0.12")]
+	[Version (deprecated_since = "vala-0.12", replacement = "XMLRPC.set_response")]
 	public static void xmlrpc_set_response (Soup.Message msg, ...);
 }

@@ -47,6 +47,11 @@ public class Vala.CodeContext {
 	public bool hide_internal { get; set; }
 
 	/**
+	 * Do not check whether used symbols exist in local packages.
+	 */
+	public bool since_check { get; set; }
+
+	/**
 	 * Do not warn when using experimental features.
 	 */
 	public bool experimental { get; set; }
@@ -212,8 +217,6 @@ public class Vala.CodeContext {
 
 	/**
 	 * The root namespace of the symbol tree.
-	 *
-	 * @return root namespace
 	 */
 	public Namespace root {
 		get { return _root; }
@@ -382,7 +385,7 @@ public class Vala.CodeContext {
 	 * Read the given filename and pull in packages.
 	 * The method is tolerant if the file does not exist.
 	 *
-	 * @param filename a filanem
+	 * @param filename a filename
 	 * @return false if an error occurs while reading the file or if a package could not be added
 	 */
 	public bool add_packages_from_file (string filename) {
@@ -485,6 +488,12 @@ public class Vala.CodeContext {
 		}
 
 		flow_analyzer.analyze (this);
+
+		if (report.get_errors () > 0) {
+			return;
+		}
+
+		used_attr.check_unused (this);
 	}
 
 	public void add_define (string define) {

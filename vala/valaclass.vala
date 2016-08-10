@@ -209,10 +209,10 @@ public class Vala.Class : ObjectTypeSymbol {
 	/**
 	 * Creates a new class.
 	 *
-	 * @param name   type name
-	 * @param source reference to source code
-	 * @param comment class documentation
-	 * @return       newly created class
+	 * @param name             type name
+	 * @param source_reference reference to source code
+	 * @param comment          class documentation
+	 * @return                 newly created class
 	 */
 	public Class (string name, SourceReference? source_reference = null, Comment? comment = null) {
 		base (name, source_reference, comment);
@@ -561,6 +561,7 @@ public class Vala.Class : ObjectTypeSymbol {
 		for (int i = 0; i < base_types.size; i++) {
 			if (base_types[i] == old_type) {
 				base_types[i] = new_type;
+				new_type.parent_node = this;
 				return;
 			}
 		}
@@ -793,8 +794,7 @@ public class Vala.Class : ObjectTypeSymbol {
 								foreach (var impl in base_class.get_methods ()) {
 									if (impl.name == m.name && (impl.base_interface_type == null || impl.base_interface_type.data_type == iface)) {
 										// method is used as interface implementation, so it is not unused
-										impl.check_deprecated (source_reference);
-										impl.check_experimental (source_reference);
+										impl.version.check (source_reference);
 										impl.used = true;
 										implemented = true;
 										break;
@@ -820,8 +820,7 @@ public class Vala.Class : ObjectTypeSymbol {
 							}
 							if (sym is Property) {
 								// property is used as interface implementation, so it is not unused
-								sym.check_deprecated (source_reference);
-								sym.check_experimental (source_reference);
+								sym.version.check (source_reference);
 								sym.used = true;
 							} else {
 								error = true;

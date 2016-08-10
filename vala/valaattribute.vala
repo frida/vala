@@ -46,12 +46,21 @@ public class Vala.Attribute : CodeNode {
 	public Attribute (string name, SourceReference? source_reference = null) {
 		this.name = name;
 		this.source_reference = source_reference;
+
+		if (!CodeContext.get ().deprecated) {
+			if (name == "Deprecated") {
+				Report.deprecated (source_reference, "[Deprecated] is deprecated. Use [Version (deprecated = true, deprecated_since = \"\", replacement = \"\")]");
+			} else if (name == "Experimental") {
+				Report.deprecated (source_reference, "[Experimental] is deprecated. Use [Version (experimental = true, experimental_until = \"\")]");
+			}
+		}
 	}
 
 	/**
 	 * Adds an attribute argument.
 	 *
-	 * @param arg named argument
+	 * @param key    argument name
+	 * @param value  argument value
 	 */
 	public void add_argument (string key, string value) {
 		args.set (key, value);

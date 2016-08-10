@@ -2,7 +2,7 @@ NULL =
 
 vapidir = $(pkgdatadir)/vapi
 
-libvala@PACKAGE_SUFFIX@.vapi: $(top_builddir)/gee/gee.vapi $(top_builddir)/ccode/ccode.vapi $(top_builddir)/vala/vala.vapi $(top_builddir)/codegen/codegen.vapi
+libvala@PACKAGE_SUFFIX@.vapi: $(top_srcdir)/gee/gee.vapi $(top_srcdir)/ccode/ccode.vapi $(top_srcdir)/vala/vala.vapi $(top_srcdir)/codegen/codegen.vapi
 	cat $^ > $@
 
 dist_vapi_DATA = \
@@ -74,6 +74,8 @@ dist_vapi_DATA = \
 	gio-2.0.vapi \
 	gio-unix-2.0.deps \
 	gio-unix-2.0.vapi \
+	gio-windows-2.0.deps \
+	gio-windows-2.0.vapi \
 	gmodule-2.0.vapi \
 	gnet-2.0.deps \
 	gnet-2.0.vapi \
@@ -86,6 +88,8 @@ dist_vapi_DATA = \
 	gobject-introspection-1.0.vapi \
 	goocanvas.deps \
 	goocanvas.vapi \
+	graphene-1.0.deps \
+	graphene-1.0.vapi \
 	gsl.vapi \
 	gstreamer-0.10.deps \
 	gstreamer-0.10.vapi \
@@ -144,6 +148,8 @@ dist_vapi_DATA = \
 	gstreamer-net-1.0.deps \
 	gstreamer-pbutils-1.0.vapi \
 	gstreamer-pbutils-1.0.deps \
+	gstreamer-player-1.0.vapi \
+	gstreamer-player-1.0.deps \
 	gstreamer-riff-1.0.deps \
 	gstreamer-riff-1.0.vapi \
 	gstreamer-rtp-1.0.vapi \
@@ -385,6 +391,7 @@ GSTREAMER_1_0_BINDINGS = \
 	gstreamer-audio-1.0 \
 	gstreamer-fft-1.0 \
 	gstreamer-pbutils-1.0 \
+	gstreamer-player-1.0 \
 	gstreamer-riff-1.0 \
 	gstreamer-rtp-1.0 \
 	gstreamer-sdp-1.0 \
@@ -400,17 +407,18 @@ GIR_BINDINGS = \
 	clutter-1.0 \
 	clutter-gdk-1.0 \
 	clutter-gtk-1.0 \
-	clutter-gst-1.0 \
 	clutter-gst-2.0 \
 	clutter-gst-3.0 \
 	clutter-x11-1.0 \
 	cogl-pango-1.0 \
 	gdk-3.0 \
+	gdk-x11-3.0 \
 	gdk-pixbuf-2.0 \
 	gdl-3.0 \
 	geocode-glib-1.0 \
 	gio-2.0 \
 	gobject-introspection-1.0 \
+	graphene-1.0 \
 	gudev-1.0 \
 	json-glib-1.0 \
 	libgdata \
@@ -550,6 +558,9 @@ gobject-introspection-1.0:
 goocanvas:
 	$(GENVAPI) --library $(srcdir)/goocanvas $(PACKAGESDIR)/goocanvas/goocanvas-custom.vala $(PACKAGESDIR)/goocanvas/goocanvas.gi
 
+graphene-1.0:
+	$(GENVAPI) --library $(srcdir)/graphene-1.0 --pkg gobject-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Graphene-1.0.gir
+
 gstreamer-0.10:
 	$(GENVAPI) --library $(srcdir)/gstreamer-0.10 $(PACKAGESDIR)/gstreamer-0.10/gstreamer-0.10-custom.vala $(PACKAGESDIR)/gstreamer-0.10/gstreamer-0.10.gi
 
@@ -636,6 +647,9 @@ gstreamer-net-1.0:
 
 gstreamer-pbutils-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-pbutils-1.0 --pkg gstreamer-base-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPbutils-1.0.gir
+
+gstreamer-player-1.0:
+	$(GENVAPI) --library $(srcdir)/gstreamer-player-1.0 --pkg gstreamer-1.0 --pkg gstreamer-video-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPlayer-1.0.gir
 
 gstreamer-riff-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-riff-1.0 --pkg gstreamer-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstRiff-1.0.gir

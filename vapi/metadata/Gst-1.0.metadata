@@ -1,13 +1,12 @@
 Gst experimental
 
-// Virtual methods without invokers
-Element
-  .request_new_pad skip=false unowned=false nullable
+*.ABI._gst_reserved* skip
 
 // Return non-boxed types
 MiniObject
   .copy skip=false
   .ref skip=false
+  .unref skip=false
 poll_new skip=false parent="Gst.Poll" symbol_type="constructor" name="new"
 poll_new_timer skip=false parent="Gst.Poll" symbol_type="constructor" name="new_timer"
 
@@ -69,6 +68,7 @@ parse_bin_from_description_full floating
 *.*_valist_* skip=false
 debug_log skip=false printf_format
 Caps
+  .new_simple skip=false
   .set_simple skip=false
 CapsFeatures
   .new skip=false
@@ -115,6 +115,8 @@ Buffer
 Iterator
   .filter skip
   .find_custom skip
+Memory
+  .new_wrapped skip
 
 // Rename *_full functions
 Bus
@@ -148,7 +150,7 @@ parse_launchv skip
 parse_launchv_full name="parse_launchv"
 
 // Default values
-debug_log_default.unused default=null
+debug_log_default.user_data default=null
 Bus
   .add_signal_watch_full.priority default=GLib.Priority.DEFAULT
 Caps
@@ -214,16 +216,25 @@ formats_contains parent="Gst.Format" name="contains"
 // Structs as generic type arguments
 ElementFactory.get_static_pad_templates type="GLib.List<weak Gst.StaticPadTemplate?>"
 
+// Custom
+Buffer
+  .copy_into skip
+ControlSource
+  .get_value#field name="get_value_func"
+  .get_value_array#field name="get_value_array_func"
+  .control_source_get_value name="get_value"
+  .control_source_get_value_array name="get_value_array"
+
 // Backwards compatibility
 Structure.new_from_string skip
+Pipeline
+  .get_clock skip=false
+  .set_clock skip=false
 
 // Upstream
 ///////////
 
-// Upstream backports from 1.5/1.6
-PadChainFunction.buffer owned
-PadChainListFunction.list owned
-PadEventFunction.event owned
+URIHandler
+  .get_protocols abstract
+  .get_uri_type abstract vfunc_name="get_type"
 
-// Bug #730957:
-ElementFactory.get_metadata_keys nullable

@@ -80,9 +80,9 @@ public class Vala.Interface : ObjectTypeSymbol {
 	/**
 	 * Creates a new interface.
 	 *
-	 * @param name   type name
-	 * @param source reference to source code
-	 * @return       newly created interface
+	 * @param name              type name
+	 * @param source_reference  reference to source code
+	 * @return                  newly created interface
 	 */
 	public Interface (string name, SourceReference? source_reference = null, Comment? comment = null) {
 		base (name, source_reference, comment);
@@ -356,6 +356,7 @@ public class Vala.Interface : ObjectTypeSymbol {
 		for (int i = 0; i < prerequisites.size; i++) {
 			if (prerequisites[i] == old_type) {
 				prerequisites[i] = new_type;
+				new_type.parent_node = this;
 				return;
 			}
 		}
