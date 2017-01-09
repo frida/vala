@@ -1,0 +1,10 @@
+option('gir',
+  type: 'feature',
+  value: 'disabled',
+  description: 'Whether to generate gir files'
+)
+
+option('gi_girdir',
+  type: 'string',
+  description: 'Set an alternative system location of gir files'
+)
