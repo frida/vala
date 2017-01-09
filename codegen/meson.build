@@ -1,0 +1,53 @@
+valacodegen_sources = [
+	'valaccode.vala',
+	'valaccodearraymodule.vala',
+	'valaccodeassignmentmodule.vala',
+	'valaccodeattribute.vala',
+	'valaccodebasemodule.vala',
+	'valaccodecompiler.vala',
+	'valaccodecontrolflowmodule.vala',
+	'valaccodedelegatemodule.vala',
+	'valaccodememberaccessmodule.vala',
+	'valaccodemethodcallmodule.vala',
+	'valaccodemethodmodule.vala',
+	'valaccodestructmodule.vala',
+	'valaclassregisterfunction.vala',
+	'valactype.vala',
+	'valaenumregisterfunction.vala',
+	'valaerrordomainregisterfunction.vala',
+	'valagasyncmodule.vala',
+	'valagdbusclientmodule.vala',
+	'valagdbusmodule.vala',
+	'valagdbusservermodule.vala',
+	'valagerrormodule.vala',
+	'valagirwriter.vala',
+	'valaglibvalue.vala',
+	'valagobjectmodule.vala',
+	'valagsignalmodule.vala',
+	'valagtkmodule.vala',
+	'valagtypemodule.vala',
+	'valagvaluemodule.vala',
+	'valagvariantmodule.vala',
+	'valainterfaceregisterfunction.vala',
+	'valastructregisterfunction.vala',
+	'valatyperegisterfunction.vala'
+]
+
+valacodegen_lib = library(
+	'valacodegen',
+	valacodegen_sources,
+	c_args: ['-DG_LOG_DOMAIN="vala-ccodegen"'],
+	vala_args: ['--use-header'],
+	vala_header: 'valacodegen.h',
+	vala_vapi: 'valacodegen.vapi',
+	dependencies: [gobject_dep, valacore_dep, valaccode_dep],
+	install: true,
+	install_rpath: pkglibdir,
+	install_dir: pkglibdir,
+)
+
+valacodegen_dep = declare_dependency(
+	link_with: [valacodegen_lib],
+	dependencies: [valacore_dep, valaccode_dep],
+	include_directories: include_directories('.'),
+)
