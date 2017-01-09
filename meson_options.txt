@@ -1,0 +1,5 @@
+option('gir',
+  type: 'feature',
+  value: 'disabled',
+  description: 'Whether to generate gir files'
+)
