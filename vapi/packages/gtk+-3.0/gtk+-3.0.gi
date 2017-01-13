@@ -2264,6 +2264,15 @@
 		</struct>
 		<struct name="GtkLabelSelectionInfo">
 		</struct>
+		<struct name="GtkPadActionEntry">
+			<field name="type" type="GtkPadActionType"/>
+			<field name="index" type="gint"/>
+			<field name="mode" type="gint"/>
+			<field name="label" type="gchar*"/>
+			<field name="action_name" type="gchar*"/>
+		</struct>
+		<struct name="GtkPadControllerClass">
+		</struct>
 		<struct name="GtkPageRange">
 			<field name="start" type="gint"/>
 			<field name="end" type="gint"/>
@@ -4969,6 +4978,11 @@
 		<enum name="GtkPackType" type-name="GtkPackType" get-type="gtk_pack_type_get_type">
 			<member name="GTK_PACK_START" value="0"/>
 			<member name="GTK_PACK_END" value="1"/>
+		</enum>
+		<enum name="GtkPadActionType" type-name="GtkPadActionType" get-type="gtk_pad_action_type_get_type">
+			<member name="GTK_PAD_ACTION_BUTTON" value="0"/>
+			<member name="GTK_PAD_ACTION_RING" value="1"/>
+			<member name="GTK_PAD_ACTION_STRIP" value="2"/>
 		</enum>
 		<enum name="GtkPageOrientation" type-name="GtkPageOrientation" get-type="gtk_page_orientation_get_type">
 			<member name="GTK_PAGE_ORIENTATION_PORTRAIT" value="0"/>
@@ -13195,6 +13209,14 @@
 					<parameter name="idx" type="gint"/>
 				</parameters>
 			</method>
+			<method name="get_child_at_pos" symbol="gtk_flow_box_get_child_at_pos">
+				<return-type type="GtkFlowBoxChild*"/>
+				<parameters>
+					<parameter name="box" type="GtkFlowBox*"/>
+					<parameter name="x" type="gint"/>
+					<parameter name="y" type="gint"/>
+				</parameters>
+			</method>
 			<method name="get_column_spacing" symbol="gtk_flow_box_get_column_spacing">
 				<return-type type="guint"/>
 				<parameters>
@@ -19532,6 +19554,37 @@
 				</parameters>
 			</signal>
 		</object>
+		<object name="GtkPadController" parent="GtkEventController" type-name="GtkPadController" get-type="gtk_pad_controller_get_type">
+			<constructor name="new" symbol="gtk_pad_controller_new">
+				<return-type type="GtkPadController*"/>
+				<parameters>
+					<parameter name="window" type="GtkWindow*"/>
+					<parameter name="group" type="GActionGroup*"/>
+					<parameter name="pad" type="GdkDevice*"/>
+				</parameters>
+			</constructor>
+			<method name="set_action" symbol="gtk_pad_controller_set_action">
+				<return-type type="void"/>
+				<parameters>
+					<parameter name="controller" type="GtkPadController*"/>
+					<parameter name="type" type="GtkPadActionType"/>
+					<parameter name="index" type="gint"/>
+					<parameter name="mode" type="gint"/>
+					<parameter name="label" type="gchar*"/>
+					<parameter name="action_name" type="gchar*"/>
+				</parameters>
+			</method>
+			<method name="set_action_entries" symbol="gtk_pad_controller_set_action_entries">
+				<return-type type="void"/>
+				<parameters>
+					<parameter name="controller" type="GtkPadController*"/>
+					<parameter name="entries" type="GtkPadActionEntry*"/>
+					<parameter name="n_entries" type="gint"/>
+				</parameters>
+			</method>
+			<property name="action-group" type="GActionGroup*" readable="1" writable="1" construct="0" construct-only="1"/>
+			<property name="pad" type="GdkDevice*" readable="1" writable="1" construct="0" construct-only="1"/>
+		</object>
 		<object name="GtkPageSetup" parent="GObject" type-name="GtkPageSetup" get-type="gtk_page_setup_get_type">
 			<method name="copy" symbol="gtk_page_setup_copy">
 				<return-type type="GtkPageSetup*"/>
@@ -20252,6 +20305,18 @@
 					<parameter name="model" type="GMenuModel*"/>
 				</parameters>
 			</constructor>
+			<method name="popdown" symbol="gtk_popover_popdown">
+				<return-type type="void"/>
+				<parameters>
+					<parameter name="popover" type="GtkPopover*"/>
+				</parameters>
+			</method>
+			<method name="popup" symbol="gtk_popover_popup">
+				<return-type type="void"/>
+				<parameters>
+					<parameter name="popover" type="GtkPopover*"/>
+				</parameters>
+			</method>
 			<method name="set_constrain_to" symbol="gtk_popover_set_constrain_to">
 				<return-type type="void"/>
 				<parameters>
@@ -22604,6 +22669,18 @@
 					<parameter name="vscrollbar_policy" type="GtkPolicyType*"/>
 				</parameters>
 			</method>
+			<method name="get_propagate_natural_height" symbol="gtk_scrolled_window_get_propagate_natural_height">
+				<return-type type="gboolean"/>
+				<parameters>
+					<parameter name="scrolled_window" type="GtkScrolledWindow*"/>
+				</parameters>
+			</method>
+			<method name="get_propagate_natural_width" symbol="gtk_scrolled_window_get_propagate_natural_width">
+				<return-type type="gboolean"/>
+				<parameters>
+					<parameter name="scrolled_window" type="GtkScrolledWindow*"/>
+				</parameters>
+			</method>
 			<method name="get_shadow_type" symbol="gtk_scrolled_window_get_shadow_type">
 				<return-type type="GtkShadowType"/>
 				<parameters>
@@ -22700,6 +22777,20 @@
 					<parameter name="vscrollbar_policy" type="GtkPolicyType"/>
 				</parameters>
 			</method>
+			<method name="set_propagate_natural_height" symbol="gtk_scrolled_window_set_propagate_natural_height">
+				<return-type type="void"/>
+				<parameters>
+					<parameter name="scrolled_window" type="GtkScrolledWindow*"/>
+					<parameter name="propagate" type="gboolean"/>
+				</parameters>
+			</method>
+			<method name="set_propagate_natural_width" symbol="gtk_scrolled_window_set_propagate_natural_width">
+				<return-type type="void"/>
+				<parameters>
+					<parameter name="scrolled_window" type="GtkScrolledWindow*"/>
+					<parameter name="propagate" type="gboolean"/>
+				</parameters>
+			</method>
 			<method name="set_shadow_type" symbol="gtk_scrolled_window_set_shadow_type">
 				<return-type type="void"/>
 				<parameters>
@@ -22728,6 +22819,8 @@
 			<property name="min-content-height" type="gint" readable="1" writable="1" construct="0" construct-only="0"/>
 			<property name="min-content-width" type="gint" readable="1" writable="1" construct="0" construct-only="0"/>
 			<property name="overlay-scrolling" type="gboolean" readable="1" writable="1" construct="0" construct-only="0"/>
+			<property name="propagate-natural-height" type="gboolean" readable="1" writable="1" construct="0" construct-only="0"/>
+			<property name="propagate-natural-width" type="gboolean" readable="1" writable="1" construct="0" construct-only="0"/>
 			<property name="shadow-type" type="GtkShadowType" readable="1" writable="1" construct="0" construct-only="0"/>
 			<property name="vadjustment" type="GtkAdjustment*" readable="1" writable="1" construct="1" construct-only="0"/>
 			<property name="vscrollbar-policy" type="GtkPolicyType" readable="1" writable="1" construct="0" construct-only="0"/>
@@ -23097,7 +23190,7 @@
 				<return-type type="void"/>
 				<parameters>
 					<parameter name="self" type="GtkShortcutLabel*"/>
-					<parameter name="unset_text" type="gchar*"/>
+					<parameter name="disabled_text" type="gchar*"/>
 				</parameters>
 			</method>
 			<property name="accelerator" type="char*" readable="1" writable="1" construct="0" construct-only="0"/>
@@ -36405,16 +36498,16 @@
 				</parameters>
 			</vfunc>
 		</interface>
-		<constant name="GTK_BINARY_AGE" type="int" value="2104"/>
+		<constant name="GTK_BINARY_AGE" type="int" value="2206"/>
 		<constant name="GTK_INPUT_ERROR" type="int" value="-1"/>
-		<constant name="GTK_INTERFACE_AGE" type="int" value="0"/>
+		<constant name="GTK_INTERFACE_AGE" type="int" value="5"/>
 		<constant name="GTK_LEVEL_BAR_OFFSET_FULL" type="char*" value="full"/>
 		<constant name="GTK_LEVEL_BAR_OFFSET_HIGH" type="char*" value="high"/>
 		<constant name="GTK_LEVEL_BAR_OFFSET_LOW" type="char*" value="low"/>
 		<constant name="GTK_MAJOR_VERSION" type="int" value="3"/>
 		<constant name="GTK_MAX_COMPOSE_LEN" type="int" value="7"/>
-		<constant name="GTK_MICRO_VERSION" type="int" value="4"/>
-		<constant name="GTK_MINOR_VERSION" type="int" value="21"/>
+		<constant name="GTK_MICRO_VERSION" type="int" value="6"/>
+		<constant name="GTK_MINOR_VERSION" type="int" value="22"/>
 		<constant name="GTK_PAPER_NAME_A3" type="char*" value="iso_a3"/>
 		<constant name="GTK_PAPER_NAME_A4" type="char*" value="iso_a4"/>
 		<constant name="GTK_PAPER_NAME_A5" type="char*" value="iso_a5"/>

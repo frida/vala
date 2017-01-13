@@ -31,11 +31,6 @@ public class Vala.CCodeStruct : CCodeNode {
 	 */
 	public string name { get; set; }
 
-	/**
-	 * Whether the struct is deprecated.
-	 */
-	public bool deprecated { get; set; default = false; }
-
 	public bool is_empty { get { return declarations.size == 0; } }
 
 	private List<CCodeDeclaration> declarations = new ArrayList<CCodeDeclaration> ();
@@ -59,9 +54,10 @@ public class Vala.CCodeStruct : CCodeNode {
 	 * @param type_name field type
 	 * @param name      member name
 	 */
-	public void add_field (string type_name, string name, CCodeDeclaratorSuffix? declarator_suffix = null) {
+	public void add_field (string type_name, string name, CCodeModifiers modifiers = 0, CCodeDeclaratorSuffix? declarator_suffix = null) {
 		var decl = new CCodeDeclaration (type_name);
 		decl.add_declarator (new CCodeVariableDeclarator (name, null, declarator_suffix));
+		decl.modifiers = modifiers;
 		add_declaration (decl);
 	}
 	
@@ -74,7 +70,7 @@ public class Vala.CCodeStruct : CCodeNode {
 		}
 
 		writer.write_end_block ();
-		if (deprecated) {
+		if (CCodeModifiers.DEPRECATED in modifiers) {
 			writer.write_string (" G_GNUC_DEPRECATED");
 		}
 		writer.write_string (";");

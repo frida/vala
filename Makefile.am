@@ -1,4 +1,5 @@
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = --install -I m4 ${ACLOCAL_FLAGS}
+
 NULL =
 
 SUBDIRS = \
@@ -85,7 +86,6 @@ CLEANFILES = \
 EXTRA_DIST = \
 	ChangeLog.pre-0-4 \
 	ChangeLog.pre-0-5-7 \
-	MAINTAINERS \
 	libvala.pc.in \
 	vala.m4 \
 	.version \

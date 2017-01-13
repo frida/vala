@@ -182,6 +182,7 @@ namespace Gst {
 		public class EncodingProfile : GLib.Object {
 			[CCode (has_construct_function = false)]
 			protected EncodingProfile ();
+			public Gst.PbUtils.EncodingProfile copy ();
 			public static Gst.PbUtils.EncodingProfile find (string targetname, string profilename, string? category);
 			public static Gst.PbUtils.EncodingProfile from_discoverer (Gst.PbUtils.DiscovererInfo info);
 			public bool get_allow_dynamic_output ();
@@ -308,6 +309,8 @@ namespace Gst {
 		public const string ENCODING_CATEGORY_CAPTURE;
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "GST_ENCODING_CATEGORY_DEVICE")]
 		public const string ENCODING_CATEGORY_DEVICE;
+		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "GST_ENCODING_CATEGORY_FILE_EXTENSION")]
+		public const string ENCODING_CATEGORY_FILE_EXTENSION;
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "GST_ENCODING_CATEGORY_ONLINE_SERVICE")]
 		public const string ENCODING_CATEGORY_ONLINE_SERVICE;
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "GST_ENCODING_CATEGORY_STORAGE_EDITING")]

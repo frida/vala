@@ -94,7 +94,7 @@ namespace Gst {
 			[NoAccessorMethod]
 			public uint timestamp_offset { get; set; }
 		}
-		[CCode (cheader_filename = "gst/rtp/rtp.h")]
+		[CCode (cheader_filename = "gst/rtp/rtp.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "RTPBuffer")]
 		public class Buffer : Gst.Buffer {
@@ -154,6 +154,14 @@ namespace Gst {
 			public uint clock_rate;
 			public weak string encoding_parameters;
 			public uint bitrate;
+		}
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cprefix = "GST_RTP_BUFFER_FLAG_", type_id = "gst_rtp_buffer_flags_get_type ()")]
+		[Flags]
+		[GIR (name = "RTPBufferFlags")]
+		[Version (since = "1.10")]
+		public enum BufferFlags {
+			RETRANSMISSION,
+			LAST
 		}
 		[CCode (cheader_filename = "gst/rtp/rtp.h", cprefix = "GST_RTP_BUFFER_MAP_FLAG_", type_id = "gst_rtp_buffer_map_flags_get_type ()")]
 		[Flags]
@@ -288,7 +296,7 @@ namespace Gst {
 		public static unowned Gst.RTP.PayloadInfo? payload_info_for_pt (uint8 payload_type);
 	}
 	namespace RTPC {
-		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPBuffer")]
+		[CCode (cheader_filename = "gst/rtp/rtp.h", cname = "GstRTCPBuffer", has_type_id = false)]
 		[Compact]
 		[GIR (name = "RTCPBuffer")]
 		public class Buffer : Gst.Buffer {

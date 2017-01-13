@@ -18,9 +18,8 @@ namespace ClutterGst {
 	}
 	[CCode (cheader_filename = "clutter-gst/clutter-gst.h", type_id = "clutter_gst_aspectratio_get_type ()")]
 	public class Aspectratio : ClutterGst.Content, Clutter.Content {
-		[CCode (has_construct_function = false)]
-		protected Aspectratio ();
-		public static Clutter.Content @new ();
+		[CCode (has_construct_function = false, type = "ClutterContent*")]
+		public Aspectratio ();
 		[NoAccessorMethod]
 		[Version (since = "3.0")]
 		public bool fill_allocation { get; set; }
@@ -110,8 +109,8 @@ namespace ClutterGst {
 	[CCode (cheader_filename = "clutter-gst/clutter-gst.h", type_id = "clutter_gst_content_get_type ()")]
 	[Version (since = "0.0")]
 	public class Content : GLib.Object, Clutter.Content {
-		[CCode (has_construct_function = false)]
-		protected Content ();
+		[CCode (has_construct_function = false, type = "ClutterContent*")]
+		public Content ();
 		[Version (since = "3.0")]
 		public unowned ClutterGst.Frame get_frame ();
 		[Version (since = "3.0")]
@@ -122,15 +121,15 @@ namespace ClutterGst {
 		public unowned ClutterGst.VideoSink get_sink ();
 		[NoWrapper]
 		public virtual bool has_painting_content ();
-		public static Clutter.Content @new ();
-		[Version (since = "3.0")]
-		public static Clutter.Content new_with_sink (ClutterGst.VideoSink sink);
 		[Version (since = "3.0")]
 		public void set_frame (ClutterGst.Frame frame);
 		[Version (since = "3.0")]
 		public void set_player (ClutterGst.Player player);
 		[Version (since = "3.0")]
 		public void set_sink (ClutterGst.VideoSink sink);
+		[CCode (has_construct_function = false, type = "ClutterContent*")]
+		[Version (since = "3.0")]
+		public Content.with_sink (ClutterGst.VideoSink sink);
 		public ClutterGst.Frame frame { get; set; }
 		[NoAccessorMethod]
 		public bool paint_frame { get; set; }
@@ -225,7 +224,7 @@ namespace ClutterGst {
 		[Version (since = "1.4")]
 		public int audio_stream { get; set; }
 		[Version (since = "1.4")]
-		public void* audio_streams { get; }
+		public GLib.List<string> audio_streams { get; }
 		public double buffer_fill { get; }
 		[NoAccessorMethod]
 		public bool can_seek { get; }
@@ -239,7 +238,7 @@ namespace ClutterGst {
 		[Version (since = "1.4")]
 		public int subtitle_track { get; set; }
 		[Version (since = "1.4")]
-		public void* subtitle_tracks { get; }
+		public GLib.List<string> subtitle_tracks { get; }
 		public string subtitle_uri { owned get; set; }
 		public string uri { owned get; set; }
 		[Version (since = "1.4")]
@@ -317,5 +316,5 @@ namespace ClutterGst {
 	public static Clutter.InitError init ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref unowned string[]? argv);
 	[CCode (cheader_filename = "clutter-gst/clutter-gst.h")]
 	[Version (since = "1.0")]
-	public static Clutter.InitError init_with_args ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref unowned string[]? argv, string parameter_string, GLib.OptionEntry entries, string translation_domain) throws GLib.Error;
+	public static Clutter.InitError init_with_args ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref unowned string[]? argv, string parameter_string, [CCode (array_length = false, type = "GOptionEntry*")] GLib.OptionEntry[]? entries = null, string? translation_domain = null) throws GLib.Error;
 }

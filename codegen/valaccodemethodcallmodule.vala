@@ -44,6 +44,11 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		if (itype is MethodType) {
 			assert (ma != null);
 			m = ((MethodType) itype).method_symbol;
+
+			if (!get_ccode_simple_generics (m)) {
+				check_type_arguments (ma);
+			}
+
 			if (ma.inner != null && ma.inner.value_type is EnumValueType && ((EnumValueType) ma.inner.value_type).get_to_string_method() == m) {
 				// Enum.VALUE.to_string()
 				var en = (Enum) ma.inner.value_type.data_type;
@@ -188,6 +193,9 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			in_arg_map.set (get_param_pos (0), new CCodeIdentifier (get_ccode_name (array_type.element_type)));
 		} else if (m is ArrayMoveMethod) {
 			requires_array_move = true;
+		} else if (m is ArrayCopyMethod) {
+			expr.target_value = copy_value (ma.inner.target_value, expr);
+			return;
 		}
 
 		CCodeExpression instance = null;
@@ -399,7 +407,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 					} else {
 						arg.target_value = null;
 
-						var temp_var = get_temp_variable (param.variable_type, param.variable_type.value_owned);
+						var temp_var = get_temp_variable (param.variable_type, param.variable_type.value_owned, null, true);
 						emit_temp_var (temp_var);
 						set_cvalue (arg, get_variable_cexpression (temp_var.name));
 						arg.target_value.value_type = arg.target_type;
@@ -422,12 +430,12 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 							var deleg_type = (DelegateType) param.variable_type;
 							var d = deleg_type.delegate_symbol;
 							if (d.has_target) {
-								temp_var = get_temp_variable (new PointerType (new VoidType ()));
+								temp_var = get_temp_variable (new PointerType (new VoidType ()), true, null, true);
 								emit_temp_var (temp_var);
 								set_delegate_target (arg, get_variable_cexpression (temp_var.name));
 								carg_map.set (get_param_pos (get_ccode_delegate_target_pos (param)), new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_delegate_target (arg)));
 								if (deleg_type.is_disposable ()) {
-									temp_var = get_temp_variable (gdestroynotify_type);
+									temp_var = get_temp_variable (gdestroynotify_type, true, null, true);
 									emit_temp_var (temp_var);
 									set_delegate_target_destroy_notify (arg, get_variable_cexpression (temp_var.name));
 									carg_map.set (get_param_pos (get_ccode_delegate_target_pos (param) + 0.01), new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_delegate_target_destroy_notify (arg)));
@@ -628,7 +636,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 			if (ma != null && ma.inner is BaseAccess && sig.is_virtual) {
 				// normal return value for base access
-			} else if (!get_signal_has_emitter (sig)) {
+			} else if (!get_signal_has_emitter (sig) || ma.source_reference.file == sig.source_reference.file) {
 				return_result_via_out_param = true;
 			}
 		}
@@ -641,7 +649,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		CCodeExpression out_param_ref = null;
 
 		if (return_result_via_out_param) {
-			var out_param_var = get_temp_variable (itype.get_return_type ());
+			var out_param_var = get_temp_variable (itype.get_return_type (), true, null, true);
 			out_param_ref = get_variable_cexpression (out_param_var.name);
 			emit_temp_var (out_param_var);
 			out_arg_map.set (get_param_pos (-3), new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, out_param_ref));
@@ -784,18 +792,21 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				}
 			}
 
-			if (!return_result_via_out_param) {
-				var temp_var = get_temp_variable (result_type, result_type.value_owned);
+			if (m != null && m.get_format_arg_index () >= 0) {
+				set_cvalue (expr, ccall_expr);
+			} else if (!return_result_via_out_param) {
+				var temp_var = get_temp_variable (result_type, result_type.value_owned, null, false);
 				var temp_ref = get_variable_cexpression (temp_var.name);
 
 				emit_temp_var (temp_var);
 
 				ccode.add_assignment (temp_ref, ccall_expr);
 				set_cvalue (expr, temp_ref);
+				((GLibValue) expr.target_value).lvalue = true;
 			} else {
 				set_cvalue (expr, ccall_expr);
+				((GLibValue) expr.target_value).lvalue = true;
 			}
-			((GLibValue) expr.target_value).lvalue = true;
 		}
 
 		params_it = params.iterator ();

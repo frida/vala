@@ -53,14 +53,15 @@ namespace Gst {
 			public GLib.List<Gst.Buffer>? take_list (size_t nbytes);
 			public void unmap ();
 		}
-		[CCode (cheader_filename = "gst/base/gstadapter.h,gst/base/gstbaseparse.h,gst/base/gstbasesink.h,gst/base/gstbasesrc.h,gst/base/gstbasetransform.h,gst/base/gstbitreader.h,gst/base/gstbytereader.h,gst/base/gstbytewriter.h,gst/base/gstcollectpads.h,gst/base/gstpushsrc.h,gst/base/gsttypefindhelper.h", cname = "GstBitReader")]
+		[CCode (cheader_filename = "gst/base/gstadapter.h,gst/base/gstbaseparse.h,gst/base/gstbasesink.h,gst/base/gstbasesrc.h,gst/base/gstbasetransform.h,gst/base/gstbitreader.h,gst/base/gstbytereader.h,gst/base/gstbytewriter.h,gst/base/gstcollectpads.h,gst/base/gstpushsrc.h,gst/base/gsttypefindhelper.h", cname = "GstBitReader", has_type_id = false)]
 		[Compact]
 		[GIR (name = "BitReader")]
 		public class BitReader {
 			public uint bit;
 			public uint byte;
-			[CCode (array_length = false)]
+			[CCode (array_length_cname = "size", array_length_type = "guint")]
 			public weak uint8[] data;
+			public uint size;
 			public BitReader ([CCode (array_length_type = "guint")] uint8[] data);
 			[CCode (cname = "gst_bit_reader_free")]
 			public void free ();
@@ -95,13 +96,14 @@ namespace Gst {
 			[CCode (cname = "gst_bit_reader_skip_to_byte")]
 			public bool skip_to_byte ();
 		}
-		[CCode (cheader_filename = "gst/base/gstadapter.h,gst/base/gstbaseparse.h,gst/base/gstbasesink.h,gst/base/gstbasesrc.h,gst/base/gstbasetransform.h,gst/base/gstbitreader.h,gst/base/gstbytereader.h,gst/base/gstbytewriter.h,gst/base/gstcollectpads.h,gst/base/gstpushsrc.h,gst/base/gsttypefindhelper.h", cname = "GstBitReader")]
+		[CCode (cheader_filename = "gst/base/gstadapter.h,gst/base/gstbaseparse.h,gst/base/gstbasesink.h,gst/base/gstbasesrc.h,gst/base/gstbasetransform.h,gst/base/gstbitreader.h,gst/base/gstbytereader.h,gst/base/gstbytewriter.h,gst/base/gstcollectpads.h,gst/base/gstpushsrc.h,gst/base/gsttypefindhelper.h", cname = "GstBitReader", has_type_id = false)]
 		[Compact]
 		[GIR (name = "ByteReader")]
 		public class ByteReader {
 			public uint byte;
-			[CCode (array_length = false)]
+			[CCode (array_length_cname = "size", array_length_type = "guint")]
 			public weak uint8[] data;
+			public uint size;
 			public ByteReader ([CCode (array_length_type = "guint")] uint8[] data);
 			[CCode (cname = "gst_byte_reader_dup_data")]
 			public bool dup_data ([CCode (array_length_cname = "size", array_length_pos = 0.5, array_length_type = "guint")] out uint8[] val);
@@ -233,7 +235,7 @@ namespace Gst {
 			[CCode (cname = "gst_byte_reader_skip_string_utf8")]
 			public bool skip_string_utf8 ();
 		}
-		[CCode (cheader_filename = "gst/base/gstadapter.h,gst/base/gstbaseparse.h,gst/base/gstbasesink.h,gst/base/gstbasesrc.h,gst/base/gstbasetransform.h,gst/base/gstbitreader.h,gst/base/gstbytereader.h,gst/base/gstbytewriter.h,gst/base/gstcollectpads.h,gst/base/gstpushsrc.h,gst/base/gsttypefindhelper.h", cname = "GstBitReader")]
+		[CCode (cheader_filename = "gst/base/gstadapter.h,gst/base/gstbaseparse.h,gst/base/gstbasesink.h,gst/base/gstbasesrc.h,gst/base/gstbasetransform.h,gst/base/gstbitreader.h,gst/base/gstbytereader.h,gst/base/gstbytewriter.h,gst/base/gstcollectpads.h,gst/base/gstpushsrc.h,gst/base/gsttypefindhelper.h", cname = "GstBitReader", has_type_id = false)]
 		[Compact]
 		[GIR (name = "ByteWriter")]
 		public class ByteWriter {
@@ -404,6 +406,8 @@ namespace Gst {
 			public bool convert_default (Gst.Format src_format, int64 src_value, Gst.Format dest_format, int64 dest_value);
 			[NoWrapper]
 			public virtual Gst.FlowReturn detect (Gst.Buffer buffer);
+			[Version (since = "1.12")]
+			public void drain ();
 			public Gst.FlowReturn finish_frame (Gst.Base.ParseFrame frame, int size);
 			[NoWrapper]
 			public virtual Gst.Caps get_sink_caps (Gst.Caps filter);
@@ -463,9 +467,9 @@ namespace Gst {
 			[CCode (has_construct_function = false)]
 			protected PushSrc ();
 			[NoWrapper]
-			public virtual Gst.FlowReturn alloc (Gst.Buffer buf);
+			public virtual Gst.FlowReturn alloc (out Gst.Buffer buf);
 			[NoWrapper]
-			public virtual Gst.FlowReturn create (Gst.Buffer buf);
+			public virtual Gst.FlowReturn create (out Gst.Buffer buf);
 			[NoWrapper]
 			public virtual Gst.FlowReturn fill (Gst.Buffer buf);
 		}
@@ -497,6 +501,8 @@ namespace Gst {
 			public uint get_blocksize ();
 			[NoWrapper]
 			public virtual Gst.Caps get_caps (Gst.Caps filter);
+			[Version (since = "1.12")]
+			public bool get_drop_out_of_segment ();
 			public Gst.Sample? get_last_sample ();
 			public Gst.ClockTime get_latency ();
 			[Version (since = "1.2")]
@@ -530,6 +536,8 @@ namespace Gst {
 			public void set_blocksize (uint blocksize);
 			[NoWrapper]
 			public virtual bool set_caps (Gst.Caps caps);
+			[Version (since = "1.12")]
+			public void set_drop_out_of_segment (bool drop_out_of_segment);
 			public void set_last_sample_enabled (bool enabled);
 			[Version (since = "1.2")]
 			public void set_max_bitrate (uint64 max_bitrate);

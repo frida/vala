@@ -67,6 +67,7 @@ public class Vala.ArrayType : ReferenceType {
 	private ArrayLengthField length_field;
 	private ArrayResizeMethod resize_method;
 	private ArrayMoveMethod move_method;
+	private ArrayCopyMethod copy_method;
 
 	public ArrayType (DataType element_type, int rank, SourceReference? source_reference) {
 		this.element_type = element_type;
@@ -84,6 +85,8 @@ public class Vala.ArrayType : ReferenceType {
 				return null;
 			}
 			return get_resize_method ();
+		} else if (member_name == "copy") {
+			return get_copy_method ();
 		}
 		return null;
 	}
@@ -143,6 +146,19 @@ public class Vala.ArrayType : ReferenceType {
 			move_method.add_parameter (new Parameter ("length", int_type));
 		}
 		return move_method;
+	}
+
+	private ArrayCopyMethod get_copy_method () {
+		if (copy_method == null) {
+			copy_method = new ArrayCopyMethod (source_reference);
+
+			copy_method.return_type = this.copy ();
+			copy_method.return_type.value_owned = true;
+			copy_method.access = SymbolAccessibility.PUBLIC;
+
+			copy_method.set_attribute_string ("CCode", "cname", "_vala_array_copy");
+		}
+		return copy_method;
 	}
 
 	public override DataType copy () {
@@ -258,15 +274,15 @@ public class Vala.ArrayType : ReferenceType {
 		return element_type.check (context);
 	}
 
-	public override DataType get_actual_type (DataType? derived_instance_type, MemberAccess? method_access, CodeNode node_reference) {
+	public override DataType get_actual_type (DataType? derived_instance_type, List<DataType>? method_type_arguments, CodeNode node_reference) {
 		ArrayType result = (ArrayType) this.copy ();
 
-		if (derived_instance_type == null && method_access == null) {
+		if (derived_instance_type == null && method_type_arguments == null) {
 			return result;
 		}
 
 		if (element_type is GenericType || element_type.has_type_arguments ()) {
-			result.element_type = result.element_type.get_actual_type (derived_instance_type, method_access, node_reference);
+			result.element_type = result.element_type.get_actual_type (derived_instance_type, method_type_arguments, node_reference);
 		}
 
 		return result;

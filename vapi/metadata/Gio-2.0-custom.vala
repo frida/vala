@@ -31,43 +31,12 @@ namespace GLib {
 		public void set_callback ([CCode (type = "GSourceFunc")] owned CancellableSourceFunc func);
 	}
 
+	[CCode (cheader_filename = "gio/gio.h", type_id = "g_dbus_connection_get_type ()")]
 	public class DBusConnection : GLib.Object, GLib.AsyncInitable, GLib.Initable {
-		[CCode (cname = "g_dbus_connection_new", finish_function = "g_dbus_connection_new_finish")]
-		public static async GLib.DBusConnection @new (GLib.IOStream stream, string? guid, GLib.DBusConnectionFlags flags, GLib.DBusAuthObserver? observer = null, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		[CCode (cname = "g_dbus_connection_new_for_address", finish_function = "g_dbus_connection_new_for_address_finish")]
-		public static async GLib.DBusConnection @new_for_address (string address, GLib.DBusConnectionFlags flags, GLib.DBusAuthObserver? observer = null, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public async T get_proxy<T> (string? name, string object_path, GLib.DBusProxyFlags flags = 0, GLib.Cancellable? cancellable = null) throws GLib.IOError; 
 		public T get_proxy_sync<T> (string? name, string object_path, GLib.DBusProxyFlags flags = 0, GLib.Cancellable? cancellable = null) throws GLib.IOError;
 		public uint register_object<T> (string object_path, T object) throws GLib.IOError;
 		public async GLib.DBusMessage send_message_with_reply (GLib.DBusMessage message, GLib.DBusSendMessageFlags flags, int timeout_msec, uint32 *out_serial = null, GLib.Cancellable? cancellable = null) throws GLib.IOError;
-	}
-
-	public class DBusMessage : GLib.Object {
-		[CCode (has_construct_function = false)]
-		public DBusMessage.method_call (string name, string path, string interface_, string method);
-		[PrintfFormat, CCode (has_construct_function = false)]
-		public DBusMessage.method_error (GLib.DBusMessage method_call_message, string error_name, string error_message_format, ...);
-		[CCode (has_construct_function = false)]
-		public DBusMessage.method_error_literal (GLib.DBusMessage method_call_message, string error_name, string error_message);
-		[CCode (has_construct_function = false)]
-		public DBusMessage.method_error_valist (GLib.DBusMessage method_call_message, string error_name, string error_message_format, va_list var_args); 
-		[CCode (has_construct_function = false)]
-		public DBusMessage.method_reply (GLib.DBusMessage method_call_message);
-	}
-
-	[CCode (cheader_filename = "gio/gio.h", type_id = "g_dbus_object_manager_client_get_type ()")]
-	public class DBusObjectManagerClient : GLib.Object, GLib.AsyncInitable, GLib.DBusObjectManager, GLib.Initable {
-		[CCode (cname = "g_dbus_object_manager_client_new", finish_function = "g_dbus_object_manager_client_new_finish")]
-		public static async GLib.DBusObjectManagerClient @new (GLib.DBusConnection connection, GLib.DBusObjectManagerClientFlags flags, string name, string object_path, [CCode (delegate_target_pos = 5.33333, destroy_notify_pos = 5.66667)] owned GLib.DBusProxyTypeFunc get_proxy_type_func, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		[CCode (cname = "g_dbus_object_manager_client_new_for_bus", finish_function = "g_dbus_object_manager_client_new_for_bus_finish")]
-		public static async GLib.DBusObjectManagerClient @new_for_bus (GLib.BusType bus_type, GLib.DBusObjectManagerClientFlags flags, string name, string object_path, [CCode (delegate_target_pos = 5.33333, destroy_notify_pos = 5.66667)] owned GLib.DBusProxyTypeFunc get_proxy_type_func, GLib.Cancellable? cancellable = null) throws GLib.Error;
-	}
-
-	public class DBusProxy : GLib.Object, GLib.AsyncInitable, GLib.DBusInterface, GLib.Initable {
-		[CCode (cname = "g_dbus_proxy_new", finish_function = "g_dbus_proxy_new_finish")]
-		public static async GLib.DBusProxy @new (GLib.DBusConnection connection, GLib.DBusProxyFlags flags, GLib.DBusInterfaceInfo? info, string? name, string object_path, string interface_name, GLib.Cancellable? cancellable = null) throws GLib.IOError;
-		[CCode (cname = "g_dbus_proxy_new_for_bus", finish_function = "g_dbus_proxy_new_for_bus_finish")]
-		public static async GLib.DBusProxy create_for_bus (GLib.BusType bus_type, GLib.DBusProxyFlags flags, GLib.DBusInterfaceInfo? info, string name, string object_path, string interface_name, GLib.Cancellable? cancellable = null) throws GLib.IOError;
 	}
 
 	public class DataInputStream : GLib.BufferedInputStream {
@@ -87,20 +56,6 @@ namespace GLib {
 		public IOModuleScope (GLib.IOModuleScopeFlags flags);
 	}
 
-	public abstract class IOStream : GLib.Object {
-		[CCode (vfunc_name = "close_fn")]
-		public virtual bool close (GLib.Cancellable? cancellable = null) throws GLib.IOError;
-		public virtual async bool close_async (int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null) throws GLib.IOError;
-
-	}
-
-	public abstract class InputStream : GLib.Object {
-		[CCode (vfunc_name = "close_fn")]
-		public abstract bool close (GLib.Cancellable? cancellable = null) throws GLib.IOError;
-		[CCode (vfunc_name = "read_fn")]
-		public abstract ssize_t read ([CCode (array_length_type = "gsize")] uint8[] buffer, GLib.Cancellable? cancellable = null) throws GLib.IOError;
-	}
-
 	public class MemoryOutputStream : GLib.OutputStream {
 		[CCode (has_construct_function = false, type = "GOutputStream*")]
 		public MemoryOutputStream ([CCode (array_length_type = "gsize")] owned uint8[]? data, GLib.ReallocFunc? realloc_function = GLib.g_realloc, GLib.DestroyNotify? destroy_function = GLib.g_free);
@@ -116,13 +71,6 @@ namespace GLib {
 		public abstract GLib.Mount get_mount_for_mount_path (string mount_path, GLib.Cancellable? cancellable = null);
 	}
 
-	public abstract class OutputStream : GLib.Object {
-		[CCode (vfunc_name = "close_fn")]
-		public abstract bool close (GLib.Cancellable? cancellable = null) throws GLib.IOError;
-		[CCode (vfunc_name = "write_fn")]
-		public abstract ssize_t write ([CCode (array_length_type = "gsize")] uint8[] buffer, GLib.Cancellable? cancellable = null) throws GLib.IOError;
-	}
-
 	[Compact]
 	[CCode (cname = "GSource", ref_function = "g_source_ref", unref_function = "g_source_unref")]
 	public class PollableSource : GLib.Source {
@@ -134,21 +82,9 @@ namespace GLib {
 		public void set_callback ([CCode (type = "GSourceFunc")] owned PollableSourceFunc func);
 	}
 
-	public class Resolver : GLib.Object {
-		[CCode (finish_function = "g_resolver_lookup_service_finish")]
-		public async GLib.List<GLib.SrvTarget> lookup_service_async (string service, string protocol, string domain, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		[NoWrapper, CCode (vfunc_name = "lookup_service_async", finish_function = "g_resolver_lookup_service_finish")]
-		public virtual async GLib.List<GLib.SrvTarget> lookup_service_fn_async (string rrname, GLib.Cancellable? cancellable = null);
-	}
-
+	[CCode (cheader_filename = "gio/gio.h", type_id = "g_settings_get_type ()")]
 	public class Settings : GLib.Object {
-		[NoAccessorMethod]
-		public GLib.SettingsBackend backend { owned get; construct; }
-		public virtual signal bool change_event (GLib.Quark[]? keys);
 		public void bind_with_mapping (string key, GLib.Object object, string property, GLib.SettingsBindFlags flags, GLib.SettingsBindGetMappingShared get_mapping, GLib.SettingsBindSetMappingShared set_mapping, void* user_data, GLib.DestroyNotify? notify);
-	}
-
-	public class SettingsBackend : GLib.Object {
 	}
 
 	public class SimpleAsyncResult : GLib.Object, GLib.AsyncResult {
@@ -209,10 +145,6 @@ namespace GLib {
 		public virtual GLib.Icon? from_tokens (string[] tokens, int version) throws GLib.Error;
 	}
 
-	public interface Initable : GLib.Object {
-		public static GLib.Object @new (GLib.Type object_type, GLib.Cancellable? cancellable = null, ...) throws GLib.Error;
-	}
-
 	[Flags]
 	public enum ConverterFlags {
 		[Version (deprecated_since = "vala-0.16", replacement = "ConverterFlags.NONE")]
@@ -232,9 +164,9 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gio.h", instance_pos = 7.9)]
 	public delegate bool DBusInterfaceSetPropertyFunc (GLib.DBusConnection connection, string sender, string object_path, string interface_name, string property_name, GLib.Variant value) throws GLib.Error;
 	[Version (deprecated_since = "vala-0.16", replacement = "File.equal")]
-	public static GLib.EqualFunc file_equal;
+	public static GLib.EqualFunc<GLib.File> file_equal;
 	[Version (deprecated_since = "vala-0.16", replacement = "File.hash")]
-	public static GLib.HashFunc file_hash;
+	public static GLib.HashFunc<GLib.File> file_hash;
 	[Version (deprecated_since = "vala-0.12", replacement = "GLib.ContentType.can_be_executable")]
 	[CCode (cname = "g_content_type_can_be_executable", cheader_filename = "gio/gio.h")]
 	public static bool g_content_type_can_be_executable (string type);

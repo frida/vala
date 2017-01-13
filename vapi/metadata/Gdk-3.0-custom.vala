@@ -1,12 +1,4 @@
 namespace Gdk {
-	public class Screen : GLib.Object {
-		public void get_monitor_geometry (int monitor_num, out Gdk.Rectangle dest);
-	}
-
-	public class Window : GLib.Object {
-		public void get_frame_extents (out Gdk.Rectangle rect);
-	}
-
 	[SimpleType]
 	public struct Atom : uint {
 		[CCode (cname = "GDK_NONE")]
@@ -27,6 +19,9 @@ namespace Gdk {
 		public Gdk.EventKey key { [CCode (cname = "(GdkEventKey *)")] get; }
 		public Gdk.EventMotion motion { [CCode (cname = "(GdkEventMotion *)")] get; }
 		public Gdk.EventOwnerChange owner_change { [CCode (cname = "(GdkEventOwnerChange *)")] get; }
+		public Gdk.EventPadAxis pad_axis { [CCode (cname = "(GdkEventPadAxis *)")] get; }
+		public Gdk.EventPadButton pad_button { [CCode (cname = "(GdkEventPadButton *)")] get; }
+		public Gdk.EventPadGroupMode pad_group_mode { [CCode (cname = "(GdkEventPadGroupMode *)")] get; }
 		public Gdk.EventProperty property { [CCode (cname = "(GdkEventProperty *)")] get; }
 		public Gdk.EventProximity proximity { [CCode (cname = "(GdkEventProximity *)")] get; }
 		public Gdk.EventScroll scroll { [CCode (cname = "(GdkEventScroll *)")] get; }
@@ -39,17 +34,8 @@ namespace Gdk {
 		public Gdk.EventWindowState window_state { [CCode (cname = "(GdkEventWindowState *)")] get; }
 	}
 
-	[CCode (cheader_filename = "gdk/gdk.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gdk_event_get_type ()")]
-	[Compact]
-	public class EventKey : Event {
-		[CCode (cname = "string")]
-		public string str;
-	}
-
 	[CCode (cheader_filename = "gdk/gdk.h")]
 	public struct Rectangle : Cairo.RectangleInt {
-		public bool intersect (Gdk.Rectangle src2, out Gdk.Rectangle dest);
-		public void union (Gdk.Rectangle src2, out Gdk.Rectangle dest);
 	}
 
 	[CCode (ref_function = "", unref_function = "")]

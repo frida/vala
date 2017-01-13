@@ -46,7 +46,9 @@ public class Vala.MethodCall : Expression {
 	 */
 	public bool is_constructv_chainup { get; private set; }
 
-	public Expression _call;
+	public bool is_chainup { get; private set; }
+
+	private Expression _call;
 	
 	private List<Expression> argument_list = new ArrayList<Expression> ();
 
@@ -130,26 +132,14 @@ public class Vala.MethodCall : Expression {
 		return false;
 	}
 
-	bool is_chainup () {
-		if (!(call.symbol_reference is CreationMethod)) {
-			return false;
+	public override bool is_accessible (Symbol sym) {
+		foreach (var arg in argument_list) {
+			if (!arg.is_accessible (sym)) {
+				return false;
+			}
 		}
 
-		var expr = call;
-
-		var ma = (MemberAccess) call;
-		if (ma.inner != null) {
-			expr = ma.inner;
-		}
-
-		ma = expr as MemberAccess;
-		if (ma != null && ma.member_name == "this") {
-			return true;
-		} else if (expr is BaseAccess) {
-			return true;
-		} else {
-			return false;
-		}
+		return call.is_accessible (sym);
 	}
 
 	public override bool check (CodeContext context) {
@@ -168,6 +158,8 @@ public class Vala.MethodCall : Expression {
 		// type of target object
 		DataType target_object_type = null;
 
+		List<DataType> method_type_args = null;
+
 		if (call.value_type is DelegateType) {
 			// delegate invocation, resolve generic types relative to delegate
 			target_object_type = call.value_type;
@@ -178,6 +170,8 @@ public class Vala.MethodCall : Expression {
 				Report.error (source_reference, "Access to instance member `%s' denied".printf (call.symbol_reference.get_full_name ()));
 				return false;
 			}
+
+			method_type_args = ma.get_type_arguments ();
 
 			if (ma.inner != null) {
 				target_object_type = ma.inner.value_type;
@@ -217,11 +211,28 @@ public class Vala.MethodCall : Expression {
 		}
 
 		var mtype = call.value_type;
+		var gobject_chainup = call.symbol_reference == context.analyzer.object_type;
+		is_chainup = gobject_chainup;
+
+		if (!gobject_chainup) {
+			var expr = call;
+			var ma = expr as MemberAccess;
+			if (ma != null && ma.symbol_reference is CreationMethod) {
+				expr = ma.inner;
+				ma = expr as MemberAccess;
+			}
+			if (ma != null && ma.member_name == "this") {
+				// this[.with_foo] ()
+				is_chainup = true;
+			} else if (expr is BaseAccess) {
+				// base[.with_foo] ()
+				is_chainup = true;
+			}
+		}
 
 		CreationMethod base_cm = null;
 
-		if (mtype is ObjectType || call.symbol_reference == context.analyzer.object_type) {
-			// constructor chain-up
+		if (is_chainup) {
 			var cm = context.analyzer.find_current_method () as CreationMethod;
 			if (cm == null) {
 				error = true;
@@ -247,8 +258,14 @@ public class Vala.MethodCall : Expression {
 					Report.error (source_reference, "chain up to `%s' not supported".printf (base_cm.get_full_name ()));
 					return false;
 				}
-			} else {
-				// GObject chain up
+			} else if (call.symbol_reference is CreationMethod && call.symbol_reference.parent_symbol is Class) {
+				base_cm = (CreationMethod) call.symbol_reference;
+				if (!base_cm.has_construct_function) {
+					error = true;
+					Report.error (source_reference, "chain up to `%s' not supported".printf (base_cm.get_full_name ()));
+					return false;
+				}
+			} else if (gobject_chainup) {
 				var cl = cm.parent_symbol as Class;
 				if (cl == null || !cl.is_subtype_of (context.analyzer.object_type)) {
 					error = true;
@@ -272,17 +289,6 @@ public class Vala.MethodCall : Expression {
 				return false;
 			}
 
-			if (is_chainup ()) {
-				var cm = context.analyzer.find_current_method () as CreationMethod;
-				if (cm != null) {
-					if (cm.chain_up) {
-						error = true;
-						Report.error (source_reference, "Multiple constructor calls in the same constructor are not permitted");
-						return false;
-					}
-					cm.chain_up = true;
-				}
-			}
 			var struct_creation_expression = new ObjectCreationExpression ((MemberAccess) call, source_reference);
 			struct_creation_expression.struct_creation = true;
 			foreach (Expression arg in get_argument_list ()) {
@@ -293,30 +299,18 @@ public class Vala.MethodCall : Expression {
 			parent_node.replace_expression (this, struct_creation_expression);
 			struct_creation_expression.check (context);
 			return true;
-		} else if (call is MemberAccess
-		           && call.symbol_reference is CreationMethod) {
-			// constructor chain-up
-			var cm = context.analyzer.find_current_method () as CreationMethod;
-			if (cm == null) {
-				error = true;
-				Report.error (source_reference, "use `new' operator to create new objects");
-				return false;
-			} else if (cm.chain_up) {
-				error = true;
-				Report.error (source_reference, "Multiple constructor calls in the same constructor are not permitted");
-				return false;
-			}
-			cm.chain_up = true;
-
-			base_cm = (CreationMethod) call.symbol_reference;
-			if (!base_cm.has_construct_function) {
-				error = true;
-				Report.error (source_reference, "chain up to `%s' not supported".printf (base_cm.get_full_name ()));
-				return false;
-			}
+		} else if (!is_chainup && call is MemberAccess && call.symbol_reference is CreationMethod) {
+			error = true;
+			Report.error (source_reference, "use `new' operator to create new objects");
+			return false;
 		}
 
-		if (mtype != null && mtype.is_invokable ()) {
+		if (!is_chainup && mtype is ObjectType) {
+			// prevent funny stuff like (new Object ()) ()
+			error = true;
+			Report.error (source_reference, "invocation not supported in this context");
+			return false;
+		} else if (mtype != null && mtype.is_invokable ()) {
 			// call ok, expression is invokable
 		} else if (call.symbol_reference is Class) {
 			error = true;
@@ -370,6 +364,8 @@ public class Vala.MethodCall : Expression {
 			}
 		}
 
+		// FIXME partial code duplication in ObjectCreationExpression.check
+
 		Expression last_arg = null;
 
 		var args = get_argument_list ();
@@ -396,7 +392,7 @@ public class Vala.MethodCall : Expression {
 
 				/* store expected type for callback parameters */
 				arg.formal_target_type = param.variable_type;
-				arg.target_type = arg.formal_target_type.get_actual_type (target_object_type, call as MemberAccess, this);
+				arg.target_type = arg.formal_target_type.get_actual_type (target_object_type, method_type_args, this);
 
 				last_arg = arg;
 			}
@@ -418,7 +414,7 @@ public class Vala.MethodCall : Expression {
 			StringLiteral format_literal = null;
 			if (last_arg != null) {
 				// use last argument as format string
-				format_literal = last_arg as StringLiteral;
+				format_literal = StringLiteral.get_format_literal (last_arg);
 				if (format_literal == null && args.size == params.size - 1) {
 					// insert "%s" to avoid issues with embedded %
 					format_literal = new StringLiteral ("\"%s\"");
@@ -438,7 +434,7 @@ public class Vala.MethodCall : Expression {
 				// use instance as format string for string.printf (...)
 				var ma = call as MemberAccess;
 				if (ma != null) {
-					format_literal = ma.inner as StringLiteral;
+					format_literal = StringLiteral.get_format_literal (ma.inner);
 				}
 			}
 			if (format_literal != null) {
@@ -467,7 +463,7 @@ public class Vala.MethodCall : Expression {
 		}
 
 		formal_value_type = ret_type.copy ();
-		value_type = formal_value_type.get_actual_type (target_object_type, call as MemberAccess, this);
+		value_type = formal_value_type.get_actual_type (target_object_type, method_type_args, this);
 
 		bool may_throw = false;
 
@@ -541,7 +537,7 @@ public class Vala.MethodCall : Expression {
 									break;
 								}
 
-								arg.target_type = arg.formal_target_type.get_actual_type (target_object_type, call as MemberAccess, this);
+								arg.target_type = arg.formal_target_type.get_actual_type (target_object_type, method_type_args, this);
 							}
 						}
 
@@ -569,12 +565,12 @@ public class Vala.MethodCall : Expression {
 						if (arg_it.next ()) {
 							Expression arg = arg_it.get ();
 
-							arg.target_type = arg.formal_target_type.get_actual_type (target_object_type, call as MemberAccess, this);
+							arg.target_type = arg.formal_target_type.get_actual_type (target_object_type, method_type_args, this);
 						}
 					}
 
 					// recalculate return value type with new information
-					value_type = formal_value_type.get_actual_type (target_object_type, call as MemberAccess, this);
+					value_type = formal_value_type.get_actual_type (target_object_type, method_type_args, this);
 				}
 			}
 		} else if (mtype is ObjectType) {
@@ -656,25 +652,6 @@ public class Vala.MethodCall : Expression {
 	public override void emit (CodeGenerator codegen) {
 		var method_type = call.value_type as MethodType;
 
-		if (method_type != null) {
-			// N_ and NC_ do not have any effect on the C code,
-			// they are only interpreted by xgettext
-			// this means that it is ok to use them in constant initializers
-			// however, we must avoid generating regular method call code
-			// as that may include temporary variables
-			if (method_type.method_symbol.get_full_name () == "GLib.N_") {
-				// first argument is string
-				argument_list[0].emit (codegen);
-				this.target_value = argument_list[0].target_value;
-				return;
-			} else if (method_type.method_symbol.get_full_name () == "GLib.NC_") {
-				// second argument is string
-				argument_list[1].emit (codegen);
-				this.target_value = argument_list[1].target_value;
-				return;
-			}
-		}
-
 		if (method_type != null && method_type.method_symbol.parent_symbol is Signal) {
 			var signal_access = ((MemberAccess) call).inner;
 			signal_access.emit (codegen);
@@ -705,5 +682,17 @@ public class Vala.MethodCall : Expression {
 		foreach (Expression arg in argument_list) {
 			arg.get_used_variables (collection);
 		}
+	}
+
+	public StringLiteral? get_format_literal () {
+		var mtype = this.call.value_type as MethodType;
+		if (mtype != null) {
+			int format_arg = mtype.method_symbol.get_format_arg_index ();
+			if (format_arg >= 0 && format_arg < argument_list.size) {
+				return StringLiteral.get_format_literal (argument_list[format_arg]);
+			}
+		}
+
+		return null;
 	}
 }

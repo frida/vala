@@ -120,16 +120,10 @@ namespace GLib {
 		public uint mask;
 		public uint n_values;
 		[CCode (array_length_cname = "n_values")]
-		public GLib.FlagsValue[] values;
+		public weak GLib.FlagsValue[] values;
 		public unowned GLib.FlagsValue? get_first_value (uint value);
 		public unowned GLib.FlagsValue? get_value_by_name (string name);
 		public unowned GLib.FlagsValue? get_value_by_nick (string name);
-	}
-	[Compact]
-	public class FlagsValue {
-		public int value;
-		public weak string value_name;
-		public weak string value_nick;
 	}
 	[CCode (ref_sink_function = "g_object_ref_sink", type_id = "G_TYPE_INITIALLY_UNOWNED")]
 	public class InitiallyUnowned : GLib.Object {
@@ -389,14 +383,20 @@ namespace GLib {
 		public void insert (uint index_, GLib.Value value);
 		public void prepend (GLib.Value value);
 		public void remove (uint index_);
-		public void sort (GLib.CompareFunc compare_func);
-		public void sort_with_data (GLib.CompareDataFunc compare_func);
+		public void sort (GLib.CompareFunc<GLib.Value> compare_func);
+		public void sort_with_data (GLib.CompareDataFunc<GLib.Value> compare_func);
 	}
 	public interface TypePlugin {
 	}
 	[CCode (has_type_id = false)]
 	public struct EnumValue {
 		public int value;
+		public weak string value_name;
+		public weak string value_nick;
+	}
+	[CCode (has_type_id = false)]
+	public struct FlagsValue {
+		public uint value;
 		public weak string value_name;
 		public weak string value_nick;
 	}
@@ -423,6 +423,7 @@ namespace GLib {
 		public weak GLib.Type[] param_types;
 	}
 	[CCode (get_value_function = "g_value_get_gtype", marshaller_type_name = "GTYPE", set_value_function = "g_value_set_gtype", type_id = "G_TYPE_GTYPE")]
+	[GIR (fullname = "GType")]
 	public struct Type : ulong {
 		public const GLib.Type BOXED;
 		public const GLib.Type ENUM;

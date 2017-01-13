@@ -99,7 +99,7 @@ public class Vala.BinaryExpression : Expression {
 		}
 	}
 
-	public string get_operator_string () {
+	private unowned string get_operator_string () {
 		switch (_operator) {
 		case BinaryOperator.PLUS: return "+";
 		case BinaryOperator.MINUS: return "-";
@@ -139,6 +139,10 @@ public class Vala.BinaryExpression : Expression {
 
 	public override bool is_non_null () {
 		return left.is_non_null () && right.is_non_null ();
+	}
+
+	public override bool is_accessible (Symbol sym) {
+		return left.is_accessible (sym) && right.is_accessible (sym);
 	}
 
 	public override bool check (CodeContext context) {

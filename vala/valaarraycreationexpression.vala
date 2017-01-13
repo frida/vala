@@ -113,6 +113,20 @@ public class Vala.ArrayCreationExpression : Expression {
 		return false;
 	}
 
+	public override bool is_accessible (Symbol sym) {
+		foreach (Expression e in sizes) {
+			if (!e.is_accessible (sym)) {
+				return false;
+			}
+		}
+
+		if (initializer_list != null) {
+			return initializer_list.is_accessible (sym);
+		}
+
+		return true;
+	}
+
 	public override void replace_expression (Expression old_node, Expression new_node) {
 		for (int i = 0; i < sizes.size; i++) {
 			if (sizes[i] == old_node) {
@@ -238,8 +252,6 @@ public class Vala.ArrayCreationExpression : Expression {
 			Report.error (source_reference, "Cannot determine the element type of the created array");
 			return false;
 		}
-
-		element_type.value_owned = true;
 
 		value_type = new ArrayType (element_type, rank, source_reference);
 		value_type.value_owned = true;

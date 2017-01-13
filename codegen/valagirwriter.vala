@@ -123,7 +123,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 	}
 
-	private ArrayList<GIRNamespace?> externals = new ArrayList<GIRNamespace?> ((EqualFunc) GIRNamespace.equal);
+	private ArrayList<GIRNamespace?> externals = new ArrayList<GIRNamespace?> ((EqualFunc<GIRNamespace>) GIRNamespace.equal);
 
 	public void write_includes() {
 		foreach (var i in externals) {
@@ -215,11 +215,11 @@ public class Vala.GIRWriter : CodeVisitor {
 	private void write_c_includes (Namespace ns) {
 		// Collect C header filenames
 		Set<string> header_filenames = new HashSet<string> (str_hash, str_equal);
-		foreach (string c_header_filename in CCodeBaseModule.get_ccode_header_filenames (ns).split (",")) {
+		foreach (unowned string c_header_filename in CCodeBaseModule.get_ccode_header_filenames (ns).split (",")) {
 			header_filenames.add (c_header_filename);
 		}
 		foreach (Symbol symbol in ns.scope.get_symbol_table ().get_values ()) {
-			foreach (string c_header_filename in CCodeBaseModule.get_ccode_header_filenames (symbol).split (",")) {
+			foreach (unowned string c_header_filename in CCodeBaseModule.get_ccode_header_filenames (symbol).split (",")) {
 				header_filenames.add (c_header_filename);
 			}
 		}
@@ -1182,6 +1182,10 @@ public class Vala.GIRWriter : CodeVisitor {
 		if (!check_accessibility (sig)) {
 			return;
 		}
+
+		if (sig.emitter != null) {
+			sig.emitter.accept (this);
+		}
 		
 		write_indent ();
 		buffer.append_printf ("<glib:signal name=\"%s\"", CCodeBaseModule.get_ccode_name (sig));
@@ -1369,13 +1373,18 @@ public class Vala.GIRWriter : CodeVisitor {
 				}
 
 				write_indent ();
-				buffer.append_printf ("<annotation key=\"%s.%s\" value=\"%s\"/>\n",
+				buffer.append_printf ("<attribute name=\"%s.%s\" value=\"%s\"/>\n",
 					name, camel_case_to_canonical (arg_name), value);
 			}
 		}
 	}
 
 	private string? get_full_gir_name (Symbol sym) {
+		string? gir_fullname = sym.get_attribute_string ("GIR", "fullname");
+		if (gir_fullname != null) {
+			return gir_fullname;
+		}
+
 		string? gir_name = sym.get_attribute_string ("GIR", "name");
 
 		if (gir_name == null && sym is Namespace) {
@@ -1416,6 +1425,10 @@ public class Vala.GIRWriter : CodeVisitor {
 					GIRNamespace external = GIRNamespace (type_symbol.source_reference.file.gir_namespace, type_symbol.source_reference.file.gir_version);
 					if (!externals.contains (external)) {
 						externals.add (external);
+					}
+					string? gir_fullname = type_symbol.get_attribute_string ("GIR", "fullname");
+					if (gir_fullname != null) {
+						return gir_fullname;
 					}
 					var type_name = type_symbol.get_attribute_string ("GIR", "name") ?? type_symbol.name;
 					return "%s.%s".printf (type_symbol.source_reference.file.gir_namespace, type_name);

@@ -77,7 +77,7 @@ public class Vala.UnaryExpression : Expression {
 		}
 	}
 
-	private string get_operator_string () {
+	private unowned string get_operator_string () {
 		switch (_operator) {
 		case UnaryOperator.PLUS: return "+";
 		case UnaryOperator.MINUS: return "-";
@@ -118,6 +118,10 @@ public class Vala.UnaryExpression : Expression {
 		}
 
 		return inner.is_pure ();
+	}
+
+	public override bool is_accessible (Symbol sym) {
+		return inner.is_accessible (sym);
 	}
 
 	bool is_numeric_type (DataType type) {

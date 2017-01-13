@@ -36,7 +36,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 		if (expr.symbol_reference is Method) {
 			var m = (Method) expr.symbol_reference;
 
-			if (!(m is DynamicMethod || m is ArrayMoveMethod || m is ArrayResizeMethod)) {
+			if (!(m is DynamicMethod || m is ArrayMoveMethod || m is ArrayResizeMethod || m is ArrayCopyMethod)) {
 				generate_method_declaration (m, cfile);
 
 				if (!m.external && m.external_package) {
@@ -224,13 +224,14 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					ccall.add_argument (pub_inst);
 				}
 
-				var temp_value = (GLibValue) create_temp_value (prop.get_accessor.value_type, false, expr);
+				bool prop_is_real_non_null_struct_type = prop.property_type.is_real_non_null_struct_type ();
+				var temp_value = (GLibValue) create_temp_value (prop.get_accessor.value_type, prop_is_real_non_null_struct_type, expr);
 				expr.target_value = load_temp_value (temp_value);
 				var ctemp = get_cvalue_ (temp_value);
 
 				// Property access to real struct types is handled differently
 				// The value is returned by out parameter
-				if (prop.property_type.is_real_non_null_struct_type ()) {
+				if (prop_is_real_non_null_struct_type) {
 					ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, ctemp));
 					ccode.add_expression (ccall);
 				} else {
@@ -461,7 +462,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				var type_as_struct = result.value_type.data_type as Struct;
 
 				if (param.direction == ParameterDirection.OUT) {
-					name = "_vala_" + name;
+					name = "_vala_%s".printf (name);
 				}
 
 				if (param.direction == ParameterDirection.REF ||
@@ -484,7 +485,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				if (delegate_type != null && delegate_type.delegate_symbol.has_target) {
 					var target_cname = get_ccode_delegate_target_name (param);
 					if (param.direction == ParameterDirection.OUT) {
-						target_cname = "_vala_" + target_cname;
+						target_cname = "_vala_%s".printf (target_cname);
 					}
 					CCodeExpression target_expr = new CCodeIdentifier (target_cname);
 					CCodeExpression delegate_target_destroy_notify = new CCodeIdentifier (get_delegate_target_destroy_notify_cname (get_variable_cname (name)));
@@ -570,7 +571,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					if (get_ccode_array_length_name (field) != null) {
 						length_cname = get_ccode_array_length_name (field);
 					} else {
-						length_cname = get_array_length_cname (field.name, dim);
+						length_cname = get_array_length_cname (get_ccode_name (field), dim);
 					}
 
 					if (((TypeSymbol) field.parent_symbol).is_reference_type ()) {
@@ -582,7 +583,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					result.append_array_length_cvalue (length_expr);
 				}
 				if (array_type.rank == 1 && field.is_internal_symbol ()) {
-					string size_cname = get_array_size_cname (field.name);
+					string size_cname = get_array_size_cname (get_ccode_name (field));
 
 					if (((TypeSymbol) field.parent_symbol).is_reference_type ()) {
 						set_array_size_cvalue (result, new CCodeMemberAccess.pointer (inst, size_cname));
@@ -674,7 +675,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 		if (array_type != null) {
 			if (array_type.fixed_length) {
 				result.array_length_cvalues = null;
-				result.append_array_length_cvalue (new CCodeConstant (array_type.length.to_string ()));
+				result.append_array_length_cvalue (get_ccodenode (array_type.length));
 				result.lvalue = false;
 			} else if (get_ccode_array_null_terminated (variable)) {
 				requires_array_length = true;

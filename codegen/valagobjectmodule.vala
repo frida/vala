@@ -79,8 +79,11 @@ public class Vala.GObjectModule : GTypeModule {
 			CCodeConstant func_name_constant;
 			CCodeFunctionCall cinst, cspec;
 
-			func_name = "%s_type".printf (type_param.name.ascii_down ());
-			func_name_constant = new CCodeConstant ("\"%s-type\"".printf (type_param.name.ascii_down ()));
+			var name_prefix = type_param.name.down ();
+			var canonical_prefix = name_prefix.replace ("_", "-");
+
+			func_name = "%s_type".printf (name_prefix);
+			func_name_constant = new CCodeConstant ("\"%s-type\"".printf (canonical_prefix));
 			enum_value = "%s_%s".printf (get_ccode_lower_case_name (cl, null), func_name).ascii_up ();
 			cinst = new CCodeFunctionCall (new CCodeIdentifier ("g_object_class_install_property"));
 			cinst.add_argument (ccall);
@@ -96,8 +99,8 @@ public class Vala.GObjectModule : GTypeModule {
 			prop_enum.add_value (new CCodeEnumValue (enum_value));
 
 
-			func_name = "%s_dup_func".printf (type_param.name.ascii_down ());
-			func_name_constant = new CCodeConstant ("\"%s-dup-func\"".printf (type_param.name.ascii_down ()));
+			func_name = "%s_dup_func".printf (name_prefix);
+			func_name_constant = new CCodeConstant ("\"%s-dup-func\"".printf (canonical_prefix));
 			enum_value = "%s_%s".printf (get_ccode_lower_case_name (cl, null), func_name).ascii_up ();
 			cinst = new CCodeFunctionCall (new CCodeIdentifier ("g_object_class_install_property"));
 			cinst.add_argument (ccall);
@@ -112,8 +115,8 @@ public class Vala.GObjectModule : GTypeModule {
 			prop_enum.add_value (new CCodeEnumValue (enum_value));
 
 
-			func_name = "%s_destroy_func".printf (type_param.name.ascii_down ());
-			func_name_constant = new CCodeConstant ("\"%s-destroy-func\"".printf (type_param.name.ascii_down ()));
+			func_name = "%s_destroy_func".printf (name_prefix);
+			func_name_constant = new CCodeConstant ("\"%s-destroy-func\"".printf (canonical_prefix));
 			enum_value = "%s_%s".printf (get_ccode_lower_case_name (cl, null), func_name).ascii_up ();
 			cinst = new CCodeFunctionCall (new CCodeIdentifier ("g_object_class_install_property"));
 			cinst.add_argument (ccall);
@@ -164,6 +167,17 @@ public class Vala.GObjectModule : GTypeModule {
 			}
 		}
 		return false;
+	}
+
+	private void add_guarded_expression (Symbol sym, CCodeExpression expression) {
+		// prevent deprecation warnings
+		if (sym.version.deprecated) {
+			var guard = new CCodeGGnucSection (GGnucSectionType.IGNORE_DEPRECATIONS);
+			ccode.add_statement (guard);
+			guard.append (new CCodeExpressionStatement (expression));
+		} else {
+			ccode.add_expression (expression);
+		}
 	}
 
 	private void add_get_property_function (Class cl) {
@@ -231,7 +245,7 @@ public class Vala.GObjectModule : GTypeModule {
 				csetcall.call = get_value_setter_function (prop.property_type);
 				csetcall.add_argument (new CCodeIdentifier ("value"));
 				csetcall.add_argument (boxed_addr);
-				ccode.add_expression (csetcall);
+				add_guarded_expression (prop, csetcall);
 
 				if (requires_destroy (prop.get_accessor.value_type)) {
 					ccode.add_expression (destroy_value (new GLibValue (prop.get_accessor.value_type, new CCodeIdentifier ("boxed"), true)));
@@ -255,7 +269,7 @@ public class Vala.GObjectModule : GTypeModule {
 				}
 				csetcall.add_argument (new CCodeIdentifier ("value"));
 				csetcall.add_argument (ccall);
-				ccode.add_expression (csetcall);
+				add_guarded_expression (prop, csetcall);
 				if (array_type != null && array_type.element_type.data_type == string_type.data_type) {
 					ccode.close ();
 				}
@@ -339,7 +353,7 @@ public class Vala.GObjectModule : GTypeModule {
 				var ccond = new CCodeConditionalExpression (cisnull, new CCodeConstant ("0"), cstrvlen);
 
 				ccall.add_argument (ccond);
-				ccode.add_expression (ccall);
+				add_guarded_expression (prop, ccall);
 				ccode.close ();
 			} else {
 				var cgetcall = new CCodeFunctionCall ();
@@ -350,7 +364,7 @@ public class Vala.GObjectModule : GTypeModule {
 				}
 				cgetcall.add_argument (new CCodeIdentifier ("value"));
 				ccall.add_argument (cgetcall);
-				ccode.add_expression (ccall);
+				add_guarded_expression (prop, ccall);
 			}
 			ccode.add_break ();
 		}

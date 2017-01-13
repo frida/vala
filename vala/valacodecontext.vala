@@ -139,11 +139,6 @@ public class Vala.CodeContext {
 	public int optlevel { get; set; }
 
 	/**
-	 * Enable multithreading support.
-	 */
-	public bool thread { get; set; }
-
-	/**
 	 * Enable memory profiler.
 	 */
 	public bool mem_profiler { get; set; }
@@ -548,7 +543,7 @@ public class Vala.CodeContext {
 		string filename = null;
 
 		if (directories != null) {
-			foreach (string dir in directories) {
+			foreach (unowned string dir in directories) {
 				filename = Path.build_path ("/", dir, basename);
 				if (FileUtils.test (filename, FileTest.EXISTS)) {
 					return filename;
@@ -557,7 +552,7 @@ public class Vala.CodeContext {
 		}
 
 		if (data_dir != null) {
-			foreach (string dir in Environment.get_system_data_dirs ()) {
+			foreach (unowned string dir in Environment.get_system_data_dirs ()) {
 				filename = Path.build_path ("/", dir, data_dir, basename);
 				if (FileUtils.test (filename, FileTest.EXISTS)) {
 					return filename;
@@ -566,7 +561,7 @@ public class Vala.CodeContext {
 		}
 
 		if (versioned_data_dir != null) {
-			foreach (string dir in Environment.get_system_data_dirs ()) {
+			foreach (unowned string dir in Environment.get_system_data_dirs ()) {
 				filename = Path.build_path ("/", dir, versioned_data_dir, basename);
 				if (FileUtils.test (filename, FileTest.EXISTS)) {
 					return filename;

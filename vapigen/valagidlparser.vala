@@ -105,14 +105,14 @@ public class Vala.GIdlParser : CodeVisitor {
 		current_source_file = source_file;
 
 		codenode_attributes_map = new HashMap<string,string> (str_hash, str_equal);
-		codenode_attributes_patterns = new HashMap<PatternSpec*,string> (direct_hash, (EqualFunc) PatternSpec.equal);
+		codenode_attributes_patterns = new HashMap<PatternSpec*,string> (direct_hash, (EqualFunc<PatternSpec>) PatternSpec.equal);
 
 		if (FileUtils.test (metadata_filename, FileTest.EXISTS)) {
 			try {
 				string metadata;
 				FileUtils.get_contents (metadata_filename, out metadata, null);
 				
-				foreach (string line in metadata.split ("\n")) {
+				foreach (unowned string line in metadata.split ("\n")) {
 					if (line.has_prefix ("#")) {
 						// ignore comment lines
 						continue;
@@ -210,7 +210,7 @@ public class Vala.GIdlParser : CodeVisitor {
 				if (name == null || name == ".new") {
 					name = "new";
 				} else {
-					name = "new_"+name;
+					name = "new_%s".printf (name);
 				}
 			}
 			if (container != null) {
@@ -750,7 +750,7 @@ public class Vala.GIdlParser : CodeVisitor {
 
 		if (suppress_throws == false && error_types != null) {
 			var type_args = eval (error_types).split (",");
-			foreach (string type_arg in type_args) {
+			foreach (unowned string type_arg in type_args) {
 				cb.add_error_type (parse_type_from_string (type_arg, true));
 			}
 		}
@@ -921,7 +921,7 @@ public class Vala.GIdlParser : CodeVisitor {
 						} else if (nv[0] == "deprecated_since") {
 							cl.set_attribute_string ("Version", "deprecated_since", eval (nv[1]));
 						} else if (nv[0] == "type_parameters") {
-							foreach (string type_param_name in eval (nv[1]).split (",")) {
+							foreach (unowned string type_param_name in eval (nv[1]).split (",")) {
 								cl.add_type_parameter (new TypeParameter (type_param_name, current_source_reference));
 							}
 						} else if (nv[0] == "experimental") {
@@ -2349,6 +2349,8 @@ public class Vala.GIdlParser : CodeVisitor {
 					}
 				} else if (nv[0] == "vfunc_name") {
 					m.set_attribute_string ("CCode", "vfunc_name", eval (nv[1]));
+				} else if (nv[0] == "finish_vfunc_name") {
+					m.set_attribute_string ("CCode", "finish_vfunc_name", eval (nv[1]));
 				} else if (nv[0] == "finish_name") {
 					m.set_attribute_string ("CCode", "finish_name", eval (nv[1]));
 				} else if (nv[0] == "async") {
@@ -2550,7 +2552,7 @@ public class Vala.GIdlParser : CodeVisitor {
 									if (val.has_prefix ("\"") && val.has_suffix ("\"")) {
 										p.initializer = new StringLiteral (val, param_type.source_reference);
 									} else {
-										foreach (var member in val.split (".")) {
+										foreach (unowned string member in val.split (".")) {
 											p.initializer = new MemberAccess (p.initializer, member, param_type.source_reference);
 										}
 									}
@@ -2595,7 +2597,7 @@ public class Vala.GIdlParser : CodeVisitor {
 
 		if (suppress_throws == false && error_types != null) {
 			var type_args = eval (error_types).split (",");
-			foreach (string type_arg in type_args) {
+			foreach (unowned string type_arg in type_args) {
 				m.add_error_type (parse_type_from_string (type_arg, true));
 			}
 		}
@@ -2728,12 +2730,10 @@ public class Vala.GIdlParser : CodeVisitor {
 			prop.get_accessor = new PropertyAccessor (true, false, false, prop.property_type.copy (), null, null);
 		}
 		if (prop_node.writable) {
-			prop.set_accessor = new PropertyAccessor (false, false, false, prop.property_type.copy (), null, null);
 			if (prop_node.construct_only) {
-				prop.set_accessor.construction = true;
+				prop.set_accessor = new PropertyAccessor (false, false, true, prop.property_type.copy (), null, null);
 			} else {
-				prop.set_accessor.writable = true;
-				prop.set_accessor.construction = prop_node.@construct;
+				prop.set_accessor = new PropertyAccessor (false, true, prop_node.@construct, prop.property_type.copy (), null, null);
 			}
 		}
 

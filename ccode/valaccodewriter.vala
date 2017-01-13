@@ -48,6 +48,8 @@ public class Vala.CCodeWriter {
 		get { return _bol; }
 	}
 
+	static GLib.Regex fix_indent_regex;
+
 	private string temp_filename;
 	private bool file_exists;
 
@@ -156,14 +158,11 @@ public class Vala.CCodeWriter {
 			}
 		}
 
-		if (!bol) {
+		if (!_bol) {
 			write_newline ();
 		}
 		
-		for (int i = 0; i < indent; i++) {
-			stream.putc ('\t');
-		}
-		
+		stream.puts (string.nfill (indent, '\t'));
 		_bol = false;
 	}
 	
@@ -190,7 +189,7 @@ public class Vala.CCodeWriter {
 	 * Opens a new block, increasing the indent level.
 	 */
 	public void write_begin_block () {
-		if (!bol) {
+		if (!_bol) {
 			stream.putc (' ');
 		} else {
 			write_indent ();
@@ -223,19 +222,17 @@ public class Vala.CCodeWriter {
 			bool first = true;
 
 			// discard tabs at beginning of line
-			var regex = new GLib.Regex ("^\t+");
+			if (fix_indent_regex == null)
+				fix_indent_regex = new GLib.Regex ("^\t+");;
 
-			/* separate declaration due to missing memory management in foreach statements */
-			var lines = text.split ("\n");
-		
-			foreach (string line in lines) {
+			foreach (unowned string line in text.split ("\n")) {
 				if (!first) {
 					write_indent ();
 				} else {
 					first = false;
 				}
 
-				var lineparts = regex.replace_literal (line, -1, 0, "").split ("*/");
+				var lineparts = fix_indent_regex.replace_literal (line, -1, 0, "").split ("*/");
 
 				for (int i = 0; lineparts[i] != null; i++) {
 					stream.puts (lineparts[i]);

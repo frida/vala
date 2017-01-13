@@ -32,16 +32,9 @@ public class Vala.CCodeFunction : CCodeNode {
 	public string name { get; set; }
 	
 	/**
-	 * The function modifiers.
-	 */
-	public CCodeModifiers modifiers { get; set; }
-	
-	/**
 	 * The function return type.
 	 */
 	public string return_type { get; set; }
-
-	public string attributes { get; set; }
 
 	public bool is_declaration { get; set; }
 
@@ -96,7 +89,6 @@ public class Vala.CCodeFunction : CCodeNode {
 	public CCodeFunction copy () {
 		var func = new CCodeFunction (name, return_type);
 		func.modifiers = modifiers;
-		func.attributes = attributes;
 
 		/* no deep copy for lists available yet
 		 * func.parameters = parameters.copy ();
@@ -126,29 +118,57 @@ public class Vala.CCodeFunction : CCodeNode {
 		writer.write_string (name);
 		writer.write_string (" (");
 		
-		bool first = true;
+		bool has_args = (CCodeModifiers.PRINTF in modifiers || CCodeModifiers.SCANF in modifiers);
+		int i = 0;
+		int format_arg_index = -1;
+		int args_index = -1;
 		foreach (CCodeParameter param in parameters) {
-			if (!first) {
+			if (i > 0) {
 				writer.write_string (", ");
-			} else {
-				first = false;
 			}
 			param.write (writer);
+			if (CCodeModifiers.FORMAT_ARG in param.modifiers) {
+				format_arg_index = i;
+			}
+			if (has_args && param.ellipsis) {
+				args_index = i;
+			} else if (has_args && param.type_name == "va_list" && format_arg_index < 0) {
+				format_arg_index = i - 1;
+			}
+			i++;
 		}
-		if (first) {
+		if (i == 0) {
 			writer.write_string ("void");
 		}
 		
 		writer.write_string (")");
 
-		if (CCodeModifiers.DEPRECATED in modifiers) {
-			writer.write_string (" G_GNUC_DEPRECATED");
-		}
-
 		if (is_declaration) {
-			if (attributes != null) {
-				writer.write_string (" ");
-				writer.write_string (attributes);
+			if (CCodeModifiers.DEPRECATED in modifiers) {
+				writer.write_string (" G_GNUC_DEPRECATED");
+			}
+
+			if (CCodeModifiers.PRINTF in modifiers) {
+				format_arg_index = (format_arg_index >= 0 ? format_arg_index + 1 : args_index);
+				writer.write_string (" G_GNUC_PRINTF(%d,%d)".printf (format_arg_index, args_index + 1));
+			} else if (CCodeModifiers.SCANF in modifiers) {
+				format_arg_index = (format_arg_index >= 0 ? format_arg_index + 1 : args_index);
+				writer.write_string (" G_GNUC_SCANF(%d,%d)".printf (format_arg_index, args_index + 1));
+			} else if (format_arg_index >= 0) {
+				writer.write_string (" G_GNUC_FORMAT(%d)".printf (format_arg_index + 1));
+			}
+
+			if (CCodeModifiers.CONST in modifiers) {
+				writer.write_string (" G_GNUC_CONST");
+			}
+			if (CCodeModifiers.UNUSED in modifiers) {
+				writer.write_string (" G_GNUC_UNUSED");
+			}
+
+			if (CCodeModifiers.CONSTRUCTOR in modifiers) {
+				writer.write_string (" __attribute__((constructor))");
+			} else if (CCodeModifiers.DESTRUCTOR in modifiers) {
+				writer.write_string (" __attribute__((destructor))");
 			}
 
 			writer.write_string (";");

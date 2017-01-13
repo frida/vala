@@ -38,7 +38,7 @@ public class Vala.PropertyAccessor : Subroutine {
 	 */
 	public DataType? value_type {
 		get { return _value_type; }
-		set {
+		private set {
 			_value_type = value;
 			if (value != null) {
 				_value_type.parent_node = this;
@@ -49,23 +49,23 @@ public class Vala.PropertyAccessor : Subroutine {
 	/**
 	 * Specifies whether this accessor may be used to get the property.
 	 */
-	public bool readable { get; set; }
+	public bool readable { get; private set; }
 	
 	/**
 	 * Specifies whether this accessor may be used to set the property.
 	 */
-	public bool writable { get; set; }
+	public bool writable { get; private set; }
 	
 	/**
 	 * Specifies whether this accessor may be used to construct the
 	 * property.
 	 */
-	public bool construction { get; set; }
+	public bool construction { get; private set; }
 
 	/**
 	 * True if the body was automatically generated
 	 */
-	public bool automatic_body { get; set; }
+	public bool automatic_body { get; private set; }
 
 	public override bool has_result {
 		get { return readable; }
@@ -74,7 +74,7 @@ public class Vala.PropertyAccessor : Subroutine {
 	/**
 	 * Represents the generated value parameter in a set accessor.
 	 */
-	public Parameter value_parameter { get; set; }
+	public Parameter value_parameter { get; private set; }
 
 	private DataType _value_type;
 	
@@ -121,9 +121,9 @@ public class Vala.PropertyAccessor : Subroutine {
 	public Method? get_method () {
 		Method? m = null;
 		if (readable) {
-			m = new Method ("get_"+prop.name, value_type, source_reference, comment);
+			m = new Method ("get_%s".printf (prop.name), value_type, source_reference, comment);
 		} else if (writable) {
-			m = new Method ("set_"+prop.name, new VoidType(), source_reference, comment);
+			m = new Method ("set_%s".printf (prop.name), new VoidType(), source_reference, comment);
 			m.add_parameter (value_parameter.copy ());
 		}
 

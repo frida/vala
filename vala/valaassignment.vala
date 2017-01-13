@@ -97,6 +97,10 @@ public class Vala.Assignment : Expression {
 		return false;
 	}
 
+	public override bool is_accessible (Symbol sym) {
+		return left.is_accessible (sym) && right.is_accessible (sym);
+	}
+
 	public override bool check (CodeContext context) {
 		if (checked) {
 			return !error;
@@ -144,6 +148,12 @@ public class Vala.Assignment : Expression {
 
 		if (left is MemberAccess) {
 			var ma = (MemberAccess) left;
+
+			if (ma.symbol_reference is Constant) {
+				error = true;
+				Report.error (source_reference, "Assignment to constant after initialization");
+				return false;
+			}
 
 			if ((!(ma.symbol_reference is Signal || ma.symbol_reference is DynamicProperty) && ma.value_type == null) ||
 			    (ma.inner == null && ma.member_name == "this" && context.analyzer.is_in_instance_method ())) {

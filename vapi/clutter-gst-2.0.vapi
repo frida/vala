@@ -37,9 +37,9 @@ namespace ClutterGst {
 		[NoAccessorMethod]
 		public Gst.Fraction pixel_aspect_ratio { owned get; set; }
 	}
-	[CCode (cheader_filename = "clutter-gst/clutter-gst.h")]
+	[CCode (cheader_filename = "clutter-gst/clutter-gst.h", type_id = "clutter_gst_player_get_type ()")]
 	[Version (since = "1.4")]
-	public interface Player : Clutter.Media, GLib.Object, Clutter.Media {
+	public interface Player : Clutter.Media, GLib.Object {
 		public static void class_init (GLib.ObjectClass object_class);
 		public void deinit ();
 		public abstract int get_audio_stream ();
@@ -88,7 +88,7 @@ namespace ClutterGst {
 	public static Clutter.InitError init ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref unowned string[]? argv);
 	[CCode (cheader_filename = "clutter-gst/clutter-gst.h")]
 	[Version (since = "1.0")]
-	public static Clutter.InitError init_with_args ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref unowned string[]? argv, string parameter_string, GLib.OptionEntry entries, string translation_domain) throws GLib.Error;
+	public static Clutter.InitError init_with_args ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref unowned string[]? argv, string parameter_string, [CCode (array_length = false, type = "GOptionEntry*")] GLib.OptionEntry[]? entries = null, string? translation_domain = null) throws GLib.Error;
 	[CCode (cheader_filename = "clutter-gst/clutter-gst.h")]
 	[Version (since = "1.4")]
 	public static void player_class_init (GLib.ObjectClass object_class);

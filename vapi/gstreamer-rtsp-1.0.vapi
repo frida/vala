@@ -3,7 +3,22 @@
 [CCode (cprefix = "Gst", gir_namespace = "GstRtsp", gir_version = "1.0", lower_case_cprefix = "gst_")]
 namespace Gst {
 	namespace RTSP {
-		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_rtsp_auth_credential_get_type ()")]
+		[Compact]
+		[GIR (name = "RTSPAuthCredential")]
+		public class AuthCredential {
+			public weak string authorization;
+			public weak Gst.RTSP.AuthParam @params;
+			public Gst.RTSP.AuthMethod scheme;
+		}
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_rtsp_auth_param_get_type ()")]
+		[Compact]
+		[GIR (name = "RTSPAuthParam")]
+		public class AuthParam {
+			public weak string name;
+			public weak string value;
+		}
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "RTSPConnection")]
 		public class Connection {
@@ -71,7 +86,7 @@ namespace Gst {
 			public string get_request_uri ();
 			public Gst.RTSP.Result set_port (uint16 port);
 		}
-		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "RTSPWatch")]
 		public class Watch {
@@ -137,6 +152,8 @@ namespace Gst {
 			public Gst.RTSP.Result init_data (uint8 channel);
 			public Gst.RTSP.Result init_request (Gst.RTSP.Method method, string uri);
 			public Gst.RTSP.Result init_response (Gst.RTSP.StatusCode code, string? reason, Gst.RTSP.Message? request);
+			[Version (since = "1.12")]
+			public Gst.RTSP.AuthCredential parse_auth_credentials (Gst.RTSP.HeaderField field);
 			public Gst.RTSP.Result parse_data (out uint8 channel);
 			public Gst.RTSP.Result parse_request (out Gst.RTSP.Method method, out string uri, out Gst.RTSP.Version version);
 			public Gst.RTSP.Result parse_response (out Gst.RTSP.StatusCode code, out string reason, out Gst.RTSP.Version version);
@@ -482,6 +499,9 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", cname = "GST_RTSP_DEFAULT_PORT")]
 		public const int _DEFAULT_PORT;
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
+		[Version (since = "1.12")]
+		public static void auth_credentials_free (Gst.RTSP.AuthCredential credentials);
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
 		public static Gst.RTSP.Result connection_accept (GLib.Socket socket, out Gst.RTSP.Connection conn, GLib.Cancellable? cancellable = null);
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
 		public static Gst.RTSP.Result connection_create (Gst.RTSP.Url url, out Gst.RTSP.Connection conn);
@@ -491,6 +511,9 @@ namespace Gst {
 		public static Gst.RTSP.HeaderField find_header_field (string header);
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
 		public static Gst.RTSP.Method find_method (string method);
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
+		[Version (since = "1.12")]
+		public static string generate_digest_auth_response (string? algorithm, string method, string realm, string username, string password, string uri, string nonce);
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]
 		public static bool header_allow_multiple (Gst.RTSP.HeaderField field);
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]

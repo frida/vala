@@ -199,7 +199,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 					_copy_function = ccode.get_string ("copy_function");
 				}
 				if (_copy_function == null && sym is Struct) {
-					_copy_function = lower_case_prefix + "copy";
+					_copy_function = "%scopy".printf (lower_case_prefix);
 				}
 				copy_function_set = true;
 			}
@@ -214,7 +214,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 					_destroy_function = ccode.get_string ("destroy_function");
 				}
 				if (_destroy_function == null && sym is Struct) {
-					_destroy_function = lower_case_prefix + "destroy";
+					_destroy_function = "%sdestroy".printf (lower_case_prefix);
 				}
 				destroy_function_set = true;
 			}
@@ -376,12 +376,8 @@ public class Vala.CCodeAttribute : AttributeCache {
 				} else {
 					var param = (Parameter) node;
 					var sym = param.parent_symbol;
-					if (sym is Method) {
-						_pos = ((Method) sym).get_parameters().index_of (param) + 1.0;
-					} else if (sym is Delegate) {
-						_pos = ((Delegate) sym).get_parameters().index_of (param) + 1.0;
-					} else if (sym is Signal) {
-						_pos = ((Signal) sym).get_parameters().index_of (param) + 1.0;
+					if (sym is Callable) {
+						_pos = ((Callable) sym).get_parameters ().index_of (param) + 1.0;
 					} else {
 						_pos = 0.0;
 					}
@@ -439,7 +435,12 @@ public class Vala.CCodeAttribute : AttributeCache {
 	public string finish_vfunc_name {
 		get {
 			if (_finish_vfunc_name == null) {
-				_finish_vfunc_name = get_finish_name_for_basename (vfunc_name);
+				if (ccode != null) {
+					_finish_vfunc_name = ccode.get_string ("finish_vfunc_name");
+				}
+				if (_finish_vfunc_name == null) {
+					_finish_vfunc_name = get_finish_name_for_basename (vfunc_name);
+				}
 			}
 			return _finish_vfunc_name;
 		}
@@ -472,7 +473,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 		get {
 			if (_array_length == null) {
 				if (node.get_attribute ("NoArrayLength") != null) {
-					// deprecated
+					Report.deprecated (node.source_reference, "[NoArrayLength] is deprecated, use [CCode (array_length = false)] instead.");
 					_array_length = false;
 				} else if (ccode != null && ccode.has_argument ("array_length")) {
 					_array_length = ccode.get_bool ("array_length");
@@ -770,7 +771,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 		if (sym is Class) {
 			var cl = (Class) sym;
 			if (cl.is_fundamental ()) {
-				return lower_case_prefix + "ref";
+				return "%sref".printf (lower_case_prefix);
 			} else if (cl.base_class != null) {
 				return CCodeBaseModule.get_ccode_ref_function (cl.base_class);
 			}
@@ -789,7 +790,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 		if (sym is Class) {
 			var cl = (Class) sym;
 			if (cl.is_fundamental ()) {
-				return lower_case_prefix + "unref";
+				return "%sunref".printf (lower_case_prefix);
 			} else if (cl.base_class != null) {
 				return CCodeBaseModule.get_ccode_unref_function (cl.base_class);
 			}
@@ -824,10 +825,10 @@ public class Vala.CCodeAttribute : AttributeCache {
 			if (cl.base_class != null) {
 				return CCodeBaseModule.get_ccode_free_function (cl.base_class);
 			}
-			return lower_case_prefix + "free";
+			return "%sfree".printf (lower_case_prefix);
 		} else if (sym is Struct) {
 			if (!sym.external_package) {
-				return lower_case_prefix + "free";
+				return "%sfree".printf (lower_case_prefix);
 			}
 		}
 		return null;
@@ -1228,7 +1229,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 		if (result.has_suffix ("_async")) {
 			result = result.substring (0, result.length - "_async".length);
 		}
-		return result + "_finish";
+		return "%s_finish".printf (result);
 	}
 
 	private string get_default_real_name () {

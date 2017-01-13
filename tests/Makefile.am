@@ -40,6 +40,10 @@ TESTS = \
 	basic-types/bug686336.vala \
 	basic-types/bug729907.vala \
 	basic-types/bug731017.vala \
+	basic-types/bug756376.vala \
+	basic-types/bug761307.vala \
+	basic-types/bug771626.test \
+	pointers/bug590641.vala \
 	namespaces.vala \
 	methods/lambda.vala \
 	methods/closures.vala \
@@ -55,28 +59,39 @@ TESTS = \
 	methods/bug622570.vala \
 	methods/bug626783.vala \
 	methods/bug639054.vala \
+	methods/bug642350.vala \
 	methods/bug642885.vala \
 	methods/bug642899.vala \
 	methods/bug646345.vala \
+	methods/bug648030.test \
 	methods/bug648320.vala \
 	methods/bug649562.vala \
 	methods/bug652098.vala \
 	methods/bug653391.vala \
 	methods/bug653908.vala \
 	methods/bug663210.vala \
+	methods/bug710862.vala \
 	methods/bug723009.vala \
 	methods/bug723195.vala \
 	methods/bug726347.vala \
 	methods/bug736235.vala \
 	methods/bug737222.vala \
 	methods/bug743877.vala \
+	methods/bug771964.vala \
+	methods/bug774060.vala \
+	methods/bug775466.test \
 	methods/generics.vala \
+	methods/printf-invalid.test \
+	methods/printf-constructor.vala \
+	methods/printf-constructor-invalid.test \
 	control-flow/break.vala \
 	control-flow/expressions-conditional.vala \
 	control-flow/for.vala \
 	control-flow/foreach.vala \
+	control-flow/nested-conditional.vala \
 	control-flow/switch.vala \
 	control-flow/sideeffects.vala \
+	control-flow/bug628336.vala \
 	control-flow/bug639482.vala \
 	control-flow/bug652549.vala \
 	control-flow/bug661985.vala \
@@ -85,6 +100,7 @@ TESTS = \
 	enums/enums.vala \
 	enums/flags.vala \
 	enums/bug673879.vala \
+	enums/bug763831.vala \
 	structs/structs.vala \
 	structs/gvalue.vala \
 	structs/bug530605.vala \
@@ -114,6 +130,7 @@ TESTS = \
 	structs/bug686190.vala \
 	structs/bug690380.vala \
 	structs/bug749952.vala \
+	structs/bug775761.vala \
 	delegates/delegates.vala \
 	delegates/bug539166.vala \
 	delegates/bug595610.vala \
@@ -122,8 +139,11 @@ TESTS = \
 	delegates/bug639751.vala \
 	delegates/bug659778.vala \
 	delegates/bug703804.vala \
+	delegates/bug761360.vala \
+	delegates/bug772204.test \
 	objects/chainup.vala \
 	objects/classes.vala \
+	objects/generics.vala \
 	objects/fields.vala \
 	objects/interfaces.vala \
 	objects/methods.vala \
@@ -148,9 +168,15 @@ TESTS = \
 	objects/bug624594.vala \
 	objects/bug626038.vala \
 	objects/bug628639.vala \
+	objects/bug631267.vala \
 	objects/bug634782.vala \
+	objects/bug641418-1.test \
+	objects/bug641418-2.test \
+	objects/bug641418-3.test \
+	objects/bug641828.vala \
 	objects/bug642809.vala \
 	objects/bug643711.vala \
+	objects/bug644938.vala \
 	objects/bug646362.vala \
 	objects/bug646792.vala \
 	objects/bug647018.vala \
@@ -159,14 +185,20 @@ TESTS = \
 	objects/bug663134.vala \
 	objects/bug664529.vala \
 	objects/bug667668.vala \
+	objects/bug681356.vala \
 	objects/bug683646.vala \
 	objects/bug695671.vala \
 	objects/bug701978.vala \
 	objects/bug702736.vala \
 	objects/bug702846.vala \
 	objects/bug751338.vala \
+	objects/bug760031.test \
 	objects/bug767092.test \
 	objects/bug768823.test \
+	objects/bug773956-1.test \
+	objects/bug773956-2.test \
+	objects/bug615830-1.test \
+	objects/bug615830-2.test \
 	errors/errors.vala \
 	errors/bug567181.vala \
 	errors/bug579101.vala \
@@ -195,9 +227,13 @@ TESTS = \
 	asynchronous/bug653861.vala \
 	asynchronous/bug654336.vala \
 	asynchronous/bug654337.vala \
+	asynchronous/bug659886.vala \
 	asynchronous/bug661961.vala \
 	asynchronous/bug742621.vala \
+	asynchronous/bug762819.vala \
 	asynchronous/closures.vala \
+	asynchronous/generator.vala \
+	asynchronous/yield.vala \
 	dbus/basic-types.test \
 	dbus/arrays.test \
 	dbus/structs.test \
@@ -209,9 +245,13 @@ TESTS = \
 	dbus/dicts.test \
 	dbus/bug596862.vala \
 	dbus/bug602003.test \
+	dbus/rawvariants.test \
 	gir/bug651773.test \
 	gir/bug667751.test \
 	gir/bug742012.test \
+	gir/array-fixed-length.test \
+	annotations/deprecated.vala \
+	annotations/description.vala \
 	$(NULL)
 
 check-TESTS: $(TESTS)

@@ -1,4 +1,8 @@
-AC_INIT([vala], m4_esyscmd([build-aux/git-version-gen .tarball-version]), [j@bitron.ch], [vala])
+AC_PREREQ([2.65])
+AC_INIT([vala], m4_esyscmd([build-aux/git-version-gen .tarball-version]),
+	[https://bugzilla.gnome.org/browse.cgi?product=vala],
+	[vala],
+	[https://wiki.gnome.org/Projects/Vala])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS(config.h)
@@ -6,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip])
 AM_MAINTAINER_MODE([enable])
 
-PACKAGE_SUFFIX=-0.34
+PACKAGE_SUFFIX=-0.36
 
 dnl http://people.gnome.org/~walters/docs/build-api.txt
 dnl We don't support separate builddir when building from git
@@ -22,9 +26,12 @@ AC_SUBST(pkgdatadir, [${datadir}/vala${PACKAGE_SUFFIX}])
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
 AC_PROG_LN_S
+AC_PROG_INSTALL
+
+LT_PREREQ([2.2.6])
+LT_INIT([disable-static])
+PKG_PROG_PKG_CONFIG([0.21])
 
 AC_PROG_LEX
 if test "$LEX" = :; then
@@ -39,7 +46,16 @@ fi
 AC_PATH_PROG(VALAC, valac, valac)
 AC_SUBST(VALAC)
 
+VALAC_BOOTSTRAP_REQUIRED=0.25.1
+
+AS_IF([test "$VALAC" != valac], [FOUND_VALAC_VERION=`$VALAC --version | sed 's/Vala  *//'`
+	AS_VERSION_COMPARE(["$VALAC_BOOTSTRAP_REQUIRED"], ["$FOUND_VALAC_VERION"],
+		[enable_boostrap=yes], [enable_boostrap=yes], [enable_boostrap=no])])
+
 VALAFLAGS="$VALAFLAGS --disable-version-header"
+if test x$enable_boostrap = xyes; then
+	VALAFLAGS="$VALAFLAGS --hide-internal"
+fi
 
 AC_SUBST(VALAFLAGS)
 AC_SUBST(CFLAGS)
@@ -76,11 +92,6 @@ PKG_CHECK_MODULES(GMODULE, gmodule-2.0 >= $GLIB_REQUIRED)
 
 AC_SUBST(GMODULE_CFLAGS)
 AC_SUBST(GMODULE_LIBS)
-
-PKG_CHECK_MODULES(GTHREAD, gthread-2.0 >= $GLIB_REQUIRED)
-
-AC_SUBST(GTHREAD_CFLAGS)
-AC_SUBST(GTHREAD_LIBS)
 
 AC_PATH_PROG([XSLTPROC], [xsltproc], :)
 AM_CONDITIONAL(HAVE_XSLTPROC, test "$XSLTPROC" != :)

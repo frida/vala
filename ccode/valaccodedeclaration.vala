@@ -31,11 +31,6 @@ public class Vala.CCodeDeclaration : CCodeStatement {
 	 */
 	public string type_name { get; set; }
 
-	/**
-	 * The declaration modifier.
-	 */
-	public CCodeModifiers modifiers { get; set; }
-	
 	private List<CCodeDeclarator> declarators = new ArrayList<CCodeDeclarator> ();
 	
 	public CCodeDeclaration (string type_name) {
@@ -101,10 +96,6 @@ public class Vala.CCodeDeclaration : CCodeStatement {
 				decl.write (writer);
 			}
 
-			if (CCodeModifiers.DEPRECATED in modifiers) {
-				writer.write_string (" G_GNUC_DEPRECATED");
-			}
-
 			writer.write_string (";");
 			writer.write_newline ();
 			return;
@@ -113,6 +104,9 @@ public class Vala.CCodeDeclaration : CCodeStatement {
 		writer.write_indent ();
 		if ((modifiers & CCodeModifiers.REGISTER) == CCodeModifiers.REGISTER) {
 			writer.write_string ("register ");
+		}
+		if ((modifiers & CCodeModifiers.VOLATILE) != 0) {
+			writer.write_string ("volatile ");
 		}
 		writer.write_string (type_name);
 		writer.write_string (" ");
@@ -125,6 +119,10 @@ public class Vala.CCodeDeclaration : CCodeStatement {
 				first = false;
 			}
 			decl.write_declaration (writer);
+		}
+
+		if (CCodeModifiers.DEPRECATED in modifiers) {
+			writer.write_string (" G_GNUC_DEPRECATED");
 		}
 
 		writer.write_string (";");

@@ -85,7 +85,7 @@ namespace Gst {
 			[NoAccessorMethod]
 			public uint track { get; set; }
 		}
-		[CCode (cheader_filename = "gst/audio/audio.h")]
+		[CCode (cheader_filename = "gst/audio/audio.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "AudioChannelMixer")]
 		public class ChannelMixer {
@@ -98,12 +98,12 @@ namespace Gst {
 		public class Clock : Gst.SystemClock {
 			[CCode (has_construct_function = false, type = "GstClock*")]
 			public Clock (string name, owned Gst.Audio.ClockGetTimeFunc func);
-			public static Gst.ClockTime adjust (Gst.Clock clock, Gst.ClockTime time);
-			public static Gst.ClockTime get_time (Gst.Clock clock);
-			public static void invalidate (Gst.Clock clock);
+			public Gst.ClockTime adjust (Gst.ClockTime time);
+			public Gst.ClockTime get_time ();
+			public void invalidate ();
 			public void reset (Gst.ClockTime time);
 		}
-		[CCode (cheader_filename = "gst/audio/audio.h")]
+		[CCode (cheader_filename = "gst/audio/audio.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "AudioConverter")]
 		public class Converter {
@@ -114,6 +114,7 @@ namespace Gst {
 			public size_t get_out_frames (size_t in_frames);
 			public void reset ();
 			public bool samples (Gst.Audio.ConverterFlags flags, void* @in, size_t in_frames, void* @out, size_t out_frames);
+			public bool supports_inplace ();
 			public bool update_config (int in_rate, int out_rate, owned Gst.Structure? config);
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", type_id = "gst_audio_decoder_get_type ()")]
@@ -310,7 +311,7 @@ namespace Gst {
 			public void set_format (Gst.Audio.Format format, int rate, int channels, Gst.Audio.ChannelPosition position);
 			public Gst.Caps to_caps ();
 		}
-		[CCode (cheader_filename = "gst/audio/audio.h")]
+		[CCode (cheader_filename = "gst/audio/audio.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "AudioQuantize")]
 		public class Quantize {
@@ -318,10 +319,12 @@ namespace Gst {
 			public void reset ();
 			public void samples (void* @in, void* @out, uint samples);
 		}
-		[CCode (cheader_filename = "gst/audio/audio.h")]
+		[CCode (cheader_filename = "gst/audio/audio.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "AudioResampler")]
 		public class Resampler {
+			[CCode (has_construct_function = false)]
+			public Resampler (Gst.Audio.ResamplerMethod method, Gst.Audio.ResamplerFlags flags, Gst.Audio.Format format, int channels, int in_rate, int out_rate, Gst.Structure options);
 			[Version (since = "1.6")]
 			public void free ();
 			public size_t get_in_frames (size_t out_frames);
@@ -374,7 +377,8 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool resume ();
 			public uint64 samples_done ();
-			public void set_callback ([CCode (scope = "async")] Gst.Audio.RingBufferCallback cb);
+			[Version (since = "1.12")]
+			public void set_callback_full (owned Gst.Audio.RingBufferCallback? cb);
 			public void set_channel_positions (Gst.Audio.ChannelPosition position);
 			public void set_flushing (bool flushing);
 			public void set_sample (uint64 sample);
@@ -836,7 +840,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_channel_positions_from_mask")]
 		public static bool audio_channel_positions_from_mask (uint64 channel_mask, [CCode (array_length_cname = "channels", array_length_pos = 0.5)] Gst.Audio.ChannelPosition[] position);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_channel_positions_to_mask")]
-		public static bool audio_channel_positions_to_mask ([CCode (array_length_cname = "channels", array_length_pos = 1.5)] Gst.Audio.ChannelPosition[] position, bool force_order, [CCode (array_length = false)] uint64[] channel_mask);
+		public static bool audio_channel_positions_to_mask ([CCode (array_length_cname = "channels", array_length_pos = 1.5)] Gst.Audio.ChannelPosition[] position, bool force_order, out uint64 channel_mask);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_channel_positions_to_string")]
 		public static string audio_channel_positions_to_string ([CCode (array_length_cname = "channels", array_length_pos = 1.1)] Gst.Audio.ChannelPosition[] position);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_channel_positions_to_valid_order")]

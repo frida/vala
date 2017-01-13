@@ -208,6 +208,17 @@ public abstract class Vala.DataType : CodeNode {
 		if (type2.floating_reference != floating_reference) {
 			return false;
 		}
+
+		var type_args = get_type_arguments ();
+		var type2_args = type2.get_type_arguments ();
+		if (type2_args.size != type_args.size) {
+			return false;
+		}
+
+		for (int i = 0; i < type_args.size; i++) {
+			if (!type2_args[i].equals (type_args[i]))
+				return false;
+		}
 	
 		return true;
 	}
@@ -303,20 +314,19 @@ public abstract class Vala.DataType : CodeNode {
 			return true;
 		}
 
-		if (data_type == target_type.data_type) {
+		if (data_type != null && target_type.data_type != null && data_type.is_subtype_of (target_type.data_type)) {
+			var base_type = SemanticAnalyzer.get_instance_base_type_for_member(this, target_type.data_type, this);
 			// check compatibility of generic type arguments
-			if (type_argument_list != null
-			    && type_argument_list.size > 0
-			    && type_argument_list.size == target_type.get_type_arguments ().size) {
-				for (int i = 0; i < type_argument_list.size; i++) {
-					var type_arg = type_argument_list[i];
-					var target_type_arg = target_type.get_type_arguments ()[i];
+			var base_type_args = base_type.get_type_arguments();
+			var target_type_args = target_type.get_type_arguments();
+			if (base_type_args.size == target_type_args.size) {
+				for (int i = 0; i < base_type_args.size; i++) {
 					// mutable generic types require type argument equality,
 					// not just one way compatibility
 					// as we do not currently have immutable generic container types,
 					// the additional check would be very inconvenient, so we
 					// skip the additional check for now
-					if (!type_arg.compatible (target_type_arg)) {
+					if (!base_type_args[i].compatible (target_type_args[i])) {
 						return false;
 					}
 				}
@@ -339,10 +349,6 @@ public abstract class Vala.DataType : CodeNode {
 					return true;
 				}
 			}
-		}
-
-		if (data_type != null && target_type.data_type != null && data_type.is_subtype_of (target_type.data_type)) {
-			return true;
 		}
 
 		return false;
@@ -441,21 +447,21 @@ public abstract class Vala.DataType : CodeNode {
 		return false;
 	}
 
-	public virtual DataType get_actual_type (DataType? derived_instance_type, MemberAccess? method_access, CodeNode node_reference) {
+	public virtual DataType get_actual_type (DataType? derived_instance_type, List<DataType>? method_type_arguments, CodeNode node_reference) {
 		DataType result = this.copy ();
 
-		if (derived_instance_type == null && method_access == null) {
+		if (derived_instance_type == null && method_type_arguments == null) {
 			return result;
 		}
 
 		if (result is GenericType) {
-			result = SemanticAnalyzer.get_actual_type (derived_instance_type, method_access, (GenericType) result, node_reference);
+			result = SemanticAnalyzer.get_actual_type (derived_instance_type, method_type_arguments, (GenericType) result, node_reference);
 			// don't try to resolve type arguments of returned actual type
 			// they can never be resolved and are not related to the instance type
 		} else if (result.type_argument_list != null) {
 			// recursely get actual types for type arguments
 			for (int i = 0; i < result.type_argument_list.size; i++) {
-				result.type_argument_list[i] = result.type_argument_list[i].get_actual_type (derived_instance_type, method_access, node_reference);
+				result.type_argument_list[i] = result.type_argument_list[i].get_actual_type (derived_instance_type, method_type_arguments, node_reference);
 			}
 		}
 

@@ -1062,7 +1062,7 @@ namespace Gtk {
 		public void set_padding (int xpad, int ypad);
 		public void set_sensitive (bool sensitive);
 		public void set_visible (bool visible);
-		public virtual unowned Gtk.CellEditable? start_editing (Gdk.Event event, Gtk.Widget widget, string path, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gtk.CellRendererState flags);
+		public virtual unowned Gtk.CellEditable? start_editing (Gdk.Event? event, Gtk.Widget widget, string path, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gtk.CellRendererState flags);
 		public void stop_editing (bool canceled);
 		[NoAccessorMethod]
 		public string cell_background { set; }
@@ -2170,6 +2170,7 @@ namespace Gtk {
 		public void bind_model (GLib.ListModel? model, owned Gtk.FlowBoxCreateWidgetFunc? create_widget_func);
 		public bool get_activate_on_single_click ();
 		public unowned Gtk.FlowBoxChild? get_child_at_index (int idx);
+		public unowned Gtk.FlowBoxChild? get_child_at_pos (int x, int y);
 		public uint get_column_spacing ();
 		public bool get_homogeneous ();
 		public uint get_max_children_per_line ();
@@ -3523,7 +3524,7 @@ namespace Gtk {
 		[NoAccessorMethod]
 		public bool centered { get; set; }
 		[NoAccessorMethod]
-		public GLib.Icon icon { owned get; set; }
+		public GLib.Icon? icon { owned get; set; }
 		[NoAccessorMethod]
 		public bool iconic { get; set; }
 		[NoAccessorMethod]
@@ -3691,6 +3692,17 @@ namespace Gtk {
 		public void reorder_overlay (Gtk.Widget child, int position);
 		public void set_overlay_pass_through (Gtk.Widget widget, bool pass_through);
 		public virtual signal bool get_child_position (Gtk.Widget widget, out Gdk.Rectangle allocation);
+	}
+	[CCode (cheader_filename = "gtk/gtk.h")]
+	public class PadController : Gtk.EventController {
+		[CCode (has_construct_function = false)]
+		public PadController (Gtk.Window window, GLib.ActionGroup group, Gdk.Device pad);
+		public void set_action (Gtk.PadActionType type, int index, int mode, string label, string action_name);
+		public void set_action_entries (Gtk.PadActionEntry[] entries);
+		[NoAccessorMethod]
+		public GLib.ActionGroup action_group { owned get; construct; }
+		[NoAccessorMethod]
+		public Gdk.Device pad { owned get; construct; }
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_page_setup_get_type ()")]
 	public class PageSetup : GLib.Object {
@@ -3876,6 +3888,8 @@ namespace Gtk {
 		public Gtk.PositionType get_position ();
 		public unowned Gtk.Widget get_relative_to ();
 		public bool get_transitions_enabled ();
+		public void popdown ();
+		public void popup ();
 		public void set_constrain_to (Gtk.PopoverConstraint constraint);
 		public void set_default_widget (Gtk.Widget? widget);
 		public void set_modal (bool modal);
@@ -4490,6 +4504,8 @@ namespace Gtk {
 		public bool get_overlay_scrolling ();
 		public Gtk.CornerType get_placement ();
 		public void get_policy (out Gtk.PolicyType hscrollbar_policy, out Gtk.PolicyType vscrollbar_policy);
+		public bool get_propagate_natural_height ();
+		public bool get_propagate_natural_width ();
 		public Gtk.ShadowType get_shadow_type ();
 		public unowned Gtk.Adjustment get_vadjustment ();
 		public unowned Gtk.Widget get_vscrollbar ();
@@ -4503,6 +4519,8 @@ namespace Gtk {
 		public void set_overlay_scrolling (bool overlay_scrolling);
 		public void set_placement (Gtk.CornerType window_placement);
 		public void set_policy (Gtk.PolicyType hscrollbar_policy, Gtk.PolicyType vscrollbar_policy);
+		public void set_propagate_natural_height (bool propagate);
+		public void set_propagate_natural_width (bool propagate);
 		public void set_shadow_type (Gtk.ShadowType type);
 		public void set_vadjustment (Gtk.Adjustment vadjustment);
 		public void unset_placement ();
@@ -4515,6 +4533,8 @@ namespace Gtk {
 		public int min_content_height { get; set; }
 		public int min_content_width { get; set; }
 		public bool overlay_scrolling { get; set; }
+		public bool propagate_natural_height { get; set; }
+		public bool propagate_natural_width { get; set; }
 		public Gtk.ShadowType shadow_type { get; set; }
 		public Gtk.Adjustment vadjustment { get; set construct; }
 		[NoAccessorMethod]
@@ -4790,7 +4810,7 @@ namespace Gtk {
 		public unowned string get_accelerator ();
 		public unowned string get_disabled_text ();
 		public void set_accelerator (string accelerator);
-		public void set_disabled_text (string unset_text);
+		public void set_disabled_text (string disabled_text);
 		public string accelerator { get; set; }
 		public string disabled_text { get; set; }
 	}
@@ -7692,6 +7712,14 @@ namespace Gtk {
 		public weak string default_locales;
 	}
 	[CCode (cheader_filename = "gtk/gtk.h")]
+	public struct PadActionEntry {
+		public Gtk.PadActionType type;
+		public int index;
+		public int mode;
+		public weak string label;
+		public weak string action_name;
+	}
+	[CCode (cheader_filename = "gtk/gtk.h")]
 	public struct PageRange {
 		public int start;
 		public int end;
@@ -8329,6 +8357,12 @@ namespace Gtk {
 	public enum PackType {
 		START,
 		END
+	}
+	[CCode (cheader_filename = "gtk/gtk.h", cprefix = "GTK_PAD_ACTION_")]
+	public enum PadActionType {
+		BUTTON,
+		RING,
+		STRIP
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", cprefix = "GTK_PAGE_ORIENTATION_")]
 	public enum PageOrientation {

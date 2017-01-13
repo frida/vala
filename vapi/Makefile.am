@@ -2,7 +2,7 @@ NULL =
 
 vapidir = $(pkgdatadir)/vapi
 
-libvala@PACKAGE_SUFFIX@.vapi: $(top_builddir)/gee/gee.vapi $(top_builddir)/ccode/ccode.vapi $(top_builddir)/vala/vala.vapi $(top_builddir)/codegen/codegen.vapi
+libvala@PACKAGE_SUFFIX@.vapi: $(top_srcdir)/gee/gee.vapi $(top_srcdir)/ccode/ccode.vapi $(top_srcdir)/vala/vala.vapi $(top_srcdir)/codegen/codegen.vapi
 	cat $^ > $@
 
 dist_vapi_DATA = \
@@ -168,6 +168,14 @@ dist_vapi_DATA = \
 	gtk+-2.0.vapi \
 	gtk+-3.0.deps \
 	gtk+-3.0.vapi \
+	gtk+-4.0.deps \
+	gtk+-4.0.vapi \
+	gtk+-unix-print-2.0.deps \
+	gtk+-unix-print-2.0.vapi \
+	gtk+-unix-print-3.0.deps \
+	gtk+-unix-print-3.0.vapi \
+	gtk+-unix-print-4.0.deps \
+	gtk+-unix-print-4.0.vapi \
 	gtkmozembed.deps \
 	gtkmozembed.vapi \
 	gtksourceview-2.0.deps \
@@ -255,6 +263,10 @@ dist_vapi_DATA = \
 	pangocairo.deps \
 	pangocairo.vapi \
 	pixman-1.vapi \
+	polkit-agent-1.deps \
+	polkit-agent-1.vapi \
+	polkit-gobject-1.deps \
+	polkit-gobject-1.vapi \
 	poppler-glib.deps \
 	poppler-glib.vapi \
 	posix.vapi \
@@ -354,6 +366,9 @@ GIDL_BINDINGS = \
 	gstreamer-video-0.10 \
 	gtk+-2.0 \
 	gtk+-3.0 \
+	gtk+-unix-print-2.0 \
+	gtk+-unix-print-3.0 \
+	gtk+-unix-print-4.0 \
 	gtksourceview-2.0 \
 	hildon-1 \
 	hildon-fm-2 \
@@ -419,6 +434,7 @@ GIR_BINDINGS = \
 	gio-2.0 \
 	gobject-introspection-1.0 \
 	graphene-1.0 \
+	gtk+-4.0 \
 	gudev-1.0 \
 	json-glib-1.0 \
 	libgdata \
@@ -432,6 +448,8 @@ GIR_BINDINGS = \
 	packagekit-glib2 \
 	pango \
 	pangocairo \
+	polkit-agent-1 \
+	polkit-gobject-1 \
 	poppler-glib \
 	rest-0.7 \
 	rest-extras-0.7 \
@@ -553,7 +571,7 @@ gnome-vfs-2.0:
 	$(GENVAPI) --library $(srcdir)/gnome-vfs-2.0 $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0-custom.vala $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0.gi
 
 gobject-introspection-1.0:
-	$(GENVAPI) --library $(srcdir)/gobject-introspection-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GIRepository-2.0.gir
+	$(GENVAPI) --library $(srcdir)/gobject-introspection-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GIRepository-2.0-custom.vala $(GIRDIR)/GIRepository-2.0.gir
 
 goocanvas:
 	$(GENVAPI) --library $(srcdir)/goocanvas $(PACKAGESDIR)/goocanvas/goocanvas-custom.vala $(PACKAGESDIR)/goocanvas/goocanvas.gi
@@ -678,6 +696,23 @@ gtk+-2.0:
 gtk+-3.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-3.0 $(PACKAGESDIR)/gtk+-3.0/gtk+-3.0-custom.vala $(PACKAGESDIR)/gtk+-3.0/gtk+-3.0.gi
 
+gtk+-4.0:
+	$(GENVAPI) --library $(srcdir)/gtk+-4.0 --pkg atk --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-1.0 --pkg pango --pkg x11 \
+		--metadatadir $(METADATADIR) \
+		$(METADATADIR)/GdkX11-4.0-custom.vala $(GIRDIR)/GdkX11-4.0.gir \
+		$(METADATADIR)/Gdk-4.0-custom.vala $(GIRDIR)/Gdk-4.0.gir \
+		$(METADATADIR)/Gsk-4.0-custom.vala $(GIRDIR)/Gsk-4.0.gir \
+		$(METADATADIR)/Gtk-4.0-custom.vala $(GIRDIR)/Gtk-4.0.gir
+
+gtk+-unix-print-2.0:
+	$(GENVAPI) --library $(srcdir)/gtk+-unix-print-2.0 $(PACKAGESDIR)/gtk+-unix-print-2.0/gtk+-unix-print-2.0-custom.vala $(PACKAGESDIR)/gtk+-unix-print-2.0/gtk+-unix-print-2.0.gi
+
+gtk+-unix-print-3.0:
+	$(GENVAPI) --library $(srcdir)/gtk+-unix-print-3.0 $(PACKAGESDIR)/gtk+-unix-print-3.0/gtk+-unix-print-3.0-custom.vala $(PACKAGESDIR)/gtk+-unix-print-3.0/gtk+-unix-print-3.0.gi
+
+gtk+-unix-print-4.0:
+	$(GENVAPI) --library $(srcdir)/gtk+-unix-print-4.0 $(PACKAGESDIR)/gtk+-unix-print-4.0/gtk+-unix-print-4.0-custom.vala $(PACKAGESDIR)/gtk+-unix-print-4.0/gtk+-unix-print-4.0.gi
+
 gtksourceview-2.0:
 	$(GENVAPI) --library $(srcdir)/gtksourceview-2.0 $(PACKAGESDIR)/gtksourceview-2.0/gtksourceview-2.0.gi
 
@@ -770,6 +805,12 @@ pango:
 
 pangocairo:
 	$(GENVAPI) --library $(srcdir)/pangocairo --metadatadir $(METADATADIR) $(GIRDIR)/PangoCairo-1.0.gir
+
+polkit-agent-1:
+	$(GENVAPI) --library $(srcdir)/polkit-agent-1 --pkg gio-2.0 --pkg polkit-gobject-1 --metadatadir $(METADATADIR) $(GIRDIR)/PolkitAgent-1.0.gir
+
+polkit-gobject-1:
+	$(GENVAPI) --library $(srcdir)/polkit-gobject-1 --pkg gio-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Polkit-1.0.gir
 
 poppler-glib:
 	$(GENVAPI) --library $(srcdir)/poppler-glib --pkg cairo --pkg gio-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Poppler-0.18.gir

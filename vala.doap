@@ -7,11 +7,34 @@
 
   <name xml:lang="en">vala</name>
   <shortdesc xml:lang="en">Compiler for the GObject type system</shortdesc>
+  <description>valac, the Vala compiler, is a self-hosting compiler that translates
+Vala source code into C source and header files. It uses the GObject type system
+to create classes and interfaces declared in the Vala source code.
 
-  <homepage rdf:resource="http://live.gnome.org/Vala" />
+The syntax of Vala is similar to C#, modified to better fit the GObject type system.
+Vala supports modern language features as the following: Interfaces, Properties,
+Signals, Foreach, Lambda expressions, Type inference for local variables, Generics,
+Non-null types, Assisted memory management, Exception handling, Type modules (Plugins)
+
+Vala is designed to allow access to existing C libraries, especially GObject-based
+libraries, without the need for runtime bindings. All that is needed to use a library
+with Vala is an API file, containing the class and method declarations in Vala syntax.
+Vala currently comes with bindings for GLib and GTK+ and many others from the GNOME
+Platform.
+
+Using classes and methods written in Vala from an application written in C is not
+difficult. The Vala library only has to install the generated header files and C
+applications may then access the GObject-based API of the Vala library as usual.
+It should also be easily possible to write a bindings generator for access to Vala
+libraries from applications written in e.g. C# as the Vala parser is written as
+a library, so that all compile-time information is available when generating a
+binding.</description>
+
+  <homepage rdf:resource="https://wiki.gnome.org/Projects/Vala" />
   <mailing-list rdf:resource="http://mail.gnome.org/mailman/listinfo/vala-list" />
-  <download-page rdf:resource="http://live.gnome.org/Vala/Release" />
-  <bug-database rdf:resource="http://bugzilla.gnome.org/browse.cgi?product=vala" />
+  <download-page rdf:resource="https://wiki.gnome.org/Projects/Vala/Release" />
+  <bug-database rdf:resource="https://bugzilla.gnome.org/browse.cgi?product=vala" />
+
   <category rdf:resource="http://api.gnome.org/doap-extensions#core" />
   <programming-language>Vala</programming-language>
 
@@ -27,6 +50,13 @@
       <foaf:name>Raffaele Sandrini</foaf:name>
       <foaf:mbox rdf:resource="mailto:rasa@gmx.ch" />
       <gnome:userid></gnome:userid>
+    </foaf:Person>
+  </maintainer>
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Rico Tzschichholz</foaf:name>
+      <foaf:mbox rdf:resource="mailto:ricotz@ubuntu.com" />
+      <gnome:userid>ricotz</gnome:userid>
     </foaf:Person>
   </maintainer>
 

@@ -4,7 +4,7 @@ NULL =
 
 AM_CPPFLAGS = \
 	$(COVERAGE_CFLAGS) \
-	-I$(top_builddir)/gee \
+	-I$(top_srcdir)/gee \
 	$(GLIB_CFLAGS) \
 	$(GMODULE_CFLAGS) \
 	-DPACKAGE_DATADIR=\"$(pkgdatadir)\" \
@@ -18,6 +18,7 @@ noinst_LTLIBRARIES = \
 
 libvalacore_la_VALASOURCES = \
 	valaaddressofexpression.vala \
+	valaarraycopymethod.vala \
 	valaarraycreationexpression.vala \
 	valaarraylengthfield.vala \
 	valaarraymovemethod.vala \
@@ -32,6 +33,7 @@ libvalacore_la_VALASOURCES = \
 	valabooleanliteral.vala \
 	valabooleantype.vala \
 	valabreakstatement.vala \
+	valacallable.vala \
 	valacastexpression.vala \
 	valacatchclause.vala \
 	valacharacterliteral.vala \
@@ -183,7 +185,7 @@ vala.vapi vala.vala.stamp: $(libvalacore_la_VALASOURCES)
 		$(VALAFLAGS) \
 		-C \
 		--vapidir $(top_srcdir)/vapi --pkg gmodule-2.0 --pkg gobject-2.0 \
-		--vapidir $(top_builddir)/gee --pkg gee \
+		--vapidir $(top_srcdir)/gee --pkg gee \
 		--pkg config \
 		-H vala.h \
 		--library vala \

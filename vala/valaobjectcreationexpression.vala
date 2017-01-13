@@ -139,6 +139,26 @@ public class Vala.ObjectCreationExpression : Expression {
 		return false;
 	}
 
+	public override bool is_accessible (Symbol sym) {
+		if (member_name != null && !member_name.is_accessible (sym)) {
+			return false;
+		}
+
+		foreach (var arg in argument_list) {
+			if (!arg.is_accessible (sym)) {
+				return false;
+			}
+		}
+
+		foreach (var init in object_initializer) {
+			if (!init.initializer.is_accessible (sym)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public override void replace_type (DataType old_type, DataType new_type) {
 		if (type_reference == old_type) {
 			type_reference = new_type;
@@ -153,7 +173,10 @@ public class Vala.ObjectCreationExpression : Expression {
 		checked = true;
 
 		if (member_name != null) {
-			member_name.check (context);
+			if (!member_name.check (context)) {
+				error = true;
+				return false;
+			}
 		}
 
 		TypeSymbol type = null;
@@ -260,7 +283,8 @@ public class Vala.ObjectCreationExpression : Expression {
 				symbol_reference.version.check (source_reference);
 			}
 
-			if (symbol_reference != null && symbol_reference.access == SymbolAccessibility.PRIVATE) {
+			if (symbol_reference != null
+			    && (symbol_reference.access == SymbolAccessibility.PRIVATE || symbol_reference.access == SymbolAccessibility.PROTECTED)) {
 				bool in_target_type = false;
 				for (Symbol this_symbol = context.analyzer.current_symbol; this_symbol != null; this_symbol = this_symbol.parent_symbol) {
 					if (this_symbol == cl) {
@@ -271,7 +295,7 @@ public class Vala.ObjectCreationExpression : Expression {
 
 				if (!in_target_type) {
 					error = true;
-					Report.error (source_reference, "Access to private member `%s' denied".printf (symbol_reference.get_full_name ()));
+					Report.error (source_reference, "Access to non-public constructor `%s' denied".printf (symbol_reference.get_full_name ()));
 					return false;
 				}
 			}
@@ -337,6 +361,10 @@ public class Vala.ObjectCreationExpression : Expression {
 				context.analyzer.current_method.yield_count++;
 			}
 
+			// FIXME partial code duplication of MethodCall.check
+
+			Expression last_arg = null;
+
 			var args = get_argument_list ();
 			Iterator<Expression> arg_it = args.iterator ();
 			foreach (Parameter param in m.get_parameters ()) {
@@ -350,6 +378,38 @@ public class Vala.ObjectCreationExpression : Expression {
 					/* store expected type for callback parameters */
 					arg.formal_target_type = param.variable_type;
 					arg.target_type = arg.formal_target_type.get_actual_type (value_type, null, this);
+
+					last_arg = arg;
+				}
+			}
+
+			// printf arguments
+			if (m.printf_format) {
+				StringLiteral format_literal = null;
+				if (last_arg != null) {
+					// use last argument as format string
+					format_literal = StringLiteral.get_format_literal (last_arg);
+					if (format_literal == null && args.size == m.get_parameters ().size - 1) {
+						// insert "%s" to avoid issues with embedded %
+						format_literal = new StringLiteral ("\"%s\"");
+						format_literal.target_type = context.analyzer.string_type.copy ();
+						argument_list.insert (args.size - 1, format_literal);
+
+						// recreate iterator and skip to right position
+						arg_it = argument_list.iterator ();
+						foreach (Parameter param in m.get_parameters ()) {
+							if (param.ellipsis) {
+								break;
+							}
+							arg_it.next ();
+						}
+					}
+				}
+				if (format_literal != null) {
+					string format = format_literal.eval ();
+					if (!context.analyzer.check_print_format (format, arg_it, source_reference)) {
+						return false;
+					}
 				}
 			}
 
@@ -397,7 +457,7 @@ public class Vala.ObjectCreationExpression : Expression {
 					Report.error (source_reference, "Invalid type for argument 1");
 				}
 
-				var format_literal = ex as StringLiteral;
+				var format_literal = StringLiteral.get_format_literal (ex);
 				if (format_literal != null) {
 					var format = format_literal.eval ();
 					if (!context.analyzer.check_print_format (format, arg_it, source_reference)) {
