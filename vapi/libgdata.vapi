@@ -933,8 +933,8 @@ namespace GData {
 		[Version (since = "0.7.0")]
 		public unowned string get_content_uri ();
 		[Version (since = "0.2.0")]
-		public unowned string get_etag ();
-		public unowned string get_id ();
+		public unowned string? get_etag ();
+		public unowned string? get_id ();
 		public int64 get_published ();
 		[Version (since = "0.5.0")]
 		public unowned string get_rights ();
@@ -1097,7 +1097,7 @@ namespace GData {
 		public uint64 get_property_hits (string property);
 		public unowned GData.FreebaseTopicValue? get_property_value (string property, int64 item);
 		public GLib.GenericArray<weak string> list_properties ();
-		public GData.FreebaseTopicObject @ref ();
+		public unowned GData.FreebaseTopicObject @ref ();
 		public void unref ();
 	}
 	[CCode (cheader_filename = "gdata/gdata.h", type_id = "gdata_freebase_topic_query_get_type ()")]
@@ -1137,7 +1137,7 @@ namespace GData {
 		public int64 get_timestamp ();
 		public GLib.Type get_value_type ();
 		public bool is_image ();
-		public GData.FreebaseTopicValue @ref ();
+		public unowned GData.FreebaseTopicValue @ref ();
 		public void unref ();
 	}
 	[CCode (cheader_filename = "gdata/gdata.h", type_id = "gdata_gcontact_calendar_get_type ()")]
@@ -1651,9 +1651,9 @@ namespace GData {
 		[CCode (has_construct_function = false)]
 		protected Generator ();
 		[Version (since = "0.4.0")]
-		public unowned string get_name ();
+		public unowned string? get_name ();
 		[Version (since = "0.4.0")]
-		public unowned string get_uri ();
+		public unowned string? get_uri ();
 		[Version (since = "0.4.0")]
 		public unowned string get_version ();
 		[Version (since = "0.4.0")]
@@ -1676,13 +1676,13 @@ namespace GData {
 		[CCode (has_construct_function = false)]
 		public Link (string uri, string? relation_type);
 		[Version (since = "0.4.0")]
-		public unowned string get_content_type ();
+		public unowned string? get_content_type ();
 		[Version (since = "0.4.0")]
-		public unowned string get_language ();
+		public unowned string? get_language ();
 		[Version (since = "0.4.0")]
 		public int get_length ();
 		[Version (since = "0.4.0")]
-		public unowned string get_relation_type ();
+		public unowned string? get_relation_type ();
 		[Version (since = "0.4.0")]
 		public unowned string get_title ();
 		[Version (since = "0.4.0")]
@@ -1893,6 +1893,7 @@ namespace GData {
 		[CCode (has_construct_function = false)]
 		[Version (since = "0.4.0")]
 		public Parsable.from_xml (GLib.Type parsable_type, string xml, int length) throws GLib.Error;
+		public unowned string get_content_type ();
 		[NoWrapper]
 		public virtual void get_json (Json.Builder builder);
 		[CCode (cname = "gdata_parsable_get_json")]

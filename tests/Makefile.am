@@ -43,6 +43,7 @@ TESTS = \
 	basic-types/bug756376.vala \
 	basic-types/bug761307.vala \
 	basic-types/bug771626.test \
+	basic-types/bug777697.test \
 	pointers/bug590641.vala \
 	namespaces.vala \
 	methods/lambda.vala \
@@ -131,6 +132,7 @@ TESTS = \
 	structs/bug690380.vala \
 	structs/bug749952.vala \
 	structs/bug775761.vala \
+	structs/bug777194.vala \
 	delegates/delegates.vala \
 	delegates/bug539166.vala \
 	delegates/bug595610.vala \
@@ -199,6 +201,7 @@ TESTS = \
 	objects/bug773956-2.test \
 	objects/bug615830-1.test \
 	objects/bug615830-2.test \
+	objects/bug766739.vala \
 	errors/errors.vala \
 	errors/bug567181.vala \
 	errors/bug579101.vala \
@@ -206,6 +209,7 @@ TESTS = \
 	errors/bug623049.vala \
 	errors/bug639589.vala \
 	errors/bug651145.vala \
+	errors/bug778224.vala \
 	asynchronous/bug595735.vala \
 	asynchronous/bug595755.vala \
 	asynchronous/bug596177.vala \
@@ -231,6 +235,7 @@ TESTS = \
 	asynchronous/bug661961.vala \
 	asynchronous/bug742621.vala \
 	asynchronous/bug762819.vala \
+	asynchronous/bug777242.vala \
 	asynchronous/closures.vala \
 	asynchronous/generator.vala \
 	asynchronous/yield.vala \
@@ -242,6 +247,7 @@ TESTS = \
 	dbus/async-errors.test \
 	dbus/signals.test \
 	dbus/filedescriptor.test \
+	dbus/filedescriptor-errors.test \
 	dbus/dicts.test \
 	dbus/bug596862.vala \
 	dbus/bug602003.test \

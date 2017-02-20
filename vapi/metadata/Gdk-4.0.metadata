@@ -1,5 +1,8 @@
 KEY_* name="KEY_(.+)" parent="Gdk.Key"
 selection_* name="selection_(.+)" parent="Gdk.Selection"
+
+*.ref unowned
+
 Atom struct
 Cursor	abstract=false
 Device
@@ -70,8 +73,6 @@ EventTouchpadSwipe struct=false base_type="Gdk.Event" type_id="gdk_event_get_typ
 EventVisibility struct=false base_type="Gdk.Event" type_id="gdk_event_get_type ()"
 EventWindowState struct=false base_type="Gdk.Event" type_id="gdk_event_get_type ()"
 FilterFunc.data closure=2
-init*.argv unowned
-parse_args.argv unowned
 property_change.data array
 selection_property_get skip=false
         .data array

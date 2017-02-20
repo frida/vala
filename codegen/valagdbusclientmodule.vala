@@ -615,7 +615,6 @@ public class Vala.GDBusClientModule : GDBusModule {
 			ccode.add_expression (builder_init);
 
 			if (uses_fd) {
-				ccode.add_declaration ("GUnixFDList", new CCodeVariableDeclarator ("*_fd_list"));
 				ccode.add_assignment (new CCodeIdentifier ("_fd_list"), new CCodeFunctionCall (new CCodeIdentifier ("g_unix_fd_list_new")));
 			}
 
@@ -772,6 +771,8 @@ public class Vala.GDBusClientModule : GDBusModule {
 
 			if (uses_fd) {
 				ccode.add_declaration ("gint", new CCodeVariableDeclarator.zero ("_fd_index", new CCodeConstant ("0")));
+				ccode.add_declaration ("GUnixFDList*", new CCodeVariableDeclarator ("_fd_list"));
+				ccode.add_declaration ("gint", new CCodeVariableDeclarator ("_fd"));
 			}
 
 			foreach (Parameter param in m.get_parameters ()) {
@@ -795,7 +796,7 @@ public class Vala.GDBusClientModule : GDBusModule {
 
 				foreach (Parameter param in m.get_parameters ()) {
 					if (param.direction == ParameterDirection.OUT) {
-						ccode.add_declaration (get_ccode_name (param.variable_type), new CCodeVariableDeclarator ("_vala_%s".printf (param.name)));
+						ccode.add_declaration (get_ccode_name (param.variable_type), new CCodeVariableDeclarator.zero ("_vala_%s".printf (param.name), default_value_for_type (param.variable_type, true)));
 
 						var array_type = param.variable_type as ArrayType;
 
@@ -834,7 +835,7 @@ public class Vala.GDBusClientModule : GDBusModule {
 						var target = new CCodeUnaryExpression (CCodeUnaryOperator.POINTER_INDIRECTION, new CCodeIdentifier ("result"));
 						receive_dbus_value (m.return_type, new CCodeIdentifier ("_reply_message"), new CCodeIdentifier ("_reply_iter"), target, m);
 					} else {
-						ccode.add_declaration (get_ccode_name (m.return_type), new CCodeVariableDeclarator ("_result"));
+						ccode.add_declaration (get_ccode_name (m.return_type), new CCodeVariableDeclarator.zero ("_result", default_value_for_type (m.return_type, true)));
 
 						var array_type = m.return_type as ArrayType;
 

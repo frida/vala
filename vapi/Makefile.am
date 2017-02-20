@@ -2,7 +2,7 @@ NULL =
 
 vapidir = $(pkgdatadir)/vapi
 
-libvala@PACKAGE_SUFFIX@.vapi: $(top_builddir)/gee/gee.vapi $(top_builddir)/ccode/ccode.vapi $(top_builddir)/vala/vala.vapi $(top_builddir)/codegen/codegen.vapi
+libvala@PACKAGE_SUFFIX@.vapi: $(top_srcdir)/gee/gee.vapi $(top_srcdir)/ccode/ccode.vapi $(top_srcdir)/vala/vala.vapi $(top_srcdir)/codegen/codegen.vapi
 	cat $^ > $@
 
 dist_vapi_DATA = \
@@ -33,7 +33,6 @@ dist_vapi_DATA = \
 	clutter-gtk-0.10.vapi \
 	clutter-gtk-1.0.deps \
 	clutter-gtk-1.0.vapi \
-	clutter-json-1.0.vapi \
 	clutter-x11-1.0.deps \
 	clutter-x11-1.0.vapi \
 	cogl-1.0.vapi \

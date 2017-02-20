@@ -23,6 +23,7 @@
 public class Vala.GDBusServerModule : GDBusClientModule {
 	string generate_dbus_wrapper (Method m, ObjectTypeSymbol sym, bool ready = false) {
 		string wrapper_name = "_dbus_%s".printf (get_ccode_name (m));
+		bool need_goto_label = false;
 
 		if (m.base_method != null) {
 			m = m.base_method;
@@ -61,6 +62,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 		bool uses_fd = dbus_method_uses_file_descriptor (m);
 		if (uses_fd) {
 			cfile.add_include ("gio/gunixfdlist.h");
+			ccode.add_declaration ("GUnixFDList*", new CCodeVariableDeclarator ("_fd_list"));
 		}
 
 		bool uses_error = false;
@@ -92,6 +94,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 		if (!ready) {
 			if (uses_fd) {
 				ccode.add_declaration ("gint", new CCodeVariableDeclarator.zero ("_fd_index", new CCodeConstant ("0")));
+				ccode.add_declaration ("gint", new CCodeVariableDeclarator ("_fd"));
 			}
 
 			foreach (Parameter param in m.get_parameters ()) {
@@ -142,7 +145,8 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 					return_error.add_argument (new CCodeIdentifier ("error"));
 					ccode.add_expression (return_error);
 
-					ccode.add_return ();
+					ccode.add_goto ("_error");
+					need_goto_label = true;
 
 					ccode.close ();
 				}
@@ -237,7 +241,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 				ccode.close ();
 			}
 
-			ccode.add_declaration ("GDBusMessage*", new CCodeVariableDeclarator ("_reply_message"));
+			ccode.add_declaration ("GDBusMessage*", new CCodeVariableDeclarator.zero ("_reply_message", new CCodeConstant ("NULL")));
 
 			var message_expr = new CCodeFunctionCall (new CCodeIdentifier ("g_dbus_method_invocation_get_message"));
 			message_expr.add_argument (new CCodeIdentifier ("invocation"));
@@ -255,7 +259,6 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 			ccode.add_expression (builder_init);
 
 			if (uses_fd) {
-				ccode.add_declaration ("GUnixFDList", new CCodeVariableDeclarator ("*_fd_list"));
 				ccode.add_assignment (new CCodeIdentifier ("_fd_list"), new CCodeFunctionCall (new CCodeIdentifier ("g_unix_fd_list_new")));
 			}
 
@@ -338,6 +341,29 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 			ccode.add_expression (ccall);
 		}
 
+		if (!no_reply && (!m.coroutine || ready)) {
+			var return_value = new CCodeFunctionCall (new CCodeIdentifier ("g_dbus_connection_send_message"));
+			return_value.add_argument (connection);
+			return_value.add_argument (new CCodeIdentifier ("_reply_message"));
+			return_value.add_argument (new CCodeConstant ("G_DBUS_SEND_MESSAGE_FLAGS_NONE"));
+			return_value.add_argument (new CCodeConstant ("NULL"));
+			return_value.add_argument (new CCodeConstant ("NULL"));
+			ccode.add_expression (return_value);
+
+			// free invocation like g_dbus_method_invocation_return_*
+			var unref_call = new CCodeFunctionCall (new CCodeIdentifier ("g_object_unref"));
+			unref_call.add_argument (new CCodeIdentifier ("invocation"));
+			ccode.add_expression (unref_call);
+
+			unref_call = new CCodeFunctionCall (new CCodeIdentifier ("g_object_unref"));
+			unref_call.add_argument (new CCodeIdentifier ("_reply_message"));
+			ccode.add_expression (unref_call);
+		}
+
+		if (need_goto_label) {
+			ccode.add_label ("_error");
+		}
+
 		foreach (Parameter param in m.get_parameters ()) {
 			if ((param.direction == ParameterDirection.IN && !ready) ||
 			    (param.direction == ParameterDirection.OUT && !no_reply && (!m.coroutine || ready))) {
@@ -359,25 +385,6 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 					ccode.add_expression (destroy_local (local));
 				}
 			}
-		}
-
-		if (!no_reply && (!m.coroutine || ready)) {
-			var return_value = new CCodeFunctionCall (new CCodeIdentifier ("g_dbus_connection_send_message"));
-			return_value.add_argument (connection);
-			return_value.add_argument (new CCodeIdentifier ("_reply_message"));
-			return_value.add_argument (new CCodeConstant ("G_DBUS_SEND_MESSAGE_FLAGS_NONE"));
-			return_value.add_argument (new CCodeConstant ("NULL"));
-			return_value.add_argument (new CCodeConstant ("NULL"));
-			ccode.add_expression (return_value);
-
-			// free invocation like g_dbus_method_invocation_return_*
-			var unref_call = new CCodeFunctionCall (new CCodeIdentifier ("g_object_unref"));
-			unref_call.add_argument (new CCodeIdentifier ("invocation"));
-			ccode.add_expression (unref_call);
-
-			unref_call = new CCodeFunctionCall (new CCodeIdentifier ("g_object_unref"));
-			unref_call.add_argument (new CCodeIdentifier ("_reply_message"));
-			ccode.add_expression (unref_call);
 		}
 
 		pop_function ();

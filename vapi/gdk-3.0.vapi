@@ -4611,7 +4611,7 @@ namespace Gdk {
 		[Version (since = "3.10")]
 		public Cairo.Surface? get_surface (out double x_hot, out double y_hot);
 		[Version (deprecated = true, deprecated_since = "3.0")]
-		public Gdk.Cursor @ref ();
+		public unowned Gdk.Cursor @ref ();
 		[Version (deprecated = true, deprecated_since = "3.0")]
 		public void unref ();
 		public Gdk.CursorType cursor_type { get; construct; }
@@ -5370,7 +5370,7 @@ namespace Gdk {
 		[Version (since = "3.8")]
 		public int64 get_refresh_interval ();
 		[Version (since = "3.8")]
-		public Gdk.FrameTimings @ref ();
+		public unowned Gdk.FrameTimings @ref ();
 		[Version (since = "3.8")]
 		public void unref ();
 	}
@@ -5797,7 +5797,9 @@ namespace Gdk {
 		public void move_region (Cairo.Region region, int dx, int dy);
 		public void move_resize (int x, int y, int width, int height);
 		public unowned GLib.List<Gdk.Window> peek_children ();
+		[Version (deprecated = true, deprecated_since = "3.22")]
 		public static void process_all_updates ();
+		[Version (deprecated = true, deprecated_since = "3.22")]
 		public void process_updates (bool update_children);
 		public void raise ();
 		public void register_dnd ();

@@ -895,7 +895,7 @@ public struct va_list {
 	public va_list ();
 	[CCode (cname = "va_copy")]
 	public va_list.copy (va_list src);
-	[CCode (generic_type_pos = 1.1)]
+	[CCode (generic_type_pos = 1.1, simple_generics = true)]
 	public unowned G arg<G> ();
 }
 
@@ -2600,6 +2600,9 @@ namespace GLib {
 		MD5,
 		SHA1,
 		SHA256,
+		[Version (since = "2.52")]
+		SHA384,
+		[Version (since = "2.36")]
 		SHA512;
 
 		public ssize_t get_length ();
@@ -2954,6 +2957,13 @@ namespace GLib {
 		[CCode (cname = "g_random_double")]
 		public static double next_double ();
 		public static double double_range (double begin, double end);
+	}
+
+	namespace Uuid {
+		[Version (since = "2.52")]
+		public static bool string_is_valid (string str);
+		[Version (since = "2.52")]
+		public static string string_random ();
 	}
 
 	/* Miscellaneous Utility Functions */
@@ -3572,7 +3582,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-		[CCode (cname = "_close", cheader_filename = "io.h")]
+		[CCode (cname = "close", cheader_filename = "unistd.h")]
 		public static int close (int fd);
 
 		[Version (since = "2.36")]

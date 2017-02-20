@@ -769,7 +769,8 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 					}
 				}
 
-				if (m.coroutine) {
+				// For non-void return-types GAsyncModule.visit_return_statement () will take care of this
+				if (m.return_type is VoidType && m.coroutine) {
 					// epilogue
 					complete_async ();
 				}
@@ -873,10 +874,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				mem_profiler_init_call.add_argument (new CCodeConstant ("glib_mem_profiler_table"));
 				ccode.add_expression (mem_profiler_init_call);
 			}
-
-			var init_cond = new CCodeIfSection ("GLIB_CHECK_VERSION (2,51,0)");
-			ccode.add_statement (init_cond);
-			init_cond.append (new CCodeExpressionStatement (new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
 
 			var cond = new CCodeIfSection ("!GLIB_CHECK_VERSION (2,35,0)");
 			ccode.add_statement (cond);

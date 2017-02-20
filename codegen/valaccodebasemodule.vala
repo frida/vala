@@ -4846,6 +4846,10 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 					inst_ma.value_type = expr.type_reference;
 					set_cvalue (inst_ma, instance);
 					store_property ((Property) init.symbol_reference, inst_ma, init.initializer.target_value);
+					// FIXME Do not ref/copy in the first place
+					if (requires_destroy (init.initializer.target_value.value_type)) {
+						ccode.add_expression (destroy_value (init.initializer.target_value));
+					}
 				}
 			}
 
@@ -5167,10 +5171,29 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 					}
 				}
 			} else if (array_type != null) {
-				// cast from non-array to array, set invalid length
-				// required by string.data, e.g.
+				CCodeExpression array_length_expr;
+
+				var sizeof_to = new CCodeFunctionCall (new CCodeIdentifier ("sizeof"));
+				sizeof_to.add_argument (new CCodeConstant (get_ccode_name (array_type.element_type)));
+				var sizeof_from = new CCodeFunctionCall (new CCodeIdentifier ("sizeof"));
+
+				var value_type = expr.inner.value_type;
+				if (value_type is ValueType) {
+					var data_type = ((ValueType) value_type).data_type;
+					sizeof_from.add_argument (new CCodeConstant (get_ccode_name (data_type)));
+					array_length_expr = new CCodeBinaryExpression (CCodeBinaryOperator.DIV, sizeof_from, sizeof_to);
+				} else if (value_type is PointerType && ((PointerType) value_type).base_type is ValueType) {
+					var data_type = ((ValueType) (((PointerType) value_type).base_type)).data_type;
+					sizeof_from.add_argument (new CCodeConstant (get_ccode_name (data_type)));
+					array_length_expr = new CCodeBinaryExpression (CCodeBinaryOperator.DIV, sizeof_from, sizeof_to);
+				} else {
+					// cast from unsupported non-array to array, set invalid length
+					// required by string.data, e.g.
+					array_length_expr = new CCodeConstant ("-1");
+				}
+
 				for (int dim = 1; dim <= array_type.rank; dim++) {
-					append_array_length (expr, new CCodeConstant ("-1"));
+					append_array_length (expr, array_length_expr);
 				}
 			}
 
@@ -5179,6 +5202,10 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				expr.inner.value_type is ValueType && expr.inner.value_type.nullable) {
 				// nullable integer or float or boolean or struct or enum cast to non-nullable
 				innercexpr = new CCodeUnaryExpression (CCodeUnaryOperator.POINTER_INDIRECTION, innercexpr);
+			} else if (expr.type_reference is ArrayType
+			    && expr.inner.value_type is ValueType && !expr.inner.value_type.nullable) {
+				// integer or float or boolean or struct or enum to array cast
+				innercexpr = new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, innercexpr);
 			}
 			set_cvalue (expr, new CCodeCastExpression (innercexpr, get_ccode_name (expr.type_reference)));
 
@@ -6529,7 +6556,16 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 	}
 
 	public void return_default_value (DataType return_type) {
-		ccode.add_return (default_value_for_type (return_type, false));
+		var st = return_type.data_type as Struct;
+		if (st != null && st.is_simple_type () && !return_type.nullable) {
+			// 0-initialize struct with struct initializer { 0 }
+			// only allowed as initializer expression in C
+			var ret_temp_var = get_temp_variable (return_type, true, null, true);
+			emit_temp_var (ret_temp_var);
+			ccode.add_return (new CCodeIdentifier (ret_temp_var.name));
+		} else {
+			ccode.add_return (default_value_for_type (return_type, false));
+		}
 	}
 
 	public virtual void generate_dynamic_method_wrapper (DynamicMethod method) {
