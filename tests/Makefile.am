@@ -282,6 +282,7 @@ TESTS = \
 	dbus/bug602003.test \
 	dbus/bug782719.test \
 	dbus/rawvariants.test \
+	dbus/bulk-performance.test \
 	gir/bug651773.test \
 	gir/bug667751.test \
 	gir/bug742012.test \

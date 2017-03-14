@@ -1,0 +1,169 @@
+Packages: gio-2.0
+D-Bus
+
+Program: client
+
+const uint num_iterations = 10;
+const uint data_size = 4 * 1024 * 1024;
+
+[DBus (name = "org.example.Test")]
+interface Test : Object {
+	public abstract async void baseline_call () throws IOError;
+	public abstract async void array_int8_call (int8[] data) throws IOError;
+	public abstract async void array_uint8_call (uint8[] data) throws IOError;
+
+	public abstract async void fire_baseline_emits (uint count) throws IOError;
+	public abstract async void fire_int8_emits (uint count, uint size) throws IOError;
+	public abstract async void fire_uint8_emits (uint count, uint size) throws IOError;
+
+	public signal void baseline_emit ();
+	public signal void array_int8_emit (int8[] data);
+	public signal void array_uint8_emit (uint8[] data);
+}
+
+MainLoop main_loop;
+
+void main () {
+	main_loop = new MainLoop ();
+	run.begin ();
+	main_loop.run ();
+}
+
+async void run () {
+	Test test = yield Bus.get_proxy (BusType.SESSION, "org.example.Test", "/org/example/test");
+
+	var timer = new Timer ();
+	for (var i = 0; i != num_iterations; i++) {
+		yield test.baseline_call ();
+	}
+	var baseline_call_duration = timer.elapsed ();
+
+	var data_int8 = new int8[data_size];
+	var data_uint8 = new uint8[data_size];
+
+	timer.reset ();
+	for (var i = 0; i != num_iterations; i++) {
+		yield test.array_int8_call (data_int8);
+	}
+	var array_int8_call_duration = timer.elapsed ();
+	var array_int8_call_ratio = array_int8_call_duration / baseline_call_duration;
+	print ("call ratio int8: %.2f\n", array_int8_call_ratio);
+
+	timer.reset ();
+	for (var i = 0; i != num_iterations; i++) {
+		yield test.array_uint8_call (data_uint8);
+	}
+	var array_uint8_call_duration = timer.elapsed ();
+	var array_uint8_call_ratio = array_uint8_call_duration / baseline_call_duration;
+	print ("call ratio uint8: %.2f\n", array_uint8_call_ratio);
+
+	uint emits_seen;
+
+	timer.reset ();
+	emits_seen = 0;
+	var baseline_handler = test.baseline_emit.connect (() => {
+		emits_seen++;
+		if (emits_seen == num_iterations)
+			run.callback ();
+	});
+	test.fire_baseline_emits.begin (num_iterations);
+	yield;
+	test.disconnect (baseline_handler);
+	var baseline_emit_duration = timer.elapsed ();
+
+	timer.reset ();
+	emits_seen = 0;
+	var int8_handler = test.array_int8_emit.connect ((data) => {
+		emits_seen++;
+		if (emits_seen == num_iterations)
+			run.callback ();
+	});
+	test.fire_int8_emits.begin (num_iterations, data_size);
+	yield;
+	test.disconnect (int8_handler);
+	var array_int8_emit_duration = timer.elapsed ();
+	var array_int8_emit_ratio = array_int8_emit_duration / baseline_emit_duration;
+	print ("emit ratio int8: %.2f\n", array_int8_emit_ratio);
+
+	timer.reset ();
+	emits_seen = 0;
+	var uint8_handler = test.array_uint8_emit.connect ((data) => {
+		emits_seen++;
+		if (emits_seen == num_iterations)
+			run.callback ();
+	});
+	test.fire_uint8_emits.begin (num_iterations, data_size);
+	yield;
+	test.disconnect (uint8_handler);
+	var array_uint8_emit_duration = timer.elapsed ();
+	var array_uint8_emit_ratio = array_uint8_emit_duration / baseline_emit_duration;
+	print ("emit ratio uint8: %.2f\n", array_uint8_emit_ratio);
+
+	assert (array_int8_call_ratio <= 100.0);
+	assert (array_uint8_call_ratio <= 100.0);
+	assert (array_int8_emit_ratio <= 200.0);
+	assert (array_uint8_emit_ratio <= 200.0);
+
+	main_loop.quit ();
+}
+
+Program: server
+
+[DBus (name = "org.example.Test")]
+class Test : Object {
+	public async void baseline_call () throws IOError {
+	}
+
+	public async void array_int8_call (int8[] data) throws IOError {
+	}
+
+	public async void array_uint8_call (uint8[] data) throws IOError {
+	}
+
+	public async void fire_baseline_emits (uint count) throws IOError {
+		for (var i = 0; i != count; i++) {
+			baseline_emit ();
+		}
+	}
+
+	public async void fire_int8_emits (uint count, uint size) throws IOError {
+		var data = new int8[size];
+		for (var i = 0; i != count; i++) {
+			array_int8_emit (data);
+		}
+	}
+
+	public async void fire_uint8_emits (uint count, uint size) throws IOError {
+		var data = new uint8[size];
+		for (var i = 0; i != count; i++) {
+			array_uint8_emit (data);
+		}
+	}
+
+	public signal void baseline_emit ();
+	public signal void array_int8_emit (int8[] data);
+	public signal void array_uint8_emit (uint8[] data);
+}
+
+MainLoop main_loop;
+
+void on_client_exit (Pid pid, int status) {
+	assert (status == 0);
+	main_loop.quit ();
+}
+
+void main () {
+	var conn = Bus.get_sync (BusType.SESSION);
+	conn.register_object ("/org/example/test", new Test ());
+
+	var request_result = conn.call_sync ("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "RequestName",
+	                                      new Variant ("(su)", "org.example.Test", 0x4), null, 0, -1);
+	assert ((uint) request_result.get_child_value (0) == 1);
+
+	Pid client_pid;
+	Process.spawn_async (null, { "test", "/dbus/bulk-performance/client" }, null, SpawnFlags.DO_NOT_REAP_CHILD, null, out client_pid);
+	ChildWatch.add (client_pid, on_client_exit);
+
+	main_loop = new MainLoop ();
+	main_loop.run ();
+}
