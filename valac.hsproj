@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{608833BA-9B0F-4168-8209-C978F4A7EFA1}</ProjectGuid>
+    <OutputType>exe</OutputType>
+  </PropertyGroup>
+  <Import Project="vala.props" />
+  <PropertyGroup>
+    <AssemblyName>valac$(PackageSuffix)</AssemblyName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level0</WarningLevel>
+    </ClCompile>
+    <ValaCompile>
+      <VapiDirectory>$(IntDir)..\vala;%(VapiDirectory)</VapiDirectory>
+    </ValaCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Package Include="libvala$(PackageSuffix)" />
+    <ValaPackage Include="config" />
+    <Compile Include="compiler/*.vala" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="compiler\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\HSBuild\HSBuild.Vala.targets" />
+  <Target
+    Name="BeforeBuild"
+    >
+      <WriteLinesToFile
+        File="$(IntDir)version.h"
+        Lines="#define BUILD_VERSION &quot;$(Version)&quot;"
+        Overwrite="true"
+        />
+  </Target>
+</Project>
