@@ -31,11 +31,27 @@ public class Vala.CCodeExpressionStatement : CCodeStatement {
 	 */
 	public CCodeExpression expression { get; set; }
 
+	/**
+	 * Preprocessor define to optionally put this expression behind.
+	 */
+	public string? ifdef { get; set; }
+
 	public CCodeExpressionStatement (CCodeExpression expr) {
 		expression = expr;
 	}
 
+	public CCodeExpressionStatement.behind_ifdef (string idef, CCodeExpression expr) {
+		expression = expr;
+		ifdef = idef;
+	}
+
 	public override void write (CCodeWriter writer) {
+		if (ifdef != null) {
+			writer.write_string ("#ifdef ");
+			writer.write_string (ifdef);
+			writer.write_newline ();
+		}
+
 		if (expression is CCodeCommaExpression) {
 			// expand comma expression into multiple statements
 			// to improve code readability
@@ -50,6 +66,11 @@ public class Vala.CCodeExpressionStatement : CCodeStatement {
 			write_expression (writer, cpar.inner);
 		} else {
 			write_expression (writer, expression);
+		}
+
+		if (ifdef != null) {
+			writer.write_string ("#endif");
+			writer.write_newline ();
 		}
 	}
 
