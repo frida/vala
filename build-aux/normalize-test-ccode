@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+infile=$1
+outfile=$1-normalized
+
+awk '/#ifdef GLIB_DYNAMIC_UNLOADING/ { pending=2; next }
+				       pending > 0 { pending--; next }
+				     { print }' $infile > $outfile
+
+echo $outfile
