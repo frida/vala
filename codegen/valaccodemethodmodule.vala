@@ -864,6 +864,8 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				ccode.add_expression (mem_profiler_init_call);
 			}
 
+			ccode.add_statement (new CCodeExpressionStatement (new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
+
 			var main_call = new CCodeFunctionCall (new CCodeIdentifier (function.name));
 			if (m.get_parameters ().size == 1) {
 				main_call.add_argument (new CCodeIdentifier ("argv"));
