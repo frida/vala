@@ -36,6 +36,9 @@ coverage
 lcov.info
 
 *~
+*.sln.cache
+x86
+x86_64
 
 build-aux/test-driver
 
