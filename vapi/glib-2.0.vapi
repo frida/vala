@@ -3567,7 +3567,7 @@ namespace GLib {
 		}
 	}
 
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h")]
+	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h")]
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
