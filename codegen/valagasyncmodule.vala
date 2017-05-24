@@ -323,7 +323,7 @@ public class Vala.GAsyncModule : GtkModule {
 		pop_context ();
 	}
 
-	void append_struct (CCodeStruct structure) {
+	protected void append_struct (CCodeStruct structure) {
 		var typename = new CCodeVariableDeclarator (structure.name.substring (1));
 		var typedef = new CCodeTypeDefinition ("struct " + structure.name, typename);
 		cfile.add_type_declaration (typedef);
