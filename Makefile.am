@@ -2,6 +2,15 @@ ACLOCAL_AMFLAGS = --install -I m4 ${ACLOCAL_FLAGS}
 
 NULL =
 
+if HAVE_LIBGVC
+valadoc_components = \
+	libvaladoc \
+	valadoc \
+	$(NULL)
+else
+valadoc_components =
+endif
+
 SUBDIRS = \
 	gee \
 	vala \
@@ -13,8 +22,7 @@ SUBDIRS = \
 	doc \
 	gobject-introspection \
 	vapigen \
-	libvaladoc \
-	valadoc \
+	$(valadoc_components) \
 	$(NULL)
 
 if ENABLE_UNVERSIONED
