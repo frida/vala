@@ -53,6 +53,72 @@ namespace Gst {
 			public GLib.List<Gst.Buffer>? take_list (size_t nbytes);
 			public void unmap ();
 		}
+		[CCode (cheader_filename = "gst/base/base.h", cname = "GstAggregator", lower_case_cprefix = "gst_aggregator_", type_id = "gst_aggregator_get_type ()")]
+		[GIR (name = "Aggregator")]
+		public abstract class Aggregator : Gst.Element {
+			public weak Gst.Pad srcpad;
+			[CCode (has_construct_function = false)]
+			protected Aggregator ();
+			[NoWrapper]
+			public virtual Gst.FlowReturn aggregate (bool timeout);
+			[NoWrapper]
+			public virtual Gst.Buffer clip (Gst.Base.AggregatorPad aggregator_pad, Gst.Buffer buf);
+			[NoWrapper]
+			public virtual bool decide_allocation (Gst.Query query);
+			public virtual Gst.FlowReturn finish_buffer (owned Gst.Buffer buffer);
+			[NoWrapper]
+			public virtual Gst.Caps fixate_src_caps (Gst.Caps caps);
+			[NoWrapper]
+			public virtual Gst.FlowReturn flush ();
+			public void get_allocator (out Gst.Allocator allocator, out Gst.AllocationParams @params);
+			public Gst.BufferPool get_buffer_pool ();
+			public Gst.ClockTime get_latency ();
+			[NoWrapper]
+			public virtual Gst.ClockTime get_next_time ();
+			[NoWrapper]
+			public virtual bool negotiated_src_caps (Gst.Caps caps);
+			[NoWrapper]
+			public virtual bool propose_allocation (Gst.Base.AggregatorPad pad, Gst.Query decide_query, Gst.Query query);
+			public void set_latency (Gst.ClockTime min_latency, Gst.ClockTime max_latency);
+			public void set_src_caps (Gst.Caps caps);
+			[NoWrapper]
+			public virtual bool sink_event (Gst.Base.AggregatorPad aggregator_pad, Gst.Event event);
+			[NoWrapper]
+			public virtual bool sink_query (Gst.Base.AggregatorPad aggregator_pad, Gst.Query query);
+			[NoWrapper]
+			public virtual bool src_activate (Gst.PadMode mode, bool active);
+			[NoWrapper]
+			public virtual bool src_event (Gst.Event event);
+			[NoWrapper]
+			public virtual bool src_query (Gst.Query query);
+			[NoWrapper]
+			public virtual bool start ();
+			[NoWrapper]
+			public virtual bool stop ();
+			[NoWrapper]
+			public virtual Gst.FlowReturn update_src_caps (Gst.Caps caps, Gst.Caps ret);
+			[NoAccessorMethod]
+			public uint64 latency { get; set; }
+			[NoAccessorMethod]
+			public uint64 start_time { get; set; }
+		}
+		[CCode (cheader_filename = "gst/base/base.h", cname = "GstAggregatorPad", lower_case_cprefix = "gst_aggregator_pad_", type_id = "gst_aggregator_pad_get_type ()")]
+		[GIR (name = "AggregatorPad")]
+		public class AggregatorPad : Gst.Pad {
+			[CCode (array_length = false)]
+			public weak void* _gst_reserved[4];
+			public weak Gst.Segment segment;
+			[CCode (has_construct_function = false)]
+			protected AggregatorPad ();
+			public bool drop_buffer ();
+			[NoWrapper]
+			public virtual Gst.FlowReturn flush (Gst.Base.Aggregator aggregator);
+			public bool is_eos ();
+			public Gst.Buffer peek_buffer ();
+			public Gst.Buffer pop_buffer ();
+			[NoWrapper]
+			public virtual bool skip_buffer (Gst.Base.Aggregator aggregator, Gst.Buffer buffer);
+		}
 		[CCode (cheader_filename = "gst/base/gstadapter.h,gst/base/gstbaseparse.h,gst/base/gstbasesink.h,gst/base/gstbasesrc.h,gst/base/gstbasetransform.h,gst/base/gstbitreader.h,gst/base/gstbytereader.h,gst/base/gstbytewriter.h,gst/base/gstcollectpads.h,gst/base/gstpushsrc.h,gst/base/gsttypefindhelper.h", cname = "GstBitReader", has_type_id = false)]
 		[Compact]
 		[GIR (name = "BitReader")]
@@ -384,9 +450,13 @@ namespace Gst {
 			[Version (since = "1.6")]
 			public void clear ();
 			public void free ();
+			[Version (since = "1.12.1")]
+			public unowned Gst.Base.FlowCombiner @ref ();
 			public void remove_pad (Gst.Pad pad);
 			[Version (since = "1.6")]
 			public void reset ();
+			[Version (since = "1.12.1")]
+			public void unref ();
 			public Gst.FlowReturn update_flow (Gst.FlowReturn fret);
 			[Version (since = "1.6")]
 			public Gst.FlowReturn update_pad_flow (Gst.Pad pad, Gst.FlowReturn fret);
@@ -458,6 +528,7 @@ namespace Gst {
 			public int overhead;
 			[CCode (has_construct_function = false)]
 			public ParseFrame (Gst.Buffer buffer, Gst.Base.ParseFrameFlags flags, int overhead);
+			public Gst.Base.ParseFrame copy ();
 			public void free ();
 			public void init ();
 		}
@@ -596,7 +667,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual Gst.FlowReturn alloc (uint64 offset, uint size, Gst.Buffer buf);
 			[NoWrapper]
-			public virtual Gst.FlowReturn create (uint64 offset, uint size, Gst.Buffer buf);
+			public virtual Gst.FlowReturn create (uint64 offset, uint size, out Gst.Buffer buf);
 			[NoWrapper]
 			public virtual bool decide_allocation (Gst.Query query);
 			[NoWrapper]
@@ -616,7 +687,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool get_size (uint64 size);
 			[NoWrapper]
-			public virtual void get_times (Gst.Buffer buffer, Gst.ClockTime start, Gst.ClockTime end);
+			public virtual void get_times (Gst.Buffer buffer, out Gst.ClockTime start, out Gst.ClockTime end);
 			public bool is_async ();
 			[NoWrapper]
 			public virtual bool is_seekable ();
@@ -643,6 +714,8 @@ namespace Gst {
 			public Gst.FlowReturn start_wait ();
 			[NoWrapper]
 			public virtual bool stop ();
+			[Version (since = "1.14")]
+			public void submit_buffer_list (owned Gst.BufferList buffer_list);
 			[NoWrapper]
 			public virtual bool unlock ();
 			[NoWrapper]
@@ -678,16 +751,16 @@ namespace Gst {
 			[NoWrapper]
 			public virtual Gst.Caps fixate_caps (Gst.PadDirection direction, Gst.Caps caps, Gst.Caps othercaps);
 			[NoWrapper]
-			public virtual Gst.FlowReturn generate_output (Gst.Buffer outbuf);
+			public virtual Gst.FlowReturn generate_output (out Gst.Buffer outbuf);
 			public void get_allocator (out Gst.Allocator allocator, out Gst.AllocationParams @params);
 			public Gst.BufferPool get_buffer_pool ();
 			[NoWrapper]
-			public virtual bool get_unit_size (Gst.Caps caps, size_t size);
+			public virtual bool get_unit_size (Gst.Caps caps, out size_t size);
 			public bool is_in_place ();
 			public bool is_passthrough ();
 			public bool is_qos_enabled ();
 			[NoWrapper]
-			public virtual Gst.FlowReturn prepare_output_buffer (Gst.Buffer input, Gst.Buffer outbuf);
+			public virtual Gst.FlowReturn prepare_output_buffer (Gst.Buffer input, out Gst.Buffer outbuf);
 			[NoWrapper]
 			public virtual bool propose_allocation (Gst.Query decide_query, Gst.Query query);
 			[NoWrapper]
@@ -721,7 +794,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool transform_meta (Gst.Buffer outbuf, Gst.Meta meta, Gst.Buffer inbuf);
 			[NoWrapper]
-			public virtual bool transform_size (Gst.PadDirection direction, Gst.Caps caps, size_t size, Gst.Caps othercaps, size_t othersize);
+			public virtual bool transform_size (Gst.PadDirection direction, Gst.Caps caps, size_t size, Gst.Caps othercaps, out size_t othersize);
 			public void update_qos (double proportion, Gst.ClockTimeDiff diff, Gst.ClockTime timestamp);
 			[Version (since = "1.6")]
 			public bool update_src_caps (Gst.Caps updated_caps);

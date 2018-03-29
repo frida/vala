@@ -6888,7 +6888,6 @@ namespace Clutter {
 		public void to_cairo_path (Cairo.Context cr);
 		[CCode (has_construct_function = false)]
 		public Path.with_description (string desc);
-		[NoAccessorMethod]
 		public string description { owned get; set; }
 		public uint length { get; }
 	}
@@ -7111,6 +7110,7 @@ namespace Clutter {
 		[CCode (has_construct_function = false)]
 		protected Settings ();
 		public static unowned Clutter.Settings get_default ();
+		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "1.10", since = "1.4")]
 		public Clutter.Backend backend { construct; }
 		[NoAccessorMethod]
@@ -7190,6 +7190,7 @@ namespace Clutter {
 		public virtual string get_static_shader_source ();
 		public bool set_shader_source (string source);
 		public void set_uniform_value (string name, GLib.Value value);
+		[NoAccessorMethod]
 		public Clutter.ShaderType shader_type { construct; }
 	}
 	[CCode (cheader_filename = "clutter/clutter.h", type_id = "clutter_shader_float_get_type ()")]
@@ -7239,7 +7240,7 @@ namespace Clutter {
 	}
 	[CCode (cheader_filename = "clutter/clutter.h", type_id = "clutter_stage_get_type ()")]
 	[Version (since = "0.2")]
-	public class Stage : Clutter.Group, Atk.Implementor, Clutter.Animatable, Clutter.Container, Clutter.Scriptable, Atk.Implementor, Clutter.Animatable, Clutter.Container, Clutter.Scriptable {
+	public class Stage : Clutter.Group, Atk.Implementor, Clutter.Animatable, Clutter.Container, Clutter.Scriptable {
 		[CCode (has_construct_function = false, type = "ClutterActor*")]
 		[Version (since = "0.8")]
 		public Stage ();
@@ -7693,7 +7694,7 @@ namespace Clutter {
 	}
 	[CCode (cheader_filename = "clutter/clutter.h", type_id = "clutter_texture_get_type ()")]
 	[Version (since = "0.2")]
-	public class Texture : Clutter.Actor, Atk.Implementor, Clutter.Animatable, Clutter.Scriptable, Atk.Implementor, Clutter.Animatable, Clutter.Container, Clutter.Scriptable {
+	public class Texture : Clutter.Actor, Atk.Implementor, Clutter.Animatable, Clutter.Container, Clutter.Scriptable {
 		[CCode (has_construct_function = false, type = "ClutterActor*")]
 		[Version (deprecated = true, deprecated_since = "1.12")]
 		public Texture ();
@@ -7833,7 +7834,7 @@ namespace Clutter {
 		[Version (since = "0.8")]
 		public bool has_marker (string marker_name);
 		public bool is_playing ();
-		[CCode (array_length_pos = 1.1, array_length_type = "gsize", array_null_terminated = true)]
+		[CCode (array_length = true, array_length_pos = 1.1, array_length_type = "gsize", array_null_terminated = true)]
 		[Version (since = "0.8")]
 		public string[] list_markers (int msecs);
 		public void pause ();
@@ -8315,14 +8316,14 @@ namespace Clutter {
 		[Version (since = "1.12")]
 		public static Clutter.Matrix? alloc ();
 		[Version (since = "1.12")]
-		public static void free (Clutter.Matrix? matrix);
+		public void free ();
 		public static GLib.Type get_type ();
 		[Version (since = "1.12")]
-		public static unowned Clutter.Matrix? init_from_array (Clutter.Matrix matrix, [CCode (array_length = false)] float values[16]);
+		public unowned Clutter.Matrix? init_from_array ([CCode (array_length = false)] float values[16]);
 		[Version (since = "1.12")]
-		public static unowned Clutter.Matrix? init_from_matrix (Clutter.Matrix a, Clutter.Matrix b);
+		public unowned Clutter.Matrix? init_from_matrix (Clutter.Matrix b);
 		[Version (since = "1.12")]
-		public static unowned Clutter.Matrix? init_identity (Clutter.Matrix matrix);
+		public unowned Clutter.Matrix? init_identity ();
 	}
 	[CCode (cheader_filename = "clutter/clutter.h", type_id = "clutter_path_node_get_type ()")]
 	[Version (since = "1.0")]

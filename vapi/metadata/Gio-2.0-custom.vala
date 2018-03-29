@@ -66,7 +66,7 @@ namespace GLib {
 
 	public class DataInputStream : GLib.BufferedInputStream {
 		[CCode (cname = "g_data_input_stream_read_line_async", finish_function = "g_data_input_stream_read_line_finish_utf8")]
-		public async string? read_line_utf8_async (int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null, out size_t length) throws GLib.IOError, GLib.IOError;
+		public async string? read_line_utf8_async (int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null, out size_t length = null) throws GLib.IOError;
 	}
 
 	[CCode (cheader_filename = "gio/gio.h", type_id = "g_file_monitor_get_type ()")]
@@ -173,6 +173,8 @@ namespace GLib {
 		public abstract bool prefix_matches (GLib.File file);
 		[NoWrapper, Version (deprecated_since = "vala-0.16", replacement = "read")]
 		public abstract unowned GLib.FileInputStream read_fn (GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public virtual async bool copy_async (GLib.File destination, GLib.FileCopyFlags flags, int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null, GLib.FileProgressCallback? progress_callback = null) throws GLib.Error;
+		public async bool load_partial_contents_async (GLib.Cancellable? cancellable = null, [CCode (delegate_target_pos = -0.9)] GLib.FileReadMoreCallback read_more_callback, [CCode (array_length_cname = "length", array_length_pos = 2.5, array_length_type = "gsize")] out uint8[] contents, out string etag_out) throws GLib.Error;
 	}
 
 	public interface Icon : GLib.Object {

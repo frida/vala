@@ -13,6 +13,8 @@ SUBDIRS = \
 	doc \
 	gobject-introspection \
 	vapigen \
+	libvaladoc \
+	valadoc \
 	$(NULL)
 
 if ENABLE_UNVERSIONED
@@ -25,12 +27,6 @@ pkgconfig_DATA = libvala@PACKAGE_SUFFIX@.pc
 
 libvala@PACKAGE_SUFFIX@.pc: libvala.pc
 	cp $< $@
-
-vapidir = $(datadir)/vala/vapi
-dist_vapi_DATA = libvala@PACKAGE_SUFFIX@.vapi
-
-libvala@PACKAGE_SUFFIX@.vapi: $(top_builddir)/gee/gee.vapi $(top_builddir)/vala/vala.vapi
-	cat $^ > $@
 
 .PHONY: bootstrap
 bootstrap: all

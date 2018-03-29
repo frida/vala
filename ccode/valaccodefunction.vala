@@ -30,7 +30,7 @@ public class Vala.CCodeFunction : CCodeNode {
 	 * The name of this function.
 	 */
 	public string name { get; set; }
-	
+
 	/**
 	 * The function return type.
 	 */
@@ -63,7 +63,7 @@ public class Vala.CCodeFunction : CCodeNode {
 		this.block = new CCodeBlock ();
 		current_block = block;
 	}
-	
+
 	/**
 	 * Appends the specified parameter to the list of function parameters.
 	 *
@@ -100,12 +100,12 @@ public class Vala.CCodeFunction : CCodeNode {
 		foreach (CCodeParameter param in parameters) {
 			func.parameters.add (param);
 		}
-		
+
 		func.is_declaration = is_declaration;
 		func.block = block;
 		return func;
 	}
-	
+
 	public override void write (CCodeWriter writer) {
 		writer.write_indent (line);
 		if (CCodeModifiers.INTERNAL in modifiers) {
@@ -118,17 +118,24 @@ public class Vala.CCodeFunction : CCodeNode {
 			writer.write_string ("inline ");
 		}
 		writer.write_string (return_type);
-		writer.write_string (" ");
+		if (is_declaration) {
+			writer.write_string (" ");
+		} else {
+			writer.write_newline ();
+		}
 		writer.write_string (name);
 		writer.write_string (" (");
-		
+		int param_pos_begin = (is_declaration ? return_type.char_count () + 1 : 0 ) + name.char_count () + 2;
+
 		bool has_args = (CCodeModifiers.PRINTF in modifiers || CCodeModifiers.SCANF in modifiers);
 		int i = 0;
 		int format_arg_index = -1;
 		int args_index = -1;
 		foreach (CCodeParameter param in parameters) {
 			if (i > 0) {
-				writer.write_string (", ");
+				writer.write_string (",");
+				writer.write_newline ();
+				writer.write_nspaces (param_pos_begin);
 			}
 			param.write (writer);
 			if (CCodeModifiers.FORMAT_ARG in param.modifiers) {
@@ -144,7 +151,7 @@ public class Vala.CCodeFunction : CCodeNode {
 		if (i == 0) {
 			writer.write_string ("void");
 		}
-		
+
 		writer.write_string (")");
 
 		if (is_declaration) {
@@ -177,6 +184,7 @@ public class Vala.CCodeFunction : CCodeNode {
 
 			writer.write_string (";");
 		} else {
+			writer.write_newline ();
 			block.write (writer);
 			writer.write_newline ();
 		}
@@ -220,10 +228,8 @@ public class Vala.CCodeFunction : CCodeNode {
 	}
 
 	public void else_if (CCodeExpression condition) {
-		var parent_if = (CCodeIfStatement) statement_stack[statement_stack.size - 1];
+		var parent_if = (CCodeIfStatement) statement_stack.remove_at (statement_stack.size - 1);
 		assert (parent_if.false_statement == null);
-
-		statement_stack.remove_at (statement_stack.size - 1);
 
 		current_block = new CCodeBlock ();
 
@@ -318,8 +324,7 @@ public class Vala.CCodeFunction : CCodeNode {
 
 	public void close () {
 		do {
-			var top = statement_stack[statement_stack.size - 1];
-			statement_stack.remove_at (statement_stack.size - 1);
+			var top = statement_stack.remove_at (statement_stack.size - 1);
 			current_block = top as CCodeBlock;
 		} while (current_block == null);
 	}

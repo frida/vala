@@ -9,6 +9,8 @@ namespace Gdk {
 		public Gdk.Pixbuf add_alpha (bool substitute_color, uint8 r, uint8 g, uint8 b);
 		[Version (since = "2.12")]
 		public Gdk.Pixbuf apply_embedded_orientation ();
+		[Version (since = "2.36.8")]
+		public static int calculate_rowstride (Gdk.Colorspace colorspace, bool has_alpha, int bits_per_sample, int width, int height);
 		public void composite (Gdk.Pixbuf dest, int dest_x, int dest_y, int dest_width, int dest_height, double offset_x, double offset_y, double scale_x, double scale_y, Gdk.InterpType interp_type, int overall_alpha);
 		public void composite_color (Gdk.Pixbuf dest, int dest_x, int dest_y, int dest_width, int dest_height, double offset_x, double offset_y, double scale_x, double scale_y, Gdk.InterpType interp_type, int overall_alpha, int check_x, int check_y, int check_size, uint32 color1, uint32 color2);
 		public Gdk.Pixbuf composite_color_simple (int dest_width, int dest_height, Gdk.InterpType interp_type, int overall_alpha, int check_size, uint32 color1, uint32 color2);
@@ -116,7 +118,7 @@ namespace Gdk {
 		public async void save_to_streamv_async (GLib.OutputStream stream, string type, [CCode (array_length = false, array_null_terminated = true)] string[] option_keys, [CCode (array_length = false, array_null_terminated = true)] string[] option_values, GLib.Cancellable? cancellable = null);
 		public bool savev (string filename, string type, [CCode (array_length = false, array_null_terminated = true)] string[] option_keys, [CCode (array_length = false, array_null_terminated = true)] string[] option_values) throws GLib.Error;
 		public void scale (Gdk.Pixbuf dest, int dest_x, int dest_y, int dest_width, int dest_height, double offset_x, double offset_y, double scale_x, double scale_y, Gdk.InterpType interp_type);
-		public Gdk.Pixbuf scale_simple (int dest_width, int dest_height, Gdk.InterpType interp_type);
+		public Gdk.Pixbuf? scale_simple (int dest_width, int dest_height, Gdk.InterpType interp_type);
 		[Version (since = "2.2")]
 		public bool set_option (string key, string value);
 		[CCode (has_construct_function = false)]

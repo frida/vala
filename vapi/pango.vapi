@@ -205,8 +205,8 @@ namespace Pango {
 		[Version (since = "1.14")]
 		public Pango.FontDescription describe_with_absolute_size ();
 		public static void descriptions_free ([CCode (array_length_cname = "n_descs", array_length_pos = 1.1)] owned Pango.FontDescription[]? descs);
-		public virtual unowned Pango.EngineShape find_shaper (Pango.Language lang, uint32 ch);
-		public virtual Pango.Coverage get_coverage (Pango.Language lang);
+		public virtual unowned Pango.EngineShape find_shaper (Pango.Language language, uint32 ch);
+		public virtual Pango.Coverage get_coverage (Pango.Language language);
 		[Version (since = "1.10")]
 		public virtual unowned Pango.FontMap? get_font_map ();
 		public virtual void get_glyph_extents (Pango.Glyph glyph, out Pango.Rectangle ink_rect, out Pango.Rectangle logical_rect);
@@ -233,6 +233,8 @@ namespace Pango {
 		public Pango.Stretch get_stretch ();
 		public Pango.Style get_style ();
 		public Pango.Variant get_variant ();
+		[Version (since = "1.42")]
+		public unowned string? get_variations ();
 		public Pango.Weight get_weight ();
 		public uint hash ();
 		public void merge (Pango.FontDescription? desc_to_merge, bool replace_existing);
@@ -247,6 +249,10 @@ namespace Pango {
 		public void set_stretch (Pango.Stretch stretch);
 		public void set_style (Pango.Style style);
 		public void set_variant (Pango.Variant variant);
+		[Version (since = "1.42")]
+		public void set_variations (string settings);
+		[Version (since = "1.42")]
+		public void set_variations_static (string settings);
 		public void set_weight (Pango.Weight weight);
 		public string to_filename ();
 		public string to_string ();
@@ -732,13 +738,6 @@ namespace Pango {
 		public int width;
 		public int height;
 	}
-	[CCode (cheader_filename = "pango/pango.h", has_type_id = false)]
-	public struct ScriptForLang {
-		[CCode (array_length = false)]
-		public weak char lang[7];
-		[CCode (array_length = false)]
-		public weak Pango.Script scripts[3];
-	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_ALIGN_", type_id = "pango_alignment_get_type ()")]
 	public enum Alignment {
 		LEFT,
@@ -774,7 +773,7 @@ namespace Pango {
 		FOREGROUND_ALPHA,
 		BACKGROUND_ALPHA;
 		[Version (since = "1.22")]
-		public static unowned string? get_name (Pango.AttrType type);
+		public unowned string? get_name ();
 		public static Pango.AttrType register (string name);
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_BIDI_TYPE_", type_id = "pango_bidi_type_get_type ()")]
@@ -834,7 +833,8 @@ namespace Pango {
 		WEIGHT,
 		STRETCH,
 		SIZE,
-		GRAVITY
+		GRAVITY,
+		VARIATIONS
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_GRAVITY_", type_id = "pango_gravity_get_type ()")]
 	[Version (since = "1.16")]
@@ -848,7 +848,7 @@ namespace Pango {
 		public static Pango.Gravity get_for_script (Pango.Script script, Pango.Gravity base_gravity, Pango.GravityHint hint);
 		[Version (since = "1.26")]
 		public static Pango.Gravity get_for_script_and_width (Pango.Script script, bool wide, Pango.Gravity base_gravity, Pango.GravityHint hint);
-		public static double to_rotation (Pango.Gravity gravity);
+		public double to_rotation ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_GRAVITY_HINT_", type_id = "pango_gravity_hint_get_type ()")]
 	[Version (since = "1.16")]
@@ -988,7 +988,7 @@ namespace Pango {
 		[Version (since = "1.4")]
 		public static Pango.Script for_unichar (unichar ch);
 		[Version (since = "1.4")]
-		public static Pango.Language? get_sample_language (Pango.Script script);
+		public Pango.Language? get_sample_language ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_STRETCH_", type_id = "pango_stretch_get_type ()")]
 	public enum Stretch {

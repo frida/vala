@@ -25,7 +25,7 @@
 public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 	public override void visit_member_access (MemberAccess expr) {
 		CCodeExpression pub_inst = null;
-	
+
 		if (expr.inner != null) {
 			pub_inst = get_cvalue (expr.inner);
 		}
@@ -53,7 +53,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					var base_class = (Class) m.base_method.parent_symbol;
 					var vcast = new CCodeFunctionCall (new CCodeIdentifier ("%s_CLASS".printf (get_ccode_upper_case_name (base_class, null))));
 					vcast.add_argument (new CCodeIdentifier ("%s_parent_class".printf (get_ccode_lower_case_name (current_class, null))));
-					
+
 					set_cvalue (expr, new CCodeMemberAccess.pointer (vcast, get_ccode_vfunc_name (m)));
 					return;
 				} else if (m.base_interface_method != null) {
@@ -147,9 +147,13 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			}
 
 			if (array_type != null) {
-				var ccall = new CCodeFunctionCall (new CCodeIdentifier ("G_N_ELEMENTS"));
-				ccall.add_argument (new CCodeIdentifier (get_ccode_name (c)));
-				append_array_length (expr, ccall);
+				string sub = "";
+				for (int i = 0; i < array_type.rank; i++) {
+					var ccall = new CCodeFunctionCall (new CCodeIdentifier ("G_N_ELEMENTS"));
+					ccall.add_argument (new CCodeIdentifier (get_ccode_name (c) + sub));
+					append_array_length (expr, ccall);
+					sub += "[0]";
+				}
 			}
 		} else if (expr.symbol_reference is Property) {
 			var prop = (Property) expr.symbol_reference;
@@ -177,7 +181,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					var base_class = (Class) base_prop.parent_symbol;
 					var vcast = new CCodeFunctionCall (new CCodeIdentifier ("%s_CLASS".printf (get_ccode_upper_case_name (base_class, null))));
 					vcast.add_argument (new CCodeIdentifier ("%s_parent_class".printf (get_ccode_lower_case_name (current_class, null))));
-					
+
 					var ccall = new CCodeFunctionCall (new CCodeMemberAccess.pointer (vcast, "get_%s".printf (prop.name)));
 					ccall.add_argument (get_cvalue (expr.inner));
 					if (prop.property_type.is_real_non_null_struct_type ()) {
@@ -571,6 +575,14 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				}
 				inst = pub_inst;
 			}
+
+			if (inst == null) {
+				// FIXME Report this with proper source-reference on the vala side!
+				Report.error (field.source_reference, "Invalid access to instance member `%s'".printf (field.get_full_name ()));
+				result.cvalue = new CCodeInvalidExpression ();
+				return result;
+			}
+
 			if (instance_target_type.data_type.is_reference_type () || (instance != null && instance.value_type is PointerType)) {
 				result.cvalue = new CCodeMemberAccess.pointer (inst, get_ccode_name (field));
 			} else {
@@ -734,8 +746,14 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			// special handling for types such as va_list
 			use_temp = false;
 		}
-		if (variable is Parameter && variable.name == "this") {
-			use_temp = false;
+		if (variable is Parameter) {
+			var param = (Parameter) variable;
+			if (variable.name == "this") {
+				use_temp = false;
+			} else if ((param.direction != ParameterDirection.OUT)
+			    && !(param.variable_type.is_real_non_null_struct_type ())) {
+				use_temp = false;
+			}
 		}
 		if (variable.single_assignment && !result.value_type.is_real_non_null_struct_type ()) {
 			// no need to copy values from variables that are assigned exactly once

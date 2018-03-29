@@ -436,7 +436,7 @@ public class Vala.GDBusClientModule : GDBusModule {
 	}
 
 	string generate_dbus_signal_handler (Signal sig, ObjectTypeSymbol sym) {
-		string wrapper_name = "_dbus_handle_%s_%s".printf (get_ccode_lower_case_name (sym), get_ccode_name (sig));
+		string wrapper_name = "_dbus_handle_%s_%s".printf (get_ccode_lower_case_name (sym), get_ccode_lower_case_name (sig));
 
 		var function = new CCodeFunction (wrapper_name);
 		function.modifiers = CCodeModifiers.STATIC;
@@ -563,6 +563,7 @@ public class Vala.GDBusClientModule : GDBusModule {
 		bool uses_fd = dbus_method_uses_file_descriptor (m);
 		if (uses_fd) {
 			cfile.add_include ("gio/gunixfdlist.h");
+			ccode.add_declaration ("GUnixFDList*", new CCodeVariableDeclarator ("_fd_list"));
 		}
 
 		bool has_error_argument = (m.get_error_types ().size > 0);
@@ -769,7 +770,6 @@ public class Vala.GDBusClientModule : GDBusModule {
 
 			if (uses_fd) {
 				ccode.add_declaration ("gint", new CCodeVariableDeclarator.zero ("_fd_index", new CCodeConstant ("0")));
-				ccode.add_declaration ("GUnixFDList*", new CCodeVariableDeclarator ("_fd_list"));
 				ccode.add_declaration ("gint", new CCodeVariableDeclarator ("_fd"));
 			}
 

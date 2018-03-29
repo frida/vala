@@ -49,7 +49,7 @@ public class Vala.MethodCall : Expression {
 	public bool is_chainup { get; private set; }
 
 	private Expression _call;
-	
+
 	private List<Expression> argument_list = new ArrayList<Expression> ();
 
 	/**
@@ -63,7 +63,7 @@ public class Vala.MethodCall : Expression {
 		this.source_reference = source_reference;
 		this.call = call;
 	}
-	
+
 	/**
 	 * Appends the specified expression to the list of arguments.
 	 *
@@ -73,7 +73,7 @@ public class Vala.MethodCall : Expression {
 		argument_list.add (arg);
 		arg.parent_node = this;
 	}
-	
+
 	/**
 	 * Returns a copy of the argument list.
 	 *
@@ -101,7 +101,7 @@ public class Vala.MethodCall : Expression {
 		if (call == old_node) {
 			call = new_node;
 		}
-		
+
 		int index = argument_list.index_of (old_node);
 		if (index >= 0 && new_node.parent_node == null) {
 			argument_list[index] = new_node;
@@ -371,6 +371,10 @@ public class Vala.MethodCall : Expression {
 		var args = get_argument_list ();
 		Iterator<Expression> arg_it = args.iterator ();
 		foreach (Parameter param in params) {
+			if (!param.check (context)) {
+				error = true;
+			}
+
 			if (param.ellipsis) {
 				break;
 			}
@@ -412,7 +416,9 @@ public class Vala.MethodCall : Expression {
 		// printf arguments
 		if (mtype is MethodType && ((MethodType) mtype).method_symbol.printf_format) {
 			StringLiteral format_literal = null;
-			if (last_arg != null) {
+			if (last_arg is NullLiteral) {
+				// do not replace explicit null
+			} else if (last_arg != null) {
 				// use last argument as format string
 				format_literal = StringLiteral.get_format_literal (last_arg);
 				if (format_literal == null && args.size == params.size - 1) {

@@ -35,13 +35,9 @@ public class Vala.GSignalModule : GObjectModule {
 				prefix = "g_cclosure_user_marshal";
 			}
 		}
-		
-		if (return_type is ValueType && return_type.nullable) {
-			ret = "%s_POINTER_".printf (prefix);
-		} else {
-			ret = "%s_%s_".printf (prefix, get_ccode_marshaller_type_name (return_type));
-		}
-		
+
+		ret = "%s_%s_".printf (prefix, get_ccode_marshaller_type_name (return_type));
+
 		if (params == null || params.size == 0) {
 			ret = ret + "_VOID";
 		} else {
@@ -49,12 +45,12 @@ public class Vala.GSignalModule : GObjectModule {
 				ret = "%s_%s".printf (ret, get_ccode_marshaller_type_name (p).replace (",", "_"));
 			}
 		}
-		
+
 		return ret;
 	}
-	
+
 	private string? get_value_type_name_from_type_reference (DataType t) {
-		if (t is PointerType || t.type_parameter != null) {
+		if (t is PointerType || t is GenericType) {
 			return "gpointer";
 		} else if (t is VoidType) {
 			return "void";
@@ -78,10 +74,10 @@ public class Vala.GSignalModule : GObjectModule {
 		} else if (t is ErrorType) {
 			return "gpointer";
 		}
-		
+
 		return null;
 	}
-	
+
 	private string? get_value_type_name_from_parameter (Parameter p) {
 		if (p.direction != ParameterDirection.IN) {
 			return "gpointer";
@@ -89,15 +85,11 @@ public class Vala.GSignalModule : GObjectModule {
 			return get_value_type_name_from_type_reference (p.variable_type);
 		}
 	}
-	
+
 	private string get_marshaller_signature (List<Parameter> params, DataType return_type) {
 		string signature;
-		
-		if (return_type is ValueType && return_type.nullable) {
-			signature = "POINTER:";
-		} else {
-			signature = "%s:".printf (get_ccode_marshaller_type_name (return_type));
-		}
+
+		signature = "%s:".printf (get_ccode_marshaller_type_name (return_type));
 		if (params == null || params.size == 0) {
 			signature = signature + "VOID";
 		} else {
@@ -111,7 +103,7 @@ public class Vala.GSignalModule : GObjectModule {
 				}
 			}
 		}
-		
+
 		return signature;
 	}
 
@@ -145,7 +137,7 @@ public class Vala.GSignalModule : GObjectModule {
 	private CCodeExpression get_signal_id_cexpression (Signal sig) {
 		var cl = (TypeSymbol) sig.parent_symbol;
 		var signal_array = new CCodeIdentifier ("%s_signals".printf (get_ccode_lower_case_name (cl)));
-		var signal_enum_value = new CCodeIdentifier ("%s_%s_SIGNAL".printf (get_ccode_upper_case_name (cl), sig.name.ascii_up ()));
+		var signal_enum_value = new CCodeIdentifier ("%s_%s_SIGNAL".printf (get_ccode_upper_case_name (cl), get_ccode_upper_case_name (sig)));
 
 		return new CCodeElementAccess (signal_array, signal_enum_value);
 	}
@@ -189,7 +181,9 @@ public class Vala.GSignalModule : GObjectModule {
 			}
 		}
 
-		signal_enum.add_value (new CCodeEnumValue ("%s_%s_SIGNAL".printf (get_ccode_upper_case_name ((TypeSymbol)sig.parent_symbol), sig.name.ascii_up ())));
+		if (signal_enum != null && sig.parent_symbol is TypeSymbol) {
+			signal_enum.add_value (new CCodeEnumValue ("%s_%s_SIGNAL".printf (get_ccode_upper_case_name ((TypeSymbol) sig.parent_symbol), get_ccode_upper_case_name (sig))));
+		}
 
 		sig.accept_children (this);
 
@@ -204,16 +198,16 @@ public class Vala.GSignalModule : GObjectModule {
 	void generate_marshaller (List<Parameter> params, DataType return_type) {
 		string signature;
 		int n_params, i;
-		
+
 		/* check whether a signal with the same signature already exists for this source file (or predefined) */
 		signature = get_marshaller_signature (params, return_type);
 		if (predefined_marshal_set.contains (signature) || user_marshal_set.contains (signature)) {
 			return;
 		}
-		
+
 		var signal_marshaller = new CCodeFunction (get_marshaller_function (params, return_type, null), "void");
 		signal_marshaller.modifiers = CCodeModifiers.STATIC;
-		
+
 		signal_marshaller.add_parameter (new CCodeParameter ("closure", "GClosure *"));
 		signal_marshaller.add_parameter (new CCodeParameter ("return_value", "GValue *"));
 		signal_marshaller.add_parameter (new CCodeParameter ("n_param_values", "guint"));
@@ -250,7 +244,7 @@ public class Vala.GSignalModule : GObjectModule {
 
 		if (return_type.data_type != null || return_type.is_array ()) {
 			ccode.add_declaration (get_value_type_name_from_type_reference (return_type), new CCodeVariableDeclarator ("v_return"));
-			
+
 			fc = new CCodeFunctionCall (new CCodeIdentifier ("g_return_if_fail"));
 			fc.add_argument (new CCodeBinaryExpression (CCodeBinaryOperator.INEQUALITY, new CCodeIdentifier ("return_value"), new CCodeConstant ("NULL")));
 			ccode.add_expression (fc);
@@ -274,7 +268,7 @@ public class Vala.GSignalModule : GObjectModule {
 
 		var c_assign_rhs =  new CCodeCastExpression (new CCodeConditionalExpression (new CCodeIdentifier ("marshal_data"), new CCodeIdentifier ("marshal_data"), new CCodeMemberAccess (new CCodeIdentifier ("cc"), "callback", true)), get_marshaller_function (params, return_type, "GMarshalFunc"));
 		ccode.add_assignment (new CCodeIdentifier ("callback"), c_assign_rhs);
-		
+
 		fc = new CCodeFunctionCall (new CCodeIdentifier ("callback"));
 		fc.add_argument (new CCodeIdentifier ("data1"));
 		i = 1;
@@ -289,7 +283,7 @@ public class Vala.GSignalModule : GObjectModule {
 				} else {
 					get_value_function = "g_value_get_pointer";
 				}
-			} else if (p.variable_type is PointerType || p.variable_type.type_parameter != null) {
+			} else if (p.variable_type is PointerType || p.variable_type is GenericType) {
 				get_value_function = "g_value_get_pointer";
 			} else if (p.variable_type is ErrorType) {
 				get_value_function = "g_value_get_pointer";
@@ -312,10 +306,10 @@ public class Vala.GSignalModule : GObjectModule {
 			}
 		}
 		fc.add_argument (new CCodeIdentifier ("data2"));
-		
+
 		if (return_type.data_type != null || return_type.is_array ()) {
 			ccode.add_assignment (new CCodeIdentifier ("v_return"), fc);
-			
+
 			CCodeFunctionCall set_fc;
 			if (return_type.is_array ()) {
 				if (((ArrayType) return_type).element_type.data_type == string_type.data_type) {
@@ -323,7 +317,7 @@ public class Vala.GSignalModule : GObjectModule {
 				} else {
 					set_fc = new CCodeFunctionCall (new CCodeIdentifier ("g_value_set_pointer"));
 				}
-			} else if (return_type.type_parameter != null) {
+			} else if (return_type is GenericType) {
 				set_fc = new CCodeFunctionCall (new CCodeIdentifier ("g_value_set_pointer"));
 			} else if (return_type is ErrorType) {
 				set_fc = new CCodeFunctionCall (new CCodeIdentifier ("g_value_set_pointer"));
@@ -338,14 +332,14 @@ public class Vala.GSignalModule : GObjectModule {
 			}
 			set_fc.add_argument (new CCodeIdentifier ("return_value"));
 			set_fc.add_argument (new CCodeIdentifier ("v_return"));
-			
+
 			ccode.add_expression (set_fc);
 		} else {
 			ccode.add_expression (fc);
 		}
-		
+
 		pop_function ();
-		
+
 		cfile.add_function_declaration (signal_marshaller);
 		cfile.add_function (signal_marshaller);
 		user_marshal_set.add (signature);
@@ -408,7 +402,7 @@ public class Vala.GSignalModule : GObjectModule {
 		csignew.add_argument (marshal_arg);
 
 		var params = sig.get_parameters ();
-		if (sig.return_type is PointerType || sig.return_type.type_parameter != null) {
+		if (sig.return_type is PointerType || sig.return_type is GenericType) {
 			csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
 		} else if (sig.return_type is ErrorType) {
 			csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
@@ -439,7 +433,7 @@ public class Vala.GSignalModule : GObjectModule {
 				for (var i = 0; i < ((ArrayType) param.variable_type).rank; i++) {
 					csignew.add_argument (new CCodeConstant ("G_TYPE_INT"));
 				}
-			} else if (param.variable_type is PointerType || param.variable_type.type_parameter != null || param.direction != ParameterDirection.IN) {
+			} else if (param.variable_type is PointerType || param.variable_type is GenericType || param.direction != ParameterDirection.IN) {
 				csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
 			} else if (param.variable_type is ErrorType) {
 				csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
@@ -536,20 +530,20 @@ public class Vala.GSignalModule : GObjectModule {
 	public override void visit_member_access (MemberAccess expr) {
 		if (expr.symbol_reference is Signal) {
 			CCodeExpression pub_inst = null;
-	
+
 			if (expr.inner != null) {
 				pub_inst = get_cvalue (expr.inner);
 			}
 
 			var sig = (Signal) expr.symbol_reference;
 			var cl = (TypeSymbol) sig.parent_symbol;
-			
+
 			if (expr.inner is BaseAccess && sig.is_virtual) {
 				var m = sig.default_handler;
 				var base_class = (Class) m.parent_symbol;
 				var vcast = new CCodeFunctionCall (new CCodeIdentifier ("%s_CLASS".printf (get_ccode_upper_case_name (base_class, null))));
 				vcast.add_argument (new CCodeIdentifier ("%s_parent_class".printf (get_ccode_lower_case_name (current_class))));
-				
+
 				set_cvalue (expr, new CCodeMemberAccess.pointer (vcast, m.name));
 				return;
 			}
@@ -569,7 +563,7 @@ public class Vala.GSignalModule : GObjectModule {
 					}
 					emitter_func = get_ccode_lower_case_name (sig.emitter);
 				} else {
-					emitter_func = "%s_%s".printf (get_ccode_lower_case_name (cl), sig.name);
+					emitter_func = "%s_%s".printf (get_ccode_lower_case_name (cl), get_ccode_lower_case_name (sig));
 				}
 				var ccall = new CCodeFunctionCall (new CCodeIdentifier (emitter_func));
 
@@ -580,7 +574,7 @@ public class Vala.GSignalModule : GObjectModule {
 				ccall.add_argument (pub_inst);
 
 				ccall.add_argument (get_signal_canonical_constant (sig));
-				
+
 				set_cvalue (expr, ccall);
 			}
 		} else {
@@ -611,7 +605,15 @@ public class Vala.GSignalModule : GObjectModule {
 	CCodeExpression? connect_signal (Signal sig, Expression signal_access, Expression handler, bool disconnect, bool after, CodeNode expr) {
 		string connect_func;
 
-		var m = (Method) handler.symbol_reference;
+		DelegateType? dt = null;
+		var p = handler.symbol_reference as Parameter;
+		if (p != null) {
+			dt = p.variable_type as DelegateType;
+			if (dt != null && !context.experimental) {
+				Report.warning (dt.source_reference, "Connecting delegates to signals is experimental");
+			}
+		}
+		var m = handler.symbol_reference as Method;
 
 		if (!disconnect) {
 			// connect
@@ -621,9 +623,11 @@ public class Vala.GSignalModule : GObjectModule {
 				else
 					connect_func = get_dynamic_signal_connect_after_wrapper_name ((DynamicSignal) sig);
 			} else {
-				if (m.closure) {
+				if ((m != null && m.closure) && in_gobject_instance (m)) {
+					connect_func = "g_signal_connect_closure";
+				} else if ((m != null && m.closure) || (dt != null && dt.value_owned)) {
 					connect_func = "g_signal_connect_data";
-				} else if (in_gobject_instance (m)) {
+				} else if (m != null && in_gobject_instance (m)) {
 					connect_func = "g_signal_connect_object";
 				} else if (!after) {
 					connect_func = "g_signal_connect";
@@ -670,7 +674,7 @@ public class Vala.GSignalModule : GObjectModule {
 			// dynamic_signal_connect or dynamic_signal_disconnect
 
 			// second argument: signal name
-			ccall.add_argument (new CCodeConstant ("\"%s\"".printf (sig.name)));
+			ccall.add_argument (new CCodeConstant ("\"%s\"".printf (get_ccode_name (sig))));
 		} else if (!disconnect) {
 			// g_signal_connect_object or g_signal_connect
 
@@ -719,11 +723,40 @@ public class Vala.GSignalModule : GObjectModule {
 			ccall.add_argument (new CCodeConstant ("NULL"));
 		}
 
-		// third resp. sixth argument: handler
-		ccall.add_argument (new CCodeCastExpression (get_cvalue (handler), "GCallback"));
+		if ((m != null && m.closure) && in_gobject_instance (m)) {
+			// g_signal_connect_closure
 
-		if (m.closure) {
+			// third argument: closure
+			var closure_var = get_temp_variable (new CType ("GClosure*"), false, null, false);
+			var closure_ref = get_variable_cexpression (closure_var.name);
+			emit_temp_var (closure_var);
+
+			var closure_call = new CCodeFunctionCall (new CCodeIdentifier ("g_cclosure_new"));
+			// callback_func
+			closure_call.add_argument (new CCodeCastExpression (get_cvalue (handler), "GCallback"));
+			// user_data
+			CCodeExpression handler_destroy_notify;
+			closure_call.add_argument (get_delegate_target_cexpression (handler, out handler_destroy_notify));
+			// destroy_data
+			closure_call.add_argument (new CCodeCastExpression (handler_destroy_notify, "GClosureNotify"));
+
+			ccode.add_assignment (closure_ref, closure_call);
+
+			var watch_call = new CCodeFunctionCall (new CCodeIdentifier ("g_object_watch_closure"));
+			watch_call.add_argument (new CCodeCastExpression (get_result_cexpression ("self"), "GObject *"));
+			watch_call.add_argument (closure_ref);
+
+			ccode.add_expression (watch_call);
+
+			ccall.add_argument (closure_ref);
+
+			// fourth argument: after?
+			ccall.add_argument (new CCodeConstant (after ? "TRUE" : "FALSE"));
+		} else if (m != null && m.closure) {
 			// g_signal_connect_data
+
+			// third argument: handler
+			ccall.add_argument (new CCodeCastExpression (get_cvalue (handler), "GCallback"));
 
 			// fourth argument: user_data
 			CCodeExpression handler_destroy_notify;
@@ -737,9 +770,12 @@ public class Vala.GSignalModule : GObjectModule {
 				ccall.add_argument (new CCodeConstant ("0"));
 			else
 				ccall.add_argument (new CCodeConstant ("G_CONNECT_AFTER"));
-		} else if (m.binding == MemberBinding.INSTANCE) {
+		} else if (m != null && m.binding == MemberBinding.INSTANCE) {
 			// g_signal_connect_object or g_signal_handlers_disconnect_matched
 			// or dynamic_signal_connect or dynamic_signal_disconnect
+
+			// third resp. sixth argument: handler
+			ccall.add_argument (new CCodeCastExpression (get_cvalue (handler), "GCallback"));
 
 			// fourth resp. seventh argument: object/user_data
 			if (handler is MemberAccess) {
@@ -762,9 +798,29 @@ public class Vala.GSignalModule : GObjectModule {
 				else
 					ccall.add_argument (new CCodeConstant ("G_CONNECT_AFTER"));
 			}
+		} else if (dt != null && dt.delegate_symbol.has_target) {
+			// third argument: handler
+			ccall.add_argument (new CCodeCastExpression (get_cvalue (handler), "GCallback"));
+
+			// fourth argument: user_data
+			CCodeExpression handler_destroy_notify;
+			ccall.add_argument (get_delegate_target_cexpression (handler, out handler_destroy_notify));
+			if (!disconnect && dt.value_owned) {
+				// fifth argument: destroy_notify
+				//FIXME handler_destroy_notify is NULL
+				ccall.add_argument (new CCodeCastExpression (handler_destroy_notify, "GClosureNotify"));
+				// sixth argument: connect_flags
+				if (!after)
+					ccall.add_argument (new CCodeConstant ("0"));
+				else
+					ccall.add_argument (new CCodeConstant ("G_CONNECT_AFTER"));
+			}
 		} else {
 			// g_signal_connect or g_signal_connect_after or g_signal_handlers_disconnect_matched
 			// or dynamic_signal_connect or dynamic_signal_disconnect
+
+			// third resp. sixth argument: handler
+			ccall.add_argument (new CCodeCastExpression (get_cvalue (handler), "GCallback"));
 
 			// fourth resp. seventh argument: user_data
 			ccall.add_argument (new CCodeConstant ("NULL"));

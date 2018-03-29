@@ -267,8 +267,7 @@ public class Vala.GVariantModule : GAsyncModule {
 	}
 
 	CCodeExpression deserialize_array (ArrayType array_type, CCodeExpression variant_expr, CCodeExpression? expr) {
-		var full_element_type_name = array_type.element_type.data_type.get_full_name ();
-		if (array_type.rank == 1 && (full_element_type_name == "uint8" || full_element_type_name == "int8")) {
+		if (array_type.rank == 1 && get_type_signature (array_type) == "ay") {
 			return deserialize_buffer_array (array_type, variant_expr, expr);
 		}
 
@@ -359,7 +358,7 @@ public class Vala.GVariantModule : GAsyncModule {
 
 		var get_size_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_get_size"));
 		get_size_call.add_argument (variant_expr);
-		ccode.add_declaration ("int", new CCodeVariableDeclarator (temp_name + "_length", get_size_call));
+		ccode.add_declaration ("gsize", new CCodeVariableDeclarator (temp_name + "_length", get_size_call));
 		var length = new CCodeIdentifier (temp_name + "_length");
 
 		var dup_call = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup"));
@@ -432,7 +431,7 @@ public class Vala.GVariantModule : GAsyncModule {
 			hash_table_new.add_argument (new CCodeIdentifier ("g_direct_hash"));
 			hash_table_new.add_argument (new CCodeIdentifier ("g_direct_equal"));
 		}
-		
+
 		if (key_type.data_type.is_subtype_of (string_type.data_type)) {
 			hash_table_new.add_argument (new CCodeIdentifier ("g_free"));
 		} else if (key_type.data_type == gvariant_type) {
@@ -442,7 +441,7 @@ public class Vala.GVariantModule : GAsyncModule {
 		} else {
 			hash_table_new.add_argument (new CCodeIdentifier ("NULL"));
 		}
-		
+
 		if (value_type.data_type.is_subtype_of (string_type.data_type)) {
 			hash_table_new.add_argument (new CCodeIdentifier ("g_free"));
 		} else if (value_type.data_type == gvariant_type) {
@@ -609,8 +608,7 @@ public class Vala.GVariantModule : GAsyncModule {
 	}
 
 	CCodeExpression? serialize_array (ArrayType array_type, CCodeExpression array_expr) {
-		var full_element_type_name = array_type.element_type.data_type.get_full_name ();
-		if (array_type.rank == 1 && (full_element_type_name == "uint8" || full_element_type_name == "int8")) {
+		if (array_type.rank == 1 && get_type_signature (array_type) == "ay") {
 			return serialize_buffer_array (array_type, array_expr);
 		}
 

@@ -17,6 +17,8 @@ namespace Gst {
 		public class AuthParam {
 			public weak string name;
 			public weak string value;
+			public Gst.RTSP.AuthParam copy ();
+			public void free ();
 		}
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", has_type_id = false)]
 		[Compact]
@@ -50,6 +52,8 @@ namespace Gst {
 			public Gst.RTSP.Result receive (Gst.RTSP.Message message, GLib.TimeVal timeout);
 			public Gst.RTSP.Result reset_timeout ();
 			public Gst.RTSP.Result send (Gst.RTSP.Message message, GLib.TimeVal timeout);
+			[Version (since = "1.14")]
+			public void set_accept_certificate_func (owned Gst.RTSP.ConnectionAcceptCertificateFunc func);
 			public Gst.RTSP.Result set_auth (Gst.RTSP.AuthMethod method, string user, string pass);
 			public void set_auth_param (string param, string value);
 			public void set_http_mode (bool enable);
@@ -65,6 +69,84 @@ namespace Gst {
 			public bool set_tls_validation_flags (GLib.TlsCertificateFlags flags);
 			public void set_tunneled (bool tunneled);
 			public Gst.RTSP.Result write (uint8 data, uint size, GLib.TimeVal timeout);
+		}
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", lower_case_cprefix = "gst_rtsp_msg_", type_id = "gst_rtsp_msg_get_type ()")]
+		[Compact]
+		[GIR (name = "RTSPMessage")]
+		public class Message {
+			public Gst.RTSP.MsgType type;
+			[CCode (cname = "type_data.data.channel")]
+			public uint8 type_data_data_channel;
+			[CCode (cname = "type_data.request.method")]
+			public Gst.RTSP.Method type_data_request_method;
+			[CCode (cname = "type_data.request.uri")]
+			public weak string type_data_request_uri;
+			[CCode (cname = "type_data.request.version")]
+			public Gst.RTSP.Version type_data_request_version;
+			[CCode (cname = "type_data.response.code")]
+			public Gst.RTSP.StatusCode type_data_response_code;
+			[CCode (cname = "type_data.response.reason")]
+			public weak string type_data_response_reason;
+			[CCode (cname = "type_data.response.version")]
+			public Gst.RTSP.Version type_data_response_version;
+			[CCode (cname = "gst_rtsp_message_add_header")]
+			public Gst.RTSP.Result add_header (Gst.RTSP.HeaderField field, string value);
+			[CCode (cname = "gst_rtsp_message_add_header_by_name")]
+			[Version (since = "1.6")]
+			public Gst.RTSP.Result add_header_by_name (string header, string value);
+			[CCode (cname = "gst_rtsp_message_append_headers")]
+			public Gst.RTSP.Result append_headers (GLib.StringBuilder str);
+			[CCode (cname = "gst_rtsp_message_copy")]
+			[Version (since = "1.14")]
+			public Gst.RTSP.Result copy (out Gst.RTSP.Message copy);
+			[CCode (cname = "gst_rtsp_message_dump")]
+			public Gst.RTSP.Result dump ();
+			[CCode (cname = "gst_rtsp_message_free")]
+			public Gst.RTSP.Result free ();
+			[CCode (cname = "gst_rtsp_message_get_body")]
+			public Gst.RTSP.Result get_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] out unowned uint8[] data);
+			[CCode (cname = "gst_rtsp_message_get_header")]
+			public Gst.RTSP.Result get_header (Gst.RTSP.HeaderField field, out unowned string value, int indx);
+			[CCode (cname = "gst_rtsp_message_get_header_by_name")]
+			[Version (since = "1.6")]
+			public Gst.RTSP.Result get_header_by_name (string header, out unowned string value, int index);
+			[CCode (cname = "gst_rtsp_message_get_type")]
+			public Gst.RTSP.MsgType get_type ();
+			[CCode (cname = "gst_rtsp_message_init")]
+			public Gst.RTSP.Result init ();
+			[CCode (cname = "gst_rtsp_message_init_data")]
+			public Gst.RTSP.Result init_data (uint8 channel);
+			[CCode (cname = "gst_rtsp_message_init_request")]
+			public Gst.RTSP.Result init_request (Gst.RTSP.Method method, string uri);
+			[CCode (cname = "gst_rtsp_message_init_response")]
+			public Gst.RTSP.Result init_response (Gst.RTSP.StatusCode code, string? reason, Gst.RTSP.Message? request);
+			[CCode (cname = "gst_rtsp_message_parse_auth_credentials")]
+			[Version (since = "1.12")]
+			public Gst.RTSP.AuthCredential parse_auth_credentials (Gst.RTSP.HeaderField field);
+			[CCode (cname = "gst_rtsp_message_parse_data")]
+			public Gst.RTSP.Result parse_data (out uint8 channel);
+			[CCode (cname = "gst_rtsp_message_parse_request")]
+			public Gst.RTSP.Result parse_request (out Gst.RTSP.Method method, out string uri, out Gst.RTSP.Version version);
+			[CCode (cname = "gst_rtsp_message_parse_response")]
+			public Gst.RTSP.Result parse_response (out Gst.RTSP.StatusCode code, out string reason, out Gst.RTSP.Version version);
+			[CCode (cname = "gst_rtsp_message_remove_header")]
+			public Gst.RTSP.Result remove_header (Gst.RTSP.HeaderField field, int indx);
+			[CCode (cname = "gst_rtsp_message_remove_header_by_name")]
+			[Version (since = "1.6")]
+			public Gst.RTSP.Result remove_header_by_name (string header, int index);
+			[CCode (cname = "gst_rtsp_message_set_body")]
+			public Gst.RTSP.Result set_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] uint8[] data);
+			[CCode (cname = "gst_rtsp_message_steal_body")]
+			public Gst.RTSP.Result steal_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] out uint8[] data);
+			[CCode (cname = "gst_rtsp_message_take_body")]
+			public Gst.RTSP.Result take_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] owned uint8[] data);
+			[CCode (cname = "gst_rtsp_message_take_header")]
+			public Gst.RTSP.Result take_header (Gst.RTSP.HeaderField field, owned string value);
+			[CCode (cname = "gst_rtsp_message_take_header_by_name")]
+			[Version (since = "1.6")]
+			public Gst.RTSP.Result take_header_by_name (string header, owned string value);
+			[CCode (cname = "gst_rtsp_message_unset")]
+			public Gst.RTSP.Result unset ();
 		}
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_rtsp_url_get_type ()")]
 		[Compact]
@@ -118,55 +200,6 @@ namespace Gst {
 			public abstract Gst.RTSP.Result stream_select (Gst.RTSP.Url url);
 			[HasEmitter]
 			public virtual signal Gst.RTSP.Result send (void* req, void* resp);
-		}
-		[CCode (cheader_filename = "gst/rtsp/rtsp.h", has_type_id = false)]
-		[GIR (name = "RTSPMessage")]
-		public struct Message {
-			public Gst.RTSP.MsgType type;
-			[CCode (cname = "type_data.request.method")]
-			public Gst.RTSP.Method type_data_request_method;
-			[CCode (cname = "type_data.request.uri")]
-			public weak string type_data_request_uri;
-			[CCode (cname = "type_data.request.version")]
-			public Gst.RTSP.Version type_data_request_version;
-			[CCode (cname = "type_data.response.code")]
-			public Gst.RTSP.StatusCode type_data_response_code;
-			[CCode (cname = "type_data.response.reason")]
-			public weak string type_data_response_reason;
-			[CCode (cname = "type_data.response.version")]
-			public Gst.RTSP.Version type_data_response_version;
-			[CCode (cname = "type_data.data.channel")]
-			public uint8 type_data_data_channel;
-			public Gst.RTSP.Result add_header (Gst.RTSP.HeaderField field, string value);
-			[Version (since = "1.6")]
-			public Gst.RTSP.Result add_header_by_name (string header, string value);
-			public Gst.RTSP.Result append_headers (GLib.StringBuilder str);
-			public Gst.RTSP.Result dump ();
-			public Gst.RTSP.Result free ();
-			public Gst.RTSP.Result get_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] out unowned uint8[] data);
-			public Gst.RTSP.Result get_header (Gst.RTSP.HeaderField field, out unowned string value, int indx);
-			[Version (since = "1.6")]
-			public Gst.RTSP.Result get_header_by_name (string header, out unowned string value, int index);
-			public Gst.RTSP.MsgType get_type ();
-			public Gst.RTSP.Result init ();
-			public Gst.RTSP.Result init_data (uint8 channel);
-			public Gst.RTSP.Result init_request (Gst.RTSP.Method method, string uri);
-			public Gst.RTSP.Result init_response (Gst.RTSP.StatusCode code, string? reason, Gst.RTSP.Message? request);
-			[Version (since = "1.12")]
-			public Gst.RTSP.AuthCredential parse_auth_credentials (Gst.RTSP.HeaderField field);
-			public Gst.RTSP.Result parse_data (out uint8 channel);
-			public Gst.RTSP.Result parse_request (out Gst.RTSP.Method method, out string uri, out Gst.RTSP.Version version);
-			public Gst.RTSP.Result parse_response (out Gst.RTSP.StatusCode code, out string reason, out Gst.RTSP.Version version);
-			public Gst.RTSP.Result remove_header (Gst.RTSP.HeaderField field, int indx);
-			[Version (since = "1.6")]
-			public Gst.RTSP.Result remove_header_by_name (string header, int index);
-			public Gst.RTSP.Result set_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] uint8[] data);
-			public Gst.RTSP.Result steal_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] out uint8[] data);
-			public Gst.RTSP.Result take_body ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] owned uint8[] data);
-			public Gst.RTSP.Result take_header (Gst.RTSP.HeaderField field, owned string value);
-			[Version (since = "1.6")]
-			public Gst.RTSP.Result take_header_by_name (string header, owned string value);
-			public Gst.RTSP.Result unset ();
 		}
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", has_type_id = false)]
 		[GIR (name = "RTSPRange")]
@@ -329,6 +362,10 @@ namespace Gst {
 			X_SESSIONCOOKIE,
 			RTCP_INTERVAL,
 			KEYMGMT,
+			PIPELINED_REQUESTS,
+			MEDIA_PROPERTIES,
+			SEEK_STYLE,
+			ACCEPT_RANGES,
 			LAST
 		}
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", cprefix = "GST_RTSP_LOWER_TRANS_", type_id = "gst_rtsp_lower_trans_get_type ()")]
@@ -494,8 +531,11 @@ namespace Gst {
 		public enum Version {
 			INVALID,
 			@1_0,
-			@1_1
+			@1_1,
+			@2_0
 		}
+		[CCode (cheader_filename = "gst/rtsp/rtsp.h", instance_pos = 3.9)]
+		public delegate bool ConnectionAcceptCertificateFunc (GLib.TlsConnection conn, GLib.TlsCertificate peer_cert, GLib.TlsCertificateFlags errors);
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", cname = "GST_RTSP_DEFAULT_PORT")]
 		public const int _DEFAULT_PORT;
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h")]

@@ -184,12 +184,16 @@ namespace Gst {
 			public Gst.Video.CodecFrame get_frame (int frame_number);
 			public GLib.List<Gst.Video.CodecFrame> get_frames ();
 			public void get_latency (out Gst.ClockTime min_latency, out Gst.ClockTime max_latency);
+			[Version (since = "1.14")]
+			public Gst.ClockTimeDiff get_max_encode_time (Gst.Video.CodecFrame frame);
 			public Gst.Video.CodecFrame get_oldest_frame ();
 			public Gst.Video.CodecState get_output_state ();
 			[NoWrapper]
 			public virtual Gst.Caps getcaps (Gst.Caps filter);
 			[NoWrapper]
 			public virtual Gst.FlowReturn handle_frame (Gst.Video.CodecFrame frame);
+			[Version (since = "1.14")]
+			public bool is_qos_enabled ();
 			public void merge_tags (Gst.TagList? tags, Gst.TagMergeMode mode);
 			public virtual bool negotiate ();
 			[NoWrapper]
@@ -207,6 +211,8 @@ namespace Gst {
 			public void set_latency (Gst.ClockTime min_latency, Gst.ClockTime max_latency);
 			public void set_min_pts (Gst.ClockTime min_pts);
 			public Gst.Video.CodecState set_output_state (owned Gst.Caps caps, Gst.Video.CodecState? reference);
+			[Version (since = "1.14")]
+			public void set_qos_enabled (bool enabled);
 			[NoWrapper]
 			public virtual bool sink_event (Gst.Event event);
 			[NoWrapper]
@@ -221,6 +227,8 @@ namespace Gst {
 			public virtual bool stop ();
 			[NoWrapper]
 			public virtual bool transform_meta (Gst.Video.CodecFrame frame, Gst.Meta meta);
+			[NoAccessorMethod]
+			public bool qos { get; set; }
 		}
 		[CCode (cheader_filename = "gst/video/video.h", type_id = "gst_video_filter_get_type ()")]
 		[GIR (name = "VideoFilter")]
@@ -299,6 +307,11 @@ namespace Gst {
 			[ReturnsModifiedPointer]
 			public Gst.Video.OverlayComposition make_writable ();
 			public uint n_rectangles ();
+		}
+		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]
+		[Compact]
+		[GIR (name = "VideoOverlayProperties")]
+		public class OverlayProperties {
 		}
 		[CCode (cheader_filename = "gst/video/video-overlay-composition.h", ref_function = "gst_video_overlay_rectangle_ref", type_id = "gst_video_overlay_rectangle_get_type ()", unref_function = "gst_video_overlay_rectangle_unref")]
 		[Compact]
@@ -421,28 +434,28 @@ namespace Gst {
 		[GIR (name = "Navigation")]
 		public interface Navigation : GLib.Object {
 			public static Gst.Video.NavigationEventType event_get_type (Gst.Event event);
-			public static bool event_parse_command (Gst.Event event, Gst.Video.NavigationCommand command);
-			public static bool event_parse_key_event (Gst.Event event, string key);
-			public static bool event_parse_mouse_button_event (Gst.Event event, int button, double x, double y);
-			public static bool event_parse_mouse_move_event (Gst.Event event, double x, double y);
+			public static bool event_parse_command (Gst.Event event, out Gst.Video.NavigationCommand command);
+			public static bool event_parse_key_event (Gst.Event event, out unowned string key);
+			public static bool event_parse_mouse_button_event (Gst.Event event, out int button, out double x, out double y);
+			public static bool event_parse_mouse_move_event (Gst.Event event, out double x, out double y);
 			public static Gst.Video.NavigationMessageType message_get_type (Gst.Message message);
 			public static Gst.Message message_new_angles_changed (Gst.Object src, uint cur_angle, uint n_angles);
 			public static Gst.Message message_new_commands_changed (Gst.Object src);
 			[Version (since = "1.6")]
 			public static Gst.Message message_new_event (Gst.Object src, Gst.Event event);
 			public static Gst.Message message_new_mouse_over (Gst.Object src, bool active);
-			public static bool message_parse_angles_changed (Gst.Message message, uint cur_angle, uint n_angles);
+			public static bool message_parse_angles_changed (Gst.Message message, out uint cur_angle, out uint n_angles);
 			[Version (since = "1.6")]
 			public static bool message_parse_event (Gst.Message message, out Gst.Event event);
-			public static bool message_parse_mouse_over (Gst.Message message, bool active);
+			public static bool message_parse_mouse_over (Gst.Message message, out bool active);
 			public static Gst.Video.NavigationQueryType query_get_type (Gst.Query query);
 			public static Gst.Query query_new_angles ();
 			public static Gst.Query query_new_commands ();
-			public static bool query_parse_angles (Gst.Query query, uint cur_angle, uint n_angles);
+			public static bool query_parse_angles (Gst.Query query, out uint cur_angle, out uint n_angles);
 			public static bool query_parse_commands_length (Gst.Query query, out uint n_cmds);
 			public static bool query_parse_commands_nth (Gst.Query query, uint nth, out Gst.Video.NavigationCommand cmd);
 			public static void query_set_angles (Gst.Query query, uint cur_angle, uint n_angles);
-			public static void query_set_commandsv (Gst.Query query, int n_cmds, Gst.Video.NavigationCommand cmds);
+			public static void query_set_commandsv (Gst.Query query, [CCode (array_length_cname = "n_cmds", array_length_pos = 1.5)] Gst.Video.NavigationCommand[] cmds);
 			public void send_command (Gst.Video.NavigationCommand command);
 			public abstract void send_event (Gst.Structure structure);
 			public void send_key_event (string event, string key);
@@ -466,7 +479,9 @@ namespace Gst {
 			public abstract void expose ();
 			public void got_window_handle ([CCode (type = "guintptr")] uint* handle);
 			public abstract void handle_events (bool handle_events);
+			public static void install_properties (GLib.ObjectClass oclass, int last_prop_id);
 			public void prepare_window_handle ();
+			public static bool set_property (GLib.Object object, int last_prop_id, uint property_id, GLib.Value value);
 			[NoWrapper]
 			public virtual void set_render_rectangle (int x, int y, int width, int height);
 			public abstract void set_window_handle ([CCode (type = "guintptr")] uint* handle);
@@ -475,11 +490,11 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]
 		[GIR (name = "VideoAffineTransformationMeta")]
+		[Version (since = "1.8")]
 		public struct AffineTransformationMeta {
 			public Gst.Meta meta;
 			[CCode (array_length = false)]
 			public weak float matrix[16];
-			[Version (since = "1.8")]
 			public void apply_matrix (float matrix);
 		}
 		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]
@@ -636,6 +651,11 @@ namespace Gst {
 			public uint y;
 			public uint w;
 			public uint h;
+			public weak GLib.List<void*> @params;
+			[Version (since = "1.14")]
+			public void add_param (owned Gst.Structure s);
+			[Version (since = "1.14")]
+			public unowned Gst.Structure? get_param (string name);
 		}
 		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]
 		[GIR (name = "VideoResampler")]
@@ -891,7 +911,10 @@ namespace Gst {
 			I422_12BE,
 			I422_12LE,
 			Y444_12BE,
-			Y444_12LE
+			Y444_12LE,
+			GRAY10_LE32,
+			NV12_10LE32,
+			NV16_10LE32
 		}
 		[CCode (cheader_filename = "gst/video/video.h", cprefix = "GST_VIDEO_FORMAT_FLAG_", type_id = "gst_video_format_flags_get_type ()")]
 		[Flags]
@@ -1469,13 +1492,13 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_event_get_type")]
 		public static Gst.Video.NavigationEventType navigation_event_get_type (Gst.Event event);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_event_parse_command")]
-		public static bool navigation_event_parse_command (Gst.Event event, Gst.Video.NavigationCommand command);
+		public static bool navigation_event_parse_command (Gst.Event event, out Gst.Video.NavigationCommand command);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_event_parse_key_event")]
-		public static bool navigation_event_parse_key_event (Gst.Event event, string key);
+		public static bool navigation_event_parse_key_event (Gst.Event event, out unowned string key);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_event_parse_mouse_button_event")]
-		public static bool navigation_event_parse_mouse_button_event (Gst.Event event, int button, double x, double y);
+		public static bool navigation_event_parse_mouse_button_event (Gst.Event event, out int button, out double x, out double y);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_event_parse_mouse_move_event")]
-		public static bool navigation_event_parse_mouse_move_event (Gst.Event event, double x, double y);
+		public static bool navigation_event_parse_mouse_move_event (Gst.Event event, out double x, out double y);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_message_get_type")]
 		public static Gst.Video.NavigationMessageType navigation_message_get_type (Gst.Message message);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_message_new_angles_changed")]
@@ -1488,12 +1511,12 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_message_new_mouse_over")]
 		public static Gst.Message navigation_message_new_mouse_over (Gst.Object src, bool active);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_message_parse_angles_changed")]
-		public static bool navigation_message_parse_angles_changed (Gst.Message message, uint cur_angle, uint n_angles);
+		public static bool navigation_message_parse_angles_changed (Gst.Message message, out uint cur_angle, out uint n_angles);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_message_parse_event")]
 		[Version (since = "1.6")]
 		public static bool navigation_message_parse_event (Gst.Message message, out Gst.Event event);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_message_parse_mouse_over")]
-		public static bool navigation_message_parse_mouse_over (Gst.Message message, bool active);
+		public static bool navigation_message_parse_mouse_over (Gst.Message message, out bool active);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_get_type")]
 		public static Gst.Video.NavigationQueryType navigation_query_get_type (Gst.Query query);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_new_angles")]
@@ -1501,7 +1524,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_new_commands")]
 		public static Gst.Query navigation_query_new_commands ();
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_parse_angles")]
-		public static bool navigation_query_parse_angles (Gst.Query query, uint cur_angle, uint n_angles);
+		public static bool navigation_query_parse_angles (Gst.Query query, out uint cur_angle, out uint n_angles);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_parse_commands_length")]
 		public static bool navigation_query_parse_commands_length (Gst.Query query, out uint n_cmds);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_parse_commands_nth")]
@@ -1509,11 +1532,15 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_set_angles")]
 		public static void navigation_query_set_angles (Gst.Query query, uint cur_angle, uint n_angles);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_navigation_query_set_commandsv")]
-		public static void navigation_query_set_commandsv (Gst.Query query, int n_cmds, Gst.Video.NavigationCommand cmds);
+		public static void navigation_query_set_commandsv (Gst.Query query, [CCode (array_length_cname = "n_cmds", array_length_pos = 1.5)] Gst.Video.NavigationCommand[] cmds);
 		[CCode (cheader_filename = "gst/video/video.h")]
 		public static GLib.Type overlay_composition_meta_api_get_type ();
 		[CCode (cheader_filename = "gst/video/video.h")]
 		public static unowned Gst.MetaInfo? overlay_composition_meta_get_info ();
+		[CCode (cheader_filename = "gst/video/video.h")]
+		public static void overlay_install_properties (GLib.ObjectClass oclass, int last_prop_id);
+		[CCode (cheader_filename = "gst/video/video.h")]
+		public static bool overlay_set_property (GLib.Object object, int last_prop_id, uint property_id, GLib.Value value);
 		[CCode (cheader_filename = "gst/video/video.h")]
 		public static GLib.Type region_of_interest_meta_api_get_type ();
 		[CCode (cheader_filename = "gst/video/video.h")]

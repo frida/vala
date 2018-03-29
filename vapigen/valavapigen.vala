@@ -22,7 +22,7 @@
 
 using GLib;
 
-class Vala.VAPIGen : Object {
+class Vala.VAPIGen {
 	static string directory;
 	static bool version;
 	static bool quiet_mode;
@@ -53,7 +53,7 @@ class Vala.VAPIGen : Object {
 		{ "disable-warnings", 0, 0, OptionArg.NONE, ref disable_warnings, "Disable warnings", null },
 		{ "version", 0, 0, OptionArg.NONE, ref version, "Display version number", null },
 		{ "quiet", 'q', 0, OptionArg.NONE, ref quiet_mode, "Do not print messages to the console", null },
-		{ "", 0, 0, OptionArg.FILENAME_ARRAY, ref sources, null, "FILE..." },
+		{ OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, ref sources, null, "FILE..." },
 		{ null }
 	};
 	
@@ -131,7 +131,9 @@ class Vala.VAPIGen : Object {
 
 		foreach (string source in sources) {
 			if (FileUtils.test (source, FileTest.EXISTS)) {
-				context.add_source_file (new SourceFile (context, SourceFileType.PACKAGE, source));
+				var source_file = new SourceFile (context, SourceFileType.PACKAGE, source);
+				source_file.explicit = true;
+				context.add_source_file (source_file);
 			} else {
 				Report.error (null, "%s not found".printf (source));
 			}

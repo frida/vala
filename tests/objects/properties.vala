@@ -1,5 +1,6 @@
 using GLib;
 
+[CCode (has_target = false)]
 public delegate void Delegate ();
 
 public struct RealStruct {
@@ -68,7 +69,7 @@ public class Sample : Object {
 
 		Maman.Ibaz ibaz = new Maman.Baz ();
 		ibaz.simple_method ();
-	
+
 		stdout.printf (" 3\n");
 
 		var nonpriv = new NonPrivAccess ();
@@ -113,10 +114,10 @@ class Maman.Bar : Foo {
 
 	public static void run () {
 		stdout.printf ("Property Test: 1");
-		
+
 		var bar = new Bar ();
 		bar.do_action ();
-		
+
 		Foo foo = bar;
 		foo.abstract_base_property = 6;
 		stdout.printf (" %d", foo.abstract_base_property);
@@ -138,6 +139,19 @@ class Maman.Baz : Object, Ibaz {
 	public int number {
 		get { return 2; }
 	}
+}
+
+interface Maman.IBiz : Object {
+	public abstract int number { get; construct; }
+}
+
+abstract class Maman.ABiz : Object, IBiz {
+	public int number { get; construct; }
+	public abstract int number2 { get; construct; }
+}
+
+class Maman.Biz : ABiz {
+	public override int number2 { get; construct; }
 }
 
 void main () {

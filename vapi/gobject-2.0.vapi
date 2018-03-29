@@ -26,30 +26,6 @@
 
 [CCode (cheader_filename = "glib.h", cprefix = "G", gir_namespace = "GObject", gir_version = "2.0", lower_case_cprefix = "g_")]
 namespace GLib {
-	namespace Signal {
-		public static ulong add_emission_hook (uint signal_id, GLib.Quark detail, GLib.SignalEmissionHook hook_func, GLib.DestroyNotify? data_destroy);
-		public static void chain_from_overridden ([CCode (array_length = false)] GLib.Value[] instance_and_params, out GLib.Value return_value);
-		public static ulong connect (void* instance, string detailed_signal, GLib.Callback handler, void* data);
-		public static ulong connect_after (void* instance, string detailed_signal, GLib.Callback handler, void* data);
-		public static ulong connect_closure (void* instance, string detailed_signal, GLib.Closure closure, bool after);
-		public static ulong connect_closure_by_id (void* instance, uint signal_id, GLib.Quark detail, GLib.Closure closure, bool after);
-		public static ulong connect_data (void* instance, string detailed_signal, GLib.Callback handler, void* data, GLib.ClosureNotify destroy_data, GLib.ConnectFlags flags);
-		public static ulong connect_object (void* instance, string detailed_signal, GLib.Callback handler, GLib.Object gobject, GLib.ConnectFlags flags);
-		public static ulong connect_swapped (void* instance, string detailed_signal, GLib.Callback handler, void* data);
-		public static void emit (void* instance, uint signal_id, GLib.Quark detail, ...);
-		public static void emit_by_name (void* instance, string detailed_signal, ...);
-		public static unowned GLib.SignalInvocationHint? get_invocation_hint (void* instance);
-		public static bool has_handler_pending (void* instance, uint signal_id, GLib.Quark detail, bool may_be_blocked);
-		public static uint[] list_ids (GLib.Type itype);
-		public static uint lookup (string name, GLib.Type itype);
-		public static unowned string name (uint signal_id);
-		public static void override_class_closure (uint signal_id, GLib.Type instance_type, GLib.Closure class_closure);
-		public static bool parse_name (string detailed_signal, GLib.Type itype, out uint signal_id, out GLib.Quark detail, bool force_detail_quark);
-		public static void query (uint signal_id, out GLib.SignalQuery query);
-		public static void remove_emission_hook (uint signal_id, ulong hook_id);
-		public static void stop_emission (void* instance, uint signal_id, GLib.Quark detail);
-		public static void stop_emission_by_name (void* instance, string detailed_signal);
-	}
 	namespace SignalHandler {
 		public static void block (void* instance, ulong handler_id);
 		[CCode (cname = "g_signal_handlers_block_by_func")]
@@ -97,7 +73,10 @@ namespace GLib {
 		public void add_invalidate_notifier (void* notify_data, GLib.ClosureNotify notify_func);
 		public void add_marshal_guards (void* pre_marshal_data, GLib.ClosureNotify pre_marshal_notify, void* post_marshal_data, GLib.ClosureNotify post_marshal_notify);
 		public void invalidate ();
-		public void invoke (out GLib.Value return_value, [CCode (array_length_pos = 1.9, array_length_type = "guint")] GLib.Value[] param_values, void* invocation_hint);
+		public void invoke (out GLib.Value return_value, [CCode (array_length_cname = "n_param_values", array_length_pos = 1.5, array_length_type = "guint")] GLib.Value[] param_values, void* invocation_hint);
+		[CCode (has_construct_function = false)]
+		public Closure.object (uint sizeof_closure, GLib.Object object);
+		public unowned GLib.Closure @ref ();
 		public void remove_finalize_notifier (void* notify_data, GLib.ClosureNotify notify_func);
 		public void remove_invalidate_notifier (void* notify_data, GLib.ClosureNotify notify_func);
 		public void set_marshal (GLib.ClosureMarshal marshal);
@@ -105,6 +84,7 @@ namespace GLib {
 		[CCode (has_construct_function = false)]
 		public Closure.simple (uint sizeof_closure, void* data);
 		public void sink ();
+		public void unref ();
 	}
 	[CCode (lower_case_csuffix = "enum")]
 	public class EnumClass : GLib.TypeClass {
@@ -143,6 +123,7 @@ namespace GLib {
 		[Version (since = "2.26")]
 		public unowned GLib.Binding bind_property (string source_property, GLib.Object target, string target_property, GLib.BindingFlags flags = GLib.BindingFlags.DEFAULT, [CCode (type = "GClosure*")] owned GLib.BindingTransformFunc? transform_to = null, [CCode (type = "GClosure*")] owned GLib.BindingTransformFunc? transform_from = null);
 		public unowned GLib.Object connect (string signal_spec, ...);
+		[NoWrapper]
 		public virtual void constructed ();
 		[CCode (cname = "g_signal_handler_disconnect")]
 		public void disconnect (ulong handler_id);
@@ -154,6 +135,7 @@ namespace GLib {
 		[CCode (simple_generics = true)]
 		[Version (since = "2.34")]
 		public T dup_qdata<T> (GLib.Quark quark, GLib.DuplicateFunc<T> dup_func);
+		public void force_floating ();
 		public void freeze_notify ();
 		public void @get (string first_property_name, ...);
 		[CCode (cname = "G_OBJECT_GET_CLASS")]
@@ -167,6 +149,15 @@ namespace GLib {
 		public GLib.Type get_type ();
 		[Version (since = "2.54")]
 		public void getv ([CCode (array_length_cname = "n_properties", array_length_pos = 0.5, array_length_type = "guint")] string[] names, [CCode (array_length_cname = "n_properties", array_length_pos = 0.5, array_length_type = "guint")] GLib.Value[] values);
+		public static unowned GLib.ParamSpec? interface_find_property (GLib.TypeInterface g_iface, string property_name);
+		public static void interface_install_property (GLib.TypeInterface g_iface, GLib.ParamSpec pspec);
+		[CCode (array_length_pos = 1.1, array_length_type = "guint")]
+#if VALA_0_26
+		public static (unowned GLib.ParamSpec)[] interface_list_properties (GLib.TypeInterface g_iface);
+#else
+		public static unowned GLib.ParamSpec[] interface_list_properties (GLib.TypeInterface g_iface);
+#endif
+		public bool is_floating ();
 		public static GLib.Object @new (GLib.Type type, ...);
 		public static GLib.Object new_valist (GLib.Type type, string? firstprop, va_list var_args);
 		[Version (deprecated = true, deprecated_since = "2.54")]
@@ -177,7 +168,7 @@ namespace GLib {
 		[CCode (cname = "g_object_notify")]
 		public void notify_property (string property_name);
 		public unowned GLib.Object @ref ();
-		public GLib.Object ref_sink ();
+		public unowned GLib.Object ref_sink ();
 		[CCode (simple_generics = true)]
 		[Version (since = "2.34")]
 		public bool replace_data<G,T> (string key, G oldval, owned T newval, out GLib.DestroyNotify? old_destroy);
@@ -194,6 +185,7 @@ namespace GLib {
 		[CCode (cname = "g_object_set_qdata_full", simple_generics = true)]
 		public void set_qdata<T> (GLib.Quark quark, owned T data);
 		public void set_qdata_full (GLib.Quark quark, void* data, GLib.DestroyNotify? destroy);
+		public void set_valist (string first_property_name, va_list var_args);
 		[Version (since = "2.54")]
 		public void setv ([CCode (array_length_cname = "n_properties", array_length_pos = 0.5, array_length_type = "guint")] string[] names, [CCode (array_length_cname = "n_properties", array_length_pos = 0.5, array_length_type = "guint")] GLib.Value[] values);
 		[CCode (simple_generics = true)]
@@ -205,7 +197,8 @@ namespace GLib {
 		public void watch_closure (GLib.Closure closure);
 		public void weak_ref (GLib.WeakNotify notify);
 		public void weak_unref (GLib.WeakNotify notify);
-		public signal void notify (GLib.ParamSpec pspec);
+		[HasEmitter]
+		public virtual signal void notify (GLib.ParamSpec pspec);
 	}
 	[CCode (lower_case_csuffix = "object_class")]
 	public class ObjectClass : GLib.TypeClass {
@@ -230,6 +223,8 @@ namespace GLib {
 		public string name;
 		public GLib.Type owner_type;
 		public GLib.Type value_type;
+		[NoWrapper]
+		public virtual void finalize ();
 		public unowned string get_blurb ();
 		[Version (since = "2.38")]
 		public unowned GLib.Value? get_default_value ();
@@ -252,22 +247,25 @@ namespace GLib {
 		public void unref ();
 		[CCode (cname = "g_param_value_convert")]
 		public bool value_convert (GLib.Value src_value, GLib.Value dest_value, bool strict_validation);
-		[CCode (cname = "g_param_value_defaults")]
-		public bool value_defaults (GLib.Value value);
-		[CCode (cname = "g_param_value_validate")]
-		public bool value_validate (GLib.Value value);
-		[CCode (cname = "g_param_values_cmp")]
-		public int values_cmp (GLib.Value value1, GLib.Value value2);
+		[CCode (cname = "g_param_value_defaults", vfunc_name = "value_defaults")]
+		public virtual bool value_defaults (GLib.Value value);
+		[CCode (cname = "g_param_value_validate", vfunc_name = "value_validate")]
+		public virtual bool value_validate (GLib.Value value);
+		[CCode (cname = "g_param_values_cmp", vfunc_name = "values_cmp")]
+		public virtual int values_cmp (GLib.Value value1, GLib.Value value2);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_BOOLEAN")]
 	public class ParamSpecBoolean : GLib.ParamSpec {
 		public bool default_value;
 		[CCode (cname = "g_param_spec_boolean")]
 		public ParamSpecBoolean (string name, string nick, string blurb, bool defaultvalue, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_BOXED")]
 	public class ParamSpecBoxed : GLib.ParamSpec {
 		[CCode (cname = "g_param_spec_boxed")]
 		protected ParamSpecBoxed (string name, string nick, string blurb, GLib.Type boxed_type, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_CHAR")]
 	public class ParamSpecChar : GLib.ParamSpec {
 		public int8 default_value;
 		public int8 maximum;
@@ -275,6 +273,7 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_char")]
 		public ParamSpecChar (string name, string nick, string blurb, int8 minimum, int8 maximum, int8 default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_DOUBLE")]
 	public class ParamSpecDouble : GLib.ParamSpec {
 		public double default_value;
 		public double maximum;
@@ -282,18 +281,21 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_double")]
 		public ParamSpecDouble (string name, string nick, string blurb, double minimum, double maximum, double default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_ENUM")]
 	public class ParamSpecEnum : GLib.ParamSpec {
 		public int default_value;
 		public weak GLib.EnumClass enum_class;
 		[CCode (cname = "g_param_spec_enum")]
 		public ParamSpecEnum (string name, string nick, string blurb, GLib.Type enum_type, int default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_FLAGS")]
 	public class ParamSpecFlags : GLib.ParamSpec {
 		public uint default_value;
 		public weak GLib.FlagsClass flags_class;
 		[CCode (cname = "g_param_spec_flags")]
 		public ParamSpecFlags (string name, string nick, string blurb, GLib.Type flags_type, uint default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_FLOAT")]
 	public class ParamSpecFloat : GLib.ParamSpec {
 		public float default_value;
 		public float maximum;
@@ -301,6 +303,13 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_float")]
 		public ParamSpecFloat (string name, string nick, string blurb, float minimum, float maximum, float default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_GTYPE")]
+	public class ParamSpecGType : GLib.ParamSpec {
+		public GLib.Type is_a_type;
+		[CCode (cname = "g_param_spec_gtype")]
+		public ParamSpecGType (string name, string nick, string blurb, GLib.Type is_a_type, GLib.ParamFlags flags);
+	}
+	[CCode (type_id = "G_TYPE_PARAM_INT")]
 	public class ParamSpecInt : GLib.ParamSpec {
 		public int default_value;
 		public int maximum;
@@ -308,6 +317,7 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_int")]
 		public ParamSpecInt (string name, string nick, string blurb, int minimum, int maximum, int default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_INT64")]
 	public class ParamSpecInt64 : GLib.ParamSpec {
 		public int64 default_value;
 		public int64 maximum;
@@ -315,6 +325,7 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_int64")]
 		public ParamSpecInt64 (string name, string nick, string blurb, int64 minimum, int64 maximum, int64 default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_LONG")]
 	public class ParamSpecLong : GLib.ParamSpec {
 		public long default_value;
 		public long maximum;
@@ -322,13 +333,20 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_long")]
 		public ParamSpecLong (string name, string nick, string blurb, long minimum, long maximum, long default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_OBJECT")]
 	public class ParamSpecObject : GLib.ParamSpec {
 		[CCode (cname = "g_param_spec_object")]
 		public ParamSpecObject (string name, string nick, string blurb, GLib.Type object_type, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_PARAM")]
 	public class ParamSpecParam : GLib.ParamSpec {
 		[CCode (cname = "g_param_spec_param")]
 		public ParamSpecParam (string name, string nick, string blurb, GLib.Type param_type, GLib.ParamFlags flags);
+	}
+	[CCode (type_id = "G_TYPE_PARAM_POINTER")]
+	public class ParamSpecPointer : GLib.ParamSpec {
+		[CCode (cname = "g_param_spec_pointer")]
+		public ParamSpecPointer (string name, string nick, string blurb, GLib.ParamFlags flags);
 	}
 	[Compact]
 	public class ParamSpecPool {
@@ -344,6 +362,7 @@ namespace GLib {
 		public unowned GLib.ParamSpec lookup (string param_name, GLib.Type owner_type, bool walk_ancestors);
 		public void remove (GLib.ParamSpec pspec);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_STRING")]
 	public class ParamSpecString : GLib.ParamSpec {
 		public string cset_first;
 		public string cset_nth;
@@ -354,6 +373,7 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_string")]
 		public ParamSpecString (string name, string nick, string blurb, string default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_UCHAR")]
 	public class ParamSpecUChar : GLib.ParamSpec {
 		public uint8 default_value;
 		public uint8 maximum;
@@ -361,6 +381,7 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_uchar")]
 		public ParamSpecUChar (string name, string nick, string blurb, uint8 minimum, uint8 maximum, uint8 default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_UINT")]
 	public class ParamSpecUInt : GLib.ParamSpec {
 		public uint default_value;
 		public uint maximum;
@@ -368,6 +389,7 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_uint")]
 		public ParamSpecUInt (string name, string nick, string blurb, uint minimum, uint maximum, uint default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_UINT64")]
 	public class ParamSpecUInt64 : GLib.ParamSpec {
 		public uint64 default_value;
 		public uint64 maximum;
@@ -375,6 +397,7 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_uint64")]
 		public ParamSpecUInt64 (string name, string nick, string blurb, uint64 minimum, uint64 maximum, uint64 default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_ULONG")]
 	public class ParamSpecULong : GLib.ParamSpec {
 		public ulong default_value;
 		public ulong maximum;
@@ -382,12 +405,14 @@ namespace GLib {
 		[CCode (cname = "g_param_spec_ulong")]
 		public ParamSpecULong (string name, string nick, string blurb, ulong minimum, ulong maximum, ulong default_value, GLib.ParamFlags flags);
 	}
+	[CCode (type_id = "G_TYPE_PARAM_UNICHAR")]
 	public class ParamSpecUnichar : GLib.ParamSpec {
 		public unichar default_value;
 		[CCode (cname = "g_param_spec_unichar")]
 		public ParamSpecUnichar (string name, string nick, string blurb, unichar default_value, GLib.ParamFlags flags);
 	}
 	[Version (since = "2.26")]
+	[CCode (type_id = "G_TYPE_PARAM_VARIANT")]
 	public class ParamSpecVariant : GLib.ParamSpec {
 		public GLib.Variant? default_value;
 		public GLib.VariantType type;
@@ -487,6 +512,40 @@ namespace GLib {
 		public weak string name;
 		public GLib.Value value;
 	}
+	[CCode (cname = "guint")]
+	public struct Signal : uint {
+		public static ulong add_emission_hook (uint signal_id, GLib.Quark detail, owned GLib.SignalEmissionHook hook_func);
+		public static void chain_from_overridden ([CCode (array_length = false)] GLib.Value[] instance_and_params, out GLib.Value return_value);
+		[Version (since = "2.18")]
+		public static void chain_from_overridden_handler (void* instance, ...);
+		public static ulong connect (void* instance, string detailed_signal, GLib.Callback handler, void* data);
+		public static ulong connect_after (void* instance, string detailed_signal, GLib.Callback handler, void* data);
+		public static ulong connect_closure (void* instance, string detailed_signal, GLib.Closure closure, bool after);
+		public static ulong connect_closure_by_id (void* instance, uint signal_id, GLib.Quark detail, GLib.Closure closure, bool after);
+		public static ulong connect_data (void* instance, string detailed_signal, GLib.Callback handler, void* data, GLib.ClosureNotify destroy_data, GLib.ConnectFlags flags);
+		public static ulong connect_object (void* instance, string detailed_signal, GLib.Callback handler, GLib.Object gobject, GLib.ConnectFlags flags);
+		public static ulong connect_swapped (void* instance, string detailed_signal, GLib.Callback handler, void* data);
+		public static void emit (void* instance, uint signal_id, GLib.Quark detail, ...);
+		public static void emit_by_name (void* instance, string detailed_signal, ...);
+		public static unowned GLib.SignalInvocationHint? get_invocation_hint (void* instance);
+		public static bool has_handler_pending (void* instance, uint signal_id, GLib.Quark detail, bool may_be_blocked);
+		public static uint[] list_ids (GLib.Type itype);
+		public static uint lookup (string name, GLib.Type itype);
+		public static unowned string name (uint signal_id);
+		public static GLib.Signal @new (string signal_name, GLib.Type itype, GLib.SignalFlags signal_flags, uint class_offset, GLib.SignalAccumulator? accumulator, void* accu_data, GLib.SignalCMarshaller? c_marshaller, GLib.Type return_type, uint n_params, ...);
+		[Version (since = "2.18")]
+		public static GLib.Signal new_class_handler (string signal_name, GLib.Type itype, GLib.SignalFlags signal_flags, GLib.Callback? class_handler, GLib.SignalAccumulator? accumulator, void* accu_data, GLib.SignalCMarshaller? c_marshaller, GLib.Type return_type, uint n_params, ...);
+		public static GLib.Signal new_valist (string signal_name, GLib.Type itype, GLib.SignalFlags signal_flags, GLib.Closure? class_closure, GLib.SignalAccumulator? accumulator, void* accu_data, GLib.SignalCMarshaller? c_marshaller, GLib.Type return_type, uint n_params, va_list args);
+		public static GLib.Signal newv (string signal_name, GLib.Type itype, GLib.SignalFlags signal_flags, GLib.Closure? class_closure, GLib.SignalAccumulator? accumulator, void* accu_data, GLib.SignalCMarshaller? c_marshaller, GLib.Type return_type, [CCode (array_length_cname = "n_params", array_length_pos = 7.5, array_length_type = "guint")] GLib.Type[]? param_types);
+		public static void override_class_closure (uint signal_id, GLib.Type instance_type, GLib.Closure class_closure);
+		[Version (since = "2.18")]
+		public static void override_class_handler (string signal_name, GLib.Type instance_type, GLib.Callback class_handler);
+		public static bool parse_name (string detailed_signal, GLib.Type itype, out uint signal_id, out GLib.Quark detail, bool force_detail_quark);
+		public static void query (uint signal_id, out GLib.SignalQuery query);
+		public static void remove_emission_hook (uint signal_id, ulong hook_id);
+		public static void stop_emission (void* instance, uint signal_id, GLib.Quark detail);
+		public static void stop_emission_by_name (void* instance, string detailed_signal);
+	}
 	public struct SignalInvocationHint {
 		public uint signal_id;
 		public GLib.Quark detail;
@@ -499,17 +558,34 @@ namespace GLib {
 		public GLib.SignalFlags signal_flags;
 		public GLib.Type return_type;
 		public uint n_params;
-		[CCode (array_length = false)]
+		[CCode (array_length_cname = "n_params", array_length_type = "guint")]
 		public weak GLib.Type[] param_types;
 	}
 	[CCode (get_value_function = "g_value_get_gtype", marshaller_type_name = "GTYPE", set_value_function = "g_value_set_gtype", type_id = "G_TYPE_GTYPE")]
 	[GIR (fullname = "GType")]
 	public struct Type : ulong {
+		public const GLib.Type BOOLEAN;
 		public const GLib.Type BOXED;
+		public const GLib.Type CHAR;
+		public const GLib.Type DOUBLE;
 		public const GLib.Type ENUM;
 		public const GLib.Type FLAGS;
+		public const GLib.Type FLOAT;
+		public const GLib.Type INT;
+		public const GLib.Type INT64;
 		public const GLib.Type INTERFACE;
 		public const GLib.Type INVALID;
+		public const GLib.Type LONG;
+		public const GLib.Type NONE;
+		public const GLib.Type OBJECT;
+		public const GLib.Type PARAM;
+		public const GLib.Type POINTER;
+		public const GLib.Type STRING;
+		public const GLib.Type UCHAR;
+		public const GLib.Type UINT;
+		public const GLib.Type UINT64;
+		public const GLib.Type ULONG;
+		public const GLib.Type VARIANT;
 		public void add_class_private (size_t private_size);
 		[CCode (array_length_type = "guint")]
 		public GLib.Type[] children ();
@@ -599,10 +675,11 @@ namespace GLib {
 		public Value (GLib.Type g_type);
 		public void copy (ref GLib.Value dest_value);
 		public void* dup_boxed ();
+		public GLib.ParamSpec dup_param ();
 		public GLib.Object dup_object ();
 		public string dup_string ();
 		[Version (since = "2.26")]
-		public GLib.Variant dup_variant ();
+		public GLib.Variant? dup_variant ();
 		public bool fits_pointer ();
 		public bool get_boolean ();
 		public void* get_boxed ();
@@ -618,7 +695,7 @@ namespace GLib {
 		public int64 get_int64 ();
 		public long get_long ();
 		public unowned GLib.Object get_object ();
-		public GLib.ParamSpec get_param ();
+		public unowned GLib.ParamSpec get_param ();
 		public void* get_pointer ();
 		[Version (since = "2.32")]
 		public int8 get_schar ();
@@ -628,7 +705,7 @@ namespace GLib {
 		public uint64 get_uint64 ();
 		public ulong get_ulong ();
 		[Version (since = "2.26")]
-		public GLib.Variant get_variant ();
+		public GLib.Variant? get_variant ();
 		[CCode (cname = "G_VALUE_HOLDS")]
 		public bool holds (GLib.Type type);
 		public unowned GLib.Value? init (GLib.Type g_type);
@@ -636,7 +713,7 @@ namespace GLib {
 		public void init_from_instance (void* instance);
 		public void param_take_ownership (out GLib.ParamSpec param);
 		public void* peek_pointer ();
-		public static void register_transform_func (GLib.Type src_type, GLib.Type dest_type, GLib.ValueTransform transform);
+		public static void register_transform_func (GLib.Type src_type, GLib.Type dest_type, GLib.ValueTransform transform_func);
 		public unowned GLib.Value? reset ();
 		public void set_boolean (bool v_boolean);
 		public void set_boxed (void* v_boxed);
@@ -652,22 +729,25 @@ namespace GLib {
 		public void set_int (int v_int);
 		public void set_int64 (int64 v_int64);
 		public void set_long (long v_long);
-		public void set_object (GLib.Object v_object);
-		public void set_param (GLib.ParamSpec param);
+		public void set_object (GLib.Object? v_object);
+		public void set_param (GLib.ParamSpec? param);
 		public void set_pointer (void* v_pointer);
 		[Version (since = "2.32")]
 		public void set_schar (int8 v_char);
-		public void set_static_string (string v_string);
-		public void set_string (string v_string);
+		public void set_static_string (string? v_string);
+		public void set_string (string? v_string);
 		public void set_uchar (uchar v_uchar);
 		public void set_uint (uint v_uint);
 		public void set_uint64 (uint64 v_uint64);
 		public void set_ulong (ulong v_ulong);
+		[Version (since = "2.26")]
+		public void set_variant (GLib.Variant? variant);
 		[CCode (cname = "g_strdup_value_contents")]
 		public string strdup_contents ();
-		public void take_object (owned GLib.Object v_object);
-		public void take_param (owned GLib.ParamSpec param);
-		public void take_string (owned string v_string);
+		public void take_boxed (owned void* v_boxed);
+		public void take_object (owned GLib.Object? v_object);
+		public void take_param (owned GLib.ParamSpec? param);
+		public void take_string (owned string? v_string);
 		[Version (since = "2.26")]
 		public void take_variant (owned GLib.Variant? variant);
 		public bool transform (ref GLib.Value dest_value);
@@ -732,7 +812,9 @@ namespace GLib {
 		ACTION,
 		NO_HOOKS,
 		MUST_COLLECT,
-		DEPRECATED
+		DEPRECATED,
+		[CCode (cname = "G_SIGNAL_FLAGS_MASK")]
+		MASK
 	}
 	[CCode (cprefix = "G_SIGNAL_MATCH_", has_type_id = false)]
 	public enum SignalMatchType {
@@ -741,7 +823,8 @@ namespace GLib {
 		CLOSURE,
 		FUNC,
 		DATA,
-		UNBLOCKED
+		UNBLOCKED,
+		MASK
 	}
 	[CCode (cprefix = "G_TYPE_DEBUG_", has_type_id = false)]
 	[Flags]
@@ -801,6 +884,12 @@ namespace GLib {
 	public delegate void ObjectFinalizeFunc (GLib.Object object);
 	[CCode (has_target = false)]
 	public delegate void ObjectSetPropertyFunc (GLib.Object object, uint property_id, GLib.Value value, GLib.ParamSpec pspec);
+	[CCode (has_target = false)]
+	public delegate bool SignalAccumulator (GLib.SignalInvocationHint ihint, GLib.Value return_accu, GLib.Value handler_return, void* data);
+	[CCode (has_target = false)]
+	public delegate void SignalCMarshaller (GLib.Closure closure, GLib.Value? return_value, [CCode (array_length_cname = "n_param_values", array_length_pos = 2.5, array_length_type = "guint")] GLib.Value[] param_values, void* invocation_hint, void* marshal_data);
+	[CCode (has_target = false)]
+	public delegate void SignalCVaMarshaller (GLib.Closure closure, GLib.Value? return_value, GLib.TypeInstance instance, va_list args, void* marshal_data, [CCode (array_length_cname = "n_params", array_length_pos = 5.5)] GLib.Type[] param_types);
 	public delegate bool SignalEmissionHook (GLib.SignalInvocationHint ihint, [CCode (array_length_pos = 1.9, array_length_type = "guint")] GLib.Value[] param_values);
 	[CCode (instance_pos = 0)]
 	public delegate void ToggleNotify (GLib.Object object, bool is_last_ref);
@@ -810,4 +899,6 @@ namespace GLib {
 	public delegate void ValueTransform (GLib.Value src_value, ref GLib.Value dest_value);
 	[CCode (instance_pos = 0)]
 	public delegate void WeakNotify (GLib.Object object);
+	public static void source_set_closure (GLib.Source source, GLib.Closure closure);
+	public static void source_set_dummy_callback (GLib.Source source);
 }

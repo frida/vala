@@ -31,9 +31,9 @@ public class Vala.CodeWriter : CodeVisitor {
 	static GLib.Regex fix_indent_regex;
 
 	private CodeContext context;
-	
+
 	FileStream stream;
-	
+
 	int indent;
 	/* at begin of line */
 	bool bol = true;
@@ -214,7 +214,13 @@ public class Vala.CodeWriter : CodeVisitor {
 			}
 
 			if (header_to_override != null) {
-				cheaders = cheaders.replace (header_to_override, override_header).replace (",,", ",");
+				var cheaders_array = cheaders.split (",");
+				for (int i = 0; i < cheaders_array.length; i++) {
+					if (cheaders_array[i] == header_to_override) {
+						cheaders_array[i] = override_header;
+					}
+				}
+				cheaders = string.joinv (",", cheaders_array);
 			}
 		}
 		return cheaders;
@@ -234,7 +240,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		}
 
 		write_attributes (cl);
-		
+
 		write_indent ();
 		write_accessibility (cl);
 		if (cl.is_abstract) {
@@ -248,7 +254,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		var base_types = cl.get_base_types ();
 		if (base_types.size > 0) {
 			write_string (" : ");
-		
+
 			bool first = true;
 			foreach (DataType base_type in base_types) {
 				if (!first) {
@@ -386,7 +392,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		var prerequisites = iface.get_prerequisites ();
 		if (prerequisites.size > 0) {
 			write_string (" : ");
-		
+
 			bool first = true;
 			foreach (DataType prerequisite in prerequisites) {
 				if (!first) {
@@ -559,7 +565,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		write_string ("const ");
 
 		write_type (c.type_reference);
-			
+
 		write_string (" ");
 		write_identifier (c.name);
 		write_type_suffix (c.type_reference);
@@ -600,14 +606,14 @@ public class Vala.CodeWriter : CodeVisitor {
 		}
 
 		write_type (f.variable_type);
-			
+
 		write_string (" ");
 		write_identifier (f.name);
 		write_type_suffix (f.variable_type);
 		write_string (";");
 		write_newline ();
 	}
-	
+
 	private void write_error_domains (List<DataType> error_domains) {
 		if (error_domains.size > 0) {
 			write_string (" throws ");
@@ -633,12 +639,12 @@ public class Vala.CodeWriter : CodeVisitor {
 			if (i > 1) {
 				write_string (", ");
 			}
-			
+
 			if (param.ellipsis) {
 				write_string ("...");
 				continue;
 			}
-			
+
 			write_attributes (param);
 
 			if (param.params_array) {
@@ -665,7 +671,7 @@ public class Vala.CodeWriter : CodeVisitor {
 			write_string (" ");
 			write_identifier (param.name);
 			write_type_suffix (param.variable_type);
-			
+
 			if (param.initializer != null) {
 				write_string (" = ");
 				param.initializer.accept (this);
@@ -696,16 +702,16 @@ public class Vala.CodeWriter : CodeVisitor {
 
 		write_accessibility (cb);
 		write_string ("delegate ");
-		
+
 		write_return_type (cb.return_type);
-		
+
 		write_string (" ");
 		write_identifier (cb.name);
 
 		write_type_parameters (cb.get_type_parameters ());
 
 		write_string (" ");
-		
+
 		write_params (cb.get_parameters ());
 
 		write_error_domains (cb.get_error_types ());
@@ -750,7 +756,7 @@ public class Vala.CodeWriter : CodeVisitor {
 
 		write_indent ();
 		write_accessibility (m);
-		
+
 		if (m is CreationMethod) {
 			if (m.coroutine) {
 				write_string ("async ");
@@ -783,7 +789,7 @@ public class Vala.CodeWriter : CodeVisitor {
 			if (m.coroutine) {
 				write_string ("async ");
 			}
-		
+
 			write_return_type (m.return_type);
 			write_string (" ");
 
@@ -793,7 +799,7 @@ public class Vala.CodeWriter : CodeVisitor {
 
 			write_string (" ");
 		}
-		
+
 		write_params (m.get_parameters ());
 
 		write_error_domains (m.get_error_types ());
@@ -873,13 +879,13 @@ public class Vala.CodeWriter : CodeVisitor {
 		if (!check_accessibility (sig)) {
 			return;
 		}
-		
+
 		if (context.vapi_comments && sig.comment != null) {
 			write_comment (sig.comment);
 		}
 
 		write_attributes (sig);
-		
+
 		write_indent ();
 		write_accessibility (sig);
 
@@ -888,14 +894,14 @@ public class Vala.CodeWriter : CodeVisitor {
 		}
 
 		write_string ("signal ");
-		
+
 		write_return_type (sig.return_type);
-		
+
 		write_string (" ");
 		write_identifier (sig.name);
-		
+
 		write_string (" ");
-		
+
 		write_params (sig.get_parameters ());
 
 		write_string (";");
@@ -1229,7 +1235,7 @@ public class Vala.CodeWriter : CodeVisitor {
 
 		write_string (")");
 	}
-	
+
 	public override void visit_element_access (ElementAccess expr) {
 		expr.container.accept (this);
 		write_string ("[");
@@ -1524,13 +1530,13 @@ public class Vala.CodeWriter : CodeVisitor {
 		write_string (fixed_content);
 		write_string ("*/");
 	}
-	
+
 	private void write_identifier (string s) {
 		char* id = (char*)s;
 		int id_length = (int)s.length;
 		if (Vala.Scanner.get_identifier_or_keyword (id, id_length) != Vala.TokenType.IDENTIFIER ||
 		    s.get_char ().isdigit ()) {
-			stream.putc ('@'); 
+			stream.putc ('@');
 		}
 		write_string (s);
 	}
@@ -1560,12 +1566,12 @@ public class Vala.CodeWriter : CodeVisitor {
 		stream.puts (s);
 		bol = false;
 	}
-	
+
 	private void write_newline () {
 		stream.putc ('\n');
 		bol = true;
 	}
-	
+
 	void write_code_block (Block? block) {
 		if (block == null || type != CodeWriterType.DUMP) {
 			write_string (";");
@@ -1585,7 +1591,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		write_newline ();
 		indent++;
 	}
-	
+
 	private void write_end_block () {
 		indent--;
 		write_indent ();

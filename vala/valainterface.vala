@@ -28,54 +28,7 @@ using GLib;
 public class Vala.Interface : ObjectTypeSymbol {
 	private List<DataType> prerequisites = new ArrayList<DataType> ();
 
-	private List<Method> methods = new ArrayList<Method> ();
-	private List<Field> fields = new ArrayList<Field> ();
-	private List<Constant> constants = new ArrayList<Constant> ();
-	private List<Property> properties = new ArrayList<Property> ();
-	private List<Signal> signals = new ArrayList<Signal> ();
 	private List<Symbol> virtuals = new ArrayList<Symbol> ();
-
-	// inner types
-	private List<Class> classes = new ArrayList<Class> ();
-	private List<Struct> structs = new ArrayList<Struct> ();
-	private List<Enum> enums = new ArrayList<Enum> ();
-	private List<Delegate> delegates = new ArrayList<Delegate> ();
-
-	/**
-	 * Returns a copy of the list of classes.
-	 *
-	 * @return list of classes
-	 */
-	public List<Class> get_classes () {
-		return classes;
-	}
-
-	/**
-	 * Returns a copy of the list of structs.
-	 *
-	 * @return list of structs
-	 */
-	public List<Struct> get_structs () {
-		return structs;
-	}
-
-	/**
-	 * Returns a copy of the list of enums.
-	 *
-	 * @return list of enums
-	 */
-	public List<Enum> get_enums () {
-		return enums;
-	}
-
-	/**
-	 * Returns a copy of the list of delegates.
-	 *
-	 * @return list of delegates
-	 */
-	public List<Delegate> get_delegates () {
-		return delegates;
-	}
 
 	/**
 	 * Creates a new interface.
@@ -117,7 +70,7 @@ public class Vala.Interface : ObjectTypeSymbol {
 	public List<DataType> get_prerequisites () {
 		return prerequisites;
 	}
-	
+
 	/**
 	 * Adds the specified method as a member to this interface.
 	 *
@@ -126,7 +79,7 @@ public class Vala.Interface : ObjectTypeSymbol {
 	public override void add_method (Method m) {
 		if (m is CreationMethod) {
 			Report.error (m.source_reference, "construction methods may only be declared within classes and structs");
-		
+
 			m.error = true;
 			return;
 		}
@@ -139,56 +92,7 @@ public class Vala.Interface : ObjectTypeSymbol {
 			m.result_var.is_result = true;
 		}
 
-		methods.add (m);
-		scope.add (m.name, m);
-	}
-	
-	/**
-	 * Returns a copy of the list of methods.
-	 *
-	 * @return list of methods
-	 */
-	public override List<Method> get_methods () {
-		return methods;
-	}
-	
-	/**
-	 * Adds the specified field as a member to this interface. The field
-	 * must be private and static.
-	 *
-	 * @param f a field
-	 */
-	public override void add_field (Field f) {
-		fields.add (f);
-		scope.add (f.name, f);
-	}
-
-	/**
-	 * Returns a copy of the list of fields.
-	 *
-	 * @return list of fields
-	 */
-	public List<Field> get_fields () {
-		return fields;
-	}
-
-	/**
-	 * Adds the specified constant as a member to this interface.
-	 *
-	 * @param c a constant
-	 */
-	public override void add_constant (Constant c) {
-		constants.add (c);
-		scope.add (c.name, c);
-	}
-
-	/**
-	 * Returns a copy of the list of constants.
-	 *
-	 * @return list of constants
-	 */
-	public List<Constant> get_constants () {
-		return constants;
+		base.add_method (m);
 	}
 
 	/**
@@ -204,83 +108,14 @@ public class Vala.Interface : ObjectTypeSymbol {
 			return;
 		}
 
-		properties.add (prop);
-		scope.add (prop.name, prop);
+		base.add_property (prop);
 
 		prop.this_parameter = new Parameter ("this", new ObjectType (this));
 		prop.scope.add (prop.this_parameter.name, prop.this_parameter);
 	}
-	
-	/**
-	 * Returns a copy of the list of properties.
-	 *
-	 * @return list of properties
-	 */
-	public override List<Property> get_properties () {
-		return properties;
-	}
-	
-	/**
-	 * Adds the specified signal as a member to this interface.
-	 *
-	 * @param sig a signal
-	 */
-	public override void add_signal (Signal sig) {
-		signals.add (sig);
-		scope.add (sig.name, sig);
-	}
-	
-	/**
-	 * Returns a copy of the list of signals.
-	 *
-	 * @return list of signals
-	 */
-	public override List<Signal> get_signals () {
-		return signals;
-	}
 
 	public virtual List<Symbol> get_virtuals () {
 		return virtuals;
-	}
-
-	/**
-	 * Adds the specified class as an inner class.
-	 *
-	 * @param cl a class
-	 */
-	public override void add_class (Class cl) {
-		classes.add (cl);
-		scope.add (cl.name, cl);
-	}
-
-	/**
-	 * Adds the specified struct as an inner struct.
-	 *
-	 * @param st a struct
-	 */
-	public override void add_struct (Struct st) {
-		structs.add (st);
-		scope.add (st.name, st);
-	}
-
-	/**
-	 * Adds the specified enum as an inner enum.
-	 *
-	 * @param en an enum
-	 */
-	public override void add_enum (Enum en) {
-		enums.add (en);
-		scope.add (en.name, en);
-	}
-
-	/**
-	 * Adds the specified delegate as an inner delegate.
-	 *
-	 * @param d a delegate
-	 */
-	public override void add_delegate (Delegate d) {
-		delegates.add (d);
-		scope.add (d.name, d);
 	}
 
 	public override void accept (CodeVisitor visitor) {
@@ -297,39 +132,39 @@ public class Vala.Interface : ObjectTypeSymbol {
 		}
 
 		/* process enums first to avoid order problems in C code */
-		foreach (Enum en in enums) {
+		foreach (Enum en in get_enums ()) {
 			en.accept (visitor);
 		}
 
-		foreach (Method m in methods) {
+		foreach (Method m in get_methods ()) {
 			m.accept (visitor);
 		}
-		
-		foreach (Field f in fields) {
+
+		foreach (Field f in get_fields ()) {
 			f.accept (visitor);
 		}
 
-		foreach (Constant c in constants) {
+		foreach (Constant c in get_constants ()) {
 			c.accept (visitor);
 		}
 
-		foreach (Property prop in properties) {
+		foreach (Property prop in get_properties ()) {
 			prop.accept (visitor);
 		}
-		
-		foreach (Signal sig in signals) {
+
+		foreach (Signal sig in get_signals ()) {
 			sig.accept (visitor);
 		}
-		
-		foreach (Class cl in classes) {
+
+		foreach (Class cl in get_classes ()) {
 			cl.accept (visitor);
 		}
-		
-		foreach (Struct st in structs) {
+
+		foreach (Struct st in get_structs ()) {
 			st.accept (visitor);
 		}
 
-		foreach (Delegate d in delegates) {
+		foreach (Delegate d in get_delegates ()) {
 			d.accept (visitor);
 		}
 	}
@@ -337,7 +172,7 @@ public class Vala.Interface : ObjectTypeSymbol {
 	public override bool is_reference_type () {
 		return true;
 	}
-	
+
 	public override bool is_subtype_of (TypeSymbol t) {
 		if (this == t) {
 			return true;
@@ -348,10 +183,10 @@ public class Vala.Interface : ObjectTypeSymbol {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	public override void replace_type (DataType old_type, DataType new_type) {
 		for (int i = 0; i < prerequisites.size; i++) {
 			if (prerequisites[i] == old_type) {
@@ -422,48 +257,72 @@ public class Vala.Interface : ObjectTypeSymbol {
 			p.check (context);
 		}
 
-		foreach (Enum en in enums) {
+		foreach (Enum en in get_enums ()) {
 			en.check (context);
 		}
 
-		foreach (Method m in methods) {
-			m.check (context);
-			if (m.is_virtual || m.is_abstract) {
-				virtuals.add (m);
-			}
-		}
-
-		foreach (Field f in fields) {
+		foreach (Field f in get_fields ()) {
 			f.check (context);
 		}
 
-		foreach (Constant c in constants) {
+		foreach (Constant c in get_constants ()) {
 			c.check (context);
 		}
 
-		foreach (Signal sig in signals) {
-			sig.check (context);
-			if (sig.is_virtual) {
-				virtuals.add (sig);
+		if (context.abi_stability) {
+			foreach (Symbol s in get_members ()) {
+				if (s is Method) {
+					var m = (Method) s;
+					m.check (context);
+					if (m.is_virtual || m.is_abstract) {
+						virtuals.add (m);
+					}
+				} else if (s is Signal) {
+					var sig = (Signal) s;
+					sig.check (context);
+					if (sig.is_virtual) {
+						virtuals.add (sig);
+					}
+				} else if (s is Property) {
+					var prop = (Property) s;
+					prop.check (context);
+					if (prop.is_virtual || prop.is_abstract) {
+						virtuals.add (prop);
+					}
+				}
+			}
+		} else {
+			foreach (Method m in get_methods ()) {
+				m.check (context);
+				if (m.is_virtual || m.is_abstract) {
+					virtuals.add (m);
+				}
+			}
+
+			foreach (Signal sig in get_signals ()) {
+				sig.check (context);
+				if (sig.is_virtual) {
+					virtuals.add (sig);
+				}
+			}
+
+			foreach (Property prop in get_properties ()) {
+				prop.check (context);
+				if (prop.is_virtual || prop.is_abstract) {
+					virtuals.add (prop);
+				}
 			}
 		}
 
-		foreach (Property prop in properties) {
-			prop.check (context);
-			if (prop.is_virtual || prop.is_abstract) {
-				virtuals.add (prop);
-			}
-		}
-
-		foreach (Class cl in classes) {
+		foreach (Class cl in get_classes ()) {
 			cl.check (context);
 		}
 
-		foreach (Struct st in structs) {
+		foreach (Struct st in get_structs ()) {
 			st.check (context);
 		}
 
-		foreach (Delegate d in delegates) {
+		foreach (Delegate d in get_delegates ()) {
 			d.check (context);
 		}
 

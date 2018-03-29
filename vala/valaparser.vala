@@ -76,10 +76,11 @@ public class Vala.Parser : CodeVisitor {
 	public void parse (CodeContext context) {
 		this.context = context;
 		context.accept (this);
+		this.context = null;
 	}
 
 	public override void visit_source_file (SourceFile source_file) {
-		if (context.run_output || source_file.filename.has_suffix (".vala") || source_file.filename.has_suffix (".vapi")) {
+		if ((context != null && context.run_output) || source_file.filename.has_suffix (".vala") || source_file.filename.has_suffix (".vapi")) {
 			parse_file (source_file);
 		}
 	}
@@ -321,12 +322,17 @@ public class Vala.Parser : CodeVisitor {
 	}
 
 	public void parse_file (SourceFile source_file) {
+		var has_global_context = (context != null);
+		if (!has_global_context) {
+			context = source_file.context;
+		}
+
 		scanner = new Scanner (source_file);
 		parse_file_comments ();
 
 		index = -1;
 		size = 0;
-		
+
 		next ();
 
 
@@ -342,8 +348,11 @@ public class Vala.Parser : CodeVisitor {
 		} catch (ParseError e) {
 			report_parse_error (e);
 		}
-		
+
 		scanner = null;
+		if (!has_global_context) {
+			context = null;
+		}
 	}
 
 	void parse_file_comments () {
@@ -397,7 +406,7 @@ public class Vala.Parser : CodeVisitor {
 			}
 			accept (TokenType.INTERR);
 		}
-		
+
 		while (accept (TokenType.OPEN_BRACKET)) {
 			do {
 				// required for decision between expression and declaration statement
@@ -414,12 +423,12 @@ public class Vala.Parser : CodeVisitor {
 
 	bool is_inner_array_type () {
 		var begin = get_location ();
-		
+
 		var result = accept (TokenType.OPEN_PARENS) && accept (TokenType.UNOWNED) && current() != TokenType.CLOSE_PARENS;
 		rollback (begin);
 		return result;
 	}
-	
+
 	DataType parse_type (bool owned_by_default, bool can_weak_ref, bool require_unowned = false) throws ParseError {
 		var begin = get_location ();
 
@@ -438,9 +447,18 @@ public class Vala.Parser : CodeVisitor {
 						Report.warning (get_last_src (), "deprecated syntax, use `unowned` modifier");
 					}
 					value_owned = false;
+				} else if (accept (TokenType.OWNED)) {
+					Report.warning (get_last_src (), "`owned' is default in this context");
 				}
 			} else {
-				value_owned = accept (TokenType.OWNED);
+				if (accept (TokenType.OWNED)) {
+					value_owned = true;
+				} else {
+					value_owned = false;
+					if (accept (TokenType.UNOWNED)) {
+						Report.warning (get_last_src (), "`unowned' is default in this context");
+					}
+				}
 			}
 		}
 
@@ -450,7 +468,7 @@ public class Vala.Parser : CodeVisitor {
 		if (accept (TokenType.OPEN_PARENS)) {
 			type = parse_type (false, false, true);
 			expect (TokenType.CLOSE_PARENS);
-			
+
 			inner_type_owned = false;
 
 			expect (TokenType.OPEN_BRACKET);
@@ -461,7 +479,7 @@ public class Vala.Parser : CodeVisitor {
 			} else {
 				var sym = parse_symbol_name ();
 				List<DataType> type_arg_list = parse_type_argument_list (false);
-				
+
 				type = new UnresolvedType.from_symbol (sym, get_src (begin));
 				if (type_arg_list != null) {
 					foreach (DataType type_arg in type_arg_list) {
@@ -469,7 +487,7 @@ public class Vala.Parser : CodeVisitor {
 					}
 				}
 			}
-			
+
 			while (accept (TokenType.STAR)) {
 				type = new PointerType (type, get_src (begin));
 			}
@@ -478,7 +496,7 @@ public class Vala.Parser : CodeVisitor {
 				type.nullable = accept (TokenType.INTERR);
 			}
 		}
-			
+
 		// array brackets in types are read from right to left,
 		// this is more logical, especially when nullable arrays
 		// or pointers are involved
@@ -896,7 +914,7 @@ public class Vala.Parser : CodeVisitor {
 			expect (TokenType.OPEN_PARENS);
 			expect (TokenType.UNOWNED);
 		}
-		
+
 		var member = parse_member_name ();
 		DataType element_type = UnresolvedType.new_from_expression (member);
 		bool is_pointer_type = false;
@@ -909,14 +927,14 @@ public class Vala.Parser : CodeVisitor {
 				element_type.nullable = true;
 			}
 		}
-		
+
 		if (inner_array_type) {
 			expect (TokenType.CLOSE_PARENS);
 			element_type.value_owned = false;
 		} else {
 			element_type.value_owned = true;
 		}
-		
+
 		expect (TokenType.OPEN_BRACKET);
 
 		bool size_specified = false;
@@ -1102,17 +1120,17 @@ public class Vala.Parser : CodeVisitor {
 						case TokenType.IDENTIFIER:
 						case TokenType.PARAMS:
 							var inner = parse_unary_expression ();
-							return new CastExpression (inner, type, get_src (begin), false);
+							return new CastExpression (inner, type, get_src (begin));
 						case TokenType.STAR:
 							next ();
 							var op = parse_unary_expression ();
 							var inner = new PointerIndirection (op, get_src (begin));
-							return new CastExpression (inner, type, get_src (begin), false);
+							return new CastExpression (inner, type, get_src (begin));
 						case TokenType.BITWISE_AND:
 							next ();
 							var op = parse_unary_expression ();
 							var inner = new AddressofExpression (op, get_src (begin));
-							return new CastExpression (inner, type, get_src (begin), false);
+							return new CastExpression (inner, type, get_src (begin));
 						default:
 							break;
 						}
@@ -1256,10 +1274,10 @@ public class Vala.Parser : CodeVisitor {
 			case BinaryOperator.GREATER_THAN_OR_EQUAL:
 				next ();
 				var right = parse_shift_expression ();
-				left = new BinaryExpression (operator, left, right, get_src (begin));
-				if (!first) {
-					var be = (BinaryExpression) left;
-					be.chained = true;
+				if (first) {
+					left = new BinaryExpression (operator, left, right, get_src (begin));
+				} else {
+					left = new BinaryExpression.chained (operator, left, right, get_src (begin));
 				}
 				first = false;
 				break;
@@ -1268,10 +1286,10 @@ public class Vala.Parser : CodeVisitor {
 				// ignore >> and >>= (two tokens due to generics)
 				if (current () != TokenType.OP_GT && current () != TokenType.OP_GE) {
 					var right = parse_shift_expression ();
-					left = new BinaryExpression (operator, left, right, get_src (begin));
-					if (!first) {
-						var be = (BinaryExpression) left;
-						be.chained = true;
+					if (first) {
+						left = new BinaryExpression (operator, left, right, get_src (begin));
+					} else {
+						left = new BinaryExpression.chained (operator, left, right, get_src (begin));
 					}
 					first = false;
 				} else {
@@ -1289,7 +1307,7 @@ public class Vala.Parser : CodeVisitor {
 				case TokenType.AS:
 					next ();
 					var type = parse_type (true, false);
-					left = new CastExpression (left, type, get_src (begin), true);
+					left = new CastExpression.silent (left, type, get_src (begin));
 					break;
 				default:
 					found = false;
@@ -1606,7 +1624,7 @@ public class Vala.Parser : CodeVisitor {
 		if (current () == TokenType.OPEN_PARENS) {
 			return !is_inner_array_type ();
 		}
-		
+
 		var begin = get_location ();
 
 		// decide between declaration and expression statement
@@ -1898,6 +1916,10 @@ public class Vala.Parser : CodeVisitor {
 			do {
 				if (accept (TokenType.CASE)) {
 					section.add_label (new SwitchLabel (parse_expression (), get_src (begin)));
+					while (current () == TokenType.COMMA) {
+						expect (TokenType.COMMA);
+						section.add_label (new SwitchLabel (parse_expression (), get_src (begin)));
+					}
 				} else {
 					expect (TokenType.DEFAULT);
 					section.add_label (new SwitchLabel.with_default (get_src (begin)));
@@ -2209,17 +2231,17 @@ public class Vala.Parser : CodeVisitor {
 	void parse_declaration (Symbol parent, bool root = false) throws ParseError {
 		comment = scanner.pop_comment ();
 		var attrs = parse_attributes ();
-		
+
 		var begin = get_location ();
-		
+
 		TokenType last_keyword = current ();
-		
+
 		while (is_declaration_keyword (current ())) {
 			last_keyword = current ();
 			next ();
 		}
-	
-		switch (current ()) {	
+
+		switch (current ()) {
 		case TokenType.CONSTRUCT:
 			rollback (begin);
 			parse_constructor_declaration (parent, attrs);
@@ -2807,7 +2829,14 @@ public class Vala.Parser : CodeVisitor {
 				var accessor_access = parse_access_modifier (SymbolAccessibility.PUBLIC);
 
 				var value_type = type.copy ();
-				value_type.value_owned = accept (TokenType.OWNED);
+				if (accept (TokenType.OWNED)) {
+					value_type.value_owned = true;
+				} else {
+					value_type.value_owned = false;
+					if (accept (TokenType.UNOWNED)) {
+						Report.warning (get_last_src (), "property getters are `unowned' by default");
+					}
+				}
 
 				if (accept (TokenType.GET)) {
 					if (prop.get_accessor != null) {

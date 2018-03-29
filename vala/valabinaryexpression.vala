@@ -31,7 +31,7 @@ public class Vala.BinaryExpression : Expression {
 	 * The binary operator.
 	 */
 	public BinaryOperator operator { get; set; }
-	
+
 	/**
 	 * The left operand.
 	 */
@@ -44,7 +44,7 @@ public class Vala.BinaryExpression : Expression {
 			_left.parent_node = this;
 		}
 	}
-	
+
 	/**
 	 * The right operand.
 	 */
@@ -57,12 +57,12 @@ public class Vala.BinaryExpression : Expression {
 			_right.parent_node = this;
 		}
 	}
-	
-	public bool chained;
+
+	public bool is_chained { get; private set; }
 
 	private Expression _left;
 	private Expression _right;
-	
+
 	/**
 	 * Creates a new binary expression.
 	 *
@@ -76,6 +76,15 @@ public class Vala.BinaryExpression : Expression {
 		operator = op;
 		left = _left;
 		right = _right;
+		is_chained = false;
+		source_reference = source;
+	}
+
+	public BinaryExpression.chained (BinaryOperator op, Expression _left, Expression _right, SourceReference? source = null) {
+		operator = op;
+		left = _left;
+		right = _right;
+		is_chained = true;
 		source_reference = source;
 	}
 
@@ -87,7 +96,7 @@ public class Vala.BinaryExpression : Expression {
 
 	public override void accept_children (CodeVisitor visitor) {
 		left.accept (visitor);
-		right.accept (visitor);			
+		right.accept (visitor);
 	}
 
 	public override void replace_expression (Expression old_node, Expression new_node) {
@@ -238,7 +247,7 @@ public class Vala.BinaryExpression : Expression {
 			} else if (right.value_type != null) {
 				local_type = right.value_type.copy ();
 			}
-		
+
 			var local = new LocalVariable (local_type, get_temp_name (), left, source_reference);
 			var decl = new DeclarationStatement (local, source_reference);
 
@@ -277,6 +286,24 @@ public class Vala.BinaryExpression : Expression {
 			parent_node.replace_expression (this, replace_expr);
 
 			return true;
+		}
+
+		// enum-type inference
+		if (target_type != null && target_type.data_type is Enum
+		    && (operator == BinaryOperator.BITWISE_AND || operator == BinaryOperator.BITWISE_OR)) {
+			left.target_type = target_type.copy ();
+			right.target_type = target_type.copy ();
+		}
+		left.check (context);
+		if (left.value_type != null && left.value_type.data_type is Enum
+		    && (operator == BinaryOperator.EQUALITY || operator == BinaryOperator.INEQUALITY)) {
+			right.target_type = left.value_type.copy ();
+		}
+		right.check (context);
+		if (right.value_type != null && right.value_type.data_type is Enum
+		    && (operator == BinaryOperator.EQUALITY || operator == BinaryOperator.INEQUALITY)) {
+			left.target_type = right.value_type.copy ();
+			//TODO bug 666035 -- re-check left how?
 		}
 
 		if (!left.check (context) || !right.check (context)) {
@@ -407,7 +434,7 @@ public class Vala.BinaryExpression : Expression {
 			} else {
 				DataType resulting_type;
 
-				if (chained) {
+				if (is_chained) {
 					var lbe = (BinaryExpression) left;
 					resulting_type = context.analyzer.get_arithmetic_result_type (lbe.right.target_type, right.target_type);
 				} else {
@@ -420,7 +447,7 @@ public class Vala.BinaryExpression : Expression {
 					return false;
 				}
 
-				if (!chained) {
+				if (!is_chained) {
 					left.target_type = resulting_type.copy ();
 				}
 				right.target_type = resulting_type.copy ();
@@ -512,9 +539,9 @@ public class Vala.BinaryExpression : Expression {
 				parent_node.replace_expression (this, contains_call);
 				return contains_call.check (context);
 			}
-			
+
 			value_type = context.analyzer.bool_type;
-			
+
 		} else {
 			assert_not_reached ();
 		}

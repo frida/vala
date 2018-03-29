@@ -27,10 +27,31 @@ topsrcdir=$srcdir/..
 vapidir=$topsrcdir/vapi
 run_prefix=""
 
-export G_DEBUG=fatal_warnings
-
 VALAC=$topbuilddir/compiler/valac$EXEEXT
-VALAFLAGS="$VALAFLAGS --vapidir $vapidir --disable-warnings --main main --save-temps -X -g -X -O0 -X -pipe -X -lm -X -DGETTEXT_PACKAGE=valac -X -Werror=return-type -X -Werror=init-self -X -Werror=implicit -X -Werror=sequence-point -X -Werror=return-type -X -Werror=uninitialized -X -Werror=pointer-arith -X -Werror=int-to-pointer-cast -X -Werror=pointer-to-int-cast -X -Wformat -X -Werror=format-security -X -Werror=format-nonliteral -X -Werror=redundant-decls -X -Werror=int-conversion"
+VALAFLAGS="$VALAFLAGS \
+	--vapidir $vapidir \
+	--disable-warnings \
+	--main main \
+	--save-temps \
+	-X -g \
+	-X -O0 \
+	-X -pipe \
+	-X -lm \
+	-X -DGETTEXT_PACKAGE=\"valac\" \
+	-X -Werror=return-type \
+	-X -Werror=init-self \
+	-X -Werror=implicit \
+	-X -Werror=sequence-point \
+	-X -Werror=return-type \
+	-X -Werror=uninitialized \
+	-X -Werror=pointer-arith \
+	-X -Werror=int-to-pointer-cast \
+	-X -Werror=pointer-to-int-cast \
+	-X -Wformat \
+	-X -Werror=format-security \
+	-X -Werror=format-nonliteral \
+	-X -Werror=redundant-decls \
+	-X -Werror=int-conversion"
 VAPIGEN=$topbuilddir/vapigen/vapigen$EXEEXT
 VAPIGENFLAGS="--vapidir $vapidir"
 
@@ -99,7 +120,8 @@ EOF
 function sourceend() {
 	if [ -n "$testpath" ]; then
 		if [ $INVALIDCODE -eq 1 ]; then
-			echo "! $VALAC $VALAFLAGS -C $SOURCEFILE" > check
+			PACKAGEFLAGS=$([ -z "$PACKAGES" ] || echo $PACKAGES | xargs -n 1 echo -n " --pkg")
+			echo "! $VALAC $VALAFLAGS $PACKAGEFLAGS -C $SOURCEFILE" > check
 		elif [ $GIRTEST -eq 1 ]; then
 			if [ $PART -eq 1 ]; then
 				echo "  </namespace>" >> $SOURCEFILE
@@ -149,7 +171,7 @@ for testfile in "$@"; do
 		cat "$srcdir/$testfile" >> $SOURCEFILE
 		echo "}" >> $SOURCEFILE
 
-		echo "./test$EXEEXT /$testpath" > check
+		echo "G_DEBUG=fatal-warnings ./test$EXEEXT /$testpath" > check
 		;;
 	*.test)
 		PART=0

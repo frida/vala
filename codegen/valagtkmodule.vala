@@ -23,6 +23,8 @@
 
 
 public class Vala.GtkModule : GSignalModule {
+	/* C type-func name to Vala class mapping */
+	private HashMap<string, Class> type_id_to_vala_map = null;
 	/* C class name to Vala class mapping */
 	private HashMap<string, Class> cclass_to_vala_map = null;
 	/* GResource name to real file name mapping */
@@ -33,6 +35,36 @@ public class Vala.GtkModule : GSignalModule {
 	private HashMap<string, Class> current_child_to_class_map = new HashMap<string, Class>(str_hash, str_equal);
 	/* Required custom application-specific gtype classes to be ref'd before initializing the template */
 	private List<Class> current_required_app_classes = new ArrayList<Class>();
+
+	private void ensure_type_id_to_vala_map () {
+		// map C type-func name of gtypeinstance classes to Vala classes
+		if (type_id_to_vala_map != null) {
+			return;
+		}
+		type_id_to_vala_map = new HashMap<string, Class>(str_hash, str_equal);
+		recurse_type_id_to_vala_map (context.root);
+	}
+
+	private void recurse_type_id_to_vala_map (Namespace ns) {
+		foreach (var cl in ns.get_classes()) {
+			if (!cl.is_compact) {
+				var type_id = get_ccode_type_id (cl);
+				if (type_id == null)
+					continue;
+
+				var i = type_id.index_of_char ('(');
+				if (i > 0) {
+					type_id = type_id.substring (0, i - 1).strip ();
+				} else {
+					type_id = type_id.strip ();
+				}
+				type_id_to_vala_map.set (type_id, cl);
+			}
+		}
+		foreach (var inner in ns.get_namespaces()) {
+			recurse_type_id_to_vala_map (inner);
+		}
+	}
 
 	private void ensure_cclass_to_vala_map () {
 		// map C name of gtypeinstance classes to Vala classes
@@ -65,7 +97,7 @@ public class Vala.GtkModule : GSignalModule {
 				Report.error (null, "GResources file `%s' does not exist".printf (gresource));
 				continue;
 			}
-			var gresource_dir = Path.get_dirname (gresource);
+
 			MarkupReader reader = new MarkupReader (gresource);
 
 			int state = 0;
@@ -81,7 +113,7 @@ public class Vala.GtkModule : GSignalModule {
 					state = 1;
 				} else if (state == 1 && current_token == MarkupTokenType.TEXT) {
 					var name = reader.content;
-					var filename = Path.build_filename (gresource_dir, name);
+					var filename = context.get_gresource_path (gresource, name);
 					if (alias != null) {
 						gresource_to_file_map.set (Path.build_filename (prefix, alias), filename);
 					}
@@ -96,6 +128,7 @@ public class Vala.GtkModule : GSignalModule {
 	private void process_current_ui_resource (string ui_resource, CodeNode node) {
 		/* Scan a single gtkbuilder file for signal handlers in <object> elements,
 		   and save an handler string -> Vala.Signal mapping for each of them */
+		ensure_type_id_to_vala_map ();
 		ensure_cclass_to_vala_map();
 		ensure_gresource_to_file_map();
 
@@ -104,7 +137,7 @@ public class Vala.GtkModule : GSignalModule {
 		var ui_file = gresource_to_file_map.get (ui_resource);
 		if (ui_file == null || !FileUtils.test (ui_file, FileTest.EXISTS)) {
 			node.error = true;
-			Report.error (node.source_reference, "UI resource not found: `%s'. Please make sure to specify the proper GResources xml files with --gresources.".printf (ui_resource));
+			Report.error (node.source_reference, "UI resource not found: `%s'. Please make sure to specify the proper GResources xml files with --gresources and alternative search locations with --gresourcesdir.".printf (ui_resource));
 			return;
 		}
 		current_handler_to_signal_map = new HashMap<string, Signal>(str_hash, str_equal);
@@ -116,20 +149,36 @@ public class Vala.GtkModule : GSignalModule {
 		bool template_tag_found = false;
 		MarkupTokenType current_token = reader.read_token (null, null);
 		while (current_token != MarkupTokenType.EOF) {
-			if (current_token == MarkupTokenType.START_ELEMENT && (reader.name == "template" || reader.name == "object")) {
-				if (reader.name == "template") {
+			unowned string current_name = reader.name;
+			if (current_token == MarkupTokenType.START_ELEMENT && (current_name == "object" || current_name == "template")) {
+				current_class = null;
+
+				if (current_name == "object") {
+					var type_id = reader.get_attribute ("type-func");
+					if (type_id != null) {
+						current_class = type_id_to_vala_map.get (type_id);
+					}
+				} else if (current_name == "template") {
 					template_tag_found = true;
 				}
-				var class_name = reader.get_attribute ("class");
-				if (class_name != null) {
-					current_class = cclass_to_vala_map.get (class_name);
 
+				if (current_class == null) {
+					var class_name = reader.get_attribute ("class");
+					if (class_name == null) {
+						Report.error (node.source_reference, "Invalid %s in ui file `%s'".printf (current_name, ui_file));
+						current_token = reader.read_token (null, null);
+						continue;
+					}
+					current_class = cclass_to_vala_map.get (class_name);
+				}
+
+				if (current_class != null) {
 					var child_name = reader.get_attribute ("id");
 					if (child_name != null) {
 						current_child_to_class_map.set (child_name, current_class);
 					}
 				}
-			} else if (current_class != null && current_token == MarkupTokenType.START_ELEMENT && reader.name == "signal") {
+			} else if (current_class != null && current_token == MarkupTokenType.START_ELEMENT && current_name == "signal") {
 				var signal_name = reader.get_attribute ("name");
 				var handler_name = reader.get_attribute ("handler");
 
@@ -144,7 +193,7 @@ public class Vala.GtkModule : GSignalModule {
 						// detailed signal, we don't care about the detail
 						signal_name = signal_name.substring (0, sep_idx);
 					}
-					
+
 					var sig = SemanticAnalyzer.symbol_lookup_inherited (current_class, signal_name.replace ("-", "_")) as Signal;
 					if (sig != null) {
 						current_handler_to_signal_map.set (handler_name, sig);
@@ -277,7 +326,7 @@ public class Vala.GtkModule : GSignalModule {
 		ccode.add_expression (call);
 
 		pop_context ();
-		
+
 		if (!field_class.external && !field_class.external_package) {
 			current_required_app_classes.add (field_class);
 		}
@@ -311,7 +360,7 @@ public class Vala.GtkModule : GSignalModule {
 			var signal_type = new SignalType (sig);
 			var delegate_type = signal_type.get_handler_type ();
 			if (!method_type.compatible (delegate_type)) {
-				Report.error (m.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'".printf (method_type.to_string (), delegate_type.to_string (), delegate_type.delegate_symbol.get_prototype_string (m.name)));
+				Report.error (m.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'".printf (method_type.to_string (), delegate_type.to_string (), delegate_type.to_prototype_string (m.name)));
 			} else {
 				var wrapper = generate_delegate_wrapper (m, signal_type.get_handler_type (), m);
 
@@ -338,7 +387,7 @@ public class Vala.GtkModule : GSignalModule {
 			call.add_argument (get_type_id_expression (SemanticAnalyzer.get_data_type_for_symbol (req)));
 			ccode.add_expression (call);
 		}
-		
+
 		var call = new CCodeFunctionCall (new CCodeIdentifier ("gtk_widget_init_template"));
 		call.add_argument (new CCodeIdentifier ("GTK_WIDGET (self)"));
 		ccode.add_expression (call);

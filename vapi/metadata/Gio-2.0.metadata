@@ -91,6 +91,7 @@ DataInputStream
   .read_* throws="GLib.IOError"
   .read_line* nullable
   .read_line_finish_utf8 skip
+  .read_line_utf8.length default=null
 DataOutputStream
   .put_* throws="GLib.IOError"
 DBusAuthObserver.authorize_authenticated_peer virtual
@@ -124,6 +125,7 @@ DBusServer
 Drive
   .get_sort_key#virtual_method virtual
 File
+  .load_bytes.etag_out default=null
   .load_contents.cancellable#parameter default=()
   .monitor_dir* throws="GLib.IOError"
   .monitor_file throws="GLib.IOError"
@@ -151,7 +153,7 @@ InputStream
   .skip_finish throws="GLib.IOError"
 ListModel
   .get_item#virtual_method skip
-  .get_item#method skip=false abstract
+  .get_item#method skip=false abstract type="GLib.Object?"
 ListStore
   .insert_sorted.compare_func type_arguments="GLib.Object"
   .sort.compare_func type_arguments="GLib.Object"
@@ -226,6 +228,8 @@ Subprocess
   .new.error skip
   .new.argv0 skip
   .communicate*.cancellable#parameter default=()
+SubprocessLauncher
+  .set_child_setup skip=false
 Task
   .attach_source skip=false
   .attach_source.callback type="TaskSourceFunc"
@@ -257,13 +261,16 @@ ZlibCompressor
 Converter
   .convert.outbuf type="uint8[]" array_length_idx=3
 File
-  .copy_async skip=false
+  // FIXME: gir-parser gets confused by async *and* notified callbacks at the same time
+  .copy_async skip
+  .copy_finish skip
   .copy*.progress_callback default=null
   .get_basename nullable
   .get_parent nullable
   .get_path nullable
   .get_relative_path nullable
-  .load_partial_contents_async skip=false
+  .load_partial_contents_async skip
+  .load_partial_contents_finish skip
   .move.progress_callback default=null
 Icon
   .new_for_string nullable
@@ -317,13 +324,13 @@ AsyncInitable
   .new* skip
   .init_async#virtual_method virtual
 
+// Bug #684358: GDBusConnection `closed` signal conficts with property
+DBusConnection
+  .closed#signal name="on_closed"
+
 // Bug #666797: No support for generic methods in GIR parser
 DBusConnection
   .register_object skip
-
-// Bug #684358: GDBusConnection `closed` signal is not exposed
-DBusConnection
-  .closed#property skip
 
 // Bug #: Reparenting instance method breaks arguments
 Socket
@@ -380,6 +387,8 @@ ActionGroup
   .get_action* nullable
   .get_action_enabled nullable=false
   .get_action_state_type unowned
+Application
+  .set_default symbol_type="function"
 AsyncReadyCallback.source_object nullable
 Converter
   .convert.inbuf nullable=false
@@ -398,10 +407,11 @@ FileAttributeInfoList
 LoadableIcon
   .load_finish.type out nullable unowned=false default=null
 Socket
+  .receive_message.address nullable
   .receive_message.messages out unowned=false
   .receive_message.flags ref
 Task
-  .get_source_object type="GLib.Object"
+  .get_source_object name="get_unowned_source_object" nullable
 TlsBackend
   .get_certificate_type abstract
   .get_client_connection_type abstract

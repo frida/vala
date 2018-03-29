@@ -110,6 +110,7 @@ namespace Atspi {
 		public static bool deregister_no_data (Atspi.EventListenerSimpleCB callback, string event_type) throws GLib.Error;
 		public bool register (string event_type) throws GLib.Error;
 		public static bool register_from_callback ([CCode (delegate_target_pos = 1.33333, destroy_notify_pos = 1.66667)] owned Atspi.EventListenerCB callback, string event_type) throws GLib.Error;
+		public static bool register_from_callback_full ([CCode (delegate_target_pos = 1.33333, destroy_notify_pos = 1.66667)] owned Atspi.EventListenerCB? callback, string event_type, GLib.Array<string> properties) throws GLib.Error;
 		public bool register_full (string event_type, GLib.Array<string>? properties) throws GLib.Error;
 		public static bool register_no_data ([CCode (destroy_notify_pos = 1.5)] owned Atspi.EventListenerSimpleCB callback, string event_type) throws GLib.Error;
 		[CCode (has_construct_function = false)]
@@ -428,11 +429,6 @@ namespace Atspi {
 		public weak string keystrings;
 		public short len;
 	}
-	[CCode (cheader_filename = "atspi/atspi.h", has_type_id = false)]
-	public struct Reference {
-		public weak string name;
-		public weak string path;
-	}
 	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_CACHE_", type_id = "atspi_cache_get_type ()")]
 	[Flags]
 	public enum Cache {
@@ -492,12 +488,6 @@ namespace Atspi {
 	public enum CoordType {
 		SCREEN,
 		WINDOW
-	}
-	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_ERROR_", has_type_id = false)]
-	public enum Error {
-		APPLICATION_GONE,
-		IPC,
-		SYNC_NOT_ALLOWED
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_", type_id = "atspi_event_type_get_type ()")]
 	public enum EventType {
@@ -568,6 +558,10 @@ namespace Atspi {
 		PARENT_WINDOW_OF,
 		DESCRIPTION_FOR,
 		DESCRIBED_BY,
+		DETAILS,
+		DETAILS_FOR,
+		ERROR_MESSAGE,
+		ERROR_FOR,
 		LAST_DEFINED
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_ROLE_", type_id = "atspi_role_get_type ()")]
@@ -698,7 +692,7 @@ namespace Atspi {
 		DESCRIPTION_VALUE,
 		FOOTNOTE,
 		LAST_DEFINED;
-		public static string get_name (Atspi.Role role);
+		public string get_name ();
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_STATE_", type_id = "atspi_state_type_get_type ()")]
 	public enum StateType {

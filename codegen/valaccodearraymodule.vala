@@ -44,6 +44,7 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 			// no heap allocation for fixed-length arrays
 
 			var temp_var = get_temp_variable (array_type, true, expr);
+			temp_var.init = true;
 			var name_cnode = get_variable_cexpression (temp_var.name);
 			int i = 0;
 
@@ -74,12 +75,12 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 				cexpr = new CCodeBinaryExpression (CCodeBinaryOperator.MUL, cexpr, csize);
 			}
 		}
-		
+
 		// add extra item to have array NULL-terminated for all reference types
 		if (expr.element_type.data_type != null && expr.element_type.data_type.is_reference_type ()) {
 			cexpr = new CCodeBinaryExpression (CCodeBinaryOperator.PLUS, cexpr, new CCodeConstant ("1"));
 		}
-		
+
 		gnew.add_argument (cexpr);
 
 		var temp_var = get_temp_variable (expr.value_type, true, expr);
@@ -163,6 +164,9 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 			for (int i = 1; i < rank; i++) {
 				var cmul = new CCodeBinaryExpression (CCodeBinaryOperator.MUL, cindex, get_array_length_cexpression (expr.container, i + 1));
 				cindex = new CCodeBinaryExpression (CCodeBinaryOperator.PLUS, cmul, get_cvalue (indices[i]));
+				if (expr.container.is_constant ()) {
+					ccontainer = new CCodeUnaryExpression (CCodeUnaryOperator.POINTER_INDIRECTION, ccontainer);
+				}
 			}
 			set_cvalue (expr, new CCodeElementAccess (ccontainer, cindex));
 		}
@@ -479,7 +483,7 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 		function.add_parameter (new CCodeParameter ("length", "int"));
 		if (array_type.element_type is GenericType) {
 			// dup function array elements
-			string func_name = "%s_dup_func".printf (array_type.element_type.type_parameter.name.down ());
+			string func_name = "%s_dup_func".printf (((GenericType) array_type.element_type).type_parameter.name.down ());
 			function.add_parameter (new CCodeParameter (func_name, "GBoxedCopyFunc"));
 		}
 
@@ -728,7 +732,7 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 			if (param.direction != ParameterDirection.IN) {
 				length_ctype = "%s*".printf (length_ctype);
 			}
-			
+
 			for (int dim = 1; dim <= array_type.rank; dim++) {
 				var cparam = new CCodeParameter (get_parameter_array_length_cname (param, dim), length_ctype);
 				cparam_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), cparam);

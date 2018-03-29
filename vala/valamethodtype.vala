@@ -25,7 +25,7 @@ using GLib;
 /**
  * The type of a method referencea.
  */
-public class Vala.MethodType : DataType {
+public class Vala.MethodType : CallableType {
 	public Method method_symbol { get; set; }
 
 	public MethodType (Method method_symbol) {
@@ -54,7 +54,7 @@ public class Vala.MethodType : DataType {
 			// method types incompatible to anything but delegates
 			return false;
 		}
-		
+
 		return dt.delegate_symbol.matches_method (method_symbol, dt);
 	}
 
@@ -71,46 +71,5 @@ public class Vala.MethodType : DataType {
 			return method_symbol.get_callback_method ();
 		}
 		return null;
-	}
-
-	public string to_prototype_string (bool with_type_parameters = false) {
-		var proto = "%s %s (".printf (get_return_type ().to_string (), this.to_string ());
-
-		int i = 1;
-		foreach (Parameter param in get_parameters ()) {
-			if (i > 1) {
-				proto += ", ";
-			}
-
-			if (param.ellipsis) {
-				proto += "...";
-				continue;
-			}
-
-			if (param.direction == ParameterDirection.IN) {
-				if (param.variable_type.value_owned) {
-					proto += "owned ";
-				}
-			} else {
-				if (param.direction == ParameterDirection.REF) {
-					proto += "ref ";
-				} else if (param.direction == ParameterDirection.OUT) {
-					proto += "out ";
-				}
-				if (param.variable_type.is_weak ()) {
-					proto += "unowned ";
-				}
-			}
-
-			proto = "%s%s %s".printf (proto, param.variable_type.to_qualified_string (), param.name);
-
-			if (param.initializer != null) {
-				proto = "%s = %s".printf (proto, param.initializer.to_string ());
-			}
-
-			i++;
-		}
-
-		return proto + ")";
 	}
 }

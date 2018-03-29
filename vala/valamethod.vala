@@ -50,26 +50,26 @@ public class Vala.Method : Subroutine, Callable {
 	 * the contained type.
 	 */
 	public MemberBinding binding { get; set; default = MemberBinding.INSTANCE; }
-	
+
 	/**
 	 * Specifies whether this method is abstract. Abstract methods have no
 	 * body, may only be specified within abstract classes, and must be
 	 * overriden by derived non-abstract classes.
 	 */
 	public bool is_abstract { get; set; }
-	
+
 	/**
 	 * Specifies whether this method is virtual. Virtual methods may be
 	 * overridden by derived classes.
 	 */
 	public bool is_virtual { get; set; }
-	
+
 	/**
 	 * Specifies whether this method overrides a virtual or abstract method
 	 * of a base type.
 	 */
 	public bool overrides { get; set; }
-	
+
 	/**
 	 * Specifies whether this method should be inlined.
 	 */
@@ -100,7 +100,7 @@ public class Vala.Method : Subroutine, Callable {
 
 	/**
 	 * Specifies the virtual or abstract method this method overrides.
-	 * Reference must be weak as virtual and abstract methods set 
+	 * Reference must be weak as virtual and abstract methods set
 	 * base_method to themselves.
 	 */
 	public Method base_method {
@@ -225,7 +225,7 @@ public class Vala.Method : Subroutine, Callable {
 		parameters.add (param);
 		scope.add (param.name, param);
 	}
-	
+
 	public List<Parameter> get_parameters () {
 		return parameters;
 	}
@@ -347,10 +347,10 @@ public class Vala.Method : Subroutine, Callable {
 
 		var actual_base_type = base_method.return_type.get_actual_type (object_type, method_type_args, this);
 		if (!return_type.equals (actual_base_type)) {
-			invalid_match = "Base method expected return type `%s', but `%s' was provided".printf (actual_base_type.to_qualified_string (), return_type.to_qualified_string ());
+			invalid_match = "Base method expected return type `%s', but `%s' was provided".printf (actual_base_type.to_prototype_string (), return_type.to_prototype_string ());
 			return false;
 		}
-		
+
 		Iterator<Parameter> method_params_it = parameters.iterator ();
 		int param_index = 1;
 		foreach (Parameter base_param in base_method.parameters) {
@@ -379,7 +379,7 @@ public class Vala.Method : Subroutine, Callable {
 			}
 			param_index++;
 		}
-		
+
 		/* this method may not expect more arguments */
 		if (method_params_it.next ()) {
 			invalid_match = "too many parameters";
@@ -560,7 +560,8 @@ public class Vala.Method : Subroutine, Callable {
 				string invalid_match;
 				if (!compatible (base_method, out invalid_match)) {
 					error = true;
-					Report.error (source_reference, "overriding method `%s' is incompatible with base method `%s': %s.".printf (get_full_name (), base_method.get_full_name (), invalid_match));
+					var base_method_type = new MethodType (base_method);
+					Report.error (source_reference, "overriding method `%s' is incompatible with base method `%s': %s.".printf (get_full_name (), base_method_type.to_prototype_string (), invalid_match));
 					return;
 				}
 
@@ -602,14 +603,15 @@ public class Vala.Method : Subroutine, Callable {
 								continue;
 							}
 						}
-						
+
 						string invalid_match = null;
 						if (!compatible (base_method, out invalid_match)) {
 							error = true;
-							Report.error (source_reference, "overriding method `%s' is incompatible with base method `%s': %s.".printf (get_full_name (), base_method.get_full_name (), invalid_match));
+							var base_method_type = new MethodType (base_method);
+							Report.error (source_reference, "overriding method `%s' is incompatible with base method `%s': %s.".printf (get_full_name (), base_method_type.to_prototype_string (), invalid_match));
 							return;
 						}
-						
+
 						_base_interface_method = base_method;
 						return;
 					}
@@ -618,7 +620,7 @@ public class Vala.Method : Subroutine, Callable {
 		}
 
 		if (base_interface_type != null) {
-			Report.error (source_reference, "%s: no suitable interface method found to implement".printf (get_full_name ()));
+			Report.error (source_reference, "`%s': no suitable interface method found to implement".printf (get_full_name ()));
 		}
 	}
 
@@ -634,6 +636,15 @@ public class Vala.Method : Subroutine, Callable {
 		}
 		if (get_attribute ("NoThrow") != null) {
 			get_error_types ().clear ();
+		}
+
+		if (parent_symbol is Class && (is_abstract || is_virtual)) {
+			var cl = (Class) parent_symbol;
+			if (cl.is_compact && cl.base_class != null) {
+				error = true;
+				Report.error (source_reference, "Abstract and virtual methods may not be declared in derived compact classes");
+				return false;
+			}
 		}
 
 		if (is_abstract) {
@@ -654,14 +665,6 @@ public class Vala.Method : Subroutine, Callable {
 				error = true;
 				Report.error (source_reference, "Virtual methods may not be declared outside of classes and interfaces");
 				return false;
-			}
-
-			if (parent_symbol is Class) {
-				var cl = (Class) parent_symbol;
-				if (cl.is_compact && cl != context.analyzer.gsource_type) {
-					Report.error (source_reference, "Virtual methods may not be declared in compact classes");
-					return false;
-				}
 			}
 		} else if (overrides) {
 			if (!(parent_symbol is Class)) {
@@ -718,20 +721,21 @@ public class Vala.Method : Subroutine, Callable {
 			Report.error (parameters[0].source_reference, "Named parameter required before `...'");
 		}
 
-		if (!coroutine) {
+		var optional_param = false;
+		foreach (Parameter param in parameters) {
+			param.check (context);
+			if (coroutine && param.direction == ParameterDirection.REF) {
+				error = true;
+				Report.error (param.source_reference, "Reference parameters are not supported for async methods");
+			}
 			// TODO: begin and end parameters must be checked separately for coroutines
-			var optional_param = false;
-			foreach (Parameter param in parameters) {
-				param.check (context);
-				if (coroutine && param.direction == ParameterDirection.REF) {
-					error = true;
-					Report.error (param.source_reference, "Reference parameters are not supported for async methods");
-				}
-				if (optional_param && param.initializer == null && !param.ellipsis) {
-					Report.warning (param.source_reference, "parameter without default follows parameter with default");
-				} else if (param.initializer != null) {
-					optional_param = true;
-				}
+			if (coroutine) {
+				continue;
+			}
+			if (optional_param && param.initializer == null && !param.ellipsis) {
+				Report.warning (param.source_reference, "parameter without default follows parameter with default");
+			} else if (param.initializer != null) {
+				optional_param = true;
 			}
 		}
 
@@ -773,7 +777,7 @@ public class Vala.Method : Subroutine, Callable {
 				return false;
 			}
 		} else if (overrides && base_method == null) {
-			Report.error (source_reference, "%s: no suitable method found to override".printf (get_full_name ()));
+			Report.error (source_reference, "`%s': no suitable method found to override".printf (get_full_name ()));
 		} else if ((is_abstract || is_virtual || overrides) && access == SymbolAccessibility.PRIVATE) {
 			error = true;
 			Report.error (source_reference, "Private member `%s' cannot be marked as override, virtual, or abstract".printf (get_full_name ()));
@@ -837,7 +841,7 @@ public class Vala.Method : Subroutine, Callable {
 		}
 
 		// check that all errors that can be thrown in the method body are declared
-		if (body != null) { 
+		if (body != null) {
 			foreach (DataType body_error_type in body.get_error_types ()) {
 				bool can_propagate_error = false;
 				foreach (DataType method_error_type in get_error_types ()) {
@@ -848,6 +852,37 @@ public class Vala.Method : Subroutine, Callable {
 				bool is_dynamic_error = body_error_type is ErrorType && ((ErrorType) body_error_type).dynamic_error;
 				if (!can_propagate_error && !is_dynamic_error) {
 					Report.warning (body_error_type.source_reference, "unhandled error `%s'".printf (body_error_type.to_string()));
+				}
+			}
+		}
+
+		// check that DBus methods at least throw "GLib.Error" or "GLib.DBusError, GLib.IOError"
+		if (!(this is CreationMethod) && binding == MemberBinding.INSTANCE
+		    && !overrides && access == SymbolAccessibility.PUBLIC
+		    && parent_symbol is ObjectTypeSymbol && parent_symbol.get_attribute ("DBus") != null) {
+			Attribute? dbus_attr = get_attribute ("DBus");
+			if (dbus_attr == null || dbus_attr.get_bool ("visible", true)) {
+				bool throws_gerror = false;
+				bool throws_gioerror = false;
+				bool throws_gdbuserror = false;
+				foreach (DataType error_type in get_error_types ()) {
+					if (!(error_type is ErrorType)) {
+						continue;
+					}
+					unowned ErrorDomain? error_domain = ((ErrorType) error_type).error_domain;
+					if (error_domain == null) {
+						throws_gerror = true;
+						break;
+					}
+					string? full_error_domain = error_domain.get_full_name ();
+					if (full_error_domain == "GLib.IOError") {
+						throws_gioerror = true;
+					} else if (full_error_domain == "GLib.DBusError") {
+						throws_gdbuserror = true;
+					}
+				}
+				if (!throws_gerror && !(throws_gioerror && throws_gdbuserror)) {
+					Report.warning (source_reference, "DBus methods are recommended to throw at least `GLib.Error' or `GLib.DBusError, GLib.IOError'");
 				}
 			}
 		}
@@ -897,19 +932,19 @@ public class Vala.Method : Subroutine, Callable {
 				return false;
 			}
 		}
-		
+
 		if (binding == MemberBinding.INSTANCE) {
 			// method must be static
 			return false;
 		}
-		
+
 		if (return_type is VoidType) {
 		} else if (return_type.data_type == context.analyzer.int_type.data_type) {
 		} else {
 			// return type must be void or int
 			return false;
 		}
-		
+
 		var params = get_parameters ();
 		if (params.size == 0) {
 			// method may have no parameters
@@ -920,7 +955,7 @@ public class Vala.Method : Subroutine, Callable {
 			// method must not have more than one parameter
 			return false;
 		}
-		
+
 		Iterator<Parameter> params_it = params.iterator ();
 		params_it.next ();
 		var param = params_it.get ();
@@ -929,18 +964,18 @@ public class Vala.Method : Subroutine, Callable {
 			// parameter must not be an out parameter
 			return false;
 		}
-		
+
 		if (!(param.variable_type is ArrayType)) {
 			// parameter must be an array
 			return false;
 		}
-		
+
 		var array_type = (ArrayType) param.variable_type;
 		if (array_type.element_type.data_type != context.analyzer.string_type.data_type) {
 			// parameter must be an array of strings
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -1078,6 +1113,19 @@ public class Vala.Method : Subroutine, Callable {
 			}
 		}
 		return -1;
+	}
+
+	public bool has_error_type_parameter () {
+		if (get_error_types ().size > 0) {
+			return true;
+		}
+		if (base_method != null && base_method != this && base_method.has_error_type_parameter ()) {
+			return true;
+		}
+		if (base_interface_method != null && base_interface_method != this && base_interface_method.has_error_type_parameter ()) {
+			return true;
+		}
+		return false;
 	}
 }
 

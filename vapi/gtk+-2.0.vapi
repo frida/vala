@@ -1182,7 +1182,7 @@ namespace Gtk {
 		public void set_can_store (Gtk.TargetEntry[] targets);
 		public void set_image (Gdk.Pixbuf pixbuf);
 		public void set_text (string text, int len);
-		public bool set_with_data (Gtk.TargetEntry[] targets, [CCode (scope = "async")] Gtk.ClipboardGetFunc get_func, [CCode (scope = "async")] Gtk.ClipboardClearFunc clear_func);
+		public bool set_with_data (Gtk.TargetEntry[] targets, [CCode (scope = "async")] Gtk.ClipboardGetFunc get_func, [CCode (scope = "async")] Gtk.ClipboardClearFunc clear_func, void* user_data);
 		public bool set_with_owner (Gtk.TargetEntry[] targets, [CCode (scope = "async")] Gtk.ClipboardGetFunc get_func, [CCode (scope = "async")] Gtk.ClipboardClearFunc clear_func, GLib.Object owner);
 		public void store ();
 		public Gtk.SelectionData? wait_for_contents (Gdk.Atom target);
@@ -2791,7 +2791,7 @@ namespace Gtk {
 		public weak Gtk.Widget label;
 		[CCode (has_construct_function = false, type = "GtkWidget*")]
 		[PrintfFormat]
-		public MessageDialog (Gtk.Window? parent, Gtk.DialogFlags flags, Gtk.MessageType type, Gtk.ButtonsType buttons, string message_format, ...);
+		public MessageDialog (Gtk.Window? parent, Gtk.DialogFlags flags, Gtk.MessageType type, Gtk.ButtonsType buttons, string? message_format, ...);
 		[PrintfFormat]
 		public void format_secondary_markup (string message_format, ...);
 		[PrintfFormat]
@@ -4722,11 +4722,11 @@ namespace Gtk {
 		public TextView ();
 		public void add_child_at_anchor (Gtk.Widget child, Gtk.TextChildAnchor anchor);
 		public void add_child_in_window (Gtk.Widget child, Gtk.TextWindowType which_window, int xpos, int ypos);
-		public bool backward_display_line (Gtk.TextIter iter);
-		public bool backward_display_line_start (Gtk.TextIter iter);
+		public bool backward_display_line (ref Gtk.TextIter iter);
+		public bool backward_display_line_start (ref Gtk.TextIter iter);
 		public void buffer_to_window_coords (Gtk.TextWindowType win, int buffer_x, int buffer_y, out int window_x, out int window_y);
-		public bool forward_display_line (Gtk.TextIter iter);
-		public bool forward_display_line_end (Gtk.TextIter iter);
+		public bool forward_display_line (ref Gtk.TextIter iter);
+		public bool forward_display_line_end (ref Gtk.TextIter iter);
 		public bool get_accepts_tab ();
 		public int get_border_window_size (Gtk.TextWindowType type);
 		public unowned Gtk.TextBuffer get_buffer ();
@@ -4758,7 +4758,7 @@ namespace Gtk {
 		[NoWrapper]
 		public virtual void move_focus (Gtk.DirectionType direction);
 		public bool move_mark_onscreen (Gtk.TextMark mark);
-		public bool move_visually (Gtk.TextIter iter, int count);
+		public bool move_visually (ref Gtk.TextIter iter, int count);
 		public bool place_cursor_onscreen ();
 		public void reset_im_context ();
 		public void scroll_mark_onscreen (Gtk.TextMark mark);
@@ -6008,10 +6008,10 @@ namespace Gtk {
 		public bool urgency_hint { get; set; }
 		[NoAccessorMethod]
 		public Gtk.WindowPosition window_position { get; set; }
-		[CCode (cname = "activate_default")]
+		[CCode (cname = "activate-default")]
 		[Version (experimental = true)]
 		public virtual signal void default_activated ();
-		[CCode (cname = "activate_focus")]
+		[CCode (cname = "activate-focus")]
 		[Version (experimental = true)]
 		public virtual signal void focus_activated ();
 		public virtual signal bool frame_event (Gdk.Event event);

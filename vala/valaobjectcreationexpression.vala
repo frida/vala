@@ -64,7 +64,7 @@ public class Vala.ObjectCreationExpression : Expression {
 		this.source_reference = source_reference;
 		this.member_name = member_name;
 	}
-	
+
 	/**
 	 * Appends the specified expression to the list of arguments.
 	 *
@@ -117,7 +117,7 @@ public class Vala.ObjectCreationExpression : Expression {
 		if (member_name != null) {
 			member_name.accept (visitor);
 		}
-		
+
 		foreach (Expression arg in argument_list) {
 			arg.accept (visitor);
 		}
@@ -367,6 +367,10 @@ public class Vala.ObjectCreationExpression : Expression {
 			var args = get_argument_list ();
 			Iterator<Expression> arg_it = args.iterator ();
 			foreach (Parameter param in m.get_parameters ()) {
+				if (!param.check (context)) {
+					error = true;
+				}
+
 				if (param.ellipsis) {
 					break;
 				}
@@ -385,7 +389,9 @@ public class Vala.ObjectCreationExpression : Expression {
 			// printf arguments
 			if (m.printf_format) {
 				StringLiteral format_literal = null;
-				if (last_arg != null) {
+				if (last_arg is NullLiteral) {
+					// do not replace explicit null
+				} else if (last_arg != null) {
 					// use last argument as format string
 					format_literal = StringLiteral.get_format_literal (last_arg);
 					if (format_literal == null && args.size == m.get_parameters ().size - 1) {
@@ -435,7 +441,7 @@ public class Vala.ObjectCreationExpression : Expression {
 			if (member_name != null) {
 				member_name.check (context);
 			}
-		
+
 			foreach (Expression arg in argument_list) {
 				arg.check (context);
 			}

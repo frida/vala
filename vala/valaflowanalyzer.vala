@@ -112,6 +112,8 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				file.accept (this);
 			}
 		}
+
+		this.context = null;
 	}
 
 	public override void visit_source_file (SourceFile source_file) {
@@ -168,6 +170,9 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		    && !(m is CreationMethod)) {
 			if (!m.is_private_symbol () && (context.internal_header_filename != null || context.use_fast_vapi)) {
 				// do not warn if internal member may be used outside this compilation unit
+			} else if (m.parent_symbol != null && m.parent_symbol.get_attribute ("DBus") != null
+			    && m.get_attribute_bool ("DBus", "visible", true)) {
+				// do not warn if internal member is a visible DBus method
 			} else {
 				Report.warning (m.source_reference, "method `%s' never used".printf (m.get_full_name ()));
 			}
@@ -374,8 +379,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				added.set (block, counter);
 			}
 			while (work_list.size > 0) {
-				BasicBlock block = work_list.get (0);
-				work_list.remove_at (0);
+				BasicBlock block = work_list.remove_at (0);
 				foreach (BasicBlock frontier in block.get_dominator_frontier ()) {
 					int blockPhi = phi.get (frontier);
 					if (blockPhi < counter) {
@@ -405,8 +409,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			used_vars_queue.add (variable);
 		}
 		while (used_vars_queue.size > 0) {
-			Variable used_var = used_vars_queue[0];
-			used_vars_queue.remove_at (0);
+			Variable used_var = used_vars_queue.remove_at (0);
 
 			PhiFunction phi = phi_functions.get (used_var);
 			if (phi != null) {
@@ -440,7 +443,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		foreach (CodeNode node in block.get_nodes ()) {
 			var used_variables = new ArrayList<Variable> ();
 			node.get_used_variables (used_variables);
-			
+
 			foreach (Variable var_symbol in used_variables) {
 				var variable_stack = var_map.get (var_symbol);
 				if (variable_stack == null || variable_stack.size == 0) {
@@ -965,9 +968,8 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		// remove catch clauses from jump stack
 		List<JumpTarget> catch_stack = new ArrayList<JumpTarget> ();
 		for (int i = jump_stack.size - 1; i >= finally_jump_stack_size; i--) {
-			var jump_target = jump_stack[i];
+			var jump_target = jump_stack.remove_at (i);
 			catch_stack.add (jump_target);
-			jump_stack.remove_at (i);
 		}
 
 		foreach (JumpTarget jump_target in catch_stack) {

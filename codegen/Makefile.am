@@ -4,19 +4,26 @@ NULL =
 
 AM_CPPFLAGS = \
 	$(COVERAGE_CFLAGS) \
-	-I$(top_builddir)/gee \
-	-I$(top_builddir)/ccode \
-	-I$(top_builddir)/vala \
+	-I$(top_srcdir)/gee \
+	-I$(top_srcdir)/ccode \
+	-I$(top_srcdir)/vala \
 	$(GLIB_CFLAGS) \
 	$(NULL)
 
 BUILT_SOURCES = codegen.vala.stamp
 
-noinst_LTLIBRARIES = \
+libvalaccodegen_la_LTLIBRARIES = \
 	libvalaccodegen.la \
 	$(NULL)
 
+libvalaccodegen_ladir = $(pkglibdir)
+
+libvalaccodegen_la_LDFLAGS = \
+	-avoid-version \
+	$(NULL)
+
 libvalaccodegen_la_VALASOURCES = \
+	valaccode.vala \
 	valaccodearraymodule.vala \
 	valaccodeassignmentmodule.vala \
 	valaccodeattribute.vala \
@@ -58,9 +65,9 @@ codegen.vapi codegen.vala.stamp: $(libvalaccodegen_la_VALASOURCES)
 		$(VALAFLAGS) \
 		-C \
 		--vapidir $(top_srcdir)/vapi --pkg gobject-2.0 \
-		--vapidir $(top_builddir)/gee --pkg gee \
-		--vapidir $(top_builddir)/ccode --pkg ccode \
-		--vapidir $(top_builddir)/vala --pkg vala \
+		--vapidir $(top_srcdir)/gee --pkg gee \
+		--vapidir $(top_srcdir)/ccode --pkg ccode \
+		--vapidir $(top_srcdir)/vala --pkg vala \
 		--use-header \
 		-H valacodegen.h \
 		--library codegen \

@@ -40,7 +40,7 @@ public class Vala.MemberAccess : Expression {
 			}
 		}
 	}
-	
+
 	/**
 	 * The name of the member.
 	 */
@@ -69,7 +69,7 @@ public class Vala.MemberAccess : Expression {
 
 	private Expression? _inner;
 	private List<DataType> type_argument_list = new ArrayList<DataType> ();
-	
+
 	/**
 	 * Creates a new member access expression.
 	 *
@@ -105,7 +105,7 @@ public class Vala.MemberAccess : Expression {
 		type_argument_list.add (arg);
 		arg.parent_node = this;
 	}
-	
+
 	/**
 	 * Returns a copy of the list of generic type arguments.
 	 *
@@ -125,7 +125,7 @@ public class Vala.MemberAccess : Expression {
 		if (inner != null) {
 			inner.accept (visitor);
 		}
-		
+
 		foreach (DataType type_arg in type_argument_list) {
 			type_arg.accept (visitor);
 		}
@@ -203,7 +203,7 @@ public class Vala.MemberAccess : Expression {
 		if (inner != null) {
 			inner.check (context);
 		}
-		
+
 		foreach (DataType type_arg in type_argument_list) {
 			type_arg.check (context);
 		}
@@ -216,8 +216,8 @@ public class Vala.MemberAccess : Expression {
 		symbol_reference = null;
 
 		if (qualified) {
-			base_symbol = context.analyzer.root_symbol;
-			symbol_reference = context.analyzer.root_symbol.scope.lookup (member_name);
+			base_symbol = context.root;
+			symbol_reference = base_symbol.scope.lookup (member_name);
 		} else if (inner == null) {
 			if (member_name == "this") {
 				if (!context.analyzer.is_in_instance_method ()) {
@@ -448,6 +448,17 @@ public class Vala.MemberAccess : Expression {
 				if (symbol_reference != null) {
 					may_access_instance_members = true;
 					may_access_klass_members = true;
+				}
+			}
+		}
+
+		// enum-type inference
+		if (symbol_reference == null && target_type != null && target_type.data_type is Enum) {
+			var enum_type = (Enum) target_type.data_type;
+			foreach (var val in enum_type.get_values ()) {
+				if (member_name == val.name) {
+					symbol_reference = val;
+					break;
 				}
 			}
 		}
@@ -828,18 +839,18 @@ public class Vala.MemberAccess : Expression {
 					value_type.value_owned = target_type.value_owned;
 				}
 				if (instance && method.parent_symbol is TypeSymbol) {
-					inner.target_type = SemanticAnalyzer.get_data_type_for_symbol ((TypeSymbol) method.parent_symbol);
+					inner.target_type = SemanticAnalyzer.get_data_type_for_symbol (method.parent_symbol);
 					inner.target_type.value_owned = method.this_parameter.variable_type.value_owned;
 				}
 			} else if (symbol_reference is Property) {
 				var prop = (Property) symbol_reference;
 				if (instance && prop.parent_symbol != null) {
-					inner.target_type = SemanticAnalyzer.get_data_type_for_symbol ((TypeSymbol) prop.parent_symbol);
+					inner.target_type = SemanticAnalyzer.get_data_type_for_symbol (prop.parent_symbol);
 				}
 			} else if ((symbol_reference is Field
 			            || symbol_reference is Signal)
 			           && instance && symbol_reference.parent_symbol != null) {
-				var parent_type = SemanticAnalyzer.get_data_type_for_symbol ((TypeSymbol) symbol_reference.parent_symbol);
+				var parent_type = SemanticAnalyzer.get_data_type_for_symbol (symbol_reference.parent_symbol);
 				inner.target_type = parent_type.get_actual_type (inner.value_type, null, this);
 			}
 		}

@@ -37,12 +37,12 @@ public class Vala.Assignment : Expression {
 			_left.parent_node = this;
 		}
 	}
-	
+
 	/**
 	 * Assignment operator.
 	 */
 	public AssignmentOperator operator { get; set; }
-	
+
 	/**
 	 * Right hand side of the assignment.
 	 */
@@ -53,10 +53,10 @@ public class Vala.Assignment : Expression {
 			_right.parent_node = this;
 		}
 	}
-	
+
 	private Expression _left;
 	private Expression _right;
-	
+
 	/**
 	 * Creates a new assignment.
 	 *
@@ -72,7 +72,7 @@ public class Vala.Assignment : Expression {
 		this.source_reference = source_reference;
 		this.left = left;
 	}
-	
+
 	public override void accept (CodeVisitor visitor) {
 		visitor.visit_assignment (this);
 
@@ -241,26 +241,17 @@ public class Vala.Assignment : Expression {
 				right.target_type = right.target_type.copy ();
 				right.target_type.value_owned = false;
 
-				if (operator == AssignmentOperator.BITWISE_OR) {
-					bin.operator = BinaryOperator.BITWISE_OR;
-				} else if (operator == AssignmentOperator.BITWISE_AND) {
-					bin.operator = BinaryOperator.BITWISE_AND;
-				} else if (operator == AssignmentOperator.BITWISE_XOR) {
-					bin.operator = BinaryOperator.BITWISE_XOR;
-				} else if (operator == AssignmentOperator.ADD) {
-					bin.operator = BinaryOperator.PLUS;
-				} else if (operator == AssignmentOperator.SUB) {
-					bin.operator = BinaryOperator.MINUS;
-				} else if (operator == AssignmentOperator.MUL) {
-					bin.operator = BinaryOperator.MUL;
-				} else if (operator == AssignmentOperator.DIV) {
-					bin.operator = BinaryOperator.DIV;
-				} else if (operator == AssignmentOperator.PERCENT) {
-					bin.operator = BinaryOperator.MOD;
-				} else if (operator == AssignmentOperator.SHIFT_LEFT) {
-					bin.operator = BinaryOperator.SHIFT_LEFT;
-				} else if (operator == AssignmentOperator.SHIFT_RIGHT) {
-					bin.operator = BinaryOperator.SHIFT_RIGHT;
+				switch (operator) {
+				case AssignmentOperator.BITWISE_OR: bin.operator = BinaryOperator.BITWISE_OR; break;
+				case AssignmentOperator.BITWISE_AND: bin.operator = BinaryOperator.BITWISE_AND; break;
+				case AssignmentOperator.BITWISE_XOR: bin.operator = BinaryOperator.BITWISE_XOR; break;
+				case AssignmentOperator.ADD: bin.operator = BinaryOperator.PLUS; break;
+				case AssignmentOperator.SUB: bin.operator = BinaryOperator.MINUS; break;
+				case AssignmentOperator.MUL: bin.operator = BinaryOperator.MUL; break;
+				case AssignmentOperator.DIV: bin.operator = BinaryOperator.DIV; break;
+				case AssignmentOperator.PERCENT: bin.operator = BinaryOperator.MOD; break;
+				case AssignmentOperator.SHIFT_LEFT: bin.operator = BinaryOperator.SHIFT_LEFT; break;
+				case AssignmentOperator.SHIFT_RIGHT: bin.operator = BinaryOperator.SHIFT_RIGHT; break;
 				}
 
 				right = bin;
@@ -298,7 +289,7 @@ public class Vala.Assignment : Expression {
 				var delegate_type = (DelegateType) right.target_type;
 
 				error = true;
-				Report.error (right.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'".printf (right.value_type.to_string (), right.target_type.to_string (), delegate_type.delegate_symbol.get_prototype_string (m.name)));
+				Report.error (right.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'".printf (right.value_type.to_string (), right.target_type.to_string (), delegate_type.to_prototype_string (m.name)));
 				return false;
 			} else if (right_ma != null && right_ma.prototype_access) {
 				error = true;
@@ -495,11 +486,11 @@ public class Vala.Assignment : Expression {
 				var new_value = right.target_value;
 
 				if (local != null) {
-					codegen.store_local (local, new_value, false);
+					codegen.store_local (local, new_value, false, source_reference);
 				} else if (param != null) {
-					codegen.store_parameter (param, new_value);
+					codegen.store_parameter (param, new_value, false, source_reference);
 				} else if (field != null) {
-					codegen.store_field (field, instance && ma.inner != null ? ma.inner.target_value : null, new_value);
+					codegen.store_field (field, instance && ma.inner != null ? ma.inner.target_value : null, new_value, source_reference);
 				}
 
 				if (!(parent_node is ExpressionStatement)) {
@@ -572,7 +563,7 @@ public class Vala.Assignment : Expression {
 		right.get_used_variables (collection);
 	}
 }
-	
+
 public enum Vala.AssignmentOperator {
 	NONE,
 	SIMPLE,

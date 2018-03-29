@@ -26,7 +26,7 @@ using GLib;
 /**
  * Namespace to centralize reporting warnings and errors.
  */
-public class Vala.Report : Object {
+public class Vala.Report {
 	public enum Colored {
 		AUTO,
 		NEVER,
@@ -34,67 +34,67 @@ public class Vala.Report : Object {
 	}
 
 	/**
-	 * SGR end tag
+	 * SGR (Select Graphic Rendition) end tag
 	 */
 	private const string ANSI_COLOR_END = "\x1b[0m";
 
 	/**
-	 * SGR start tag for source location
+	 * SGR (Select Graphic Rendition) start tag for source location
 	 */
 	private string locus_color_start = "";
 
 	/**
-	 * SGR end tag for source location
+	 * SGR (Select Graphic Rendition) end tag for source location
 	 */
 	private unowned string locus_color_end = "";
 
 	/**
-	 * SGR start tag for warning titles
+	 * SGR (Select Graphic Rendition) start tag for warning titles
 	 */
 	private string warning_color_start = "";
 
 	/**
-	 * SGR end tag for warning titles
+	 * SGR (Select Graphic Rendition) end tag for warning titles
 	 */
 	private unowned string warning_color_end = "";
 
 	/**
-	 * SGR start tag for error titles
+	 * SGR (Select Graphic Rendition) start tag for error titles
 	 */
 	private string error_color_start = "";
 
 	/**
-	 * SGR end tag for error titles
+	 * SGR (Select Graphic Rendition) end tag for error titles
 	 */
 	private unowned string error_color_end = "";
 
 	/**
-	 * SGR start tag for note titles
+	 * SGR (Select Graphic Rendition) start tag for note titles
 	 */
 	private string note_color_start = "";
 
 	/**
-	 * SGR end tag for note titles
+	 * SGR (Select Graphic Rendition) end tag for note titles
 	 */
 	private unowned string note_color_end = "";
 
 	/**
-	 * SGR start tag for caret line (^^^)
+	 * SGR (Select Graphic Rendition) start tag for caret line (^^^)
 	 */
 	private string caret_color_start = "";
 
 	/**
-	 * SGR end tag for caret line (^^^)
+	 * SGR (Select Graphic Rendition) end tag for caret line (^^^)
 	 */
 	private unowned string caret_color_end = "";
 
 	/**
-	 * SGR start tag for quotes line ('', ``, `')
+	 * SGR (Select Graphic Rendition) start tag for quotes line ('...', `...`, `...')
 	 */
 	private string quote_color_start = "";
 
 	/**
-	 * SGR end tag for quotes line ('', ``, `')
+	 * SGR (Select Graphic Rendition) end tag for quotes line ('...', `...`, `...')
 	 */
 	private unowned string quote_color_end = "";
 
@@ -394,7 +394,7 @@ public class Vala.Report : Object {
 	private delegate int AttyFunc (int fd);
 
 	private bool is_atty (int fd) {
-		Module module = Module.open (null, ModuleFlags.BIND_LAZY); 
+		Module module = Module.open (null, ModuleFlags.BIND_LAZY);
 		if (module == null) {
 			return false;
 		}

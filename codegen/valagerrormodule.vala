@@ -76,7 +76,7 @@ public class Vala.GErrorModule : CCodeDelegateModule {
 		push_function (cquark_fun);
 
 		var cquark_call = new CCodeFunctionCall (new CCodeIdentifier ("g_quark_from_static_string"));
-		cquark_call.add_argument (new CCodeConstant ("\"" + CCodeBaseModule.get_quark_name (edomain) + "\""));
+		cquark_call.add_argument (new CCodeConstant ("\"" + get_ccode_quark_name (edomain) + "\""));
 
 		ccode.add_return (cquark_call);
 
@@ -372,9 +372,9 @@ public class Vala.GErrorModule : CCodeDelegateModule {
 		if (!(stop_at is TryStatement || stop_at is CatchClause)) {
 			var finally_block = (Block) null;
 			if (sym.parent_node is TryStatement) {
-				finally_block = (sym.parent_node as TryStatement).finally_body;
+				finally_block = ((TryStatement) sym.parent_node).finally_body;
 			} else if (sym.parent_node is CatchClause) {
-				finally_block = (sym.parent_node.parent_node as TryStatement).finally_body;
+				finally_block = ((TryStatement) sym.parent_node.parent_node).finally_body;
 			}
 
 			if (finally_block != null && finally_block != sym) {

@@ -337,6 +337,26 @@ namespace Posix {
 		public pid_t l_pid;
 	}
 
+	[CCode(cheader_filename = "fnmatch.h")]
+	public int fnmatch (string pattern, string str, int flags = 0);
+
+	[CCode(cheader_filename = "fnmatch.h", feature_test_macro = "_GNU_SOURCE")]
+	public const int FNM_CASEFOLD;
+	[CCode(cheader_filename = "fnmatch.h", feature_test_macro = "_GNU_SOURCE")]
+	public const int FNM_EXTMATCH;
+	[CCode(cheader_filename = "fnmatch.h", feature_test_macro = "_GNU_SOURCE")]
+	public const int FNM_FILE_NAME;
+	[CCode(cheader_filename = "fnmatch.h", feature_test_macro = "_GNU_SOURCE")]
+	public const int FNM_LEADING_DIR;
+	[CCode(cheader_filename = "fnmatch.h")]
+	public const int FNM_NOESCAPE;
+	[CCode(cheader_filename = "fnmatch.h")]
+	public const int FNM_NOMATCH;
+	[CCode(cheader_filename = "fnmatch.h")]
+	public const int FNM_PATHNAME;
+	[CCode(cheader_filename = "fnmatch.h")]
+	public const int FNM_PERIOD;
+
 	[Compact]
 	[CCode (cname = "struct group", cheader_filename = "grp.h")]
 	public class Group {
@@ -534,13 +554,13 @@ namespace Posix {
 	public double modf (double x, out double iptr);
 	[CCode (cheader_filename = "math.h")]
 	public float modff (float x, out float iptr);
-	[CCode (cheader_filename = "math.h")]
+	[CCode (cheader_filename = "math.h", feature_test_macro = "_GNU_SOURCE")]
 	public double exp10 (double x);
-	[CCode (cheader_filename = "math.h")]
+	[CCode (cheader_filename = "math.h", feature_test_macro = "_GNU_SOURCE")]
 	public float exp10f (float x);
-	[CCode (cheader_filename = "math.h")]
+	[CCode (cheader_filename = "math.h", feature_test_macro = "_GNU_SOURCE")]
 	public double pow10 (double x);
-	[CCode (cheader_filename = "math.h")]
+	[CCode (cheader_filename = "math.h", feature_test_macro = "_GNU_SOURCE")]
 	public float pow10f (float x);
 	[CCode (cheader_filename = "math.h")]
 	public double expm1 (double x);
@@ -751,6 +771,29 @@ namespace Posix {
 	[CCode (cheader_filename = "math.h")]
 	public float scalbf (float x, float n);
 
+	[SimpleType]
+	[CCode (cname = "mqd_t", cheader_filename = "mqueue.h", lower_case_cprefix = "mq_", free_function = "mq_close", has_type_id = false)]
+	public struct MessageQueue {
+		[CCode (cname = "mq_open")]
+		public MessageQueue (string name, int oflag, mode_t mode = 0, MqAttr? attr = null);
+		public static int unlink (string name);
+		public int notify (sigevent_t? notification = null);
+		public int getattr (MqAttr attr);
+		public int setattr (MqAttr attr, MqAttr? oldattr = null);
+		public int send (uint8[] msg, uint prio = 0);
+		public int timedsend (uint8[] msg, uint prio, timespec abs_timeout);
+		public ssize_t receive (uint8[] msg, out uint prio);
+		public ssize_t timedreceive (uint8[] msg, out uint prio, timespec abs_timeout);
+	}
+
+	[CCode (cname = "struct mq_attr", cheader_filename = "mqueue.h", destroy_function = "", has_type_id = false)]
+	public struct MqAttr {
+		public long mq_flags;
+		public long mq_maxmsg;
+		public long mq_msgsize;
+		public long mq_curmsgs;
+	}
+
 	[CCode (cheader_filename = "netdb.h")]
 	public const int NI_NAMEREQD;
 	[CCode (cheader_filename = "netdb.h")]
@@ -818,6 +861,20 @@ namespace Posix {
 	[CCode (cheader_filename = "pwd.h")]
 	public unowned Passwd? getpwuid (uid_t uid);
 
+	[Compact]
+	[CCode (cname = "sem_t", cheader_filename = "semaphore.h", cprefix = "SEM_", lower_case_cprefix = "sem_", has_type_id = false, copy_function = "", free_function = "sem_close")]
+	public class NamedSemaphore {
+		[CCode (cname = "sem_open")]
+		public NamedSemaphore (string name, int oflag = 0, mode_t mode = 0, uint val = 0);
+		public int getvalue (out int sval);
+		public int post ();
+		public int wait ();
+		public int trywait ();
+		public int timedwait (Posix.timespec abs_timeout);
+		public static int unlink (string name);
+		public const int FAILED;
+	}
+
 	[CCode (cheader_filename = "sys/resource.h")]
 	public const int PRIO_PROCESS;
 	[CCode (cheader_filename = "sys/resource.h")]
@@ -825,66 +882,252 @@ namespace Posix {
 	[CCode (cheader_filename = "sys/resource.h")]
 	public const int PRIO_USER;
 
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.ABRT")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGABRT;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.ALRM")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGALRM;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.BUS")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGBUS;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.CHLD")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGCHLD;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.CONT")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGCONT;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.FPE")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGFPE;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.HUP")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGHUP;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.ILL")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGILL;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.INT")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGINT;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.KILL")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGKILL;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.PIPE")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGPIPE;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.QUIT")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGQUIT;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.SEGV")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGSEGV;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.STOP")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGSTOP;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.TERM")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGTERM;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.TSTP")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGTSTP;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.TTIN")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGTTIN;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.TTOU")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGTTOU;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.USR1")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGUSR1;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.USR2")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGUSR2;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.POLL")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGPOLL;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.PROF")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGPROF;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.SYS")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGSYS;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.TRAP")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGTRAP;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.URG")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGURG;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.VTALRM")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGVTALRM;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.XCPU")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGXCPU;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.XFSZ")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGXFSZ;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.IOT")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGIOT;
+	[Version (deprecated = true, deprecated_since = "vala-0.40", replacement = "Posix.Signal.STKFLT")]
 	[CCode (cheader_filename = "signal.h")]
 	public const int SIGSTKFLT;
+
+	/**
+	 * Signal constants
+	 */
+	[CCode (cheader_filename = "signal.h", cprefix = "SIG", has_type_id = false)]
+	public enum Signal {
+		/**
+		 * Abort signal (ANSI)
+		 */
+		ABRT,
+		/**
+		 * Alarm clock signal (POSIX)
+		 */
+		ALRM,
+		/**
+		 * Access to an undefined portion of memory signal (4.2 BSD)
+		 */
+		BUS,
+		/**
+		 * Child process terminated, stopped or continued signal (POSIX)
+		 */
+		CHLD,
+		/**
+		 * Old System V name for CHLD
+		 */
+		[Version (replacement = "Posix.Signal.CHLD")]
+		CLD,
+		/**
+		 * Continue executing, if stopped, signal (POSIX)
+		 */
+		CONT,
+		/**
+		 * Emulator trap
+		 */
+		EMT,
+		/**
+		 * Floating-point exception signal (ANSI)
+		 */
+		FPE,
+		/**
+		 * Hangup signal (POSIX)
+		 */
+		HUP,
+		/**
+		 * Illegal instruction signal (ANSI)
+		 */
+		ILL,
+		/**
+		 * Information request
+		 */
+		INFO,
+		/**
+		 * Terminal interrupt signal (ANSI)
+		 */
+		INT,
+		/**
+		 * I/O now possible (4.2 BSD)
+		 */
+		IO,
+		/**
+		 * IOT trap signal (4.2 BSD)
+		 */
+		IOT,
+		/**
+		 * Kill signal (cannot be caught or ignored) (POSIX)
+		 */
+		KILL,
+		/**
+		 * File lock lost
+		 */
+		LOST,
+		/**
+		 * Broken pipe signal (POSIX)
+		 */
+		PIPE,
+		/**
+		 * Pollable event occurred signal (System V)
+		 */
+		POLL,
+		/**
+		 * Profiling timer expired signal (4.2 BSD)
+		 */
+		PROF,
+		/**
+		 * Power failure restart (System V)
+		 */
+		PWR,
+		/**
+		 * Terminal quit signal (POSIX)
+		 */
+		QUIT,
+		/**
+		 * Memory reference segmentation violation signal (ANSI)
+		 */
+		SEGV,
+		/**
+		 * Stack fault signal
+		 */
+		STKFLT,
+		/**
+		 * Stop executing signal (cannot be caught or ignored) (POSIX)
+		 */
+		STOP,
+		/**
+		 * Bad system call signal
+		 */
+		SYS,
+		/**
+		 * Termination signal (ANSI)
+		 */
+		TERM,
+		/**
+		 * Trace/breakpoint trap signal (POSIX)
+		 */
+		TRAP,
+		/**
+		 * Terminal stop signal (POSIX)
+		 */
+		TSTP,
+		/**
+		 * Background read from tty signal (POSIX)
+		 */
+		TTIN,
+		/**
+		 * Background write to tty signal (POSIX)
+		 */
+		TTOU,
+		/**
+		 * Urgent condition on socket signal (4.2 BSD)
+		 */
+		URG,
+		/**
+		 * User-defined signal 1 (POSIX)
+		 */
+		USR1,
+		/**
+		 * User-defined signal 2 (POSIX)
+		 */
+		USR2,
+		/**
+		 * Virtual timer expired signal (4.2 BSD)
+		 */
+		VTALRM,
+		/**
+		 * Window size changed signal (4.3 BSD, Sun)
+		 */
+		WINCH,
+		/**
+		 * CPU time limit exceeded signal (4.2 BSD)
+		 */
+		XCPU,
+		/**
+		 * File size limit exceeded signal (4.2 BSD)
+		 */
+		XFSZ,
+	}
 
 	[CCode (cheader_filename = "signal.h")]
 	public const int SA_NOCLDSTOP;
@@ -1015,6 +1258,13 @@ namespace Posix {
 		int              sa_flags;
 	}
 
+	[CCode (cname = "struct sigevent", cheader_filename = "signal.h", has_type_id = false)]
+	public struct sigevent_t {
+		sigval_t         sigev_value;
+		int              sigev_signo;
+		int              sigev_notify;
+	}
+
 	[SimpleType]
 	[CCode (cname = "sigval_t", cheader_filename = "signal.h", has_type_id = false)]
 	public struct sigval_t {
@@ -1051,17 +1301,19 @@ namespace Posix {
 	[CCode (cheader_filename = "signal.h")]
 	public int raise (int signum);
 	[CCode (cheader_filename = "signal.h")]
-	public int sigemptyset (sigset_t sigset);
+	public void psignal (int signum, string message);
 	[CCode (cheader_filename = "signal.h")]
-	public int sigfillset (sigset_t sigset);
+	public int sigemptyset (out sigset_t sigset);
 	[CCode (cheader_filename = "signal.h")]
-	public int sigaddset (sigset_t sigset, int signo);
+	public int sigfillset (out sigset_t sigset);
 	[CCode (cheader_filename = "signal.h")]
-	public int sigdelset (sigset_t sigset, int __signo);
+	public int sigaddset (ref sigset_t sigset, int signo);
+	[CCode (cheader_filename = "signal.h")]
+	public int sigdelset (ref sigset_t sigset, int __signo);
 	[CCode (cheader_filename = "signal.h")]
 	public int sigismember (sigset_t sigset, int __signo);
 	[CCode (cheader_filename = "signal.h")]
-	public int sigprocmask (int how, sigset_t sigset, sigset_t oset);
+	public int sigprocmask (int how, sigset_t sigset, out sigset_t oset);
 	[CCode (cheader_filename = "signal.h")]
 	public int sigqueue (pid_t pid, int signum, sigval_t val);
 	[CCode (cheader_filename = "signal.h")]
@@ -1073,7 +1325,7 @@ namespace Posix {
 	[CCode (cheader_filename = "signal.h")]
 	public int sigaction (int signum, sigaction_t? act, out sigaction_t? oldact);
 
-	[CCode (has_target = false, cheader_filename = "signal.h")]
+	[CCode (has_target = false, cheader_filename = "signal.h", feature_test_macro = "_GNU_SOURCE")]
 	public delegate void sighandler_t (int signal);
 
 	[CCode (has_target = false, cheader_filename = "signal.h")]
@@ -1124,6 +1376,8 @@ namespace Posix {
 	public int grantpt (int fd);
 	[CCode (cheader_filename = "stdlib.h")]
 	public int unlockpt (int fd);
+	[CCode (cheader_filename = "stdlib.h")]
+	public unowned string? ptsname (int fd);
 
 	[CCode (cheader_filename = "stdlib.h")]
 	public int system (string command);
@@ -1187,6 +1441,8 @@ namespace Posix {
 	public unowned string? strpbrk (string s1, string s2);
 	[CCode (cheader_filename = "string.h")]
 	public unowned string? strrchr (string s, int c);
+	[CCode (cheader_filename = "string.h")]
+	public unowned string? strsignal (int signum);
 	[CCode (cheader_filename = "string.h")]
 	public size_t strspn (string s1, string s2);
 	[CCode (cheader_filename = "string.h")]
@@ -1321,6 +1577,29 @@ namespace Posix {
 	public const int MOREDATA;
 	[CCode (cheader_filename = "sys/ioctl.h", sentinel = "")]
 	public int ioctl (int fildes, int request, ...);
+
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_CREAT;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_EXCL;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_NOWAIT;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const key_t IPC_PRIVATE;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_RMID;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_SET;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_STAT;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_R;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_W;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public const int IPC_M;
+	[CCode (cheader_filename = "sys/ipc.h")]
+	public key_t ftok (string pathname, int proj_id);
 
 	[CCode (cheader_filename = "syslog.h")]
 	public void openlog (string ident, int option, int facility );
@@ -1482,7 +1761,7 @@ namespace Posix {
 	[CCode (cheader_filename = "netdb.h")]
 	public unowned string gai_strerror (int errcode);
 	[CCode (cheader_filename = "netdb.h")]
-	public unowned HostEnt gethostbyname (string name);
+	public unowned HostEnt? gethostbyname (string name);
 
 	[CCode (cname = "socklen_t", cheader_filename = "sys/socket.h", default_value = "0", has_type_id = false)]
 	public struct socklen_t : int {
@@ -1534,6 +1813,7 @@ namespace Posix {
 		public AddrInfo *ai_next;
 	}
 
+	[Compact]
 	[CCode (cname = "struct hostent", cheader_filename = "netdb.h", destroy_function = "", has_type_id = false)]
 	public class HostEnt {
 		public string h_name;
@@ -1544,6 +1824,68 @@ namespace Posix {
 		[CCode (array_length=false, array_null_terminated=true)]
 		public string[] h_addr_list;
 	}
+
+	[CCode (cname = "struct msqid_ds", cheader_filename = "sys/msg.h", free_function = "", has_type_id = false)]
+	public struct MsqIdDs {
+	}
+
+	[CCode (cname = "short", cheader_filename = "sys/msg.h", cprefix = "MSG_", has_type_id = false)]
+	public enum MsqCmd {
+		STAT,
+		INFO
+	}
+
+	[CCode (cheader_filename = "sys/msg.h")]
+	public const int MSG_COPY;
+	[CCode (cheader_filename = "sys/msg.h")]
+	public const int MSG_EXCEPT;
+	[CCode (cheader_filename = "sys/msg.h")]
+	public const int MSG_NOERROR;
+	[CCode (cheader_filename = "sys/msg.h")]
+	public int msgctrl (int msqid, MsqCmd cmd, MsqIdDs buf);
+	[CCode (cheader_filename = "sys/msg.h")]
+	public int msgget (key_t key, int msgflg = 0);
+	[CCode (cheader_filename = "sys/msg.h")]
+	public ssize_t msgrcv (int msqid, uint8[] buf, long msgtyp = 0, int msgflg = 0);
+	[CCode (cheader_filename = "sys/msg.h")]
+	public int msgsnd (int msqid, uint8[] buf, int msgflg = 0);
+
+	[CCode (cname = "struct sembuf", cheader_filename = "sys/sem.h", free_function = "", has_type_id = false)]
+	public struct SemBuf {
+		public ushort sem_num;
+		public SemCmd sem_op;
+		public short sem_flg;
+	}
+
+	[CCode (cname = "short", cheader_filename = "sys/sem.h", cprefix = "", has_type_id = false)]
+	public enum SemCmd {
+		GETPID,
+		GETVAL,
+		GETALL,
+		GETNCNT,
+		GETZCNT,
+		SETVAL,
+		SETALL,
+		IPC_STAT,
+		IPC_SET,
+		IPC_RMID,
+	}
+
+	[CCode (cheader_filename = "sys/sem.h")]
+	public const short SEM_UNDO;
+	[CCode (cheader_filename = "sys/sem.h")]
+	public int semctl (int semid, int semnum, int cmd, ...);
+	[CCode (cheader_filename = "sys/sem.h")]
+	public int semget (key_t key, int nsems, int semflg = 0);
+	[CCode (cheader_filename = "sys/sem.h")]
+	public int semop (int semid, SemBuf[] sops);
+
+	[CCode (cheader_filename = "sys/shm.h")]
+	public void* shmat (int shmid, void* shmaddr, int shmflg = 0);
+	[CCode (cheader_filename = "sys/shm.h")]
+	public int shmdt (void* shmaddr);
+	[CCode (cheader_filename = "sys/shm.h")]
+	public int shmget (key_t key, size_t size, int shmflg = 0);
 
 	[CCode (cheader_filename = "sys/stat.h")]
 	public int mkfifo (string filename, mode_t mode);
@@ -1729,11 +2071,11 @@ namespace Posix {
 	public struct dev_t {
 	}
 
-	[CCode (cheader_filename = "sys/types.h")]
+	[CCode (cheader_filename = "sys/sysmacros.h")]
 	uint major (dev_t dev);
-	[CCode (cheader_filename = "sys/types.h")]
+	[CCode (cheader_filename = "sys/sysmacros.h")]
 	uint minor (dev_t dev);
-	[CCode (cheader_filename = "sys/types.h")]
+	[CCode (cheader_filename = "sys/sysmacros.h")]
 	dev_t makedev (int maj, int min);
 
 	[SimpleType]
@@ -1766,6 +2108,9 @@ namespace Posix {
 		[CCode (cname = "clock")]
 		public clock_t ();
 	}
+
+	[CCode (cheader_filename = "time.h")]
+	public unowned string? ctime (ref time_t clock);
 
 	[CCode (cname = "struct tm", cheader_filename = "time.h", has_type_id = false)]
 	public struct tm {
@@ -1852,6 +2197,10 @@ namespace Posix {
 	[CCode (cname = "readv", cheader_filename = "sys/uio.h")]
 	public ssize_t read_vectors (int fd, iovector[] vector);
 	[CCode (cheader_filename = "unistd.h,sys/types.h")]
+	public int setegid (gid_t egid);
+	[CCode (cheader_filename = "unistd.h,sys/types.h")]
+	public int seteuid (gid_t euid);
+	[CCode (cheader_filename = "unistd.h,sys/types.h")]
 	public int setgid (gid_t gid);
 	[CCode (cheader_filename = "unistd.h,sys/types.h")]
 	public int setuid (uid_t uid);
@@ -1915,17 +2264,9 @@ namespace Posix {
 	public int chroot (string path);
 	[Version (deprecated_since = "POSIX.2", replacement = "termios ECHO flag")]
 	[CCode (cheader_filename = "unistd.h")]
-	public unowned string getpass (string promt);
-	/**
-	 * Encodes a string
-	 *
-	 * To expose Posix crypt() GNU's libc and others require the feature test
-	 * macro _XOPEN_SOURCE to be defined. See man 3 crypt.
-	 * A VAPI is unable to define and emit this macro before all include files
-	 * Instead use valac -X -D_XOPEN_SOURCE
-	 */
-	[CCode (cheader_filename = "unistd.h")]
-	public unowned string crypt (string key, string salt);
+	public unowned string? getpass (string prompt);
+	[CCode (cheader_filename = "unistd.h", feature_test_macro = "_XOPEN_SOURCE")]
+	public unowned string? crypt (string key, string salt);
 	[CCode (cheader_filename = "unistd.h")]
 	public int getpagesize ();
 	[CCode (cheader_filename = "unistd.h")]
@@ -2406,6 +2747,11 @@ namespace Posix {
 	public int mlock(void *addr, size_t len);
 	[CCode (cheader_filename = "sys/mman.h")]
 	public int munlock(void *addr, size_t len);
+	// sys/mman.h - [SHM] Shared Memory
+	[CCode (cheader_filename = "sys/mman.h")]
+	public int shm_open (string name, int oflag, mode_t mode = 0);
+	[CCode (cheader_filename = "sys/mman.h")]
+	public int shm_unlink (string name);
 	// sys/mman.h - Process Memory Locking
 	[CCode (cheader_filename = "sys/mman.h")]
 	public const int MCL_CURRENT;
@@ -2493,6 +2839,9 @@ namespace Posix {
 	public static FILE stderr;
 	public static FILE stdout;
 	public static FILE stdin;
+
+	[CCode (cheader_filename = "stdio.h")]
+	public void perror (string s);
 
 	[CCode(cheader_filename = "sched.h", cprefix = "sched_")]
 	namespace Sched {
@@ -2723,7 +3072,22 @@ namespace Posix {
 		RADIXCHAR,
 		THOUSEP,
 		YESEXPR,
-		NOEXPR
+		NOEXPR;
+		[CCode (cheader_filename = "langinfo.h", cname = "nl_langinfo")]
+		public unowned string to_string ();
+	}
+
+	[CCode (cheader_filename = "langinfo.h", cname = "nl_item", cprefix = "_NL_TIME_", has_type_id = false)]
+	public enum NLTime {
+		WEEK_NDAYS,
+		WEEK_1STDAY,
+		WEEK_1STWEEK,
+		FIRST_WEEKDAY,
+		FIRST_WORKDAY,
+		CAL_DIRECTION,
+		TIMEZONE;
+		[CCode (cheader_filename = "langinfo.h", cname = "nl_langinfo")]
+		public unowned string to_string ();
 	}
 
 	[CCode (cheader_filename = "langinfo.h")]
@@ -2739,4 +3103,46 @@ namespace Posix {
 	public static int opterr;
 	[CCode (cheader_filename = "unistd.h")]
 	public static int optopt;
+
+	[CCode(cname = "wordexp_t", cheader_filename = "wordexp.h", destroy_function = "wordfree")]
+	public struct Wordexp {
+		[CCode(cname = "we_wordv", array_length_cname = "we_wordc", array_length_type = "size_t")]
+		public string[] words;
+
+		[CCode(cname = "wordexp", instance_pos = 1.1)]
+		private int _wordexp (string s, int flags = 0);
+		[CCode(cname = "wordfree")]
+		private int _wordfree ();
+
+		public int expand (string s, int flags = 0) {
+			if (!(WRDE_APPEND in flags || WRDE_REUSE in flags)) {
+				_wordfree();
+			}
+			return _wordexp (s, flags);
+		}
+		public int append(string s, int flags = 0) {
+			return _wordexp (s, flags | WRDE_APPEND);
+		}
+	}
+
+	[CCode(cheader_filename = "wordexp.h")]
+	private const int WRDE_APPEND;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_BADCHAR;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_BADVAL;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_CMDSUB;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_NOCMD;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_NOSPACE;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_REUSE;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_SHOWERR;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_SYNTAX;
+	[CCode(cheader_filename = "wordexp.h")]
+	public const int WRDE_UNDEF;
 }

@@ -54,24 +54,38 @@ public class Vala.SwitchLabel : CodeNode {
 	public SwitchLabel.with_default (SourceReference? source = null) {
 		source_reference = source;
 	}
-	
+
 	public override void accept (CodeVisitor visitor) {
 		visitor.visit_switch_label (this);
 	}
-	
+
 	public override void accept_children (CodeVisitor visitor) {
 		if (expression != null) {
 			expression.accept (visitor);
-			
+
 			visitor.visit_end_full_expression (expression);
 		}
 	}
-	
+
 	public override bool check (CodeContext context) {
 		if (expression != null) {
+			var switch_statement = (SwitchStatement) section.parent_node;
+
+			// enum-type inference
+			var condition_target_type = switch_statement.expression.target_type;
+			if (expression.symbol_reference == null && condition_target_type != null && condition_target_type.data_type is Enum) {
+				var enum_type = (Enum) condition_target_type.data_type;
+				foreach (var val in enum_type.get_values ()) {
+					if (expression.to_string () == val.name) {
+						expression.target_type = condition_target_type.copy ();
+						expression.symbol_reference = val;
+						break;
+					}
+				}
+			}
+
 			expression.check (context);
 
-			var switch_statement = (SwitchStatement) section.parent_node;
 			if (!expression.is_constant ()) {
 				error = true;
 				Report.error (expression.source_reference, "Expression must be constant");

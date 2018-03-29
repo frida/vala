@@ -23,7 +23,7 @@
 public class Vala.GDBusServerModule : GDBusClientModule {
 	string generate_dbus_wrapper (Method m, ObjectTypeSymbol sym, bool ready = false) {
 		string wrapper_name = "_dbus_%s".printf (get_ccode_name (m));
-		bool need_goto_label = ready;
+		bool need_goto_label = false;
 
 		if (m.base_method != null) {
 			m = m.base_method;
@@ -51,13 +51,8 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 		push_function (function);
 
-		CCodeIdentifier closure_var = m.coroutine ? new CCodeIdentifier ("closure") : null;
-		string closure_struct_name = Symbol.lower_case_to_camel_case (get_ccode_name (m)) + "Closure";
-
 		if (ready) {
-			ccode.add_declaration (closure_struct_name + "*", new CCodeVariableDeclarator ("closure", new CCodeIdentifier ("_user_data_")));
-			ccode.add_declaration ("GDBusMethodInvocation*", new CCodeVariableDeclarator ("invocation",
-				new CCodeMemberAccess.pointer (new CCodeIdentifier ("closure"), "_invocation_")));
+			ccode.add_declaration ("GDBusMethodInvocation *", new CCodeVariableDeclarator ("invocation", new CCodeIdentifier ("_user_data_")));
 		}
 
 		var connection = new CCodeFunctionCall (new CCodeIdentifier ("g_dbus_method_invocation_get_connection"));
@@ -102,22 +97,6 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 				ccode.add_declaration ("gint", new CCodeVariableDeclarator ("_fd"));
 			}
 
-			CCodeStruct closure_struct = null;
-
-			if (m.coroutine) {
-				closure_struct = new CCodeStruct ("_" + closure_struct_name);
-				closure_struct.add_field ("GDBusMethodInvocation *", "_invocation_");
-				append_struct (closure_struct);
-
-				var closure_alloc = new CCodeFunctionCall (new CCodeIdentifier ("g_slice_new0"));
-				closure_alloc.add_argument (new CCodeIdentifier (closure_struct_name));
-
-				ccode.add_declaration (closure_struct_name + "*", new CCodeVariableDeclarator ("closure"));
-				ccode.add_assignment (closure_var, closure_alloc);
-
-				ccode.add_assignment (new CCodeMemberAccess.pointer (closure_var, "_invocation_"), new CCodeIdentifier ("invocation"));
-			}
-
 			foreach (Parameter param in m.get_parameters ()) {
 				string param_name = get_variable_cname (param.name);
 				if (param.direction != ParameterDirection.IN) {
@@ -133,32 +112,17 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 					continue;
 				}
 
-				CCodeExpression param_expr;
-				if (closure_var != null) {
-					param_expr = new CCodeMemberAccess.pointer (closure_var, param_name);
-				} else {
-					param_expr = new CCodeIdentifier (param_name);
-				}
-
 				var owned_type = param.variable_type.copy ();
 				owned_type.value_owned = true;
 
-				if (closure_struct != null) {
-					closure_struct.add_field (get_ccode_name (owned_type), param_name);
-				} else {
-					ccode.add_declaration (get_ccode_name (owned_type), new CCodeVariableDeclarator.zero (param_name, default_value_for_type (param.variable_type, true)));
-				}
+				ccode.add_declaration (get_ccode_name (owned_type), new CCodeVariableDeclarator.zero (param_name, default_value_for_type (param.variable_type, true)));
 
 				var array_type = param.variable_type as ArrayType;
 				if (array_type != null) {
 					for (int dim = 1; dim <= array_type.rank; dim++) {
 						string length_cname = get_parameter_array_length_cname (param, dim);
 
-						if (closure_struct != null) {
-							closure_struct.add_field ("int", length_cname);
-						} else {
-							ccode.add_declaration ("int", new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
-						}
+						ccode.add_declaration ("int", new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
 					}
 				}
 
@@ -166,7 +130,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 				message_expr.add_argument (new CCodeIdentifier ("invocation"));
 
 				bool may_fail;
-				receive_dbus_value (param.variable_type, message_expr, new CCodeIdentifier ("_arguments_iter"), param_expr, param, new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("error")), out may_fail);
+				receive_dbus_value (param.variable_type, message_expr, new CCodeIdentifier ("_arguments_iter"), new CCodeIdentifier (param_name), param, new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("error")), out may_fail);
 
 				if (may_fail) {
 					if (!uses_error) {
@@ -195,13 +159,6 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 		foreach (Parameter param in m.get_parameters ()) {
 			string param_name = get_variable_cname (param.name);
-
-			CCodeExpression param_expr;
-			if (closure_var != null && param.direction == ParameterDirection.IN)
-				param_expr = new CCodeMemberAccess.pointer (closure_var, param_name);
-			else
-				param_expr = new CCodeIdentifier (param_name);
-
 			if (param.direction == ParameterDirection.IN && !ready) {
 				if (param.variable_type is ObjectType && param.variable_type.data_type.get_full_name () == "GLib.Cancellable") {
 					ccall.add_argument (new CCodeConstant ("NULL"));
@@ -218,12 +175,12 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 				var st = param.variable_type.data_type as Struct;
 				if (st != null && !st.is_simple_type ()) {
-					ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, param_expr));
+					ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (param_name)));
 				} else {
-					ccall.add_argument (param_expr);
+					ccall.add_argument (new CCodeIdentifier (param_name));
 				}
 			} else if (param.direction == ParameterDirection.OUT && (!m.coroutine || ready)) {
-				ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, param_expr));
+				ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (param_name)));
 			}
 
 			var array_type = param.variable_type as ArrayType;
@@ -231,16 +188,10 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 				for (int dim = 1; dim <= array_type.rank; dim++) {
 					string length_cname = get_parameter_array_length_cname (param, dim);
 
-					CCodeExpression length_expr;
-					if (closure_var != null && param.direction == ParameterDirection.IN)
-						length_expr = new CCodeMemberAccess.pointer (closure_var, length_cname);
-					else
-						length_expr = new CCodeIdentifier (length_cname);
-
 					if (param.direction == ParameterDirection.IN && !ready) {
-						ccall.add_argument (length_expr);
+						ccall.add_argument (new CCodeIdentifier (length_cname));
 					} else if (param.direction == ParameterDirection.OUT && !no_reply && (!m.coroutine || ready)) {
-						ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, length_expr));
+						ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (length_cname)));
 					}
 				}
 			}
@@ -265,7 +216,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 		if (m.coroutine && !ready) {
 			ccall.add_argument (new CCodeCastExpression (new CCodeIdentifier (wrapper_name + "_ready"), "GAsyncReadyCallback"));
-			ccall.add_argument (closure_var);
+			ccall.add_argument (new CCodeIdentifier ("invocation"));
 		}
 
 		if (!m.coroutine || ready) {
@@ -422,7 +373,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 		}
 
 		foreach (Parameter param in m.get_parameters ()) {
-			if ((param.direction == ParameterDirection.IN && (closure_var == null || ready)) ||
+			if ((param.direction == ParameterDirection.IN && !ready) ||
 			    (param.direction == ParameterDirection.OUT && !no_reply && (!m.coroutine || ready))) {
 				if (param.variable_type is ObjectType && param.variable_type.data_type.get_full_name () == "GLib.Cancellable") {
 					continue;
@@ -437,33 +388,11 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 				owned_type.value_owned = true;
 
 				if (requires_destroy (owned_type)) {
-					if (closure_var != null && param.direction == ParameterDirection.IN) {
-						var target = new GLibValue (owned_type, new CCodeMemberAccess.pointer (closure_var, param.name), true);
-
-						var array_type = owned_type as ArrayType;
-						if (array_type != null) {
-							for (int dim = 1; dim <= array_type.rank; dim++) {
-								string length_cname = get_parameter_array_length_cname (param, dim);
-
-								target.append_array_length_cvalue (new CCodeMemberAccess.pointer (closure_var, length_cname));
-							}
-						}
-
-						ccode.add_expression (destroy_value (target));
-					} else {
-						// keep local alive (symbol_reference is weak)
-						var local = new LocalVariable (owned_type, get_variable_cname (param.name));
-						ccode.add_expression (destroy_local (local));
-					}
+					// keep local alive (symbol_reference is weak)
+					var local = new LocalVariable (owned_type, get_variable_cname (param.name));
+					ccode.add_expression (destroy_local (local));
 				}
 			}
-		}
-
-		if (ready) {
-			var freecall = new CCodeFunctionCall (new CCodeIdentifier ("g_slice_free"));
-			freecall.add_argument (new CCodeIdentifier (closure_struct_name));
-			freecall.add_argument (closure_var);
-			ccode.add_expression (freecall);
 		}
 
 		pop_function ();
@@ -480,7 +409,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 	}
 
 	string generate_dbus_signal_wrapper (Signal sig, ObjectTypeSymbol sym, string dbus_iface_name) {
-		string wrapper_name = "_dbus_%s_%s".printf (get_ccode_lower_case_name (sym), get_ccode_name (sig));
+		string wrapper_name = "_dbus_%s_%s".printf (get_ccode_lower_case_name (sym), get_ccode_lower_case_name (sig));
 
 		var function = new CCodeFunction (wrapper_name, "void");
 		function.modifiers = CCodeModifiers.STATIC;
@@ -687,7 +616,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 				// disconnect the signals
 				var disconnect_call = new CCodeFunctionCall (new CCodeIdentifier ("g_signal_handlers_disconnect_by_func"));
 				disconnect_call.add_argument (new CCodeElementAccess (new CCodeIdentifier ("data"), new CCodeConstant ("0")));
-				disconnect_call.add_argument (new CCodeIdentifier ("_dbus_%s_%s".printf (get_ccode_lower_case_name (sym), get_ccode_name (sig))));
+				disconnect_call.add_argument (new CCodeIdentifier ("_dbus_%s_%s".printf (get_ccode_lower_case_name (sym), get_ccode_lower_case_name (sig))));
 				disconnect_call.add_argument (new CCodeIdentifier ("data"));
 				ccode.add_expression (disconnect_call);
 			}

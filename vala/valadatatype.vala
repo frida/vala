@@ -43,12 +43,7 @@ public abstract class Vala.DataType : CodeNode {
 	 * The referred data type.
 	 */
 	public weak TypeSymbol data_type { get; set; }
-	
-	/**
-	 * The referred generic type parameter.
-	 */
-	public TypeParameter type_parameter { get; set; }
-	
+
 	/**
 	 * Specifies that the expression transfers a floating reference.
 	 */
@@ -74,7 +69,7 @@ public abstract class Vala.DataType : CodeNode {
 		type_argument_list.add (arg);
 		arg.parent_node = this;
 	}
-	
+
 	/**
 	 * Returns a copy of the list of generic type arguments.
 	 *
@@ -171,7 +166,7 @@ public abstract class Vala.DataType : CodeNode {
 
 		return s;
 	}
-	
+
 	/**
 	 * Creates a shallow copy of this type reference.
 	 *
@@ -197,11 +192,11 @@ public abstract class Vala.DataType : CodeNode {
 		if (type2.data_type != data_type) {
 			return false;
 		}
-		if (type2.type_parameter != null || type_parameter != null) {
-			if (type2.type_parameter == null || type_parameter == null) {
+		if (type2 is GenericType || this is GenericType) {
+			if (!(type2 is GenericType) || !(this is GenericType)) {
 				return false;
 			}
-			if (!type2.type_parameter.equals (type_parameter)) {
+			if (!((GenericType) type2).type_parameter.equals (((GenericType) this).type_parameter)) {
 				return false;
 			}
 		}
@@ -219,10 +214,10 @@ public abstract class Vala.DataType : CodeNode {
 			if (!type2_args[i].equals (type_args[i]))
 				return false;
 		}
-	
+
 		return true;
 	}
-	
+
 	/**
 	 * Checks whether this type reference is at least as strict as the
 	 * specified type reference type2.
@@ -234,13 +229,13 @@ public abstract class Vala.DataType : CodeNode {
 		if (type2.is_disposable () != is_disposable ()) {
 			return false;
 		}
-		
+
 		if (!type2.nullable && nullable) {
 			return false;
 		}
 
 		/* temporarily ignore type parameters */
-		if (type_parameter != null || type2.type_parameter != null) {
+		if (this is GenericType || type2 is GenericType) {
 			return true;
 		}
 
@@ -253,7 +248,7 @@ public abstract class Vala.DataType : CodeNode {
 		if (type2.floating_reference != floating_reference) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -285,13 +280,9 @@ public abstract class Vala.DataType : CodeNode {
 			}
 		}
 
-		if (target_type is DelegateType && this is DelegateType) {
-			return ((DelegateType) target_type).delegate_symbol == ((DelegateType) this).delegate_symbol;
-		}
-
 		if (target_type is PointerType) {
 			/* any reference or array type or pointer type can be cast to a generic pointer */
-			if (type_parameter != null ||
+			if (this is GenericType ||
 				(data_type != null && (
 					data_type.is_reference_type () ||
 					this is DelegateType))) {
@@ -302,7 +293,7 @@ public abstract class Vala.DataType : CodeNode {
 		}
 
 		/* temporarily ignore type parameters */
-		if (target_type.type_parameter != null) {
+		if (target_type is GenericType) {
 			return true;
 		}
 
@@ -384,7 +375,7 @@ public abstract class Vala.DataType : CodeNode {
 	public virtual bool is_reference_type_or_type_parameter () {
 		return (data_type != null &&
 		        data_type.is_reference_type ()) ||
-		       type_parameter != null;
+		       this is GenericType;
 	}
 
 	public virtual bool is_array () {
@@ -484,6 +475,16 @@ public abstract class Vala.DataType : CodeNode {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns a stringified representation used for detailed error output
+	 *
+	 * @param override_name used as name if given
+	 * @return stringified representation
+	 */
+	public virtual string to_prototype_string (string? override_name = null) {
+		return "%s%s".printf (is_weak () ? "unowned " : "", to_qualified_string ());
 	}
 
 	public bool is_weak () {

@@ -31,7 +31,7 @@ public class Vala.UsedAttr : CodeVisitor {
 
 	const string[] valac_default_attrs = {
 		"CCode", "type_signature", "default_value", "set_value_function", "type_id", "cprefix", "cheader_filename",
-		"marshaller_type_name", "get_value_function", "cname", "cheader_filename", "destroy_function", "lvalue_access",
+		"marshaller_type_name", "get_value_function", "cname", "destroy_function", "lvalue_access",
 		"has_type_id", "instance_pos", "const_cname", "take_value_function", "copy_function", "free_function",
 		"param_spec_function", "has_target", "type_cname", "ref_function", "ref_function_void", "unref_function", "type",
 		"has_construct_function", "returns_floating_reference", "gir_namespace", "gir_version", "construct_function",
@@ -39,14 +39,16 @@ public class Vala.UsedAttr : CodeVisitor {
 		"has_copy_function", "lower_case_csuffix", "ref_sink_function", "dup_function", "finish_function", "generic_type_pos",
 		"array_length_type", "array_length", "array_length_cname", "array_length_cexpr", "array_null_terminated",
 		"vfunc_name", "finish_vfunc_name", "finish_name", "free_function_address_of", "pos", "delegate_target", "delegate_target_cname",
-		"array_length_pos", "delegate_target_pos", "destroy_notify_pos", "ctype", "has_new_function", "notify", "finish_instance", "",
+		"array_length_pos", "delegate_target_pos", "destroy_notify_pos", "ctype", "has_new_function", "notify", "finish_instance",
+		"use_inplace", "feature_test_macro", "",
 
 		"Immutable", "",
 		"Compact", "",
 		"NoWrapper", "",
+		"NoThrow", "",
 		"DestroysInstance", "",
 		"Flags", "",
-		"Experimental", "",
+		"Experimental", "", // deprecated
 		"NoReturn", "",
 		"NoArrayLength", "", // deprecated
 		"Assert", "",
@@ -57,15 +59,18 @@ public class Vala.UsedAttr : CodeVisitor {
 		"ConcreteAccessor", "",
 		"HasEmitter", "",
 		"ReturnsModifiedPointer", "",
-		"Deprecated", "since", "replacement", "",
-		"Version", "since", "replacement", "deprecated", "deprecated_since", "experimental", "",
+		"Deprecated", "since", "replacement", "", // deprecated
+		"Version", "since", "replacement", "deprecated", "deprecated_since", "experimental", "experimental_until", "",
 		"Signal", "detailed", "run", "no_recurse", "action", "no_hooks", "",
 		"Description", "nick", "blurb", "",
-		
-		"IntegerType", "rank", "min", "max", "",
-		"FloatingType", "rank", "",
+
+		"IntegerType", "rank", "min", "max", "signed", "width", "",
+		"FloatingType", "rank", "decimal", "width", "",
 		"BooleanType", "",
 		"SimpleType", "",
+		"PointerType", "",
+
+		"Print", "",
 		"PrintfFormat", "",
 		"ScanfFormat", "",
 		"FormatArg", "",
@@ -74,12 +79,14 @@ public class Vala.UsedAttr : CodeVisitor {
 		"GtkTemplate", "ui", "",
 		"GtkCallback", "name", "",
 
+		"ModuleInit", "",
+
 		"DBus", "name", "no_reply", "result", "use_string_marshalling", "value", "signature", "visible", "timeout", "",
 
 		"GIR", "fullname", "name", ""
 
 	};
-	
+
 	public UsedAttr () {
 		// mark default valac attrs
 		var curattr = "";
@@ -96,7 +103,7 @@ public class Vala.UsedAttr : CodeVisitor {
 			}
 		}
 	}
-	
+
 	/**
 	 * Mark the attribute or attribute argument as used by the compiler
 	 */
@@ -111,7 +118,7 @@ public class Vala.UsedAttr : CodeVisitor {
 			set.add (argument);
 		}
 	}
-	
+
 	/**
 	 * Traverse the code tree and warn about unused attributes.
 	 *
@@ -138,12 +145,12 @@ public class Vala.UsedAttr : CodeVisitor {
 			}
 		}
 	}
-	
+
 	public override void visit_namespace (Namespace ns) {
 		check_unused_attr (ns);
 		ns.accept_children (this);
 	}
-	
+
 	public override void visit_class (Class cl) {
 		check_unused_attr (cl);
 		cl.accept_children (this);

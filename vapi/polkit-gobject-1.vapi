@@ -153,6 +153,7 @@ namespace Polkit {
 		public UnixSession.for_process_sync (int pid, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public unowned string get_session_id ();
 		public void set_session_id (string session_id);
+		[NoAccessorMethod]
 		public int pid { construct; }
 		public string session_id { get; set construct; }
 	}
@@ -205,7 +206,7 @@ namespace Polkit {
 		ADMINISTRATOR_AUTHENTICATION_REQUIRED_RETAINED,
 		AUTHORIZED;
 		public static bool from_string (string string, Polkit.ImplicitAuthorization out_implicit_authorization);
-		public static unowned string to_string (Polkit.ImplicitAuthorization implicit_authorization);
+		public unowned string to_string ();
 	}
 	[CCode (cheader_filename = "polkit/polkit.h", cprefix = "POLKIT_ERROR_")]
 	public errordomain Error {

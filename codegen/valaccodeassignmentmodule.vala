@@ -37,7 +37,7 @@ public class Vala.CCodeAssignmentModule : CCodeMemberAccessModule {
 		}
 
 		if (assignment.operator == AssignmentOperator.SIMPLE) {
-			store_value (assignment.left.target_value, assignment.right.target_value);
+			store_value (assignment.left.target_value, assignment.right.target_value, assignment.source_reference);
 		} else {
 			CCodeAssignmentOperator cop;
 			if (assignment.operator == AssignmentOperator.BITWISE_OR) {
@@ -94,7 +94,7 @@ public class Vala.CCodeAssignmentModule : CCodeMemberAccessModule {
 		}
 	}
 
-	public override void store_value (TargetValue lvalue, TargetValue value) {
+	public override void store_value (TargetValue lvalue, TargetValue value, SourceReference? source_reference = null) {
 		var array_type = lvalue.value_type as ArrayType;
 
 		if (array_type != null && array_type.fixed_length) {
@@ -147,8 +147,15 @@ public class Vala.CCodeAssignmentModule : CCodeMemberAccessModule {
 
 		var delegate_type = lvalue.value_type as DelegateType;
 		if (delegate_type != null && delegate_type.delegate_symbol.has_target) {
-			if (get_delegate_target_cvalue (lvalue) != null) {
-				ccode.add_assignment (get_delegate_target_cvalue (lvalue), get_delegate_target_cvalue (value));
+			var lvalue_target = get_delegate_target_cvalue (lvalue);
+			var rvalue_target = get_delegate_target_cvalue (value);
+			if (lvalue_target != null) {
+				if (rvalue_target != null) {
+					ccode.add_assignment (lvalue_target, rvalue_target);
+				} else {
+					Report.error (source_reference, "Assigning delegate without required target in scope");
+					ccode.add_assignment (lvalue_target, new CCodeInvalidExpression ());
+				}
 				var lvalue_destroy_notify = get_delegate_target_destroy_notify_cvalue (lvalue);
 				var rvalue_destroy_notify = get_delegate_target_destroy_notify_cvalue (value);
 				if (lvalue_destroy_notify != null) {
@@ -162,16 +169,16 @@ public class Vala.CCodeAssignmentModule : CCodeMemberAccessModule {
 		}
 	}
 
-	public override void store_local (LocalVariable local, TargetValue value, bool initializer) {
+	public override void store_local (LocalVariable local, TargetValue value, bool initializer, SourceReference? source_reference = null) {
 		if (!initializer && requires_destroy (local.variable_type)) {
 			/* unref old value */
 			ccode.add_expression (destroy_local (local));
 		}
 
-		store_value (get_local_cvalue (local), value);
+		store_value (get_local_cvalue (local), value, source_reference);
 	}
 
-	public override void store_parameter (Parameter param, TargetValue _value, bool capturing_parameter = false) {
+	public override void store_parameter (Parameter param, TargetValue _value, bool capturing_parameter = false, SourceReference? source_reference = null) {
 		var value = _value;
 
 		bool capturing_parameter_in_coroutine = capturing_parameter && is_in_coroutine ();
@@ -205,10 +212,10 @@ public class Vala.CCodeAssignmentModule : CCodeMemberAccessModule {
 			ccode.add_expression (destroy_parameter (param));
 		}
 
-		store_value (get_parameter_cvalue (param), value);
+		store_value (get_parameter_cvalue (param), value, source_reference);
 	}
 
-	public override void store_field (Field field, TargetValue? instance, TargetValue value) {
+	public override void store_field (Field field, TargetValue? instance, TargetValue value, SourceReference? source_reference = null) {
 		var lvalue = get_field_cvalue (field, instance);
 		var type = lvalue.value_type;
 		if (lvalue.actual_value_type != null) {
@@ -219,6 +226,6 @@ public class Vala.CCodeAssignmentModule : CCodeMemberAccessModule {
 			ccode.add_expression (destroy_field (field, instance));
 		}
 
-		store_value (lvalue, value);
+		store_value (lvalue, value, source_reference);
 	}
 }

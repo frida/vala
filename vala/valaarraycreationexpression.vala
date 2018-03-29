@@ -38,17 +38,17 @@ public class Vala.ArrayCreationExpression : Expression {
 			_element_type.parent_node = this;
 		}
 	}
-	
+
 	/**
 	 * The rank of the array.
 	 */
 	public int rank { get; set; }
-	
+
 	/**
 	 * The size for each dimension ascending from left to right.
 	 */
 	private List<Expression> sizes = new ArrayList<Expression> ();
-	
+
 	/**
 	 * The root array initializer list.
 	 */
@@ -74,14 +74,14 @@ public class Vala.ArrayCreationExpression : Expression {
 			size.parent_node = this;
 		}
 	}
-	
+
 	/**
 	 * Get the sizes for all dimensions ascending from left to right.
 	 */
 	public List<Expression> get_sizes () {
 		return sizes;
 	}
-	
+
 	public ArrayCreationExpression (DataType element_type, int rank, InitializerList? initializer_list, SourceReference source_reference) {
 		this.element_type = element_type;
 		this.rank = rank;
@@ -211,6 +211,12 @@ public class Vala.ArrayCreationExpression : Expression {
 			var ret = create_sizes_from_initializer_list (context, initlist, rank, calc_sizes);
 			if (ret == -1) {
 				error = true;
+			}
+
+			if (calc_sizes.size != rank) {
+				error = true;
+				var actual_type = new ArrayType (element_type, calc_sizes.size, source_reference);
+				Report.error (initlist.source_reference, "Expected initializer for `%s' but got `%s'".printf (target_type.to_string (), actual_type.to_string ()));
 			}
 		}
 

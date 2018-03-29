@@ -37,13 +37,13 @@ public class Vala.CharacterLiteral : Literal {
 		}
 		set {
 			_value = value;
-			
+
 			if (!value.validate ()) {
 				error = true;
 			}
 		}
 	}
-	
+
 	private string _value;
 
 	/**
@@ -64,7 +64,7 @@ public class Vala.CharacterLiteral : Literal {
 
 		visitor.visit_expression (this);
 	}
-	
+
 	/**
 	 * Returns the unicode character value this character literal
 	 * represents.
@@ -91,9 +91,9 @@ public class Vala.CharacterLiteral : Literal {
 		checked = true;
 
 		if (get_char () < 128) {
-			value_type = new IntegerType ((Struct) context.analyzer.root_symbol.scope.lookup ("char"));
+			value_type = new IntegerType ((Struct) context.root.scope.lookup ("char"));
 		} else {
-			value_type = new IntegerType ((Struct) context.analyzer.root_symbol.scope.lookup ("unichar"));
+			value_type = new IntegerType ((Struct) context.root.scope.lookup ("unichar"));
 		}
 
 		return !error;

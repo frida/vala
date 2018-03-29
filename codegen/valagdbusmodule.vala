@@ -108,7 +108,7 @@ public class Vala.GDBusModule : GVariantModule {
 		ccode.add_declaration ("gsize", new CCodeVariableDeclarator (quark_name, new CCodeConstant ("0")), CCodeModifiers.STATIC | CCodeModifiers.VOLATILE);
 
 		var register_call = new CCodeFunctionCall (new CCodeIdentifier ("g_dbus_error_register_error_domain"));
-		register_call.add_argument (new CCodeConstant ("\"" + CCodeBaseModule.get_quark_name (edomain) + "\""));
+		register_call.add_argument (new CCodeConstant ("\"" + get_ccode_quark_name (edomain) + "\""));
 		register_call.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (quark_name)));
 		register_call.add_argument (new CCodeIdentifier (get_ccode_lower_case_name (edomain) + "_entries"));
 		var nentries = new CCodeFunctionCall (new CCodeIdentifier ("G_N_ELEMENTS"));
@@ -371,31 +371,31 @@ public class Vala.GDBusModule : GVariantModule {
 				info.append (new CCodeConstant ("\"%s\"".printf (get_type_signature (param.variable_type, param))));
 
 				var cdecl = new CCodeDeclaration ("const GDBusArgInfo");
-				cdecl.add_declarator (new CCodeVariableDeclarator ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_name (sig) + "_" + param.name, info));
+				cdecl.add_declarator (new CCodeVariableDeclarator ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_lower_case_name (sig) + "_" + param.name, info));
 				cdecl.modifiers = CCodeModifiers.STATIC;
 				cfile.add_constant_declaration (cdecl);
 
-				args_info.append (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_name (sig) + "_" + param.name)));
+				args_info.append (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_lower_case_name (sig) + "_" + param.name)));
 			}
 
 			args_info.append (new CCodeConstant ("NULL"));
 
 			var cdecl = new CCodeDeclaration ("const GDBusArgInfo * const");
-			cdecl.add_declarator (new CCodeVariableDeclarator ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_name (sig) + "[]", args_info));
+			cdecl.add_declarator (new CCodeVariableDeclarator ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_lower_case_name (sig) + "[]", args_info));
 			cdecl.modifiers = CCodeModifiers.STATIC;
 			cfile.add_constant_declaration (cdecl);
 
 			var info = new CCodeInitializerList ();
 			info.append (new CCodeConstant ("-1"));
 			info.append (new CCodeConstant ("\"%s\"".printf (get_dbus_name_for_member (sig))));
-			info.append (new CCodeCastExpression (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_name (sig))), "GDBusArgInfo **"));
+			info.append (new CCodeCastExpression (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_" + get_ccode_lower_case_prefix (sym) + "dbus_arg_info_" + get_ccode_lower_case_name (sig))), "GDBusArgInfo **"));
 
 			cdecl = new CCodeDeclaration ("const GDBusSignalInfo");
-			cdecl.add_declarator (new CCodeVariableDeclarator ("_" + get_ccode_lower_case_prefix (sym) + "dbus_signal_info_" + get_ccode_name (sig), info));
+			cdecl.add_declarator (new CCodeVariableDeclarator ("_" + get_ccode_lower_case_prefix (sym) + "dbus_signal_info_" + get_ccode_lower_case_name (sig), info));
 			cdecl.modifiers = CCodeModifiers.STATIC;
 			cfile.add_constant_declaration (cdecl);
 
-			infos.append (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_" + get_ccode_lower_case_prefix (sym) + "dbus_signal_info_" + get_ccode_name (sig))));
+			infos.append (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_" + get_ccode_lower_case_prefix (sym) + "dbus_signal_info_" + get_ccode_lower_case_name (sig))));
 		}
 
 		infos.append (new CCodeConstant ("NULL"));

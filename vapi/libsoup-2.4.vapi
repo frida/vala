@@ -288,7 +288,7 @@ namespace Soup {
 	public class Cache : GLib.Object, Soup.SessionFeature {
 		[CCode (has_construct_function = false)]
 		[Version (since = "2.34")]
-		public Cache (string cache_dir, Soup.CacheType cache_type);
+		public Cache (string? cache_dir, Soup.CacheType cache_type);
 		[Version (since = "2.34")]
 		public void clear ();
 		[Version (since = "2.34.")]
@@ -854,6 +854,8 @@ namespace Soup {
 		[NoWrapper]
 		public virtual void auth_required (Soup.Message msg, Soup.Auth auth, bool retrying);
 		public virtual void cancel_message (Soup.Message msg, uint status_code);
+		[Version (since = "2.62")]
+		public async GLib.IOStream connect_async (Soup.URI uri, GLib.Cancellable? cancellable, [CCode (scope = "async")] Soup.SessionConnectProgressCallback? progress_callback) throws GLib.Error;
 		[NoWrapper]
 		public virtual void flush_queue ();
 		public unowned GLib.MainContext? get_async_context ();
@@ -1009,7 +1011,9 @@ namespace Soup {
 		[NoAccessorMethod]
 		public GLib.MainContext async_context { owned get; construct; }
 		public int fd { get; construct; }
+		[NoAccessorMethod]
 		public GLib.Socket gsocket { construct; }
+		[NoAccessorMethod]
 		public GLib.IOStream iostream { construct; }
 		[NoAccessorMethod]
 		public bool ipv6_only { get; set; }
@@ -1137,6 +1141,8 @@ namespace Soup {
 		public virtual signal void closing ();
 		public virtual signal void error (GLib.Error error);
 		public virtual signal void message (int type, GLib.Bytes message);
+		[Version (since = "2.60")]
+		public virtual signal void pong (GLib.Bytes message);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
 	[Compact]
@@ -1564,6 +1570,9 @@ namespace Soup {
 	public delegate void ServerWebsocketCallback (Soup.Server server, Soup.WebsocketConnection connection, string path, Soup.ClientContext client);
 	[CCode (cheader_filename = "libsoup/soup.h", instance_pos = 2.9)]
 	public delegate void SessionCallback (Soup.Session session, Soup.Message msg);
+	[CCode (cheader_filename = "libsoup/soup.h", instance_pos = 3.9)]
+	[Version (since = "2.62")]
+	public delegate void SessionConnectProgressCallback (Soup.Session session, GLib.SocketClientEvent event, GLib.IOStream connection);
 	[CCode (cheader_filename = "libsoup/soup.h", instance_pos = 2.9)]
 	public delegate void SocketCallback (Soup.Socket sock, uint status);
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_ADDRESS_ANY_PORT")]

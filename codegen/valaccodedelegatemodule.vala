@@ -32,6 +32,11 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			return;
 		}
 
+		// internally generated delegates don't require a typedef
+		if (d.sender_type != null) {
+			return;
+		}
+
 		string return_type_cname = get_ccode_name (d.return_type);
 
 		if (d.return_type.is_real_non_null_struct_type ()) {
@@ -55,12 +60,12 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			// handle array parameters
 			if (get_ccode_array_length (param) && param.variable_type is ArrayType) {
 				var array_type = (ArrayType) param.variable_type;
-				
+
 				var length_ctype = "int";
 				if (param.direction != ParameterDirection.IN) {
 					length_ctype = "int*";
 				}
-				
+
 				for (int dim = 1; dim <= array_type.rank; dim++) {
 					cparam = new CCodeParameter (get_parameter_array_length_cname (param, dim), length_ctype);
 					cfundecl.add_parameter (cparam);
@@ -74,7 +79,7 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 					cparam = new CCodeParameter (get_delegate_target_cname (get_variable_cname (param.name)), "void*");
 					cfundecl.add_parameter (cparam);
 					if (deleg_type.is_disposable ()) {
-						cparam = new CCodeParameter (get_delegate_target_destroy_notify_cname (get_variable_cname (param.name)), "GDestroyNotify*");
+						cparam = new CCodeParameter (get_delegate_target_destroy_notify_cname (get_variable_cname (param.name)), "GDestroyNotify");
 						cfundecl.add_parameter (cparam);
 					}
 				}
@@ -181,7 +186,7 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 		if (dynamic_sig != null) {
 			delegate_name = get_dynamic_signal_cname (dynamic_sig);
 		} else if (sig != null) {
-			delegate_name = get_ccode_lower_case_prefix (sig.parent_symbol) + get_ccode_name (sig);
+			delegate_name = get_ccode_lower_case_prefix (sig.parent_symbol) + get_ccode_lower_case_name (sig);
 		} else {
 			delegate_name = Symbol.camel_case_to_lower_case (get_ccode_name (d));
 		}

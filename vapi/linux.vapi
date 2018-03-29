@@ -833,13 +833,13 @@ namespace Linux {
     }
 
     // Non-Posix file control constants, -D _GNU_SOURCE
-    [CCode (cheader_filename = "fcntl.h")]
+    [CCode (cheader_filename = "fcntl.h", feature_test_macro = "_GNU_SOURCE")]
     public const int O_DIRECT;
-    [CCode (cheader_filename = "fcntl.h")]
+    [CCode (cheader_filename = "fcntl.h", feature_test_macro = "_GNU_SOURCE")]
     public const int O_NOATIME;
-    [CCode (cheader_filename = "fcntl.h")]
+    [CCode (cheader_filename = "fcntl.h", feature_test_macro = "_GNU_SOURCE")]
     public const int O_PATH;
-    [CCode (cheader_filename = "fcntl.h")]
+    [CCode (cheader_filename = "fcntl.h", feature_test_macro = "_GNU_SOURCE")]
     public const int O_TMPFILE;
 
     /*
@@ -1004,7 +1004,10 @@ namespace Linux {
         BLUETOOTH,
         UWB,
         WIMAX,
-        WWAN
+        WWAN,
+        GPS,
+        FM,
+        NFC
     }
 
     /*
@@ -1035,6 +1038,11 @@ namespace Linux {
         DT_WHT
     }
 
+    [CCode (cheader_filename = "errno.h", feature_test_macro = "_GNU_SOURCE")]
+    public const string program_invocation_name;
+    [CCode (cheader_filename = "errno.h", feature_test_macro = "_GNU_SOURCE")]
+    public const string program_invocation_short_name;
+
     [Version (deprecated_since = "vala-0.26", replacement = "Backtrace.get"), CCode (cheader_filename = "execinfo.h")]
     public int backtrace (void* buffer, int size);
 
@@ -1058,6 +1066,25 @@ namespace Linux {
       [CCode (cheader_filename = "execinfo.h")]
       public void symbols_fd (void*[] buffer, int fd);
     }
+
+    [CCode (cheader_filename = "signal.h")]
+    public void psiginfo (Posix.siginfo_t pinfo, string message);
+
+    [CCode (cheader_filename = "unistd.h", feature_test_macro = "_GNU_SOURCE")]
+    public int dup3 (int oldfd, int newfd, int flags);
+
+    [CCode (cheader_filename = "sys/types.h,unistd.h")]
+    public int getgroups ([CCode (array_length_pos = 0.9)] Posix.gid_t[]? list = null);
+    [CCode (cheader_filename = "unistd.h", feature_test_macro = "_GNU_SOURCE")]
+    public int getresgid (out Posix.gid_t rgid, out Posix.gid_t egid, out Posix.gid_t sgid);
+    [CCode (cheader_filename = "unistd.h", feature_test_macro = "_GNU_SOURCE")]
+    public int getresuid (out Posix.uid_t ruid, out Posix.uid_t euid, out Posix.uid_t suid);
+    [CCode (cheader_filename = "sys/types.h,grp.h,unistd.h")]
+    public int setgroups ([CCode (array_length_pos = 0.9)] Posix.gid_t[] list);
+    [CCode (cheader_filename = "unistd.h", feature_test_macro = "_GNU_SOURCE")]
+    public int setresgid (Posix.gid_t rgid, Posix.gid_t egid, Posix.gid_t sgid);
+    [CCode (cheader_filename = "unistd.h", feature_test_macro = "_GNU_SOURCE")]
+    public int setresuid (Posix.uid_t ruid, Posix.uid_t euid, Posix.uid_t suid);
 
     [CCode (cheader_filename = "unistd.h")]
     public int sethostname (string name, size_t len);
@@ -1713,6 +1740,12 @@ namespace Linux {
         public const int SYN_REPORT;
         [CCode (cheader_filename = "linux/input.h")]
         public const int SYN_CONFIG;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SYN_MT_REPORT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SYN_DROPPED;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SYN_MAX;
 
         /*
          * keys, switches, buttons, etc.
@@ -2210,17 +2243,23 @@ namespace Linux {
         [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_BRIGHTNESS_CYCLE;
         [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_BRIGHTNESS_AUTO;
+        [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_BRIGHTNESS_ZERO;
         [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_DISPLAY_OFF;
 
         [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_WWAN;
+        [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_WIMAX;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_RFKILL;
 
         [CCode (cheader_filename = "linux/input.h")]
-        public const int KEY_MAX;
+        public const int KEY_MICMUTE;
 
-        /* Range 248 - 255 is reserved for special needs of AT keyboard driver */
+        /* Code 255 is reserved for special needs of AT keyboard driver */
 
         [CCode (cheader_filename = "linux/input.h")]
         public const int BTN_MISC;
@@ -2345,6 +2384,8 @@ namespace Linux {
         [CCode (cheader_filename = "linux/input.h")]
         public const int BTN_TOOL_LENS;
         [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TOOL_QUINTTAP;
+        [CCode (cheader_filename = "linux/input.h")]
         public const int BTN_TOUCH;
         [CCode (cheader_filename = "linux/input.h")]
         public const int BTN_STYLUS;
@@ -2354,6 +2395,8 @@ namespace Linux {
         public const int BTN_TOOL_DOUBLETAP;
         [CCode (cheader_filename = "linux/input.h")]
         public const int BTN_TOOL_TRIPLETAP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TOOL_QUADTAP;
 
         [CCode (cheader_filename = "linux/input.h")]
         public const int BTN_WHEEL;
@@ -2523,6 +2566,8 @@ namespace Linux {
         [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_DISPLAYTOGGLE;
         [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_BRIGHTNESS_TOGGLE;
+        [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_SPELLCHECK;
         [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_LOGOFF;
@@ -2540,6 +2585,12 @@ namespace Linux {
         public const int KEY_CONTEXT_MENU;
         [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_MEDIA_REPEAT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_10CHANNELSUP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_10CHANNELSDOWN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_IMAGES;
 
         [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_DEL_EOL;
@@ -2638,6 +2689,221 @@ namespace Linux {
         public const int KEY_NUMERIC_STAR;
         [CCode (cheader_filename = "linux/input.h")]
         public const int KEY_NUMERIC_POUND;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_NUMERIC_A;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_NUMERIC_B;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_NUMERIC_C;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_NUMERIC_D;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CAMERA_FOCUS;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_WPS_BUTTON;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_TOUCHPAD_TOGGLE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_TOUCHPAD_ON;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_TOUCHPAD_OFF;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CAMERA_ZOOMIN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CAMERA_ZOOMOUT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CAMERA_UP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CAMERA_DOWN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CAMERA_LEFT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CAMERA_RIGHT;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_ATTENDANT_ON;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_ATTENDANT_OFF;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_ATTENDANT_TOGGLE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_LIGHTS_TOGGLE;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_DPAD_UP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_DPAD_DOWN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_DPAD_LEFT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_DPAD_RIGHT;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_ALS_TOGGLE;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_BUTTONCONFIG;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_TASKMANAGER;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_JOURNAL;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_CONTROLPANEL;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_APPSELECT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_SCREENSAVER;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_VOICECOMMAND;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_BRIGHTNESS_MIN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_BRIGHTNESS_MAX;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_KBDINPUTASSIST_PREV;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_KBDINPUTASSIST_NEXT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_KBDINPUTASSIST_PREVGROUP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_KBDINPUTASSIST_NEXTGROUP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_KBDINPUTASSIST_ACCEPT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_KBDINPUTASSIST_CANCEL;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_RIGHT_UP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_RIGHT_DOWN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_LEFT_UP;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_LEFT_DOWN;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_ROOT_MENU;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_MEDIA_TOP_MENU;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_NUMERIC_11;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_NUMERIC_12;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_AUDIO_DESC;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_3D_MODE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_NEXT_FAVORITE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_STOP_RECORD;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_PAUSE_RECORD;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_VOD;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_UNMUTE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_FASTREVERSE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_SLOWREVERSE;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_DATA;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY1;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY2;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY3;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY4;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY5;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY6;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY7;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY8;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY9;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY10;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY11;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY12;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY13;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY14;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY15;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY16;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY17;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY18;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY19;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY20;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY21;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY22;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY23;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY24;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY25;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY26;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY27;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY28;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY29;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY30;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY31;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY32;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY33;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY34;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY35;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY36;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY37;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY38;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY39;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int BTN_TRIGGER_HAPPY40;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_MIN_INTERESTING;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int KEY_MAX;
 
         /*
         * Relative axes
@@ -2718,10 +2984,44 @@ namespace Linux {
         public const int ABS_TILT_Y;
         [CCode (cheader_filename = "linux/input.h")]
         public const int ABS_TOOL_WIDTH;
+
         [CCode (cheader_filename = "linux/input.h")]
         public const int ABS_VOLUME;
+
         [CCode (cheader_filename = "linux/input.h")]
         public const int ABS_MISC;
+
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_SLOT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_TOUCH_MAJOR;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_TOUCH_MINOR;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_WIDTH_MAJOR;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_WIDTH_MINOR;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_ORIENTATION;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_POSITION_X;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_POSITION_Y;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_TOOL_TYPE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_BLOB_ID;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_TRACKING_ID;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_PRESSURE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_DISTANCE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_TOOL_X;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int ABS_MT_TOOL_Y;
+
         [CCode (cheader_filename = "linux/input.h")]
         public const int ABS_MAX;
 
@@ -2744,6 +3044,26 @@ namespace Linux {
         [CCode (cheader_filename = "linux/input.h")]
         public const int SW_DOCK;
         [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_LINEOUT_INSERT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_JACK_PHYSICAL_INSERT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_VIDEOOUT_INSERT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_CAMERA_LENS_COVER;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_KEYPAD_SLIDE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_FRONT_PROXIMITY;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_ROTATE_LOCK;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_LINEIN_INSERT;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_MUTE_DEVICE;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int SW_PEN_INSERTED;
+        [CCode (cheader_filename = "linux/input.h")]
         public const int SW_MAX;
 
         /*
@@ -2760,6 +3080,8 @@ namespace Linux {
         public const int MSC_RAW;
         [CCode (cheader_filename = "linux/input.h")]
         public const int MSC_SCAN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int MSC_TIMESTAMP;
         [CCode (cheader_filename = "linux/input.h")]
         public const int MSC_MAX;
 
@@ -2866,6 +3188,24 @@ namespace Linux {
         public const int BUS_GSC;
         [CCode (cheader_filename = "linux/input.h")]
         public const int BUS_ATARI;
+
+        /* MT_TOOL types */
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int MT_TOOL_FINGER;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int MT_TOOL_PEN;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int MT_TOOL_PALM;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int MT_TOOL_MAX;
+
+        /* Values describing the status of a force-feedback effect */
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int FF_STATUS_STOPPED;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int FF_STATUS_PLAYING;
+        [CCode (cheader_filename = "linux/input.h")]
+        public const int FF_STATUS_MAX;
     }
 
     /*
@@ -3324,6 +3664,92 @@ namespace Linux {
         public const int SO_LINGER;
         [CCode (cheader_filename = "sys/socket.h")]
         public const int SO_BSDCOMPAT;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_REUSEPORT;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_PASSCRED;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_PEERCRED;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_RCVLOWAT;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_SNDLOWAT;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_RCVTIMEO;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_SNDTIMEO;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_SECURITY_AUTHENTICATION;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_SECURITY_ENCRYPTION_TRANSPORT;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_SECURITY_ENCRYPTION_NETWORK;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_BINDTODEVICE;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_ATTACH_FILTER;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_DETACH_FILTER;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_GET_FILTER;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_PEERNAME;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_TIMESTAMP;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SCM_TIMESTAMP;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_ACCEPTCONN;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_PEERSEC;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_PASSSEC;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_TIMESTAMPNS;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SCM_TIMESTAMPNS;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_MARK;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_TIMESTAMPING;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SCM_TIMESTAMPING;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_PROTOCOL;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_DOMAIN;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_RXQ_OVFL;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_WIFI_STATUS;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SCM_WIFI_STATUS;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_PEEK_OFF;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_NOFCS;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_LOCK_FILTER;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_SELECT_ERR_QUEUE;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_BUSY_POLL;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_MAX_PACING_RATE;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_BPF_EXTENSIONS;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_INCOMING_CPU;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_ATTACH_BPF;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_DETACH_BPF;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_ATTACH_REUSEPORT_CBPF;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_ATTACH_REUSEPORT_EBPF;
+        [CCode (cheader_filename = "sys/socket.h")]
+        public const int SO_CNX_ADVICE;
     }
 
     /*

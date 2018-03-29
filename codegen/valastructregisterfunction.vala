@@ -37,11 +37,10 @@ public class Vala.StructRegisterFunction : TypeRegisterFunction {
 	 * @param st a struct
 	 * @return   newly created struct register function
 	 */
-	public StructRegisterFunction (Struct st, CodeContext context) {
+	public StructRegisterFunction (Struct st) {
 		struct_reference = st;
-		this.context = context;
 	}
-	
+
 	public override TypeSymbol get_type_declaration () {
 		return struct_reference;
 	}

@@ -31,7 +31,7 @@ public class Vala.SymbolResolver : CodeVisitor {
 	CodeContext context;
 	Symbol root_symbol;
 	Scope current_scope;
-	
+
 	/**
 	 * Resolve symbol names in the specified code context.
 	 *
@@ -42,8 +42,11 @@ public class Vala.SymbolResolver : CodeVisitor {
 		root_symbol = context.root;
 
 		context.root.accept (this);
+
+		root_symbol = null;
+		this.context = null;
 	}
-	
+
 	public override void visit_namespace (Namespace ns) {
 		var old_scope = current_scope;
 		current_scope = ns.scope;
@@ -52,7 +55,7 @@ public class Vala.SymbolResolver : CodeVisitor {
 
 		current_scope = old_scope;
 	}
-	
+
 	public override void visit_class (Class cl) {
 		current_scope = cl.scope;
 
@@ -266,6 +269,11 @@ public class Vala.SymbolResolver : CodeVisitor {
 	DataType get_type_for_struct (Struct st, Struct base_struct) {
 		if (st.base_type != null) {
 			// make sure that base type is resolved
+
+			if (current_scope == st.scope) {
+				// recursive declaration in generic base type
+				return new StructValueType (st);
+			}
 
 			var old_scope = current_scope;
 			current_scope = st.scope;

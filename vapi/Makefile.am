@@ -20,8 +20,6 @@ dist_vapi_DATA = \
 	clutter-1.0.vapi \
 	clutter-gdk-1.0.deps \
 	clutter-gdk-1.0.vapi \
-	clutter-gst-1.0.deps \
-	clutter-gst-1.0.vapi \
 	clutter-gst-2.0.deps \
 	clutter-gst-2.0.vapi \
 	clutter-gst-3.0.deps \
@@ -59,14 +57,8 @@ dist_vapi_DATA = \
 	gdl-1.0.vapi \
 	gdl-3.0.deps \
 	gdl-3.0.vapi \
-	gdu.deps \
-	gdu.vapi \
-	gdu-gtk.deps \
-	gdu-gtk.vapi \
 	gedit-2.20.vapi \
 	gedit-2.20.deps \
-	gedit.vapi \
-	gedit.deps \
 	gio-2.0.vapi \
 	gio-unix-2.0.deps \
 	gio-unix-2.0.vapi \
@@ -77,7 +69,6 @@ dist_vapi_DATA = \
 	gnet-2.0.vapi \
 	gnome-desktop-2.0.deps \
 	gnome-desktop-2.0.vapi \
-	gnome-keyring-1.vapi \
 	gnome-vfs-2.0.vapi \
 	gnutls.vapi \
 	gobject-2.0.vapi \
@@ -87,44 +78,6 @@ dist_vapi_DATA = \
 	graphene-1.0.deps \
 	graphene-1.0.vapi \
 	gsl.vapi \
-	gstreamer-0.10.deps \
-	gstreamer-0.10.vapi \
-	gstreamer-app-0.10.deps \
-	gstreamer-app-0.10.vapi \
-	gstreamer-audio-0.10.deps \
-	gstreamer-audio-0.10.vapi \
-	gstreamer-base-0.10.deps \
-	gstreamer-base-0.10.vapi \
-	gstreamer-cdda-0.10.deps \
-	gstreamer-cdda-0.10.vapi \
-	gstreamer-check-0.10.deps \
-	gstreamer-check-0.10.vapi \
-	gstreamer-controller-0.10.deps \
-	gstreamer-controller-0.10.vapi \
-	gstreamer-dataprotocol-0.10.deps \
-	gstreamer-dataprotocol-0.10.vapi \
-	gstreamer-fft-0.10.deps \
-	gstreamer-fft-0.10.vapi \
-	gstreamer-interfaces-0.10.deps \
-	gstreamer-interfaces-0.10.vapi \
-	gstreamer-net-0.10.deps \
-	gstreamer-net-0.10.vapi \
-	gstreamer-netbuffer-0.10.deps \
-	gstreamer-netbuffer-0.10.vapi \
-	gstreamer-pbutils-0.10.deps \
-	gstreamer-pbutils-0.10.vapi \
-	gstreamer-riff-0.10.deps \
-	gstreamer-riff-0.10.vapi \
-	gstreamer-rtp-0.10.deps \
-	gstreamer-rtp-0.10.vapi \
-	gstreamer-rtsp-0.10.deps \
-	gstreamer-rtsp-0.10.vapi \
-	gstreamer-sdp-0.10.deps \
-	gstreamer-sdp-0.10.vapi \
-	gstreamer-tag-0.10.deps \
-	gstreamer-tag-0.10.vapi \
-	gstreamer-video-0.10.deps \
-	gstreamer-video-0.10.vapi \
 	gstreamer-1.0.vapi \
 	gstreamer-allocators-1.0.vapi \
 	gstreamer-allocators-1.0.deps \
@@ -162,6 +115,8 @@ dist_vapi_DATA = \
 	gstreamer-tag-1.0.deps \
 	gstreamer-video-1.0.vapi \
 	gstreamer-video-1.0.deps \
+	gstreamer-webrtc-1.0.vapi \
+	gstreamer-webrtc-1.0.deps \
 	gtk+-2.0.deps \
 	gtk+-2.0.vapi \
 	gtk+-3.0.deps \
@@ -178,8 +133,6 @@ dist_vapi_DATA = \
 	gtkmozembed.vapi \
 	gtksourceview-2.0.deps \
 	gtksourceview-2.0.vapi \
-	gtksourceview-3.0.deps \
-	gtksourceview-3.0.vapi \
 	gudev-1.0.deps \
 	gudev-1.0.vapi \
 	hal.deps \
@@ -188,6 +141,7 @@ dist_vapi_DATA = \
 	hildon-1.vapi \
 	hildon-fm-2.deps \
 	hildon-fm-2.vapi \
+	javascriptcoregtk-4.0.vapi \
 	json-glib-1.0.deps \
 	json-glib-1.0.vapi \
 	libarchive.deps \
@@ -202,12 +156,13 @@ dist_vapi_DATA = \
 	libgda-report-4.0.vapi \
 	libgda-4.0.deps \
 	libgda-4.0.vapi \
-	libgdata.deps \
-	libgdata.vapi \
+	libgeoclue-2.0.vapi \
+	libgeoclue-2.0.deps \
 	libglade-2.0.deps \
 	libglade-2.0.vapi \
 	libgnome-2.0.vapi \
 	libgnome-menu.vapi \
+	libgnome-menu-3.0.deps \
 	libgnome-menu-3.0.vapi \
 	libgnomeui-2.0.deps \
 	libgnomeui-2.0.vapi \
@@ -233,11 +188,8 @@ dist_vapi_DATA = \
 	libpeas-gtk-1.0.deps \
 	libpeas-gtk-1.0.vapi \
 	libpq.vapi \
-	librsvg-2.0.vapi \
-	librsvg-2.0.deps \
 	libsexy.deps \
 	libsexy.vapi \
-	libsoup-2.2.vapi \
 	libsoup-2.4.deps \
 	libsoup-2.4.vapi \
 	libusb.vapi \
@@ -276,10 +228,6 @@ dist_vapi_DATA = \
 	rasqal.vapi \
 	rasqal.deps \
 	readline.vapi \
-	rest-0.6.deps \
-	rest-0.6.vapi \
-	rest-extras-0.6.deps \
-	rest-extras-0.6.vapi \
 	rest-0.7.deps \
 	rest-0.7.vapi \
 	rest-extras-0.7.deps \
@@ -299,9 +247,6 @@ dist_vapi_DATA = \
 	taglib_c.vapi \
 	tiff.vapi \
 	tokyocabinet.vapi \
-	tracker-indexer-module-1.0.vapi \
-	twitter-glib-1.0.deps \
-	twitter-glib-1.0.vapi \
 	udisks2.deps \
 	udisks2.vapi \
 	unique-1.0.deps \
@@ -337,34 +282,11 @@ GIDL_BINDINGS = \
 	gdk-x11-2.0 \
 	gdk-x11-3.0 \
 	gdl-1.0 \
-	gdu \
-	gdk-gtk \
 	gio-unix-2.0 \
 	gnome-desktop-2.0 \
-	gnome-keyring-1 \
 	gnome-vfs-2.0 \
 	goocanvas \
-	gstreamer-0.10 \
-	gstreamer-app-0.10 \
-	gstreamer-audio-0.10 \
-	gstreamer-base-0.10 \
-	gstreamer-cdda-0.10 \
-	gstreamer-check-0.10 \
-	gstreamer-controller-0.10 \
-	gstreamer-dataprotocol-0.10 \
-	gstreamer-fft-0.10 \
-	gstreamer-interfaces-0.10 \
-	gstreamer-net-0.10 \
-	gstreamer-netbuffer-0.10 \
-	gstreamer-pbutils-0.10 \
-	gstreamer-riff-0.10 \
-	gstreamer-rtp-0.10 \
-	gstreamer-rtsp-0.10 \
-	gstreamer-sdp-0.10 \
-	gstreamer-tag-0.10 \
-	gstreamer-video-0.10 \
 	gtk+-2.0 \
-	gtk+-3.0 \
 	gtk+-unix-print-2.0 \
 	gtk+-unix-print-3.0 \
 	gtk+-unix-print-4.0 \
@@ -378,17 +300,11 @@ GIDL_BINDINGS = \
 	libgnome-2.0 \
 	libgnome-menu \
 	libgnomeui-2.0 \
-	libgsf-1 \
 	liboobs-1 \
 	libsexy \
-	libsoup-2.2 \
 	libwnck-1.0 \
 	loudmouth-1.0 \
 	purple \
-	rest-0.6 \
-	rest-extras-0.6 \
-	tracker-indexer-module-1.0 \
-	twitter-glib-1.0 \
 	unique-1.0 \
 	vte \
 	webkit-1.0 \
@@ -414,6 +330,7 @@ GSTREAMER_1_0_BINDINGS = \
 	gstreamer-rtsp-server-1.0 \
 	gstreamer-tag-1.0 \
 	gstreamer-video-1.0 \
+	gstreamer-webrtc-1.0 \
 	$(NULL)
 
 GIR_BINDINGS = \
@@ -434,12 +351,15 @@ GIR_BINDINGS = \
 	gio-2.0 \
 	gobject-introspection-1.0 \
 	graphene-1.0 \
+	gtk+-3.0 \
 	gtk+-4.0 \
 	gudev-1.0 \
+	javascriptcoregtk-4.0 \
 	json-glib-1.0 \
-	libgdata \
+	libgeoclue-2.0 \
 	libgnome-menu-3.0 \
 	libgrss \
+	libgsf-1 \
 	libnotify \
 	libpeas-1.0 \
 	libpeas-gtk-1.0 \
@@ -469,7 +389,6 @@ GENVAPI = $(VAPIGEN) $(VAPIGENFLAGS)
 METADATADIR = $(srcdir)/metadata
 PACKAGESDIR = $(srcdir)/packages
 GIRDIR = $$($(PKG_CONFIG) gobject-introspection-1.0 --variable=girdir)
-GEDIT_GIRDIR=$$($(PKG_CONFIG) gedit --variable=prefix)/share/gedit/gir-1.0
 
 .PHONY: all-bindings $(BINDINGS)
 
@@ -498,9 +417,6 @@ clutter-gtk-0.10:
 
 clutter-gtk-1.0:
 	$(GENVAPI) --library $(srcdir)/clutter-gtk-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GtkClutter-1.0-custom.vala --pkg clutter-1.0 --pkg gtk+-3.0 --pkg cogl-pango-1.0 $(GIRDIR)/GtkClutter-1.0.gir
-
-clutter-gst-1.0:
-	$(GENVAPI) --library $(srcdir)/clutter-gst-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/ClutterGst-1.0-custom.vala --pkg clutter-1.0 --pkg gstreamer-base-0.10 --pkg gstreamer-video-0.10 --pkg gstreamer-interfaces-0.10 --pkg gstreamer-audio-0.10 $(GIRDIR)/ClutterGst-1.0.gir
 
 clutter-gst-2.0:
 	$(GENVAPI) --library $(srcdir)/clutter-gst-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/ClutterGst-2.0-custom.vala --pkg cogl-1.0 --pkg clutter-1.0 --pkg gstreamer-base-1.0 --pkg gstreamer-video-1.0 $(GIRDIR)/ClutterGst-2.0.gir
@@ -544,17 +460,8 @@ gdl-1.0:
 gdl-3.0:
 	$(GENVAPI) --library $(srcdir)/gdl-3.0 --pkg gio-2.0 --pkg gtk+-3.0 --metadatadir $(METADATADIR) $(GIRDIR)/Gdl-3.gir
 
-gdu:
-	$(GENVAPI) --library $(srcdir)/gdu $(PACKAGESDIR)/gdu/gdu.gi
-
-gdu-gtk:
-	$(GENVAPI) --library $(srcdir)/gdu-gtk $(PACKAGESDIR)/gdu-gtk/gdu-gtk.gi
-
 gedit-2.20:
 	$(GENVAPI) --library $(srcdir)/gedit-2.20 $(PACKAGESDIR)/gedit-2.20/gedit-2.20.gi
-
-gedit:
-	$(GENVAPI) --library $(srcdir)/gedit --metadatadir $(METADATADIR) $(GEDIT_GIRDIR)/Gedit-3.0.gir
 
 gio-2.0:
 	$(GENVAPI) --library $(srcdir)/gio-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/Gio-2.0-custom.vala $(GIRDIR)/Gio-2.0.gir
@@ -564,9 +471,6 @@ gio-unix-2.0:
 
 gnome-desktop-2.0:
 	$(GENVAPI) --library $(srcdir)/gnome-desktop-2.0 $(PACKAGESDIR)/gnome-desktop-2.0/gnome-desktop-2.0.gi
-
-gnome-keyring-1:
-	$(GENVAPI) --library $(srcdir)/gnome-keyring-1 $(PACKAGESDIR)/gnome-keyring-1/gnome-keyring-1-custom.vala $(PACKAGESDIR)/gnome-keyring-1/gnome-keyring-1.gi
 
 gnome-vfs-2.0:
 	$(GENVAPI) --library $(srcdir)/gnome-vfs-2.0 $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0-custom.vala $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0.gi
@@ -579,63 +483,6 @@ goocanvas:
 
 graphene-1.0:
 	$(GENVAPI) --library $(srcdir)/graphene-1.0 --pkg gobject-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Graphene-1.0.gir
-
-gstreamer-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-0.10 $(PACKAGESDIR)/gstreamer-0.10/gstreamer-0.10-custom.vala $(PACKAGESDIR)/gstreamer-0.10/gstreamer-0.10.gi
-
-gstreamer-app-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-app-0.10 $(PACKAGESDIR)/gstreamer-app-0.10/gstreamer-app-0.10.gi
-
-gstreamer-audio-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-audio-0.10 $(PACKAGESDIR)/gstreamer-audio-0.10/gstreamer-audio-0.10.gi
-
-gstreamer-base-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-base-0.10 $(PACKAGESDIR)/gstreamer-base-0.10/gstreamer-base-0.10-custom.vala $(PACKAGESDIR)/gstreamer-base-0.10/gstreamer-base-0.10.gi
-
-gstreamer-cdda-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-cdda-0.10 $(PACKAGESDIR)/gstreamer-cdda-0.10/gstreamer-cdda-0.10-custom.vala $(PACKAGESDIR)/gstreamer-cdda-0.10/gstreamer-cdda-0.10.gi
-
-gstreamer-check-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-check-0.10 $(PACKAGESDIR)/gstreamer-check-0.10/gstreamer-check-0.10.gi
-
-gstreamer-controller-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-controller-0.10 $(PACKAGESDIR)/gstreamer-controller-0.10/gstreamer-controller-0.10-custom.vala $(PACKAGESDIR)/gstreamer-controller-0.10/gstreamer-controller-0.10.gi
-
-gstreamer-dataprotocol-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-dataprotocol-0.10 $(PACKAGESDIR)/gstreamer-dataprotocol-0.10/gstreamer-dataprotocol-0.10-custom.vala $(PACKAGESDIR)/gstreamer-dataprotocol-0.10/gstreamer-dataprotocol-0.10.gi
-
-gstreamer-fft-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-fft-0.10 $(PACKAGESDIR)/gstreamer-fft-0.10/gstreamer-fft-0.10.gi
-
-gstreamer-interfaces-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-interfaces-0.10 $(PACKAGESDIR)/gstreamer-interfaces-0.10/gstreamer-interfaces-0.10-custom.vala $(PACKAGESDIR)/gstreamer-interfaces-0.10/gstreamer-interfaces-0.10.gi
-
-gstreamer-net-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-net-0.10 $(PACKAGESDIR)/gstreamer-net-0.10/gstreamer-net-0.10.gi
-
-gstreamer-netbuffer-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-netbuffer-0.10 $(PACKAGESDIR)/gstreamer-netbuffer-0.10/gstreamer-netbuffer-0.10.gi
-
-gstreamer-pbutils-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-pbutils-0.10 $(PACKAGESDIR)/gstreamer-pbutils-0.10/gstreamer-pbutils-0.10-custom.vala $(PACKAGESDIR)/gstreamer-pbutils-0.10/gstreamer-pbutils-0.10.gi
-
-gstreamer-riff-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-riff-0.10 $(PACKAGESDIR)/gstreamer-riff-0.10/gstreamer-riff-0.10.gi
-
-gstreamer-rtp-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-rtp-0.10 $(PACKAGESDIR)/gstreamer-rtp-0.10/gstreamer-rtp-0.10.gi
-
-gstreamer-rtsp-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-rtsp-0.10 $(PACKAGESDIR)/gstreamer-rtsp-0.10/gstreamer-rtsp-0.10-custom.vala $(PACKAGESDIR)/gstreamer-rtsp-0.10/gstreamer-rtsp-0.10.gi
-
-gstreamer-sdp-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-sdp-0.10 $(PACKAGESDIR)/gstreamer-sdp-0.10/gstreamer-sdp-0.10.gi
-
-gstreamer-tag-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-tag-0.10 $(PACKAGESDIR)/gstreamer-tag-0.10/gstreamer-tag-0.10.gi
-
-gstreamer-video-0.10:
-	$(GENVAPI) --library $(srcdir)/gstreamer-video-0.10 $(PACKAGESDIR)/gstreamer-video-0.10/gstreamer-video-0.10-custom.vala $(PACKAGESDIR)/gstreamer-video-0.10/gstreamer-video-0.10.gi
 
 gstreamer-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/Gst-1.0-custom.vala $(GIRDIR)/Gst-1.0.gir
@@ -668,10 +515,10 @@ gstreamer-net-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-net-1.0 --pkg gstreamer-1.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstNet-1.0.gir
 
 gstreamer-pbutils-1.0:
-	$(GENVAPI) --library $(srcdir)/gstreamer-pbutils-1.0 --pkg gstreamer-base-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPbutils-1.0.gir
+	$(GENVAPI) --library $(srcdir)/gstreamer-pbutils-1.0 --pkg gstreamer-base-1.0 --pkg gstreamer-audio-1.0 --pkg gstreamer-video-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPbutils-1.0.gir
 
 gstreamer-player-1.0:
-	$(GENVAPI) --library $(srcdir)/gstreamer-player-1.0 --pkg gstreamer-1.0 --pkg gstreamer-video-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPlayer-1.0.gir
+	$(GENVAPI) --library $(srcdir)/gstreamer-player-1.0 --pkg gstreamer-1.0 --pkg gstreamer-pbutils-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPlayer-1.0.gir
 
 gstreamer-riff-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-riff-1.0 --pkg gstreamer-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstRiff-1.0.gir
@@ -694,11 +541,14 @@ gstreamer-tag-1.0:
 gstreamer-video-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-video-1.0 --pkg gstreamer-base-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GstVideo-1.0-custom.vala $(GIRDIR)/GstVideo-1.0.gir
 
+gstreamer-webrtc-1.0:
+	$(GENVAPI) --library $(srcdir)/gstreamer-webrtc-1.0 --pkg gstreamer-base-1.0 --pkg gstreamer-sdp-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstWebRTC-1.0.gir
+
 gtk+-2.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-2.0 $(PACKAGESDIR)/gtk+-2.0/gtk+-2.0-custom.vala $(PACKAGESDIR)/gtk+-2.0/gtk+-2.0.gi
 
 gtk+-3.0:
-	$(GENVAPI) --library $(srcdir)/gtk+-3.0 $(PACKAGESDIR)/gtk+-3.0/gtk+-3.0-custom.vala $(PACKAGESDIR)/gtk+-3.0/gtk+-3.0.gi
+	$(GENVAPI) --library $(srcdir)/gtk+-3.0 --pkg atk --pkg gdk-3.0 --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg pango --pkg cairo --metadatadir $(METADATADIR) $(METADATADIR)/Gtk-3.0-custom.vala $(GIRDIR)/Gtk-3.0.gir
 
 gtk+-4.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-4.0 --pkg atk --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-1.0 --pkg pango --pkg x11 \
@@ -720,9 +570,6 @@ gtk+-unix-print-4.0:
 gtksourceview-2.0:
 	$(GENVAPI) --library $(srcdir)/gtksourceview-2.0 $(PACKAGESDIR)/gtksourceview-2.0/gtksourceview-2.0.gi
 
-gtksourceview-3.0:
-	$(GENVAPI) --library $(srcdir)/gtksourceview-3.0 --pkg atk --pkg gdk-3.0 --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg gtk+-3.0 --pkg pango --pkg cairo --metadatadir $(METADATADIR) $(GIRDIR)/GtkSource-3.0.gir
-
 gudev-1.0:
 	$(GENVAPI) --library $(srcdir)/gudev-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GUdev-1.0-custom.vala $(GIRDIR)/GUdev-1.0.gir
 
@@ -731,6 +578,9 @@ hildon-1:
 
 hildon-fm-2:
 	$(GENVAPI) --library $(srcdir)/hildon-fm-2 $(PACKAGESDIR)/hildon-fm-2/hildon-fm-2.gi
+
+javascriptcoregtk-4.0:
+	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-4.0 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-4.0-custom.vala $(GIRDIR)/JavaScriptCore-4.0.gir
 
 json-glib-1.0:
 	$(GENVAPI) --library $(srcdir)/json-glib-1.0 --metadatadir $(METADATADIR) --pkg gio-2.0 $(METADATADIR)/Json-1.0-custom.vala $(GIRDIR)/Json-1.0.gir
@@ -744,8 +594,8 @@ libgda-4.0:
 libgda-report-4.0:
 	$(GENVAPI) --library $(srcdir)/libgda-report-4.0 $(PACKAGESDIR)/libgda-report-4.0/libgda-report-4.0.gi
 
-libgdata:
-	$(GENVAPI) --library $(srcdir)/libgdata --metadatadir $(METADATADIR) $(GIRDIR)/GData-0.0.gir
+libgeoclue-2.0:
+	$(GENVAPI) --library $(srcdir)/libgeoclue-2.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Geoclue-2.0.gir
 
 libglade-2.0:
 	$(GENVAPI) --library $(srcdir)/libglade-2.0 $(PACKAGESDIR)/libglade-2.0/libglade-2.0.gi
@@ -757,7 +607,7 @@ libgnome-menu:
 	$(GENVAPI) --library $(srcdir)/libgnome-menu $(PACKAGESDIR)/libgnome-menu/libgnome-menu-custom.vala $(PACKAGESDIR)/libgnome-menu/libgnome-menu.gi
 
 libgnome-menu-3.0:
-	$(GENVAPI) --library $(srcdir)/libgnome-menu-3.0 --metadatadir $(METADATADIR) --pkg gio-unix-2.0 --pkg gtk+-3.0 $(GIRDIR)/GMenu-3.0.gir
+	$(GENVAPI) --library $(srcdir)/libgnome-menu-3.0 --metadatadir $(METADATADIR) --pkg gio-unix-2.0 $(GIRDIR)/GMenu-3.0.gir
 
 libgnomeui-2.0:
 	$(GENVAPI) --library $(srcdir)/libgnomeui-2.0 $(PACKAGESDIR)/libgnomeui-2.0/libgnomeui-2.0-custom.vala $(PACKAGESDIR)/libgnomeui-2.0/libgnomeui-2.0.gi
@@ -766,7 +616,7 @@ libgrss:
 	$(GENVAPI) --library $(srcdir)/libgrss --metadatadir $(METADATADIR) --pkg gio-2.0 --pkg libsoup-2.4 --pkg libxml-2.0 $(GIRDIR)/Grss-0.7.gir
 
 libgsf-1:
-	$(GENVAPI) --library $(srcdir)/libgsf-1 $(PACKAGESDIR)/libgsf-1/libgsf-1-custom.vala $(PACKAGESDIR)/libgsf-1/libgsf-1.gi
+	$(GENVAPI) --library $(srcdir)/libgsf-1 --pkg gio-2.0 --pkg libxml-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/Gsf-1-custom.vala $(GIRDIR)/Gsf-1.gir
 
 libnotify:
 	$(GENVAPI) --library $(srcdir)/libnotify --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Notify-0.7.gir
@@ -780,14 +630,8 @@ libpeas-1.0:
 libpeas-gtk-1.0:
 	$(GENVAPI) --library $(srcdir)/libpeas-gtk-1.0 --pkg libpeas-1.0 --pkg gtk+-3.0 --metadatadir $(METADATADIR) $(GIRDIR)/PeasGtk-1.0.gir
 
-librsvg-2.0:
-	$(GENVAPI) --library $(srcdir)/librsvg-2.0 --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/Rsvg-2.0-custom.vala $(GIRDIR)/Rsvg-2.0.gir
-
 libsexy:
 	$(GENVAPI) --library $(srcdir)/libsexy $(PACKAGESDIR)/libsexy/libsexy.gi
-
-libsoup-2.2:
-	$(GENVAPI) --library $(srcdir)/libsoup-2.2 $(PACKAGESDIR)/libsoup-2.2/libsoup-2.2.gi
 
 libsoup-2.4:
 	$(GENVAPI) --library $(srcdir)/libsoup-2.4 --metadatadir $(METADATADIR) $(METADATADIR)/Soup-2.4-custom.vala --pkg gio-2.0 $(GIRDIR)/Soup-2.4.gir
@@ -825,23 +669,11 @@ poppler-glib:
 purple:
 	$(GENVAPI) --library $(srcdir)/purple $(PACKAGESDIR)/purple/purple-custom.vala $(PACKAGESDIR)/purple/purple.gi
 
-rest-0.6:
-	$(GENVAPI) --library $(srcdir)/rest-0.6 $(PACKAGESDIR)/rest-0.6/rest-0.6-custom.vala $(PACKAGESDIR)/rest-0.6/rest-0.6.gi
-
-rest-extras-0.6:
-	$(GENVAPI) --library $(srcdir)/rest-extras-0.6 $(PACKAGESDIR)/rest-extras-0.6/rest-extras-0.6-custom.vala $(PACKAGESDIR)/rest-extras-0.6/rest-extras-0.6.gi
-
 rest-0.7:
 	$(GENVAPI) --library $(srcdir)/rest-0.7 --metadatadir $(METADATADIR) --pkg gio-2.0 $(GIRDIR)/Rest-0.7.gir
 
 rest-extras-0.7:
 	$(GENVAPI) --library $(srcdir)/rest-extras-0.7 --metadatadir $(METADATADIR) --pkg rest-0.7 $(GIRDIR)/RestExtras-0.7.gir
-
-tracker-indexer-module-1.0:
-	$(GENVAPI) --library $(srcdir)/tracker-indexer-module-1.0 $(PACKAGESDIR)/tracker-indexer-module-1.0/tracker-indexer-module-1.0-custom.vala $(PACKAGESDIR)/tracker-indexer-module-1.0/tracker-indexer-module-1.0.gi
-
-twitter-glib-1.0:
-	$(GENVAPI) --library $(srcdir)/twitter-glib-1.0 $(PACKAGESDIR)/twitter-glib-1.0/twitter-glib-1.0.gi
 
 udisks2:
 	$(GENVAPI) --library $(srcdir)/udisks2 --metadatadir $(METADATADIR) --pkg gio-2.0 $(GIRDIR)/UDisks-2.0.gir

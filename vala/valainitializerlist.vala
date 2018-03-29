@@ -29,9 +29,9 @@ using GLib;
  */
 public class Vala.InitializerList : Expression {
 	private List<Expression> initializers = new ArrayList<Expression> ();
-	
+
 	/**
-	 * Appends the specified expression to this initializer 
+	 * Appends the specified expression to this initializer
 	 *
 	 * @param expr an expression
 	 */
@@ -39,9 +39,9 @@ public class Vala.InitializerList : Expression {
 		initializers.add (expr);
 		expr.parent_node = this;
 	}
-	
+
 	/**
-	 * Returns a copy of the expression 
+	 * Returns a copy of the expression
 	 *
 	 * @return expression list
 	 */
@@ -50,14 +50,14 @@ public class Vala.InitializerList : Expression {
 	}
 
 	/**
-	 * Returns the initializer count in this initializer 
+	 * Returns the initializer count in this initializer
 	 */
 	public int size {
 		get { return initializers.size; }
 	}
 
 	/**
-	 * Creates a new initializer 
+	 * Creates a new initializer
 	 *
 	 * @param source_reference reference to source code
 	 * @return                 newly created initializer list
@@ -129,9 +129,18 @@ public class Vala.InitializerList : Expression {
 			/* initializer is used as array initializer */
 			var array_type = (ArrayType) target_type;
 
-			if (!(parent_node is ArrayCreationExpression)
-			      && !(parent_node is Constant)
-			      && !(parent_node is InitializerList)) {
+			bool requires_constants_only = false;
+			unowned CodeNode? node = parent_node;
+			while (node != null) {
+				if (node is Constant) {
+					requires_constants_only = true;
+					break;
+				}
+				node = node.parent_node;
+			}
+
+			if (!(parent_node is ArrayCreationExpression) && !requires_constants_only
+			    && (!(parent_node is InitializerList) || ((InitializerList) parent_node).target_type.data_type is Struct)) {
 				// transform shorthand form
 				//     int[] array = { 42 };
 				// into

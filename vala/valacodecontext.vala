@@ -72,6 +72,16 @@ public class Vala.CodeContext {
 	public bool ccode_only { get; set; }
 
 	/**
+	 * Command to run pkg-config.
+	 */
+	public string pkg_config_command { get; set; default = "pkg-config"; }
+
+	/**
+	 * Enable support for ABI stability.
+	 */
+	public bool abi_stability { get; set; }
+
+	/**
 	 * Output C header file.
 	 */
 	public string? header_filename { get; set; }
@@ -116,17 +126,17 @@ public class Vala.CodeContext {
 	/**
 	 * List of directories where to find .vapi files.
 	 */
-	public string[] vapi_directories;
+	public string[] vapi_directories { get; set; default = {}; }
 
 	/**
 	 * List of directories where to find .gir files.
 	 */
-	public string[] gir_directories;
+	public string[] gir_directories { get; set; default = {}; }
 
 	/**
 	 * List of directories where to find .metadata files for .gir files.
 	 */
-	public string[] metadata_directories;
+	public string[] metadata_directories { get; set; default = {}; }
 
 	/**
 	 * Produce debug information.
@@ -179,7 +189,7 @@ public class Vala.CodeContext {
 	public bool vapi_comments { get; set; }
 
 	/**
-	 * Returns true if the target version of glib is greater than or 
+	 * Returns true if the target version of glib is greater than or
 	 * equal to the specified version.
 	 */
 	public bool require_glib_version (int major, int minor) {
@@ -198,7 +208,9 @@ public class Vala.CodeContext {
 
 	public bool run_output { get; set; }
 
-	public string[] gresources;
+	public string[] gresources { get; set; default = {}; }
+
+	public string[] gresources_directories { get; set; default = {}; }
 
 	private List<SourceFile> source_files = new ArrayList<SourceFile> ();
 	private List<string> c_source_files = new ArrayList<string> ();
@@ -288,7 +300,7 @@ public class Vala.CodeContext {
 	public List<string> get_c_source_files () {
 		return c_source_files;
 	}
-	
+
 	/**
 	 * Adds the specified file to the list of source files.
 	 *
@@ -517,6 +529,14 @@ public class Vala.CodeContext {
 		return get_file_path (gir + ".gir", "gir-1.0", null, gir_directories);
 	}
 
+	public string? get_gresource_path (string gresource, string resource) {
+		var filename = get_file_path (resource, null, null, { Path.get_dirname (gresource) });
+		if (filename == null) {
+			filename = get_file_path (resource, null, null, gresources_directories);
+		}
+		return filename;
+	}
+
 	/*
 	 * Returns the .metadata file associated with the given .gir file.
 	 */
@@ -593,7 +613,13 @@ public class Vala.CodeContext {
 		return Path.is_dir_separator (s.get_char (s.length - 1));
 	}
 
-	/* ported from glibc */
+	/**
+	 * Returns canonicalized absolute pathname
+	 * ported from glibc
+	 *
+	 * @param name the path being checked
+	 * @return a canonicalized absolute pathname
+	 */
 	public static string realpath (string name) {
 		string rpath;
 
@@ -662,5 +688,62 @@ public class Vala.CodeContext {
 		}
 
 		return rpath;
+	}
+
+	public bool pkg_config_exists (string package_name) {
+		string pc = pkg_config_command + " --exists " + package_name;
+		int exit_status;
+
+		try {
+			Process.spawn_command_line_sync (pc, null, null, out exit_status);
+			return (0 == exit_status);
+		} catch (SpawnError e) {
+			Report.error (null, e.message);
+			return false;
+		}
+	}
+
+	public string? pkg_config_modversion (string package_name) {
+		string pc = pkg_config_command + " --silence-errors --modversion " + package_name;
+		string? output = null;
+		int exit_status;
+
+		try {
+			Process.spawn_command_line_sync (pc, out output, null, out exit_status);
+			if (exit_status != 0) {
+				output = output[0:-1];
+				if (output == "") {
+					output = null;
+				}
+			}
+		} catch (SpawnError e) {
+			output = null;
+		}
+
+		return output;
+	}
+
+	public string? pkg_config_compile_flags (string package_name) {
+		string pc = pkg_config_command + " --cflags";
+		if (!compile_only) {
+			pc += " --libs";
+		}
+		pc += package_name;
+
+		string? output = null;
+		int exit_status;
+
+		try {
+			Process.spawn_command_line_sync (pc, out output, null, out exit_status);
+			if (exit_status != 0) {
+				Report.error (null, "%s exited with status %d".printf (pkg_config_command, exit_status));
+				return null;
+			}
+		} catch (SpawnError e) {
+			Report.error (null, e.message);
+			output = null;
+		}
+
+		return output;
 	}
 }

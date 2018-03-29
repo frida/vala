@@ -1,3 +1,374 @@
+Vala 0.40.0
+===========
+ * Various bug fixes:
+  - compiler: Fix critical when vala is called without run args [#793657]
+
+ * Bindings:
+  - alsa: Add the major part of the ALSA Sequencer API [#763127]
+  - gstreamer-1.0: Update to 1.13.90
+  - gtk+-4.0: Update to 3.93.0+527d265b
+  - linux: Add various symbols
+  - posix: Add various symbols [#663633]
+  - Update GIR-based bindings
+
+Vala 0.39.92
+============
+ * Highlights
+  - Add support for feature test macros [#793444]
+    e.g. [CCode (feature_test_macro = "_GNU_SOURCE")]
+
+ * Various bug fixes:
+  - codegen:
+    + Use pointers when accessing constant multi-dimensional arrays [#604371]
+    + Add valid support for const multi-dimensional arrays [#604371]
+    + Don't append fixed-length of array fields in initializers
+    + Add source_reference to some store_local/_field() calls
+  - Properly handle array-initializers inside struct-initializers [#622178]
+  - The rank of an array-initializer should match the target's rank [#744923]
+  - Make SemanticAnalyzer.check_arguments() independent of context
+  - Check with same rules for dbus compatibility as in GBusModule [#793859]
+  - Fix recursive declaration in generic base type [#688732]
+  - Prevent WITH_CGRAPH conditional having an impact on generated sources
+  - Update manual from wiki.gnome.org
+
+ * Bindings:
+  - glib-2.0, posix: Add feature test macro _GNU_SOURCE for pow10(3),
+    pow10f(3), exp10(3) and exp10f(3) [#614788]
+  - gstreamer-1.0: Update from 1.13.1+ git master
+  - linux: Add dup3 [#729803]
+  - linux: Add feature_test_macros to non-POSIX file control constants and dup3
+  - posix: Fix sig*set and sigprocmask parameters to be out/ref [#727425]
+  - posix: Add feature_test_macro _GNU_SOURCE to sighandler_t [#761975]
+  - libgnome-menu-3.0: Add deps file
+  - Update GIR-based bindings
+
+Vala 0.39.91
+============
+ * Various bug fixes:
+  - Fix GDestroyNotify of delegate parameters in delegate declaration [#639059]
+  - Avoid critical when connecting dynamic signals
+  - valac: Always use the given "pkg-config" and respect PKG_CONFIG envar
+  - compiler: Prefix headers for set_cheader_override() if includedir is given
+    [#793299]
+  - vala: Issue a warning on DBus methods which are not throwing an Error
+  - Don't warn about unused internal methods which are meant to be visible
+    on DBus [#593902]
+  - Don't install vapicheck [#793370]
+
+ * Bindings:
+  - glib-2.0: Add KeyFile.get_locale_for_key()
+  - gstreamer-1.0: Update from 1.13+ git master
+  - gtk+-4.0: Update to 3.93.0+d07b14f4
+  - purple: Update to 2.12.0
+  - Update GIR-based bindings
+
+Vala 0.39.7
+===========
+ * Regression fix:
+  - codegen: Don't try to infer error argument on async begin methods [#793158]
+    This was a regression introduced by [#614294]
+
+Vala 0.39.6
+===========
+ * Highlights
+  - Add --abi-stability option for ABI stability of libraries
+    It ensures that the order of class/interface members in Vala sources will
+    be preserved in generated C source (instance/type structs) [#789069]
+
+ * Various bug fixes:
+  - girparser:
+    + Set NoAccessorMethod for non-readable and construct-only properties
+    + Ignore conflicting closure/destroy indexes
+    + Don't accept methods as property-accessor which throw errors [#792998]
+  - codegen:
+    + Infer error parameter from abstract/virtual base methods [#614294]
+    + Internally generated delegates don't require a typedef [#787521]
+    + Fix return-type for cancelled async creation methods of classes [#792942]
+    + Use G_PARAM_STATIC_STRINGS
+  - vala: Variadic constructors without a real first parameter are not allowed
+  - libvaladoc: Keep bootstrap-support with valac >= 0.16.1
+
+ * Bindings:
+  - gtk+-3.0: Fix cheader_filename of Plug and Socket
+  - gtk+-4.0: Update to 3.93.0+4d36a0bf
+  - gtk+-4.0: Only override type of "event" parameters
+  - posix: Add ctime(3) and fix binding of struct hostent and gethostbyname(3)
+
+Vala 0.39.5
+===========
+ * Various bug fixes:
+  - libvaladoc: Allow @link tags to be split over multiple lines [#646982]
+  - libvaladoc: Add support for single line documentation comments [#736483]
+  - girparser: Improve instance method detection [#732460]
+  - codegen: Add support for abstract/virtual methods and properties in
+    compact classes [#741465]
+  - vala: Fix parameter type inference of overridden async methods [#792660]
+  - codewriter: Don't use string.replace() to apply header_to_override [#731322]
+
+ * Bindings:
+  - gio-unix-2.0: Update to 2.55.1
+  - gtk+-4.0: Update to 3.93.0+60d3378d
+  - libwnck-3.0: Update to 3.24.1
+  - webkit2gtk-4.0: Update to 2.19.5
+  - webkit2gtk-web-extension-4.0: Fix DOM.EventTarget interface
+
+Vala 0.39.4
+===========
+ * Various improvements and bug fixes:
+  - codegen
+    + Only add property-enum and GParamSpec-array for GObject classes
+    + Use g_enum/flags_to_string while targeting glib >= 2.54
+    + Add destroy param when invoking delegate returned by delegate [#792077]
+  - Don't write trailing space in function declarations/definitions [#688447]
+  - vala: Add pkgdatadir and pkglibdir to pkg-config file
+  - gidlparser: Update type qualifiers
+
+ * Bindings:
+  - gtk+-2.0/3.0: Don't hide user_data in Clipboard.set_with_data() [#792237]
+  - gtk+-3.0: Update to 3.22.26+6f26d0dc
+  - gtk+-4.0: Update to 3.93.0+6aeae2c8
+
+Vala 0.39.3
+===========
+ * Various bug fixes:
+  - Fix chain-up regression with real non-null struct parameters [#791785]
+  - Release taken references to CodeContext after using it [#712694] and keep
+    custom invocations of parse_file() possible [#791936]
+  - parser: Accept comma-separated list in case-statements of switchs [#614015]
+
+ * Bindings:
+  - Remove bindings which are shipped upstream for some years
+    + gedit 3 [#776021], libgnome-keyring [#776022],
+      gtksourceview-3.0 [#776023], libgdata [#776024], librsvg-2.0 [#776025]
+  - glib-2.0: Add GLib.OPTION_REMAINING and GLib.OptionFlags.NONE
+  - gstreamer-1.0: Update from 1.13+ git master
+  - gtk+-2.0: Mark MessageDialog constructor parameter, message_format, as
+    nullable [#791570]
+  - gtk+-4.0: Update to 3.93.0+6aeae2c8
+  - webkit2gtk-4.0: Update to 2.19.3
+
+Vala 0.39.2
+===========
+ * Various bug fixes:
+  - vala: Don't transform an explicit "null" into valid format-string [#791215]
+  - codegen: Don't create null-safe destroy-wrapper for GenericType [#791283]
+  - Improve error message for missing type-parameter on enclosing type [#587905]
+
+ * GIR parser:
+  - Allow change of parameter names
+  - Handle metadata for fields inside a transparent union
+  - Accept setters with boolean return-type as valid property-accessor
+  - Don't mark simple-type out-parameters with '?' as nullable
+
+ * Valadoc
+  - libvaladoc: Actually resolve "percnt;" to '%'
+
+ * Bindings:
+  - glib-2.0: Fix potential null pointer dereference in string.joinv() [#791257]
+  - gobject-2.0: Add missing GType constants for fundamentals [#791023]
+  - gstreamer-1.0: Update from 1.13+ git master
+  - gtk+-3.0: Switch to GIR [#730746]
+  - gtk+-4.0: Update to 3.93.0+6af4947e
+  - posix: Move signal constants to an enum and add few missing ones [#790958]
+
+Vala 0.39.1
+===========
+ * Highlights
+  - Report warning if property-type is not compatible with GLib.Object [#693932]
+  - Allow to pass compatible delegates to signal.connect() [#787521]
+  - Allow unscoped enum values where possible
+  - Avoid use of temp-var for some callables returning ValueType
+    and to access in/ref parameters [#789071]
+  - Reformat generated source declarations and definitions for better
+    readability [#688447]
+
+ * Various bug fixes:
+  - Use array_length_cexpr to support fixed-arrays for return-values [#784691]
+  - Properly parse arguments for vala interpeter-mode [#663070]
+  - Enforce name-length >= 3 for structs using GType [#764041]
+  - Report error for missing type-parameter on enclosing type [#587905]
+  - Add boolean "use_inplace" ccode-attribute for methods [#750840]
+  - Improve handling of unowned/owned keyword occurrences
+  - Methods need to throw compatible error if target delegate throws one
+  - Discover invalid member access to instance field [#790903]
+  - Improve error output of mismatching overriding methods
+
+ * Valadoc
+  - Acknowledge possible properties in structs [#784705]
+  - Fix fatal typo in GtkdocRenderer.visit_symbol_link() [#790266]
+
+ * Bindings:
+  - glib-2.0: Use type-id/marshaller-type for (u)int16/(u)short from (u)int32
+    [#693932]
+  - glib-2.0: Add optional 'unparsed' parameter to *.try_parse () [#774124]
+  - gobject-2.0: Add some missing symbols
+  - gstreamer-1.0: Bind GST_TIME_ARGS, GST_STIME_ARGS macros [#750840]
+  - gstreamer-1.0: Bind GST_DEBUG_BIN_TO_DOT_FILE/*_WITH_TS [#785215]
+  - gstreamer-1.0: Update from 1.13+ git master
+  - gtk+-3.0: Update to 3.22.26+9ce824d3
+  - gtk+-4.0: Split Gsk.RenderNode into several classes
+  - gtk+-4.0: Update to 3.93.0+2d797dd8
+  - webkit2gtk-4.0: Update to 2.19.2
+
+Vala 0.38.3
+===========
+ * Various bug fixes:
+  - codegen: Prioritize "array_length=true" over "array_null_terminated=true"
+    [#788775]
+  - codegen: Avoid possible conflicts with internal property/signal defines
+    [#788964]
+
+ * Bindings:
+  - gio-2.0: Expose g_task_get_source_object as Task.get_unowned_source_object
+  - gstreamer-1.0: Update from 1.13+ git master
+  - gtk+-4.0: Update to 3.92.1
+  - libxml-2.0: Add DTD methods [#789442]
+
+Vala 0.38.2
+===========
+ * Various bindings updates:
+  - gstreamer-1.0,gtk+-3.0,gtk+-4.0: Update from git master
+  - gnutls: Fix free_function ccode-attribute of Certificate [#788181]
+
+Vala 0.38.1
+===========
+ * Various bug fixes:
+  - valadoc: Don't use 'stderr' as variable name [#787305]
+  - codegen: Try to use a more unique internal define for properties [#787436]
+  - vala: Update list of used attributes
+  - method: Use prototype-string for error-reports of return-type mismatches
+
+ * Bindings:
+  - glib-2.0: Fix MainContext.check(),
+      OptionEntry[] params are null-terminated,
+      Bind g_convert_with_fallback() and g_convert_with_iconv()
+
+Vala 0.38.0
+===========
+ * Various bug fixes:
+  - Improve error output for incompatible method signatures
+    (Add CallableType as base for DelegateType, MethodType, SignalType)
+  - codegen:
+    + Initialize temp-variable for fixed-size arrays to zero first [#787152]
+    + Add support for "type-func" in ui-files [#787033]
+
+ * Bindings:
+  - gtk+-3.0,gtk+-4.0: Update
+  - libxml-2.0: Bind xmlLastElementChild and xmlPreviousElementSibling
+  - pangocairo: CairoFontMap.set_default() is not an instance method
+  - gio-2.0: Application.set_default() is not an instance method
+
+Vala 0.37.91
+============
+ * Various bug fixes:
+  - codegen:
+    + Actually write declaration for GNodeTraverseFunc wrapper [#786845]
+    + Don't transfer ownership of variable if target-type is unknown [#736774]
+    + Adjust format-index for printf/scanf-methods which throw errors [#781061]
+    + Use given dup_function for structs
+  - libvaladoc: Fix some -Wincompatible-pointer-types warnings
+  - tests: Fix some syntax issues [#786652]
+  - Add .editorconfig file [#786620]
+
+ * GIR parser:
+  - Better support of "cprefix" argument in metadata
+  - Support "cname" argument in metadata
+
+ * Bindings:
+  - Add javascriptcoregtk-4.0 and avoid skips in webkit2gtk*-4.0
+  - Update GIR-based bindings
+  - gtk+-3.0: Update to 3.22.19
+
+Vala 0.37.90
+============
+ * Various bug fixes:
+  - Fix some build-system problem
+    + valadoc/tests: Add the source vapi directory to driver-test [#786505],
+      Add ./vala/.libs rather than ./gee/.libs to LD_LIBRARY_PATH
+    + Explicitly link doclets against libvala-*.la [#786534]
+    + Add missing include of Makefile.common
+  - vapigen: Mark given source-files as such and force girparser to handle them
+  - codegen: Include glib-object.h for Enums/Structs with type_id
+ * Bindings:
+  - gtk+-4.0: Make Gsk.Texturer.for_*() static factory methods
+
+Vala 0.37.2
+===========
+ * Various bug fixes:
+  - libvaladoc: Keep bootstrap-support with valac >= 0.16.1
+  - valadoc: Fix tests while bootstapping with valac < 0.31/32
+
+ * Bindings:
+  - glib-2.0: Update Unicode symbols
+  - gobject-2.0: Add required type_id attributes to all ParamSpec subclasses
+  - libgdata: Make Authorizer.reauth_* methods virtual [#779229]
+  - libxml-2.0: Update Xml.ParserOption [#785585]
+  - gtk+-4.0: Update to 3.91.2
+  - webkit2gtk-4.0: Update to 2.17.90
+
+Vala 0.37.1
+===========
+ * Highlights
+  - Don't warn about deprecated symbols if installed_version is older
+  - Add --gresourcesdir option [#783133]
+  - Install libvala-0.xx.vapi to "global" vapi directory
+  - Require and target GLib >= 2.40
+  - build: Make ccode and codegen private API
+  - build: Use --use-header for vala's libraries
+  - compiler: Add --color=WHEN option
+  - codegen: Use g_object_notify_by_pspec() to notify property-changes
+  - codegen: Use *_free_full to free GLib.List, GLib.SList and GLib.Queue
+  - codegen: Support renamed signals [#731547]
+  - Optimize (de)serialization of arrays with type-signature "ay" [#772426]
+  - Merge valadoc - Consider valadoc a part of vala's toolchain and
+    therefore let it live in the main repository (adds graphviz to the
+    build-requirements)
+
+ * Various bug fixes:
+  - Fix finally blocks with async yields [#741929]
+  - Handle non-null in coalescing expression [#611223]
+  - Make the task_complete flag for < 2.44 more similar to >= 2.44 [#783543]
+  - Nullable ValueType requires POINTER as marshaller signature [#783897]
+  - NoAccessorMethod attribute is allowed for gobject-properties only
+  - girparser: Fix parsing of delegate-alias without target
+  - compiler: Use API_VERSION instead of stripping PACKAGE_SUFFIX
+  - girwriter: Write length-parameters of arrays with rank > 1 [#758019]
+  - gdbus: Don't leak nested HashTable on deserialization [#782719]
+  - codewriter: Update timestamps of generated c-files if needed [#683286]
+  - tests: Use dbus-run-session instead of dbus-launch [#771455]
+  - codegenerator: Add source_reference parameter to CodeGenerator.store_*()
+  - Don't allow assigning delegate if no target/closure is available [#598869]
+  - gee: Add some useful symbols from gee-0.8
+
+ * Bindings:
+  - gio-2.0: Add DBusConnection 'closed' signal as 'on_closed' [#684358]
+  - gio-2.0: Use default 'length = null' for DataInputStream.read_line_utf8*
+    [#783351]
+  - glib-2.0,gobject-2.0: Updates from 2.53.x
+  - poppler-glib: Update to 0.54.0
+  - webkit2gtk-4.0: Update to 2.17.4
+  - gstreamer-1.0: Update to 1.13.0+
+  - libgvc: Add WITH_CGRAPH conditionals
+
+Vala 0.36.3
+===========
+ * Various bug fixes:
+  - scanner: Fix calculation of column value for tokens after multiline comment
+    [#652899]
+  - codegen: Unref GLib.AsyncResult on uncaught errors in coroutines [#641171]
+  - Keep initializing result-variable for struct constructors [#782056]
+
+Vala 0.36.2
+===========
+ * Various bug fixes:
+  - Enums require at least one value otherwise report an error
+
+ * Bindings:
+  - gstreamer-1.0: Update to 1.11.90+
+  - gio-2.0: Fix GLib.Task constructor and report_error/report_new_error()
+  - glib-2.0: Add quark() functions to errordomains,
+      Add missing version macro and constants,
+
 Vala 0.36.1
 ===========
  * Various bug fixes:
