@@ -2269,6 +2269,8 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
+
+		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -7099,4 +7101,11 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
+}
+
+[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_", gir_namespace = "GLib", gir_version = "2.0")]
+namespace GLibFork {
+	public static void prepare_to_fork ();
+	public static void recover_from_fork_in_parent ();
+	public static void recover_from_fork_in_child ();
 }
