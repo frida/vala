@@ -5334,3 +5334,10 @@ namespace GLib {
 	[Version (replacement = "SettingsSchemaSource.get_default", since = "2.32")]
 	public static unowned GLib.SettingsSchemaSource? settings_schema_source_get_default ();
 }
+
+[CCode (cheader_filename = "gio/gio.h", lower_case_cprefix = "gio_")]
+namespace GIOFork {
+	public static void prepare_to_fork ();
+	public static void recover_from_fork_in_parent ();
+	public static void recover_from_fork_in_child ();
+}
