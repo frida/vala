@@ -118,18 +118,12 @@ cgraph_tmp_LIBADD="$LIBADD"
 cgraph_tmp_CFLAGS="$CFLAGS"
 LIBADD="$LIBADD $LIBGVC_LIBS"
 CFLAGS="$CFLAGS $LIBGVC_CFLAGS"
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([
-		#include <gvc.h>
-
-		int main(void) {
-			#ifdef WITH_CGRAPH
-				return 0;
-			#else
-				return -1;
-			#endif
-		}
-	])], [
+AC_TRY_COMPILE(
+	[#include <gvc.h>], [
+		#ifndef WITH_CGRAPH
+		#error Not supported
+		#endif
+	], [
 		AC_MSG_RESULT([yes])
 		VALAFLAGS="$VALAFLAGS -D WITH_CGRAPH"
 		have_cgraph=yes
