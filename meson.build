@@ -1,18 +1,18 @@
 project('vala',
 	'c', 'vala',
-	version: '0.39.0',
-	meson_version: '>= 0.43',
+	version: '0.42.0-frida',
+	meson_version: '>= 0.47.0',
 	license: 'LGPL2.1'
 )
 
-vala_version_required = '0.16.1'
+vala_version_required = '0.39.5.8'
 vala = meson.get_compiler('vala')
 if not vala.version().version_compare('>= @0@'.format(vala_version_required))
 	error('valac >= @0@ required!'.format(vala_version_required))
 endif
 
 vala_version = meson.project_version()
-vala_api_version = '0.40'
+vala_api_version = '0.42'
 vala_version_suffix = '-@0@'.format(vala_api_version)
 
 pkgdatadir = join_paths(get_option('prefix'), get_option('datadir'), 'vala@0@'.format(vala_version_suffix))
@@ -115,7 +115,7 @@ subdir('tests')
 
 install_data('vala.m4', install_dir: join_paths('share', 'aclocal'))
 
-pycat = find_program(join_paths(meson.source_root(), 'build-aux', 'meson', 'cat.py'))
+#pycat = find_program(join_paths(meson.source_root(), 'build-aux', 'meson', 'cat.py'))
 #custom_target(
 #	'libvala@0@.vapi'.format(vala_version_suffix),
 #	command: [pycat, '@INPUT@'],
