@@ -84,20 +84,22 @@ libgvc_version_required = '2.16'
 glib_dep = dependency('glib-2.0', version: '>= @0@'.format(glib_version_required))
 gobject_dep = dependency('gobject-2.0', version: '>= @0@'.format(glib_version_required))
 gmodule_dep = dependency('gmodule-2.0', version: '>= @0@'.format(glib_version_required))
-libgvc_dep = dependency('libgvc', version: '>= @0@'.format(libgvc_version_required))
+libgvc_dep = dependency('libgvc', version: '>= @0@'.format(libgvc_version_required), required: false)
 
 # Check for CGraph support of libgvc
-cc = meson.get_compiler('c')
-if cc.run('''#include <gvc.h>
-		int main(void) {
-		#ifdef WITH_CGRAPH
-			return 0;
-		#else
-			return -1;
-		#endif
-		}''',
-		dependencies: libgvc_dep).returncode() == 0
-	add_project_arguments('-D', 'WITH_CGRAPH', language: 'vala')
+if libgvc_dep.found()
+	cc = meson.get_compiler('c')
+	if cc.run('''#include <gvc.h>
+			int main(void) {
+			#ifdef WITH_CGRAPH
+				return 0;
+			#else
+				return -1;
+			#endif
+			}''',
+			dependencies: libgvc_dep).returncode() == 0
+		add_project_arguments('-D', 'WITH_CGRAPH', language: 'vala')
+	endif
 endif
 
 subdir('gobject-introspection')
@@ -107,8 +109,10 @@ subdir('ccode')
 subdir('codegen')
 subdir('compiler')
 subdir('vapigen')
-subdir('libvaladoc')
-subdir('valadoc')
+if libgvc_dep.found()
+	subdir('libvaladoc')
+	subdir('valadoc')
+endif
 subdir('vapi')
 subdir('doc')
 subdir('tests')
