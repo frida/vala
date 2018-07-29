@@ -13,5 +13,4 @@ shared_module(
 	dependencies: [gobject_dep, libvaladoc_dep],
 	install: true,
 	install_dir: join_paths (get_option('libdir'), 'valadoc', 'doclets', 'gtkdoc'),
-	c_args: ['-DPACKAGE_ICONDIR="@0@"'.format(join_paths(get_option('prefix'), get_option('datadir'), 'valadoc', 'icons'))],
 )
