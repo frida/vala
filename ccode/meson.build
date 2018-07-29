@@ -19,6 +19,7 @@ valaccode_sources = [
 	'valaccodeenumvalue.vala',
 	'valaccodeexpressionstatement.vala',
 	'valaccodeexpression.vala',
+	'valaccodefeaturetestmacro.vala',
 	'valaccodefile.vala',
 	'valaccodeforstatement.vala',
 	'valaccodefragment.vala',

@@ -16,8 +16,6 @@ vapis = [
 	'clutter-1.0.vapi',
 	'clutter-gdk-1.0.deps',
 	'clutter-gdk-1.0.vapi',
-	'clutter-gst-1.0.deps',
-	'clutter-gst-1.0.vapi',
 	'clutter-gst-2.0.deps',
 	'clutter-gst-2.0.vapi',
 	'clutter-gst-3.0.deps',
@@ -55,10 +53,6 @@ vapis = [
 	'gdl-1.0.vapi',
 	'gdl-3.0.deps',
 	'gdl-3.0.vapi',
-	'gdu.deps',
-	'gdu.vapi',
-	'gdu-gtk.deps',
-	'gdu-gtk.vapi',
 	'gedit-2.20.vapi',
 	'gedit-2.20.deps',
 	'gio-2.0.vapi',
@@ -80,44 +74,6 @@ vapis = [
 	'graphene-1.0.deps',
 	'graphene-1.0.vapi',
 	'gsl.vapi',
-	'gstreamer-0.10.deps',
-	'gstreamer-0.10.vapi',
-	'gstreamer-app-0.10.deps',
-	'gstreamer-app-0.10.vapi',
-	'gstreamer-audio-0.10.deps',
-	'gstreamer-audio-0.10.vapi',
-	'gstreamer-base-0.10.deps',
-	'gstreamer-base-0.10.vapi',
-	'gstreamer-cdda-0.10.deps',
-	'gstreamer-cdda-0.10.vapi',
-	'gstreamer-check-0.10.deps',
-	'gstreamer-check-0.10.vapi',
-	'gstreamer-controller-0.10.deps',
-	'gstreamer-controller-0.10.vapi',
-	'gstreamer-dataprotocol-0.10.deps',
-	'gstreamer-dataprotocol-0.10.vapi',
-	'gstreamer-fft-0.10.deps',
-	'gstreamer-fft-0.10.vapi',
-	'gstreamer-interfaces-0.10.deps',
-	'gstreamer-interfaces-0.10.vapi',
-	'gstreamer-net-0.10.deps',
-	'gstreamer-net-0.10.vapi',
-	'gstreamer-netbuffer-0.10.deps',
-	'gstreamer-netbuffer-0.10.vapi',
-	'gstreamer-pbutils-0.10.deps',
-	'gstreamer-pbutils-0.10.vapi',
-	'gstreamer-riff-0.10.deps',
-	'gstreamer-riff-0.10.vapi',
-	'gstreamer-rtp-0.10.deps',
-	'gstreamer-rtp-0.10.vapi',
-	'gstreamer-rtsp-0.10.deps',
-	'gstreamer-rtsp-0.10.vapi',
-	'gstreamer-sdp-0.10.deps',
-	'gstreamer-sdp-0.10.vapi',
-	'gstreamer-tag-0.10.deps',
-	'gstreamer-tag-0.10.vapi',
-	'gstreamer-video-0.10.deps',
-	'gstreamer-video-0.10.vapi',
 	'gstreamer-1.0.vapi',
 	'gstreamer-allocators-1.0.vapi',
 	'gstreamer-allocators-1.0.deps',
@@ -155,6 +111,10 @@ vapis = [
 	'gstreamer-tag-1.0.deps',
 	'gstreamer-video-1.0.vapi',
 	'gstreamer-video-1.0.deps',
+	'gstreamer-webrtc-1.0.vapi',
+	'gstreamer-webrtc-1.0.deps',
+	'gst-editing-services-1.0.vapi',
+	'gst-editing-services-1.0.deps',
 	'gtk+-2.0.deps',
 	'gtk+-2.0.vapi',
 	'gtk+-3.0.deps',
@@ -179,6 +139,7 @@ vapis = [
 	'hildon-1.vapi',
 	'hildon-fm-2.deps',
 	'hildon-fm-2.vapi',
+	'javascriptcoregtk-4.0.vapi',
 	'json-glib-1.0.deps',
 	'json-glib-1.0.vapi',
 	'libarchive.deps',
@@ -193,10 +154,13 @@ vapis = [
 	'libgda-report-4.0.vapi',
 	'libgda-4.0.deps',
 	'libgda-4.0.vapi',
+	'libgeoclue-2.0.vapi',
+	'libgeoclue-2.0.deps',
 	'libglade-2.0.deps',
 	'libglade-2.0.vapi',
 	'libgnome-2.0.vapi',
 	'libgnome-menu.vapi',
+	'libgnome-menu-3.0.deps',
 	'libgnome-menu-3.0.vapi',
 	'libgnomeui-2.0.deps',
 	'libgnomeui-2.0.vapi',
@@ -224,7 +188,6 @@ vapis = [
 	'libpq.vapi',
 	'libsexy.deps',
 	'libsexy.vapi',
-	'libsoup-2.2.vapi',
 	'libsoup-2.4.deps',
 	'libsoup-2.4.vapi',
 	'libusb.vapi',
@@ -239,8 +202,6 @@ vapis = [
 	'linux.vapi',
 	'loudmouth-1.0.vapi',
 	'lua.vapi',
-	'mx-1.0.deps',
-	'mx-1.0.vapi',
 	'mysql.vapi',
 	'orc-0.4.vapi',
 	'packagekit-glib2.deps',
@@ -263,10 +224,6 @@ vapis = [
 	'rasqal.vapi',
 	'rasqal.deps',
 	'readline.vapi',
-	'rest-0.6.deps',
-	'rest-0.6.vapi',
-	'rest-extras-0.6.deps',
-	'rest-extras-0.6.vapi',
 	'rest-0.7.deps',
 	'rest-0.7.vapi',
 	'rest-extras-0.7.deps',
@@ -286,9 +243,6 @@ vapis = [
 	'taglib_c.vapi',
 	'tiff.vapi',
 	'tokyocabinet.vapi',
-	'tracker-indexer-module-1.0.vapi',
-	'twitter-glib-1.0.deps',
-	'twitter-glib-1.0.vapi',
 	'udisks2.deps',
 	'udisks2.vapi',
 	'unique-1.0.deps',
@@ -448,29 +402,31 @@ gir_bindings = [
 ]
 
 gobject_introspection_dep = dependency('gobject-introspection-1.0', required: false)
-girdir = gobject_introspection_dep.get_pkgconfig_variable('girdir')
+if gobject_introspection_dep.found()
+	girdir = gobject_introspection_dep.get_pkgconfig_variable('girdir')
 
-metadatadir = join_paths(meson.current_source_dir(), 'metadata')
-vapigen_args = ['--metadatadir', metadatadir, '--vapidir', meson.current_source_dir()]
+	metadatadir = join_paths(meson.current_source_dir(), 'metadata')
+	vapigen_args = ['--metadatadir', metadatadir, '--vapidir', meson.current_source_dir()]
 
-foreach gir_vapi : gir_bindings
-	pkg_args = []
-	foreach pkg : gir_vapi[3]
-		pkg_args += ['--pkg', pkg]
+	foreach gir_vapi : gir_bindings
+		pkg_args = []
+		foreach pkg : gir_vapi[3]
+			pkg_args += ['--pkg', pkg]
+		endforeach
+		custom_target(gir_vapi[0],
+			output: '@0@.vapi'.format(gir_vapi[0]),
+			input: [
+				join_paths(girdir, '@0@.gir'.format(gir_vapi[1])),
+				gir_vapi[2] ? join_paths(metadatadir, '@0@-custom.vala'.format(gir_vapi[1])) : '',
+			],
+			command: [vapigen_exe,
+				'--library', gir_vapi[0],
+				vapigen_args,
+				pkg_args,
+				'@INPUT1@', '@INPUT0@',
+			],
+	#		install: true,
+	#		install_dir: join_paths(get_option('datadir'), 'vala@0@'.format(vala_version_suffix), 'vapi'),
+		)
 	endforeach
-	custom_target(gir_vapi[0],
-		output: '@0@.vapi'.format(gir_vapi[0]),
-		input: [
-			join_paths(girdir, '@0@.gir'.format(gir_vapi[1])),
-			gir_vapi[2] ? join_paths(metadatadir, '@0@-custom.vala'.format(gir_vapi[1])) : '',
-		],
-		command: [vapigen_exe,
-			'--library', gir_vapi[0],
-			vapigen_args,
-			pkg_args,
-			'@INPUT1@', '@INPUT0@',
-		],
-#		install: true,
-#		install_dir: join_paths(get_option('datadir'), 'vala@0@'.format(vala_version_suffix), 'vapi'),
-	)
-endforeach
+endif
