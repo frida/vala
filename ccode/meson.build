@@ -19,6 +19,7 @@ valaccode_sources = [
 	'valaccodeenumvalue.vala',
 	'valaccodeexpressionstatement.vala',
 	'valaccodeexpression.vala',
+	'valaccodefeaturetestmacro.vala',
 	'valaccodefile.vala',
 	'valaccodeforstatement.vala',
 	'valaccodefragment.vala',
@@ -51,13 +52,13 @@ valaccode_sources = [
 	'valaccodeunaryexpression.vala',
 	'valaccodevariabledeclarator.vala',
 	'valaccodewhilestatement.vala',
-	'valaccodewriter.vala'
+	'valaccodewriter.vala',
 ]
 
 valaccode_lib = static_library(
 	'valaccode',
 	valaccode_sources,
-	dependencies: [gobject_dep, valagee_dep],
+	dependencies: [gobject_dep, valagee_dep, valacore_dep],
 	install: false,
 	vala_args: ['--use-header'],
 	vala_header: 'valaccode.h',

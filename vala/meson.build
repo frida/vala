@@ -1,3 +1,15 @@
+verconf = configuration_data()
+verconf.set('VALA_MAJOR_VERSION', vala_major_version)
+verconf.set('VALA_MINOR_VERSION', vala_minor_version)
+verconf.set('VALA_MICRO_VERSION', vala_micro_version)
+verconf.set('API_VERSION', vala_api_version)
+verconf.set('PACKAGE_VERSION', vala_version)
+valaversion_vala = configure_file(
+	input: 'valaversion.vala.in',
+	output: 'valaversion.vala',
+	configuration: verconf
+)
+
 valacore_sources = [
 	'valaaddressofexpression.vala',
 	'valaarraycopymethod.vala',
@@ -149,6 +161,7 @@ valacore_sources = [
 	'valavoidtype.vala',
 	'valawhilestatement.vala',
 	'valayieldstatement.vala',
+	valaversion_vala,
 ]
 
 valacore_lib = shared_library(
