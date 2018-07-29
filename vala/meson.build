@@ -1,3 +1,15 @@
+verconf = configuration_data()
+verconf.set('VALA_MAJOR_VERSION', vala_major_version)
+verconf.set('VALA_MINOR_VERSION', vala_minor_version)
+verconf.set('VALA_MICRO_VERSION', vala_micro_version)
+verconf.set('API_VERSION', vala_api_version)
+verconf.set('PACKAGE_VERSION', vala_version)
+valaversion_vala = configure_file(
+	input: 'valaversion.vala.in',
+	output: 'valaversion.vala',
+	configuration: verconf
+)
+
 valacore_sources = [
 	'valaaddressofexpression.vala',
 	'valaarraycopymethod.vala',
@@ -37,6 +49,8 @@ valacore_sources = [
 	'valadeclarationstatement.vala',
 	'valadelegatetype.vala',
 	'valadelegate.vala',
+	'valadelegatedestroyfield.vala',
+	'valadelegatetargetfield.vala',
 	'valadeletestatement.vala',
 	'valadestructor.vala',
 	'valadostatement.vala',
@@ -60,6 +74,8 @@ valacore_sources = [
 	'valaforeachstatement.vala',
 	'valaforstatement.vala',
 	'valagenerictype.vala',
+	'valagenericdestroyfield.vala',
+	'valagenericdupfield.vala',
 	'valagenieparser.vala',
 	'valageniescanner.vala',
 	'valagenietokentype.vala',
@@ -100,6 +116,7 @@ valacore_sources = [
 	'valaprofile.vala',
 	'valapropertyaccessor.vala',
 	'valaproperty.vala',
+	'valapropertyprototype.vala',
 	'valarealliteral.vala',
 	'valareferencetransferexpression.vala',
 	'valareferencetype.vala',
@@ -145,10 +162,12 @@ valacore_sources = [
 	'valausingdirective.vala',
 	'valavaluetype.vala',
 	'valavariable.vala',
+	'valavartype.vala',
 	'valaversionattribute.vala',
 	'valavoidtype.vala',
 	'valawhilestatement.vala',
 	'valayieldstatement.vala',
+	valaversion_vala,
 ]
 
 valacore_lib = shared_library(
