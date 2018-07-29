@@ -93,9 +93,8 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		} else if (m.return_type is DelegateType) {
 			// return delegate target if appropriate
 			var deleg_type = (DelegateType) m.return_type;
-			var d = deleg_type.delegate_symbol;
-			if (d.has_target) {
-				var cparam = new CCodeParameter (get_delegate_target_cname ("result"), "void**");
+			if (deleg_type.delegate_symbol.has_target) {
+				var cparam = new CCodeParameter (get_delegate_target_cname ("result"), "gpointer*");
 				cparam_map.set (get_param_pos (get_ccode_delegate_target_pos (m)), cparam);
 				if (carg_map != null) {
 					carg_map.set (get_param_pos (get_ccode_delegate_target_pos (m)), get_variable_cexpression (cparam.name));
@@ -586,8 +585,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 							}
 						} else if (param.variable_type is DelegateType) {
 							var deleg_type = (DelegateType) param.variable_type;
-							var d = deleg_type.delegate_symbol;
-							if (d.has_target) {
+							if (deleg_type.delegate_symbol.has_target) {
 								// create variable to store delegate target
 								vardecl = new CCodeVariableDeclarator.zero ("_vala_%s".printf (get_ccode_delegate_target_name (param)), new CCodeConstant ("NULL"));
 								ccode.add_declaration ("void *", vardecl);
@@ -858,14 +856,14 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			cmain.add_parameter (new CCodeParameter ("argv", "char **"));
 			push_function (cmain);
 
-			if (context.mem_profiler) {
-				var mem_profiler_init_call = new CCodeFunctionCall (new CCodeIdentifier ("g_mem_set_vtable"));
-				mem_profiler_init_call.line = cmain.line;
-				mem_profiler_init_call.add_argument (new CCodeConstant ("glib_mem_profiler_table"));
-				ccode.add_expression (mem_profiler_init_call);
+			if (context.profile == Profile.GOBJECT) {
+				if (context.mem_profiler) {
+					var mem_profiler_init_call = new CCodeFunctionCall (new CCodeIdentifier ("g_mem_set_vtable"));
+					mem_profiler_init_call.line = cmain.line;
+					mem_profiler_init_call.add_argument (new CCodeConstant ("glib_mem_profiler_table"));
+					ccode.add_expression (mem_profiler_init_call);
+				}
 			}
-
-			ccode.add_statement (new CCodeExpressionStatement (new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
 
 			var main_call = new CCodeFunctionCall (new CCodeIdentifier (function.name));
 			if (m.get_parameters ().size == 1) {

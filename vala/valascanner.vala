@@ -193,7 +193,9 @@ public class Vala.Scanner {
 						case 'B':
 						case 'f':
 						case 'n':
+						case 'N':
 						case 'r':
+						case 'R':
 						case 't':
 						case 'v':
 						case 'a':
@@ -240,7 +242,17 @@ public class Vala.Scanner {
 							}
 							break;
 						default:
-							Report.error (get_source_reference (token_length_in_chars), "invalid escape sequence");
+							// back references \1 through \99
+							if (current[0].isdigit ()) {
+								current++;
+								token_length_in_chars++;
+								if (current[0].isdigit ()) {
+									current++;
+									token_length_in_chars++;
+								}
+							} else {
+								Report.error (get_source_reference (token_length_in_chars), "invalid escape sequence");
+							}
 							break;
 						}
 					} else if (current[0] == '\n') {
@@ -472,6 +484,9 @@ public class Vala.Scanner {
 					if (matches (begin, "typeof")) return TokenType.TYPEOF;
 					break;
 				}
+				break;
+			case 'u':
+				if (matches (begin, "unlock")) return TokenType.UNLOCK;
 				break;
 			}
 			break;

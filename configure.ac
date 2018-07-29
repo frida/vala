@@ -1,6 +1,6 @@
 AC_PREREQ([2.65])
 AC_INIT([vala], m4_esyscmd([build-aux/git-version-gen .tarball-version]),
-	[https://bugzilla.gnome.org/browse.cgi?product=vala],
+	[https://gitlab.gnome.org/GNOME/vala/issues],
 	[vala],
 	[https://wiki.gnome.org/Projects/Vala])
 AC_CONFIG_SRCDIR([Makefile.am])
@@ -112,19 +112,24 @@ PKG_CHECK_MODULES(GMODULE, gmodule-2.0 >= $GLIB_REQUIRED)
 AC_SUBST(GMODULE_CFLAGS)
 AC_SUBST(GMODULE_LIBS)
 
-PKG_CHECK_MODULES(LIBGVC, libgvc >= $LIBGVC_REQUIRED, [have_libgvc=yes], [have_libgvc=no])
-AM_CONDITIONAL(HAVE_LIBGVC, test "$have_libgvc" = "yes")
+PKG_CHECK_MODULES(LIBGVC, libgvc >= $LIBGVC_REQUIRED)
 AC_MSG_CHECKING([for CGRAPH])
 cgraph_tmp_LIBADD="$LIBADD"
 cgraph_tmp_CFLAGS="$CFLAGS"
 LIBADD="$LIBADD $LIBGVC_LIBS"
 CFLAGS="$CFLAGS $LIBGVC_CFLAGS"
-AC_TRY_COMPILE(
-	[#include <gvc.h>], [
-		#ifndef WITH_CGRAPH
-		#error Not supported
-		#endif
-	], [
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([
+		#include <gvc.h>
+
+		int main(void) {
+			#ifdef WITH_CGRAPH
+				return 0;
+			#else
+				return -1;
+			#endif
+		}
+	])], [
 		AC_MSG_RESULT([yes])
 		VALAFLAGS="$VALAFLAGS -D WITH_CGRAPH"
 		have_cgraph=yes

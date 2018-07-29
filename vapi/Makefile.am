@@ -117,6 +117,8 @@ dist_vapi_DATA = \
 	gstreamer-video-1.0.deps \
 	gstreamer-webrtc-1.0.vapi \
 	gstreamer-webrtc-1.0.deps \
+	gst-editing-services-1.0.vapi \
+	gst-editing-services-1.0.deps \
 	gtk+-2.0.deps \
 	gtk+-2.0.vapi \
 	gtk+-3.0.deps \
@@ -204,8 +206,6 @@ dist_vapi_DATA = \
 	linux.vapi \
 	loudmouth-1.0.vapi \
 	lua.vapi \
-	mx-1.0.deps \
-	mx-1.0.vapi \
 	mysql.vapi \
 	orc-0.4.vapi \
 	packagekit-glib2.deps \
@@ -331,6 +331,7 @@ GSTREAMER_1_0_BINDINGS = \
 	gstreamer-tag-1.0 \
 	gstreamer-video-1.0 \
 	gstreamer-webrtc-1.0 \
+	gst-editing-services-1.0 \
 	$(NULL)
 
 GIR_BINDINGS = \
@@ -365,7 +366,6 @@ GIR_BINDINGS = \
 	libpeas-gtk-1.0 \
 	libsoup-2.4 \
 	libwnck-3.0 \
-	mx-1.0 \
 	packagekit-glib2 \
 	pango \
 	pangocairo \
@@ -446,7 +446,7 @@ gdk-3.0:
 	$(GENVAPI) --library $(srcdir)/gdk-3.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/Gdk-3.0-custom.vala $(GIRDIR)/Gdk-3.0.gir
 
 gdk-pixbuf-2.0:
-	$(GENVAPI) --library $(srcdir)/gdk-pixbuf-2.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/GdkPixbuf-2.0-custom.vala $(GIRDIR)/GdkPixbuf-2.0.gir
+	$(GENVAPI) --library $(srcdir)/gdk-pixbuf-2.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/GdkPixbuf-2.0-custom.vala $(GIRDIR)/GdkPixdata-2.0.gir $(GIRDIR)/GdkPixbuf-2.0.gir
 
 gdk-x11-2.0:
 	$(GENVAPI) --library $(srcdir)/gdk-x11-2.0 $(PACKAGESDIR)/gdk-x11-2.0/gdk-x11-2.0-custom.vala $(PACKAGESDIR)/gdk-x11-2.0/gdk-x11-2.0.gi
@@ -527,7 +527,7 @@ gstreamer-rtp-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-rtp-1.0 --pkg gstreamer-base-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstRtp-1.0.gir
 
 gstreamer-rtsp-1.0:
-	$(GENVAPI) --library $(srcdir)/gstreamer-rtsp-1.0 --pkg gstreamer-sdp-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstRtsp-1.0.gir
+	$(GENVAPI) --library $(srcdir)/gstreamer-rtsp-1.0 --pkg gstreamer-base-1.0 --pkg gstreamer-sdp-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstRtsp-1.0.gir
 
 gstreamer-rtsp-server-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-rtsp-server-1.0 --pkg gstreamer-rtsp-1.0 --pkg gstreamer-net-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstRtspServer-1.0.gir
@@ -543,6 +543,9 @@ gstreamer-video-1.0:
 
 gstreamer-webrtc-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-webrtc-1.0 --pkg gstreamer-base-1.0 --pkg gstreamer-sdp-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstWebRTC-1.0.gir
+
+gst-editing-services-1.0:
+	$(GENVAPI) --library $(srcdir)/gst-editing-services-1.0 --pkg gstreamer-pbutils-1.0 --pkg gstreamer-video-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GES-1.0.gir
 
 gtk+-2.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-2.0 $(PACKAGESDIR)/gtk+-2.0/gtk+-2.0-custom.vala $(PACKAGESDIR)/gtk+-2.0/gtk+-2.0.gi
@@ -644,9 +647,6 @@ libwnck-3.0:
 
 loudmouth-1.0:
 	$(GENVAPI) --library $(srcdir)/loudmouth-1.0 $(PACKAGESDIR)/loudmouth-1.0/loudmouth-1.0-custom.vala $(PACKAGESDIR)/loudmouth-1.0/loudmouth-1.0.gi
-
-mx-1.0:
-	$(GENVAPI) --library $(srcdir)/mx-1.0 --metadatadir $(METADATADIR) --pkg clutter-1.0 --pkg cogl-pango-1.0 $(METADATADIR)/Mx-1.0-custom.vala $(GIRDIR)/Mx-1.0.gir
 
 packagekit-glib2:
 	$(GENVAPI) --library $(srcdir)/packagekit-glib2 --metadatadir $(METADATADIR) --pkg gio-2.0 $(GIRDIR)/PackageKitGlib-1.0.gir

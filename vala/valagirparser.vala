@@ -86,7 +86,9 @@ public class Vala.GirParser : CodeVisitor {
 		RETURNS_MODIFIED_POINTER,
 		DELEGATE_TARGET_CNAME,
 		FINISH_VFUNC_NAME,
-		CNAME;
+		NO_ACCESSOR_METHOD,
+		CNAME,
+		DELEGATE_TARGET;
 
 		public static ArgumentType? from_string (string name) {
 			var enum_class = (EnumClass) typeof(ArgumentType).class_ref ();
@@ -1071,6 +1073,10 @@ public class Vala.GirParser : CodeVisitor {
 						}
 					}
 
+					if (metadata.has_argument (ArgumentType.NO_ACCESSOR_METHOD)) {
+						prop.set_attribute ("NoAccessorMethod", metadata.get_bool (ArgumentType.NO_ACCESSOR_METHOD));
+					}
+
 					if (prop.get_attribute ("NoAccessorMethod") != null) {
 						// gobject defaults
 						if (prop.get_accessor != null) {
@@ -1088,6 +1094,9 @@ public class Vala.GirParser : CodeVisitor {
 						merged = true;
 					}
 
+					if (metadata.has_argument (ArgumentType.DELEGATE_TARGET)) {
+						field.set_attribute_bool ("CCode", "delegate_target", metadata.get_bool (ArgumentType.DELEGATE_TARGET));
+					}
 					if (metadata.has_argument (ArgumentType.DELEGATE_TARGET_CNAME)) {
 						field.set_attribute_string ("CCode", "delegate_target_cname", metadata.get_string (ArgumentType.DELEGATE_TARGET_CNAME));
 					}
@@ -2602,6 +2611,10 @@ public class Vala.GirParser : CodeVisitor {
 			type_name = "GLib.GenericArray";
 		}
 
+		if (type_name == null) {
+			type_name = ctype;
+		}
+
 		DataType type = parse_type_from_gir_name (type_name, out no_array_length, out array_null_terminated, ctype);
 
 		// type arguments / element types
@@ -3489,12 +3502,22 @@ public class Vala.GirParser : CodeVisitor {
 
 		var comment = parse_symbol_doc ();
 
-		var type = parse_type ();
+		bool no_array_length;
+		bool array_null_terminated;
+		int array_length_idx;
+		var type = parse_type (null, out array_length_idx, true, out no_array_length, out array_null_terminated);
+		type = element_get_type (type, true, ref no_array_length, ref array_null_terminated);
 		var c = new Constant (current.name, type, null, current.source_reference);
 		current.symbol = c;
 		c.access = SymbolAccessibility.PUBLIC;
 		c.comment = comment;
 		c.external = true;
+		if (no_array_length || array_null_terminated) {
+			c.set_attribute_bool ("CCode", "array_length", !no_array_length);
+		}
+		if (array_null_terminated) {
+			c.set_attribute_bool ("CCode", "array_null_terminated", true);
+		}
 
 		pop_node ();
 		end_element ("constant");
@@ -3692,6 +3715,10 @@ public class Vala.GirParser : CodeVisitor {
 			deleg.external = true;
 
 			alias.symbol = deleg;
+		} else if (type_sym != null) {
+			Report.warning (alias.source_reference, "alias `%s' for `%s' is not supported".printf (alias.get_full_name (), type_sym.get_full_name ()));
+			alias.symbol = type_sym;
+			alias.merged = true;
 		}
 
 		// inherit atributes, like type_id

@@ -18,7 +18,6 @@ BindingEntry struct=false
 BindingSignal struct=false
 Border struct
 FileFilterInfo struct=false
-FixedChild struct=false
 Requisition struct
 TextIter struct
 TreeIter struct
@@ -216,6 +215,9 @@ RecentData
   .display_name nullable
   .description nullable
 
+// Bug #: confused girparser
+Radio*.group#property no_accessor_method
+
 // Skipped for G-I, but usable from Vala
 FlowBox
   .bind_model skip=false
@@ -240,7 +242,6 @@ TreeView
   .row_expanded#method name="is_row_expanded"
 Widget
   .compute_expand#virtual_method name="compute_expand_internal"
-  .draw#method name="draw_to_cairo_context"
 Window
   .activate_default#method name="try_activate_default"
   .activate_focus#method name="try_activate_focus"
@@ -288,6 +289,7 @@ SelectionData
   .get_data skip=false
 Snapshot
   .free_to_node destroys_instance
+  .free_to_paintable destroys_instance
 render_* parent="Gtk.StyleContext"
 render_* symbol_type="method" instance_idx=0
 TextBuffer
@@ -324,11 +326,9 @@ TreeView
 Widget
   .drag_*#method parent="Gtk" symbol_type="function"
   .get_allocation return_void
-  .get_clip return_void
   .grab_add parent="Gtk" symbol_type="function"
   .grab_remove parent="Gtk" symbol_type="function"
   .intersect.intersection unowned=false nullable default=null
-  .size_allocate return_void
 WidgetPath
   .free destroys_instance
 TreeModel
@@ -352,6 +352,8 @@ Notebook
   .create_window skip=false
 PrintOperation
   .create_custom_widget skip=false
+Snapshot
+  .push_shadow.shadow array array_length_idx=1
 
 // Not completely sure
 Button

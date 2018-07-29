@@ -230,16 +230,6 @@ public class Vala.GtkModule : GSignalModule {
 			return;
 		}
 
-		// this check is necessary because calling get_instance_private_offset otherwise will result in an error
-		if (cl.has_private_fields) {
-			var private_offset = "%s_private_offset".printf (get_ccode_name (cl));
-			ccode.add_declaration ("gint", new CCodeVariableDeclarator (private_offset));
-
-			var cgetprivcall = new CCodeFunctionCall (new CCodeIdentifier ("g_type_class_get_instance_private_offset"));
-			cgetprivcall.add_argument (new CCodeIdentifier ("klass"));
-			ccode.add_assignment (new CCodeIdentifier (private_offset), cgetprivcall);
-		}
-
 		/* Gtk builder widget template */
 		var ui = cl.get_attribute_string ("GtkTemplate", "ui");
 		if (ui == null) {
@@ -252,15 +242,15 @@ public class Vala.GtkModule : GSignalModule {
 
 		var call = new CCodeFunctionCall (new CCodeIdentifier ("gtk_widget_class_set_template_from_resource"));
 		call.add_argument (new CCodeIdentifier ("GTK_WIDGET_CLASS (klass)"));
-		call.add_argument (new CCodeConstant ("\""+cl.get_attribute_string ("GtkTemplate", "ui")+"\""));
+		call.add_argument (new CCodeConstant ("\"%s\"".printf (ui)));
 		ccode.add_expression (call);
 
 		current_required_app_classes.clear ();
 	}
 
 	public override void visit_property (Property prop) {
-		if (prop.get_attribute ("GtkChild") != null) {
-			Report.error (prop.source_reference, "Annotating properties with [GtkChild] is not yet supported");
+		if (prop.get_attribute ("GtkChild") != null && prop.field == null) {
+			Report.error (prop.source_reference, "[GtkChild] is only allowed on automatic properties");
 		}
 
 		base.visit_property (prop);

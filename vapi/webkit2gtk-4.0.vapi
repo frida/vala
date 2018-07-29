@@ -67,15 +67,15 @@ namespace WebKit {
 	public class BackForwardList : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected BackForwardList ();
-		public unowned WebKit.BackForwardListItem get_back_item ();
+		public unowned WebKit.BackForwardListItem? get_back_item ();
 		public GLib.List<weak WebKit.BackForwardListItem> get_back_list ();
 		public GLib.List<weak WebKit.BackForwardListItem> get_back_list_with_limit (uint limit);
-		public unowned WebKit.BackForwardListItem get_current_item ();
-		public unowned WebKit.BackForwardListItem get_forward_item ();
+		public unowned WebKit.BackForwardListItem? get_current_item ();
+		public unowned WebKit.BackForwardListItem? get_forward_item ();
 		public GLib.List<weak WebKit.BackForwardListItem> get_forward_list ();
 		public GLib.List<weak WebKit.BackForwardListItem> get_forward_list_with_limit (uint limit);
 		public uint get_length ();
-		public unowned WebKit.BackForwardListItem get_nth_item (int index);
+		public unowned WebKit.BackForwardListItem? get_nth_item (int index);
 		public signal void changed (WebKit.BackForwardListItem? item_added, void* items_removed);
 	}
 	[CCode (cheader_filename = "webkit2/webkit2.h", type_id = "webkit_back_forward_list_item_get_type ()")]
@@ -339,7 +339,11 @@ namespace WebKit {
 	[CCode (cheader_filename = "webkit2/webkit2.h", ref_function = "webkit_javascript_result_ref", type_id = "webkit_javascript_result_get_type ()", unref_function = "webkit_javascript_result_unref")]
 	[Compact]
 	public class JavascriptResult {
+		[Version (deprecated = true, deprecated_since = "2.22")]
 		public unowned JS.GlobalContext get_global_context ();
+		[Version (since = "2.22")]
+		public unowned JSC.Value get_js_value ();
+		[Version (deprecated = true, deprecated_since = "2.22")]
 		public unowned JS.Value get_value ();
 		public unowned WebKit.JavascriptResult @ref ();
 		public void unref ();
@@ -406,7 +410,7 @@ namespace WebKit {
 	public class NetworkProxySettings {
 		[CCode (has_construct_function = false)]
 		[Version (since = "2.16")]
-		public NetworkProxySettings (string? default_proxy_uri, string? ignore_hosts);
+		public NetworkProxySettings (string? default_proxy_uri, [CCode (array_length = false, array_null_terminated = true)] string[]? ignore_hosts);
 		[Version (since = "2.16")]
 		public void add_proxy_for_scheme (string scheme, string proxy_uri);
 		[Version (since = "2.16")]
@@ -1022,6 +1026,7 @@ namespace WebKit {
 		public unowned Cairo.Surface get_favicon ();
 		public unowned WebKit.FindController get_find_controller ();
 		public unowned WebKit.WebInspector get_inspector ();
+		[Version (deprecated = true, deprecated_since = "2.22")]
 		public unowned JS.GlobalContext get_javascript_global_context ();
 		public unowned WebKit.WebResource get_main_resource ();
 		public uint64 get_page_id ();
@@ -1055,6 +1060,8 @@ namespace WebKit {
 		public void restore_session_state (WebKit.WebViewSessionState state);
 		public async WebKit.JavascriptResult run_javascript (string script, GLib.Cancellable? cancellable) throws GLib.Error;
 		public async WebKit.JavascriptResult run_javascript_from_gresource (string resource, GLib.Cancellable? cancellable) throws GLib.Error;
+		[Version (since = "2.22")]
+		public async WebKit.JavascriptResult run_javascript_in_world (string script, string world_name, GLib.Cancellable? cancellable) throws GLib.Error;
 		public async GLib.InputStream save (WebKit.SaveMode save_mode, GLib.Cancellable? cancellable) throws GLib.Error;
 		public async bool save_to_file (GLib.File file, WebKit.SaveMode save_mode, GLib.Cancellable? cancellable) throws GLib.Error;
 		[Version (since = "2.8")]

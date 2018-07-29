@@ -402,7 +402,7 @@ namespace Gst {
 		[Version (since = "1.14")]
 		public static void dump_buffer (Gst.Buffer buf);
 		[CCode (cheader_filename = "gst/gst.h")]
-		public static void dump_mem (uint8 mem, uint size);
+		public static void dump_mem ([CCode (array_length_cname = "size", array_length_pos = 1.1, array_length_type = "guint")] uint8[] mem);
 		[CCode (cheader_filename = "gst/gst.h")]
 		public static bool fraction_add (int a_n, int a_d, int b_n, int b_d, out int res_n, out int res_d);
 		[CCode (cheader_filename = "gst/gst.h")]
@@ -678,7 +678,7 @@ namespace Gst {
 		[CCode (instance_pos = 1.9)]
 		public bool copy_into (Gst.Buffer dst, Gst.BufferCopyFlags flags, size_t offset, size_t size);
 		public Gst.Buffer copy_region (Gst.BufferCopyFlags flags, size_t offset, size_t size);
-		public size_t extract (size_t offset, void* dest, size_t size);
+		public size_t extract (size_t offset, [CCode (array_length_cname = "size", array_length_pos = 2.1, array_length_type = "gsize")] out unowned uint8[] dest);
 		[Version (since = "1.0.10")]
 		public void extract_dup (size_t offset, size_t size, [CCode (array_length_cname = "dest_size", array_length_pos = 3.1, array_length_type = "gsize")] out uint8[] dest);
 		public size_t fill (size_t offset, [CCode (array_length_cname = "size", array_length_pos = 2.1, array_length_type = "gsize")] uint8[] src);
@@ -805,7 +805,7 @@ namespace Gst {
 		public void disable_sync_message_emission ();
 		public void enable_sync_message_emission ();
 		[Version (since = "1.14")]
-		public void get_pollfd (GLib.PollFD fd);
+		public GLib.PollFD get_pollfd ();
 		public bool have_pending ();
 		public Gst.Message? peek ();
 		public Gst.Message? poll (Gst.MessageType events, Gst.ClockTime timeout);
@@ -835,6 +835,7 @@ namespace Gst {
 		[Version (since = "1.2")]
 		public void append_structure_full (owned Gst.Structure structure, owned Gst.CapsFeatures? features = null);
 		public bool can_intersect (Gst.Caps caps2);
+		public Gst.Caps copy ();
 		public Gst.Caps copy_nth (uint nth);
 		[CCode (has_construct_function = false)]
 		public Caps.empty ();
@@ -1729,6 +1730,8 @@ namespace Gst {
 		public int lockstate;
 		public int refcount;
 		public GLib.Type type;
+		[Version (since = "1.16")]
+		public void add_parent (Gst.MiniObject parent);
 		[CCode (simple_generics = true)]
 		public T get_qdata<T> (GLib.Quark quark);
 		public bool is_writable ();
@@ -1736,12 +1739,14 @@ namespace Gst {
 		[ReturnsModifiedPointer]
 		public Gst.MiniObject make_writable ();
 		public unowned Gst.MiniObject @ref ();
+		[Version (since = "1.16")]
+		public void remove_parent (Gst.MiniObject parent);
 		public static bool replace (ref Gst.MiniObject? olddata, Gst.MiniObject? newdata);
 		[CCode (simple_generics = true)]
 		public void set_qdata<T> (GLib.Quark quark, owned T data);
 		public void* steal_qdata (GLib.Quark quark);
 		public static bool take (ref Gst.MiniObject olddata, Gst.MiniObject newdata);
-		public void unlock (Gst.LockFlags flags);
+		public void @unlock (Gst.LockFlags flags);
 		public void unref ();
 		public void weak_ref (Gst.MiniObjectNotify notify);
 		public void weak_unref (Gst.MiniObjectNotify notify);
@@ -2026,10 +2031,14 @@ namespace Gst {
 		public bool add_fd (Gst.PollFD fd);
 		public bool fd_can_read (Gst.PollFD fd);
 		public bool fd_can_write (Gst.PollFD fd);
+		[Version (since = "1.16")]
+		public bool fd_ctl_pri (Gst.PollFD fd, bool active);
 		public bool fd_ctl_read (Gst.PollFD fd, bool active);
 		public bool fd_ctl_write (Gst.PollFD fd, bool active);
 		public bool fd_has_closed (Gst.PollFD fd);
 		public bool fd_has_error (Gst.PollFD fd);
+		[Version (since = "1.16")]
+		public bool fd_has_pri (Gst.PollFD fd);
 		public void fd_ignored (Gst.PollFD fd);
 		public void free ();
 		public void get_read_gpollfd (GLib.PollFD fd);
@@ -2218,8 +2227,16 @@ namespace Gst {
 		public unowned Gst.Caps? get_caps ();
 		public unowned Gst.Structure? get_info ();
 		public unowned Gst.Segment get_segment ();
+		[Version (since = "1.16")]
+		public void set_buffer (Gst.Buffer buffer);
 		[Version (since = "1.6")]
 		public void set_buffer_list (Gst.BufferList buffer_list);
+		[Version (since = "1.16")]
+		public void set_caps (Gst.Caps caps);
+		[Version (since = "1.16")]
+		public bool set_info (owned Gst.Structure info);
+		[Version (since = "1.16")]
+		public void set_segment (Gst.Segment segment);
 	}
 	[CCode (cheader_filename = "gst/gst.h", copy_function = "gst_segment_copy", free_function = "gst_segment_free", type_id = "gst_segment_get_type ()")]
 	[Compact]
@@ -2785,7 +2802,7 @@ namespace Gst {
 		[Version (since = "1.2")]
 		public static unowned string[] api_type_get_tags (GLib.Type api);
 		public static bool api_type_has_tag (GLib.Type api, GLib.Quark tag);
-		public static GLib.Type api_type_register (string api, string tags);
+		public static GLib.Type api_type_register (string api, [CCode (array_length = false, array_null_terminated = true)] string[] tags);
 		public static unowned Gst.MetaInfo? get_info (string impl);
 		public static unowned Gst.MetaInfo? register (GLib.Type api, string impl, size_t size, [CCode (scope = "async")] Gst.MetaInitFunction init_func, [CCode (scope = "async")] Gst.MetaFreeFunction free_func, [CCode (scope = "async")] Gst.MetaTransformFunction transform_func);
 	}
@@ -4054,7 +4071,7 @@ namespace Gst {
 	public static bool preset_set_app_dir (string app_dir);
 	[CCode (array_length = false, array_null_terminated = true, cheader_filename = "gst/gst.h")]
 	[Version (since = "1.14")]
-	public static string[]? protection_filter_systems_by_available_decryptors (string system_identifiers);
+	public static string[]? protection_filter_systems_by_available_decryptors ([CCode (array_length = false, array_null_terminated = true)] string[] system_identifiers);
 	[CCode (cheader_filename = "gst/gst.h")]
 	[Version (since = "1.6")]
 	public static unowned string? protection_select_system ([CCode (array_length = false, array_null_terminated = true)] string[] system_identifiers);

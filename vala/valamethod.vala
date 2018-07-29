@@ -647,6 +647,12 @@ public class Vala.Method : Subroutine, Callable {
 			}
 		}
 
+		if (is_variadic () && (is_abstract || is_virtual)) {
+			error = true;
+			Report.error (source_reference, "Abstract and virtual methods may not be variadic. Use a `va_list' parameter instead of `...'.");
+			return false;
+		}
+
 		if (is_abstract) {
 			if (parent_symbol is Class) {
 				var cl = (Class) parent_symbol;
@@ -704,6 +710,7 @@ public class Vala.Method : Subroutine, Callable {
 		}
 		context.analyzer.current_symbol = this;
 
+		return_type.floating_reference = returns_floating_reference;
 		return_type.check (context);
 
 		var init_attr = get_attribute ("ModuleInit");

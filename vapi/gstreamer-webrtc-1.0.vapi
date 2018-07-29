@@ -99,7 +99,7 @@ namespace Gst {
 		public weak Gst.SDP.Message sdp;
 		public Gst.WebRTCSDPType type;
 		[CCode (has_construct_function = false)]
-		public WebRTCSessionDescription (Gst.WebRTCSDPType type, Gst.SDP.Message sdp);
+		public WebRTCSessionDescription (Gst.WebRTCSDPType type, owned Gst.SDP.Message sdp);
 		public Gst.WebRTCSessionDescription copy ();
 		public void free ();
 	}
@@ -117,6 +117,11 @@ namespace Gst {
 		FAILED,
 		CONNECTING,
 		CONNECTED
+	}
+	[CCode (cheader_filename = "gst/webrtc/webrtc.h", cprefix = "GST_WEBRTC_FEC_TYPE_", type_id = "gst_webrtc_fec_type_get_type ()")]
+	public enum WebRTCFECType {
+		NONE,
+		ULP_RED
 	}
 	[CCode (cheader_filename = "gst/webrtc/webrtc.h", cprefix = "GST_WEBRTC_ICE_COMPONENT_", type_id = "gst_webrtc_ice_component_get_type ()")]
 	public enum WebRTCICEComponent {

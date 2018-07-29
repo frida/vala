@@ -81,6 +81,8 @@ namespace Gst {
 			public virtual bool propose_allocation (Gst.Base.AggregatorPad pad, Gst.Query decide_query, Gst.Query query);
 			public void set_latency (Gst.ClockTime min_latency, Gst.ClockTime max_latency);
 			public void set_src_caps (Gst.Caps caps);
+			[Version (since = "1.16")]
+			public Gst.ClockTime simple_get_next_time ();
 			[NoWrapper]
 			public virtual bool sink_event (Gst.Base.AggregatorPad aggregator_pad, Gst.Event event);
 			[NoWrapper]
@@ -105,14 +107,14 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstAggregatorPad", lower_case_cprefix = "gst_aggregator_pad_", type_id = "gst_aggregator_pad_get_type ()")]
 		[GIR (name = "AggregatorPad")]
 		public class AggregatorPad : Gst.Pad {
-			[CCode (array_length = false)]
-			public weak void* _gst_reserved[4];
 			public weak Gst.Segment segment;
 			[CCode (has_construct_function = false)]
 			protected AggregatorPad ();
 			public bool drop_buffer ();
 			[NoWrapper]
 			public virtual Gst.FlowReturn flush (Gst.Base.Aggregator aggregator);
+			[Version (since = "1.14.1")]
+			public bool has_buffer ();
 			public bool is_eos ();
 			public Gst.Buffer peek_buffer ();
 			public Gst.Buffer pop_buffer ();
@@ -241,7 +243,7 @@ namespace Gst {
 			public uint masked_scan_uint32 (uint32 mask, uint32 pattern, uint offset, uint size);
 			[CCode (cname = "gst_byte_reader_masked_scan_uint32_peek")]
 			[Version (since = "1.6")]
-			public uint masked_scan_uint32_peek (uint32 mask, uint32 pattern, uint offset, uint size, uint32 value);
+			public uint masked_scan_uint32_peek (uint32 mask, uint32 pattern, uint offset, uint size, out uint32 value);
 			[CCode (cname = "gst_byte_reader_peek_data")]
 			public bool peek_data ([CCode (array_length_cname = "size", array_length_pos = 0.5, array_length_type = "guint")] out unowned uint8[] val);
 			[CCode (cname = "gst_byte_reader_peek_float32_be")]
@@ -363,7 +365,7 @@ namespace Gst {
 			[CCode (cname = "gst_byte_writer_put_string_utf32")]
 			public bool put_string_utf32 ([CCode (array_length = false, array_null_terminated = true)] uint32[] data);
 			[CCode (cname = "gst_byte_writer_put_string_utf8")]
-			public bool put_string_utf8 ([CCode (array_length = false, array_null_terminated = true)] string[] data);
+			public bool put_string_utf8 (string data);
 			[CCode (cname = "gst_byte_writer_put_uint16_be")]
 			public bool put_uint16_be (uint16 val);
 			[CCode (cname = "gst_byte_writer_put_uint16_le")]
@@ -399,7 +401,7 @@ namespace Gst {
 			public CollectPads ();
 			public unowned Gst.Base.CollectData? add_pad (Gst.Pad pad, uint size, [CCode (scope = "async")] Gst.Base.CollectDataDestroyNotify destroy_notify, bool @lock);
 			public uint available ();
-			public Gst.FlowReturn clip_running_time (Gst.Base.CollectData cdata, Gst.Buffer buf, Gst.Buffer? outbuf, void* user_data);
+			public Gst.FlowReturn clip_running_time (Gst.Base.CollectData cdata, Gst.Buffer buf, out Gst.Buffer outbuf, void* user_data);
 			public bool event_default (Gst.Base.CollectData data, Gst.Event event, bool discard);
 			public uint flush (Gst.Base.CollectData data, uint size);
 			public Gst.Buffer? peek (Gst.Base.CollectData data);
@@ -473,7 +475,7 @@ namespace Gst {
 			public bool add_index_entry (uint64 offset, Gst.ClockTime ts, bool key, bool force);
 			[NoWrapper]
 			public virtual bool convert (Gst.Format src_format, int64 src_value, Gst.Format dest_format, int64 dest_value);
-			public bool convert_default (Gst.Format src_format, int64 src_value, Gst.Format dest_format, int64 dest_value);
+			public bool convert_default (Gst.Format src_format, int64 src_value, Gst.Format dest_format, out int64 dest_value);
 			[NoWrapper]
 			public virtual Gst.FlowReturn detect (Gst.Buffer buffer);
 			[Version (since = "1.12")]
@@ -579,6 +581,8 @@ namespace Gst {
 			[Version (since = "1.2")]
 			public uint64 get_max_bitrate ();
 			public int64 get_max_lateness ();
+			[Version (since = "1.16")]
+			public Gst.ClockTime get_processing_deadline ();
 			public Gst.ClockTime get_render_delay ();
 			public bool get_sync ();
 			public uint64 get_throttle_time ();
@@ -613,6 +617,8 @@ namespace Gst {
 			[Version (since = "1.2")]
 			public void set_max_bitrate (uint64 max_bitrate);
 			public void set_max_lateness (int64 max_lateness);
+			[Version (since = "1.16")]
+			public void set_processing_deadline (Gst.ClockTime processing_deadline);
 			public void set_qos_enabled (bool enabled);
 			public void set_render_delay (Gst.ClockTime delay);
 			public void set_sync (bool sync);
@@ -623,7 +629,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool stop ();
 			[NoWrapper]
-			public virtual bool unlock ();
+			public virtual bool @unlock ();
 			[NoWrapper]
 			public virtual bool unlock_stop ();
 			public Gst.FlowReturn wait (Gst.ClockTime time, out Gst.ClockTimeDiff jitter);
@@ -640,6 +646,8 @@ namespace Gst {
 			[Version (since = "1.2")]
 			public uint64 max_bitrate { get; set; }
 			public int64 max_lateness { get; set; }
+			[Version (since = "1.16")]
+			public uint64 processing_deadline { get; set; }
 			[NoAccessorMethod]
 			public bool qos { get; set; }
 			public uint64 render_delay { get; set; }
@@ -717,7 +725,7 @@ namespace Gst {
 			[Version (since = "1.14")]
 			public void submit_buffer_list (owned Gst.BufferList buffer_list);
 			[NoWrapper]
-			public virtual bool unlock ();
+			public virtual bool @unlock ();
 			[NoWrapper]
 			public virtual bool unlock_stop ();
 			public Gst.FlowReturn wait_playing ();
@@ -801,6 +809,50 @@ namespace Gst {
 			[NoAccessorMethod]
 			public bool qos { get; set; }
 		}
+		[CCode (cheader_filename = "gst/base/base.h", cname = "GstBitWriter", has_type_id = false)]
+		[GIR (name = "BitWriter")]
+		public struct BitWriter {
+			public uint8 data;
+			public uint bit_size;
+			[CCode (cname = "gst_bit_writer_align_bytes")]
+			public bool align_bytes (uint8 trailing_bit);
+			[CCode (cname = "gst_bit_writer_free")]
+			public void free ();
+			[CCode (cname = "gst_bit_writer_free_and_get_buffer")]
+			public Gst.Buffer free_and_get_buffer ();
+			[CCode (array_length = false, cname = "gst_bit_writer_free_and_get_data")]
+			public uint8[] free_and_get_data ();
+			[CCode (cname = "gst_bit_writer_get_data")]
+			public uint8 get_data ();
+			[CCode (cname = "gst_bit_writer_get_remaining")]
+			public uint get_remaining ();
+			[CCode (cname = "gst_bit_writer_get_size")]
+			public uint get_size ();
+			[CCode (cname = "gst_bit_writer_init")]
+			public void init ();
+			[CCode (cname = "gst_bit_writer_init_with_data")]
+			public void init_with_data ([CCode (array_length_cname = "size", array_length_pos = 1.5, array_length_type = "guint")] uint8[] data, bool initialized);
+			[CCode (cname = "gst_bit_writer_init_with_size")]
+			public void init_with_size (uint32 size, bool fixed);
+			[CCode (cname = "gst_bit_writer_put_bits_uint16")]
+			public bool put_bits_uint16 (uint16 value, uint nbits);
+			[CCode (cname = "gst_bit_writer_put_bits_uint32")]
+			public bool put_bits_uint32 (uint32 value, uint nbits);
+			[CCode (cname = "gst_bit_writer_put_bits_uint64")]
+			public bool put_bits_uint64 (uint64 value, uint nbits);
+			[CCode (cname = "gst_bit_writer_put_bits_uint8")]
+			public bool put_bits_uint8 (uint8 value, uint nbits);
+			[CCode (cname = "gst_bit_writer_put_bytes")]
+			public bool put_bytes (uint8 data, uint nbytes);
+			[CCode (cname = "gst_bit_writer_reset")]
+			public void reset ();
+			[CCode (cname = "gst_bit_writer_reset_and_get_buffer")]
+			public Gst.Buffer reset_and_get_buffer ();
+			[CCode (array_length = false, cname = "gst_bit_writer_reset_and_get_data")]
+			public uint8[] reset_and_get_data ();
+			[CCode (cname = "gst_bit_writer_set_pos")]
+			public bool set_pos (uint pos);
+		}
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstCollectData", has_type_id = false)]
 		[GIR (name = "CollectData")]
 		public struct CollectData {
@@ -846,7 +898,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstCollectPadsBufferFunction", instance_pos = 3.9)]
 		public delegate Gst.FlowReturn CollectPadsBufferFunction (Gst.Base.CollectPads pads, Gst.Base.CollectData data, owned Gst.Buffer buffer);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstCollectPadsClipFunction", instance_pos = 4.9)]
-		public delegate Gst.FlowReturn CollectPadsClipFunction (Gst.Base.CollectPads pads, Gst.Base.CollectData data, owned Gst.Buffer inbuffer, Gst.Buffer outbuffer);
+		public delegate Gst.FlowReturn CollectPadsClipFunction (Gst.Base.CollectPads pads, Gst.Base.CollectData data, owned Gst.Buffer inbuffer, out Gst.Buffer outbuffer);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstCollectPadsCompareFunction", instance_pos = 5.9)]
 		public delegate int CollectPadsCompareFunction (Gst.Base.CollectPads pads, Gst.Base.CollectData data1, Gst.ClockTime timestamp1, Gst.Base.CollectData data2, Gst.ClockTime timestamp2);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstCollectPadsEventFunction", instance_pos = 3.9)]
@@ -863,7 +915,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstDataQueueFullCallback", has_target = false)]
 		public delegate void DataQueueFullCallback (Gst.Base.DataQueue queue, void* checkdata);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstTypeFindHelperGetRangeFunction", has_target = false)]
-		public delegate Gst.FlowReturn TypeFindHelperGetRangeFunction (Gst.Object obj, Gst.Object? parent, uint64 offset, uint length, Gst.Buffer buffer);
+		public delegate Gst.FlowReturn TypeFindHelperGetRangeFunction (Gst.Object obj, Gst.Object? parent, uint64 offset, uint length, out Gst.Buffer buffer);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GST_BASE_PARSE_FLAG_DRAINING")]
 		public const int PARSE_FLAG_DRAINING;
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GST_BASE_PARSE_FLAG_LOST_SYNC")]
@@ -877,7 +929,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/base/base.h", cname = "gst_type_find_helper_for_buffer")]
 		public static Gst.Caps? type_find_helper_for_buffer (Gst.Object? obj, Gst.Buffer buf, out Gst.TypeFindProbability prob);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "gst_type_find_helper_for_data")]
-		public static Gst.Caps? type_find_helper_for_data (Gst.Object? obj, uint8 data, size_t size, out Gst.TypeFindProbability prob);
+		public static Gst.Caps? type_find_helper_for_data (Gst.Object? obj, [CCode (array_length_cname = "size", array_length_pos = 2.5, array_length_type = "gsize")] uint8[] data, out Gst.TypeFindProbability prob);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "gst_type_find_helper_for_extension")]
 		public static Gst.Caps? type_find_helper_for_extension (Gst.Object? obj, string extension);
 		[CCode (cheader_filename = "gst/base/base.h", cname = "gst_type_find_helper_get_range")]

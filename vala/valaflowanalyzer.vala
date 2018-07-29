@@ -89,7 +89,9 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 	private BasicBlock current_block;
 	private bool unreachable_reported;
 	private List<JumpTarget> jump_stack = new ArrayList<JumpTarget> ();
+	private Set<BasicBlock> all_basic_blocks;
 
+	// check_variables
 	Map<Symbol, List<Variable>> var_map;
 	Set<Variable> used_vars;
 	Map<Variable, PhiFunction> phi_functions;
@@ -104,6 +106,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 	 */
 	public void analyze (CodeContext context) {
 		this.context = context;
+		all_basic_blocks = new HashSet<BasicBlock> ();
 
 		/* we're only interested in non-pkg source files */
 		var source_files = context.get_source_files ();
@@ -113,6 +116,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			}
 		}
 
+		all_basic_blocks = null;
 		this.context = null;
 	}
 
@@ -193,8 +197,11 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		}
 
 		m.entry_block = new BasicBlock.entry ();
+		all_basic_blocks.add (m.entry_block);
 		m.return_block = new BasicBlock ();
+		all_basic_blocks.add (m.return_block);
 		m.exit_block = new BasicBlock.exit ();
+		all_basic_blocks.add (m.exit_block);
 
 		m.return_block.connect (m.exit_block);
 
@@ -210,6 +217,8 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		}
 
 		current_block = new BasicBlock ();
+		all_basic_blocks.add (current_block);
+
 		m.entry_block.connect (current_block);
 		current_block.add_node (m);
 
@@ -255,7 +264,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			return;
 		}
 		current.postorder_visited = true;
-		foreach (BasicBlock succ in current.get_successors ()) {
+		foreach (weak BasicBlock succ in current.get_successors ()) {
 			depth_first_traverse (succ, list);
 		}
 		current.postorder_number = list.size;
@@ -278,7 +287,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				// new immediate dominator
 				BasicBlock new_idom = null;
 				bool first = true;
-				foreach (BasicBlock pred in block.get_predecessors ()) {
+				foreach (weak BasicBlock pred in block.get_predecessors ()) {
 					if (idoms[pred.postorder_number] != null) {
 						if (first) {
 							new_idom = pred;
@@ -321,15 +330,15 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		for (int i = block_list.size - 1; i >= 0; i--) {
 			var block = block_list[i];
 
-			foreach (BasicBlock succ in block.get_successors ()) {
+			foreach (weak BasicBlock succ in block.get_successors ()) {
 				// if idom(succ) != block
 				if (succ.parent != block) {
 					block.add_dominator_frontier (succ);
 				}
 			}
 
-			foreach (BasicBlock child in block.get_children ()) {
-				foreach (BasicBlock child_frontier in child.get_dominator_frontier ()) {
+			foreach (weak BasicBlock child in block.get_children ()) {
+				foreach (weak BasicBlock child_frontier in child.get_dominator_frontier ()) {
 					// if idom(child_frontier) != block
 					if (child_frontier.parent != block) {
 						block.add_dominator_frontier (child_frontier);
@@ -431,6 +440,10 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				}
 			}
 		}
+
+		phi_functions = null;
+		used_vars = null;
+		var_map = null;
 	}
 
 	void check_block_variables (BasicBlock block) {
@@ -470,9 +483,9 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			}
 		}
 
-		foreach (BasicBlock succ in block.get_successors ()) {
+		foreach (weak BasicBlock succ in block.get_successors ()) {
 			int j = 0;
-			foreach (BasicBlock pred in succ.get_predecessors ()) {
+			foreach (weak BasicBlock pred in succ.get_predecessors ()) {
 				if (pred == block) {
 					break;
 				}
@@ -487,7 +500,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			}
 		}
 
-		foreach (BasicBlock child in block.get_children ()) {
+		foreach (weak BasicBlock child in block.get_children ()) {
 			check_block_variables (child);
 		}
 
@@ -615,6 +628,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			mark_unreachable ();
 		} else {
 			current_block = new BasicBlock ();
+			all_basic_blocks.add (current_block);
 			last_block.connect (current_block);
 		}
 		stmt.true_statement.accept (this);
@@ -625,6 +639,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			mark_unreachable ();
 		} else {
 			current_block = new BasicBlock ();
+			all_basic_blocks.add (current_block);
 			last_block.connect (current_block);
 		}
 		if (stmt.false_statement != null) {
@@ -636,6 +651,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		// reachable?
 		if (last_true_block != null || last_false_block != null) {
 			current_block = new BasicBlock ();
+			all_basic_blocks.add (current_block);
 			if (last_true_block != null) {
 				last_true_block.connect (current_block);
 			}
@@ -651,6 +667,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		}
 
 		var after_switch_block = new BasicBlock ();
+		all_basic_blocks.add (after_switch_block);
 		jump_stack.add (new JumpTarget.break_target (after_switch_block));
 
 		// condition
@@ -663,6 +680,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 
 		foreach (SwitchSection section in stmt.get_sections ()) {
 			current_block = new BasicBlock ();
+			all_basic_blocks.add (current_block);
 			condition_block.connect (current_block);
 			foreach (Statement section_stmt in section.get_statements ()) {
 				section_stmt.accept (this);
@@ -704,8 +722,10 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		}
 
 		var loop_block = new BasicBlock ();
+		all_basic_blocks.add (loop_block);
 		jump_stack.add (new JumpTarget.continue_target (loop_block));
 		var after_loop_block = new BasicBlock ();
+		all_basic_blocks.add (after_loop_block);
 		jump_stack.add (new JumpTarget.break_target (after_loop_block));
 
 		// loop block
@@ -743,8 +763,10 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		handle_errors (stmt.collection);
 
 		var loop_block = new BasicBlock ();
+		all_basic_blocks.add (loop_block);
 		jump_stack.add (new JumpTarget.continue_target (loop_block));
 		var after_loop_block = new BasicBlock ();
+		all_basic_blocks.add (after_loop_block);
 		jump_stack.add (new JumpTarget.break_target (after_loop_block));
 
 		// loop block
@@ -850,6 +872,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			// exceptional control flow
 			foreach (DataType error_data_type in node.get_error_types()) {
 				var error_type = error_data_type as ErrorType;
+				var error_class = error_data_type.data_type as Class;
 				current_block = last_block;
 				unreachable_reported = true;
 
@@ -860,19 +883,32 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 						mark_unreachable ();
 						break;
 					} else if (jump_target.is_error_target) {
-						if (jump_target.error_domain == null
-						    || (jump_target.error_domain == error_type.error_domain
-							&& (jump_target.error_code == null
-							    || jump_target.error_code == error_type.error_code))) {
+						if (context.profile == Profile.GOBJECT) {
+							if (jump_target.error_domain == null
+							    || (jump_target.error_domain == error_type.error_domain
+								&& (jump_target.error_code == null
+								    || jump_target.error_code == error_type.error_code))) {
+								// error can always be caught by this catch clause
+								// following catch clauses cannot be reached by this error
+								current_block.connect (jump_target.basic_block);
+								mark_unreachable ();
+								break;
+							} else if (error_type.error_domain == null
+								   || (error_type.error_domain == jump_target.error_domain
+								       && (error_type.error_code == null
+								           || error_type.error_code == jump_target.error_code))) {
+								// error might be caught by this catch clause
+								// unknown at compile time
+								// following catch clauses might still be reached by this error
+								current_block.connect (jump_target.basic_block);
+							}
+						} else if (jump_target.error_class == null || jump_target.error_class == error_class) {
 							// error can always be caught by this catch clause
 							// following catch clauses cannot be reached by this error
 							current_block.connect (jump_target.basic_block);
 							mark_unreachable ();
 							break;
-						} else if (error_type.error_domain == null
-							   || (error_type.error_domain == jump_target.error_domain
-							       && (error_type.error_code == null
-							           || error_type.error_code == jump_target.error_code))) {
+						} else if (jump_target.error_class.is_subtype_of (error_class)) {
 							// error might be caught by this catch clause
 							// unknown at compile time
 							// following catch clauses might still be reached by this error
@@ -888,6 +924,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			// normal control flow
 			if (!always_fail) {
 				current_block = new BasicBlock ();
+				all_basic_blocks.add (current_block);
 				last_block.connect (current_block);
 			}
 		}
@@ -917,14 +954,17 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 
 		var before_try_block = current_block;
 		var after_try_block = new BasicBlock ();
+		all_basic_blocks.add (after_try_block);
 
 		BasicBlock finally_block = null;
 		if (stmt.finally_body != null) {
 			finally_block = new BasicBlock ();
+			all_basic_blocks.add (finally_block);
 			current_block = finally_block;
 
 			// trap all forbidden jumps
 			var invalid_block = new BasicBlock ();
+			all_basic_blocks.add (invalid_block);
 			jump_stack.add (new JumpTarget.any_target (invalid_block));
 
 			stmt.finally_body.accept (this);
@@ -945,11 +985,19 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		var catch_clauses = stmt.get_catch_clauses ();
 		for (int i = catch_clauses.size - 1; i >= 0; i--) {
 			var catch_clause = catch_clauses[i];
+			var error_block = new BasicBlock ();
+			all_basic_blocks.add (error_block);
+
 			if (catch_clause.error_type != null) {
-				var error_type = (ErrorType) catch_clause.error_type;
-				jump_stack.add (new JumpTarget.error_target (new BasicBlock (), catch_clause, catch_clause.error_type.data_type as ErrorDomain, error_type.error_code, null));
+				if (context.profile == Profile.GOBJECT) {
+					var error_type = (ErrorType) catch_clause.error_type;
+					jump_stack.add (new JumpTarget.error_target (error_block, catch_clause, catch_clause.error_type.data_type as ErrorDomain, error_type.error_code, null));
+				} else {
+					var error_class = catch_clause.error_type.data_type as Class;
+					jump_stack.add (new JumpTarget.error_target (error_block, catch_clause, null, null, error_class));
+				}
 			} else {
-				jump_stack.add (new JumpTarget.error_target (new BasicBlock (), catch_clause, null, null, null));
+				jump_stack.add (new JumpTarget.error_target (error_block, catch_clause, null, null, null));
 			}
 		}
 
@@ -979,8 +1027,14 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 					break;
 				}
 
-				if (prev_target.error_domain == jump_target.error_domain &&
-				    prev_target.error_code == jump_target.error_code) {
+				if (context.profile == Profile.GOBJECT) {
+					if (prev_target.error_domain == jump_target.error_domain &&
+					    prev_target.error_code == jump_target.error_code) {
+						Report.error (stmt.source_reference, "double catch clause of same error detected");
+						stmt.error = true;
+						return;
+					}
+				} else if (prev_target.error_class == jump_target.error_class) {
 					Report.error (stmt.source_reference, "double catch clause of same error detected");
 					stmt.error = true;
 					return;

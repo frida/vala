@@ -5,6 +5,9 @@ namespace Clutter {
 		public ActorBox.from_vertices (Clutter.Vertex[] verts);
 	}
 
+	public struct Matrix : Cogl.Matrix {
+	}
+
 	public class Backend : GLib.Object {
 		[NoWrapper]
 		public virtual void add_options (GLib.OptionGroup group);
@@ -123,13 +126,6 @@ namespace Clutter {
 		[CCode (has_construct_function = false)]
 		public TimeoutPool (int priority);
 	}
-
-	[CCode (cheader_filename = "clutter/clutter.h")]
-	[Version (deprecated_since = "vala-0.14", replacement = "Threads.add_repaint_func")]
-	public static uint threads_add_repaint_func (GLib.SourceFunc func, void* data, GLib.DestroyNotify notify);
-	[CCode (cheader_filename = "clutter/clutter.h")]
-	[Version (deprecated_since = "vala-0.14", replacement = "Threads.remove_repaint_func")]
-	public static void threads_remove_repaint_func (uint handle_id);
 
 	[CCode (cprefix = "CLUTTER_FEATURE_", cheader_filename = "clutter/clutter.h")]
 	[Flags]

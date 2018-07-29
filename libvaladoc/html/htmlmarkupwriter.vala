@@ -25,25 +25,33 @@ using Valadoc.Content;
 
 public class Valadoc.Html.MarkupWriter : Valadoc.MarkupWriter {
 
-	public MarkupWriter (FileStream stream, bool xml_declaration = true) {
+	public MarkupWriter (FileStream stream, bool html5_declaration = true) {
 		// avoid broken implicit copy
 		unowned FileStream _stream = stream;
 
 		base ((str) => {
 			_stream.printf (str);
-		}, xml_declaration);
+		}, false);
+
+		if (html5_declaration) {
+			do_write ("<!DOCTYPE html>");
+		}
 	}
 
-	public MarkupWriter.builder (StringBuilder builder, bool xml_declaration = true) {
+	public MarkupWriter.builder (StringBuilder builder, bool html5_declaration = true) {
 		// avoid broken implicit copy
 		unowned StringBuilder _builder = builder;
 
 		base ((str) => {
 			_builder.append (str);
-		}, xml_declaration);
+		}, false);
+
+		if (html5_declaration) {
+			do_write ("<!DOCTYPE html>");
+		}
 	}
 
-	public MarkupWriter add_usemap (Charts.Chart chart) {
+	public unowned MarkupWriter add_usemap (Charts.Chart chart) {
 		string? buf = (string?) chart.write_buffer ("cmapx");
 		if (buf != null) {
 			raw_text ("\n");
@@ -54,7 +62,7 @@ public class Valadoc.Html.MarkupWriter : Valadoc.MarkupWriter {
 	}
 
 	// edit
-	public MarkupWriter link (string url, string label, string? css_class = null) {
+	public unowned MarkupWriter link (string url, string label, string? css_class = null) {
 		if (css_class == null) {
 			start_tag ("a", {"href", url});
 		} else {
@@ -66,7 +74,7 @@ public class Valadoc.Html.MarkupWriter : Valadoc.MarkupWriter {
 		return this;
 	}
 
-	public MarkupWriter image (string src, string? caption = null, string? css_class = null) {
+	public unowned MarkupWriter image (string src, string? caption = null, string? css_class = null) {
 		if (css_class == null) {
 			simple_tag ("img", {"src", src, "alt", caption});
 		} else {
@@ -75,12 +83,12 @@ public class Valadoc.Html.MarkupWriter : Valadoc.MarkupWriter {
 		return this;
 	}
 
-	public MarkupWriter stylesheet_link (string url) {
+	public unowned MarkupWriter stylesheet_link (string url) {
 		simple_tag ("link", {"href", url, "rel", "stylesheet", "type", "text/css"});
 		return this;
 	}
 
-	public MarkupWriter javascript_link (string url) {
+	public unowned MarkupWriter javascript_link (string url) {
 		start_tag ("script", {"src", url, "type", "text/javascript"});
 		end_tag ("script");
 		return this;

@@ -211,7 +211,7 @@ public class Vala.MethodCall : Expression {
 		}
 
 		var mtype = call.value_type;
-		var gobject_chainup = call.symbol_reference == context.analyzer.object_type;
+		var gobject_chainup = (context.profile == Profile.GOBJECT && call.symbol_reference == context.analyzer.object_type);
 		is_chainup = gobject_chainup;
 
 		if (!gobject_chainup) {
@@ -503,6 +503,10 @@ public class Vala.MethodCall : Expression {
 			}
 			if (m.returns_modified_pointer) {
 				((MemberAccess) call).inner.lvalue = true;
+			}
+			// avoid passing possible null to ref_sink_function without checking
+			if (may_throw && !value_type.nullable && value_type.floating_reference && ret_type is ObjectType) {
+				value_type.nullable = true;
 			}
 
 			var dynamic_sig = m.parent_symbol as DynamicSignal;

@@ -1,4 +1,4 @@
-KEY_* name="KEY_(.+)" parent="Gdk.Key"
+KEY_* name="KEY_(.+)" type="uint" parent="Gdk.Key"
 
 *.ref unowned
 
@@ -14,8 +14,9 @@ Event
         ._get_angle skip
         ._get_center skip
         ._get_distance skip
+Paintable
+        .new_empty name="empty"
 Surface abstract=false
-        .create_similar_image_surface type="Cairo.ImageSurface"
         .moved_to_rect.*_rect type="Gdk.Rectangle"
 Rectangle struct
         .x skip
@@ -41,12 +42,13 @@ Device
 Rectangle.union return_void
 Surface.get_frame_extents return_void
 
+DrawingContext skip
+
 EventAny skip
 EventButton skip
 EventConfigure skip
 EventCrossing skip
 EventDND skip
-EventExpose skip
 EventFocus skip
 EventGrabBroken skip
 EventKey skip

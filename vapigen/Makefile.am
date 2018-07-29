@@ -9,9 +9,9 @@ SUBDIRS = \
 AM_CPPFLAGS = \
 	$(COVERAGE_CFLAGS) \
 	$(GLIB_CFLAGS) \
-	-I$(top_builddir)/gee \
-	-I$(top_builddir)/ccode \
-	-I$(top_builddir)/vala \
+	-I$(top_srcdir)/gee \
+	-I$(top_srcdir)/ccode \
+	-I$(top_srcdir)/vala \
 	-I$(top_srcdir)/gobject-introspection \
 	$(NULL)
 
@@ -50,8 +50,8 @@ vapigen.vala.stamp: $(vapigen_VALASOURCES)
 		$(VALAFLAGS) \
 		-C \
 		--vapidir $(top_srcdir)/vapi \
-		--vapidir $(top_builddir)/gee --pkg gee \
-		--vapidir $(top_builddir)/vala --pkg vala \
+		--vapidir $(top_srcdir)/gee --pkg gee \
+		--vapidir $(top_srcdir)/vala --pkg vala \
 		--vapidir $(top_srcdir)/gobject-introspection --pkg gidl \
 		--pkg config \
 		$^
@@ -63,8 +63,8 @@ vapicheck.vala.stamp: $(vapicheck_VALASOURCES)
 		$(VALAFLAGS) \
 		-C \
 		--vapidir $(top_srcdir)/vapi \
-		--vapidir $(top_builddir)/gee --pkg gee \
-		--vapidir $(top_builddir)/vala --pkg vala \
+		--vapidir $(top_srcdir)/gee --pkg gee \
+		--vapidir $(top_srcdir)/vala --pkg vala \
 		--vapidir $(top_srcdir)/gobject-introspection --pkg gidl \
 		--pkg config \
 		$^

@@ -97,9 +97,41 @@ public class Vala.Property : Symbol, Lockable {
 	public bool overrides { get; set; }
 
 	/**
-	 * Reference the the Field that holds this property
+	 * Reference the Field that holds this property
 	 */
-	public Field field { get; set; }
+	public Field? field {
+		get {
+			if (!_field_checked) {
+				if (!is_abstract && source_type == SourceFileType.SOURCE) {
+					bool has_get = (get_accessor != null);
+					bool get_has_body = (has_get && get_accessor.body != null);
+					bool has_set = (set_accessor != null);
+					bool set_has_body = (has_set && set_accessor.body != null);
+					if (set_has_body && (has_get && !get_has_body)) {
+						error = true;
+						Report.error (source_reference, "Property getter must have a body");
+					}
+					if (get_has_body && (has_set && !set_has_body)) {
+						error = true;
+						Report.error (source_reference, "Property setter must have a body");
+					}
+					if (!get_has_body && !set_has_body) {
+						/* automatic property accessor body generation */
+						_field = new Field ("_%s".printf (name), property_type.copy (), initializer, source_reference);
+						_field.access = SymbolAccessibility.PRIVATE;
+						_field.binding = binding;
+						// apply gtk-child attribute to backing field for gtk-template support
+						if (get_attribute ("GtkChild") != null) {
+							_field.set_attribute_string ("GtkChild", "name", get_attribute_string ("GtkChild", "name", name));
+							_field.set_attribute_bool ("GtkChild", "internal", get_attribute_bool ("GtkChild", "internal"));
+						}
+					}
+				}
+				_field_checked = true;
+			}
+			return _field;
+		}
+	}
 
 	/**
 	 * Specifies whether this field may only be accessed with an instance of
@@ -184,9 +216,9 @@ public class Vala.Property : Symbol, Lockable {
 		}
 	}
 
-	private Expression _initializer;
+	public bool lock_used { get; set; }
 
-	private bool lock_used = false;
+	private Expression _initializer;
 
 	private DataType _data_type;
 
@@ -198,6 +230,8 @@ public class Vala.Property : Symbol, Lockable {
 	private string? _nick;
 	private string? _blurb;
 	private bool? _notify;
+	private Field? _field;
+	private bool _field_checked;
 
 	/**
 	 * Creates a new property.
@@ -233,14 +267,6 @@ public class Vala.Property : Symbol, Lockable {
 		if (initializer != null) {
 			initializer.accept (visitor);
 		}
-	}
-
-	public bool get_lock_used () {
-		return lock_used;
-	}
-
-	public void set_lock_used (bool used) {
-		lock_used = used;
 	}
 
 	/**
@@ -451,6 +477,12 @@ public class Vala.Property : Symbol, Lockable {
 		}
 		if (set_accessor != null) {
 			set_accessor.check (context);
+		}
+
+		if (initializer != null && field == null && !is_abstract) {
+			error = true;
+			Report.error (source_reference, "Property `%s' with custom `get' accessor and/or `set' mutator cannot have `default' value".printf (get_full_name ()));
+			return false;
 		}
 
 		if (initializer != null) {

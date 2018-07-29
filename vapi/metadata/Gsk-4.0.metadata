@@ -29,11 +29,17 @@ container_node_new* parent="Gsk.ContainerNode" symbol_type="constructor" name="c
 cross_fade_node_* parent="Gsk.CrossFadeNode" symbol_type="method" instance_idx=0 name="cross_fade_node_(.+)"
 cross_fade_node_new* parent="Gsk.CrossFadeNode" symbol_type="constructor" name="cross_fade_node_(.+)"
 
+debug_node_* parent="Gsk.DebugNode" symbol_type="method" instance_idx=0 name="debug_node_(.+)"
+debug_node_new* parent="Gsk.DebugNode" symbol_type="constructor" name="debug_node_(.+)"
+
 inset_shadow_node_* parent="Gsk.InsetShadowNode" symbol_type="method" instance_idx=0 name="inset_shadow_node_(.+)"
 inset_shadow_node_new* parent="Gsk.InsetShadowNode" symbol_type="constructor" name="inset_shadow_node_(.+)"
 
 linear_gradient_node_* parent="Gsk.LinearGradientNode" symbol_type="method" instance_idx=0 name="linear_gradient_node_(.+)"
 linear_gradient_node_new* parent="Gsk.LinearGradientNode" symbol_type="constructor" name="linear_gradient_node_(.+)"
+
+offset_node_* parent="Gsk.OffsetNode" symbol_type="method" instance_idx=0 name="offset_node_(.+)"
+offset_node_new* parent="Gsk.OffsetNode" symbol_type="constructor" name="offset_node_(.+)"
 
 opacity_node_* parent="Gsk.OpacityNode" symbol_type="method" instance_idx=0 name="opacity_node_(.+)"
 opacity_node_new* parent="Gsk.OpacityNode" symbol_type="constructor" name="opacity_node_(.+)"

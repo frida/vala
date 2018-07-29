@@ -238,6 +238,7 @@ public class Vala.Parser : CodeVisitor {
 		case TokenType.TRUE:
 		case TokenType.TRY:
 		case TokenType.TYPEOF:
+		case TokenType.UNLOCK:
 		case TokenType.UNOWNED:
 		case TokenType.USING:
 		case TokenType.VAR:
@@ -1576,6 +1577,9 @@ public class Vala.Parser : CodeVisitor {
 				case TokenType.LOCK:
 					stmt = parse_lock_statement ();
 					break;
+				case TokenType.UNLOCK:
+					stmt = parse_unlock_statement ();
+					break;
 				case TokenType.DELETE:
 					stmt = parse_delete_statement ();
 					break;
@@ -1740,6 +1744,7 @@ public class Vala.Parser : CodeVisitor {
 		case TokenType.THROW:     return parse_throw_statement ();
 		case TokenType.TRY:       return parse_try_statement ();
 		case TokenType.LOCK:      return parse_lock_statement ();
+		case TokenType.UNLOCK:    return parse_unlock_statement ();
 		case TokenType.DELETE:    return parse_delete_statement ();
 		case TokenType.VAR:
 		case TokenType.CONST:
@@ -2134,8 +2139,21 @@ public class Vala.Parser : CodeVisitor {
 		expect (TokenType.OPEN_PARENS);
 		var expr = parse_expression ();
 		expect (TokenType.CLOSE_PARENS);
-		var stmt = parse_embedded_statement ("lock", false);
+		Block? stmt = null;
+		if (current () != TokenType.SEMICOLON) {
+			stmt = parse_embedded_statement ("lock", false);
+		}
 		return new LockStatement (expr, stmt, get_src (begin));
+	}
+
+	Statement parse_unlock_statement () throws ParseError {
+		var begin = get_location ();
+		expect (TokenType.UNLOCK);
+		expect (TokenType.OPEN_PARENS);
+		var expr = parse_expression ();
+		expect (TokenType.CLOSE_PARENS);
+		expect (TokenType.SEMICOLON);
+		return new UnlockStatement (expr, get_src (begin));
 	}
 
 	Statement parse_delete_statement () throws ParseError {
@@ -2243,9 +2261,12 @@ public class Vala.Parser : CodeVisitor {
 
 		switch (current ()) {
 		case TokenType.CONSTRUCT:
-			rollback (begin);
-			parse_constructor_declaration (parent, attrs);
-			return;
+			if (context.profile == Profile.GOBJECT) {
+				rollback (begin);
+				parse_constructor_declaration (parent, attrs);
+				return;
+			}
+			break;
 		case TokenType.TILDE:
 			rollback (begin);
 			parse_destructor_declaration (parent, attrs);
@@ -2265,6 +2286,7 @@ public class Vala.Parser : CodeVisitor {
 		case TokenType.THROW:
 		case TokenType.TRY:
 		case TokenType.LOCK:
+		case TokenType.UNLOCK:
 		case TokenType.DELETE:
 		case TokenType.VAR:
 		case TokenType.OP_INC:
@@ -2450,6 +2472,7 @@ public class Vala.Parser : CodeVisitor {
 			case TokenType.SWITCH:
 			case TokenType.THROW:
 			case TokenType.TRY:
+			case TokenType.UNLOCK:
 			case TokenType.VAR:
 			case TokenType.WHILE:
 			case TokenType.YIELD:
@@ -2859,8 +2882,8 @@ public class Vala.Parser : CodeVisitor {
 					bool writable, _construct;
 					if (accept (TokenType.SET)) {
 						writable = true;
-						_construct = accept (TokenType.CONSTRUCT);
-					} else if (accept (TokenType.CONSTRUCT)) {
+						_construct = (context.profile == Profile.GOBJECT) && accept (TokenType.CONSTRUCT);
+					} else if (context.profile == Profile.GOBJECT && accept (TokenType.CONSTRUCT)) {
 						_construct = true;
 						writable = accept (TokenType.SET);
 					} else {
@@ -2881,28 +2904,6 @@ public class Vala.Parser : CodeVisitor {
 			}
 		}
 		expect (TokenType.CLOSE_BRACE);
-
-		if (!prop.is_abstract && prop.source_type == SourceFileType.SOURCE) {
-			bool empty_get = (prop.get_accessor != null && prop.get_accessor.body == null);
-			bool empty_set = (prop.set_accessor != null && prop.set_accessor.body == null);
-
-			if (empty_get != empty_set) {
-				if (empty_get) {
-					Report.error (prop.source_reference, "property getter must have a body");
-				} else if (empty_set) {
-					Report.error (prop.source_reference, "property setter must have a body");
-				}
-				prop.error = true;
-			}
-
-			if (empty_get && empty_set) {
-				/* automatic property accessor body generation */
-				var variable_type = prop.property_type.copy ();
-				prop.field = new Field ("_%s".printf (prop.name), variable_type, prop.initializer, prop.source_reference);
-				prop.field.access = SymbolAccessibility.PRIVATE;
-				prop.field.binding = prop.binding;
-			}
-		}
 
 		parent.add_property (prop);
 	}
@@ -3086,10 +3087,17 @@ public class Vala.Parser : CodeVisitor {
 		set_attributes (en, attrs);
 
 		expect (TokenType.OPEN_BRACE);
+		var inner_begin = get_location ();
+		try {
+			// enum methods
+			while (current () != TokenType.CLOSE_BRACE) {
+				parse_declaration (en);
+			}
+		} catch (ParseError e) {
+			rollback (inner_begin);
+		}
 		do {
-			if (current () == TokenType.CLOSE_BRACE
-			    && en.get_values ().size > 0) {
-				// allow trailing comma
+			if (current () == TokenType.CLOSE_BRACE) {
 				break;
 			}
 			var value_attrs = parse_attributes ();
@@ -3143,10 +3151,17 @@ public class Vala.Parser : CodeVisitor {
 		set_attributes (ed, attrs);
 
 		expect (TokenType.OPEN_BRACE);
+		var inner_begin = get_location ();
+		try {
+			// errordomain methods
+			while (current () != TokenType.CLOSE_BRACE) {
+				parse_declaration (ed);
+			}
+		} catch (ParseError e) {
+			rollback (inner_begin);
+		}
 		do {
-			if (current () == TokenType.CLOSE_BRACE
-			    && ed.get_codes ().size > 0) {
-				// allow trailing comma
+			if (current () == TokenType.CLOSE_BRACE) {
 				break;
 			}
 			var code_attrs = parse_attributes ();
@@ -3395,6 +3410,12 @@ public class Vala.Parser : CodeVisitor {
 		}
 		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
 			d.external = true;
+		}
+		if (!d.get_attribute_bool ("CCode", "has_typedef", true)) {
+			if (!d.external) {
+				Report.error (get_last_src (), "Delegates without definition must be external");
+			}
+			d.anonymous = true;
 		}
 		foreach (TypeParameter type_param in type_param_list) {
 			d.add_type_parameter (type_param);

@@ -86,10 +86,12 @@ TESTS = \
 	methods/bug620673.vala \
 	methods/bug622570.vala \
 	methods/bug626783.vala \
+	methods/bug634753.vala \
 	methods/bug639054.vala \
 	methods/bug642350.vala \
 	methods/bug642885.vala \
 	methods/bug642899.vala \
+	methods/bug643088.test \
 	methods/bug646345.vala \
 	methods/bug648030.test \
 	methods/bug648320.vala \
@@ -206,6 +208,7 @@ TESTS = \
 	delegates/delegates.vala \
 	delegates/delegates-error.test \
 	delegates/fields.vala \
+	delegates/fields-no-target.vala \
 	delegates/reference_transfer.vala \
 	delegates/wrapper.vala \
 	delegates/bug519949.test \
@@ -231,10 +234,13 @@ TESTS = \
 	objects/generics.vala \
 	objects/initially-unowned.vala \
 	objects/fields.vala \
+	objects/gsource.vala \
 	objects/interfaces.vala \
 	objects/methods.vala \
 	objects/paramspec.vala \
 	objects/properties.vala \
+	objects/property-notify.vala \
+	objects/property-read-only-auto.vala \
 	objects/regex.vala \
 	objects/signals.vala \
 	objects/signals-delegate.vala \
@@ -262,7 +268,6 @@ TESTS = \
 	objects/bug620675.vala \
 	objects/bug620706.vala \
 	objects/bug624594.vala \
-	objects/bug624624.vala \
 	objects/bug626038.vala \
 	objects/bug628639.vala \
 	objects/bug631267.vala \
@@ -285,7 +290,6 @@ TESTS = \
 	objects/bug681356.vala \
 	objects/bug683646.vala \
 	objects/bug695671.vala \
-	objects/bug701978.vala \
 	objects/bug702736.vala \
 	objects/bug702846.vala \
 	objects/bug731547.vala \
@@ -309,6 +313,11 @@ TESTS = \
 	objects/bug779955.vala \
 	objects/bug783897.vala \
 	objects/bug788964.vala \
+	objects/bug795225-1.test \
+	objects/bug795225-2.test \
+	objects/bug795225-3.test \
+	objects/bug795225-4.test \
+	objects/bug795521.vala \
 	errors/catch-error-code.vala \
 	errors/errors.vala \
 	errors/bug567181.vala \
@@ -317,6 +326,7 @@ TESTS = \
 	errors/bug623049.vala \
 	errors/bug639589.vala \
 	errors/bug651145.vala \
+	errors/bug762377.vala \
 	errors/bug778224.vala \
 	asynchronous/bug595735.vala \
 	asynchronous/bug595755.vala \
@@ -373,6 +383,7 @@ TESTS = \
 	dbus/dicts.test \
 	dbus/bug596862.vala \
 	dbus/bug602003.test \
+	dbus/bug735437.test \
 	dbus/bug782719.test \
 	dbus/bug783002.test \
 	dbus/bug792277.vala \
@@ -394,15 +405,21 @@ TESTS = \
 	parser/assignment.vala \
 	parser/attribute-duplicate.test \
 	parser/attribute-wrong-number.test \
+	parser/constructor-class-exists.test \
+	parser/constructor-exists.test \
 	parser/constructor-no-new.test \
 	parser/constructor-no-static-class.test \
+	parser/constructor-static-exists.test \
 	parser/continue-statement.vala \
 	parser/creation-no-abstract.test \
 	parser/creation-no-override.test \
 	parser/creation-no-virtual.test \
 	parser/delegate-no-new.test \
+	parser/destructor-class-exists.test \
+	parser/destructor-exists.test \
 	parser/destructor-no-new.test \
 	parser/destructor-no-static-class.test \
+	parser/destructor-static-exists.test \
 	parser/destructor-wrong-name.test \
 	parser/do-statement.vala \
 	parser/expect-endbrace.test \
@@ -415,6 +432,7 @@ TESTS = \
 	parser/function-syntax-error.test \
 	parser/inner-array-size.test \
 	parser/invalid-brace.test \
+	parser/lock-statement.vala \
 	parser/method-no-abstract-override.test \
 	parser/method-no-abstract-virtual-override.test \
 	parser/method-no-abstract-virtual.test \
@@ -449,11 +467,37 @@ TESTS = \
 	parser/unsupported-property-async.test \
 	parser/unsupported-property-throws.test \
 	parser/yield-method.test \
+	parser/bug728574.vala \
+	parser/bug749576.vala \
+	semantic/array-incompatible-initializer.test \
+	semantic/array-incompatible-initializer2.test \
+	semantic/assignment-element-incompatible-ownership.test \
+	semantic/assignment-element-incompatible-type.test \
+	semantic/assignment-same-variable.vala \
+	semantic/assignment-signal-incompatible-method.test \
+	semantic/assignment-signal-incompatible-type.test \
+	semantic/class-base-type-invalid.test \
+	semantic/class-base-type-less-accessible.test \
+	semantic/class-compact-derived-instance-field.test \
+	semantic/class-compact-interface.test \
+	semantic/class-compact-method-baseaccess.test \
+	semantic/class-compact-property-baseaccess.test \
+	semantic/class-missing-implement-interface-method.test \
+	semantic/class-missing-implement-interface-property.test \
+	semantic/class-missing-implement-method.test \
+	semantic/class-missing-implement-property.test \
+	semantic/class-missing-prerequisites.test \
+	semantic/class-too-few-type-arguments.test \
+	semantic/class-too-many-type-arguments.test \
 	semantic/constant-extern.test \
 	semantic/constant-value.test \
 	semantic/constant-value-missing.test \
 	semantic/constant-value-type.test \
 	semantic/constant-void.test \
+	semantic/delegate-too-few-type-arguments.test \
+	semantic/delegate-too-many-type-arguments.test \
+	semantic/enum-empty.test \
+	semantic/errordomain-empty.test \
 	semantic/field-accessibility.test \
 	semantic/field-compact-static.test \
 	semantic/field-external.test \
@@ -498,6 +542,8 @@ TESTS = \
 	semantic/method-private-virtual.test \
 	semantic/method-protected.test \
 	semantic/method-return-accessibility.test \
+	semantic/method-too-few-type-arguments.test \
+	semantic/method-too-many-type-arguments.test \
 	semantic/method-virtual.test \
 	semantic/method-virtual-body.test \
 	semantic/parameter-accessibility.test \

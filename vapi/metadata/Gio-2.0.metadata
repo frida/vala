@@ -1,8 +1,9 @@
 Gio name="GLib"
 * cheader_filename="gio/gio.h"
 *.cancellable#parameter nullable default=null
+*.io_priority#parameter default=GLib.Priority.DEFAULT
 *.*.cancellable#parameter nullable default=null
-*.*.io_priority default=GLib.Priority.DEFAULT
+*.*.io_priority#parameter default=GLib.Priority.DEFAULT
 
 // Needs to be in gio-unix-2.0
 DesktopAppInfo* skip
@@ -108,6 +109,8 @@ DBusMessage
   .print.indent default=0
 DBus*Info
   .*#field unowned=false
+DBus*VTable
+  .*#field delegate_target=false
 DBusInterface
   .get_object skip=false
 DBusMethodInvocation
@@ -133,6 +136,7 @@ FileInfo
   .list_attributes nullable
 FileEnumerator
   .next_file nullable
+io_error_from_errno type="int" name="io_error__from_errno"
 IOStream
   .close virtual vfunc_name="close_fn" throws="GLib.IOError"
   .close_finish throws="GLib.IOError"

@@ -243,6 +243,10 @@ public class Vala.GIRWriter : CodeVisitor {
 			return;
 		}
 
+		if (!is_visibility (ns)) {
+			return;
+		}
+
 		if (ns.name == null)  {
 			// global namespace
 			hierarchy.insert (0, ns);
@@ -270,8 +274,6 @@ public class Vala.GIRWriter : CodeVisitor {
 		buffer.append_printf (">\n");
 		indent++;
 
-		write_annotations (ns);
-
 		hierarchy.insert (0, ns);
 		ns.accept_children (this);
 		hierarchy.remove_at (0);
@@ -285,8 +287,11 @@ public class Vala.GIRWriter : CodeVisitor {
 	}
 
 	private void write_symbol_attributes (Symbol symbol) {
+		if (!is_introspectable (symbol)) {
+			buffer.append_printf (" introspectable=\"0\"");
+		}
 		if (symbol.version.deprecated) {
-			buffer.append_printf (" deprecated=\"%s\"", (symbol.version.replacement == null) ? "" : "Use %s".printf (symbol.version.replacement));
+			buffer.append_printf (" deprecated=\"1\"");
 			if (symbol.version.deprecated_since != null) {
 				buffer.append_printf (" deprecated-version=\"%s\"", symbol.version.deprecated_since);
 			}
@@ -336,8 +341,6 @@ public class Vala.GIRWriter : CodeVisitor {
 				}
 			}
 
-			write_annotations (cl);
-
 			write_indent ();
 			buffer.append_printf ("<field name=\"parent_instance\">\n");
 			indent++;
@@ -382,7 +385,6 @@ public class Vala.GIRWriter : CodeVisitor {
 
 			foreach (Method m in cl.get_methods ()) {
 				if (m.is_abstract || m.is_virtual) {
-					write_indent ();
 					if (m.coroutine) {
 						string finish_name = m.name;
 						if (finish_name.has_suffix ("_async")) {
@@ -444,8 +446,6 @@ public class Vala.GIRWriter : CodeVisitor {
 
 			write_doc (get_class_comment (cl));
 
-			write_annotations (cl);
-
 			hierarchy.insert (0, cl);
 			cl.accept_children (this);
 			hierarchy.remove_at (0);
@@ -479,8 +479,6 @@ public class Vala.GIRWriter : CodeVisitor {
 		indent++;
 
 		write_doc (get_struct_comment (st));
-
-		write_annotations (st);
 
 		hierarchy.insert (0, st);
 		st.accept_children (this);
@@ -526,8 +524,6 @@ public class Vala.GIRWriter : CodeVisitor {
 				buffer.append_printf ("<prerequisite name=\"%s\"/>\n", gi_type_name (((ObjectType) base_type).type_symbol));
 			}
 		}
-
-		write_annotations (iface);
 
 		hierarchy.insert (0, iface);
 		iface.accept_children (this);
@@ -602,7 +598,7 @@ public class Vala.GIRWriter : CodeVisitor {
 					buffer.append_printf ("</field>\n");
 				}
 
-				if (prop.set_accessor != null) {
+				if (prop.set_accessor != null && prop.set_accessor.writable) {
 					var m = prop.set_accessor.get_method ();
 					write_indent ();
 					buffer.append_printf("<field name=\"%s\">\n", m.name);
@@ -675,8 +671,6 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		write_doc (get_enum_comment (en));
 
-		write_annotations (en);
-
 		enum_value = 0;
 		hierarchy.insert (0, en);
 		en.accept_children (this);
@@ -735,6 +729,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		buffer.append_printf ("<enumeration name=\"%s\"", edomain.name);
 		write_ctype_attributes (edomain);
 		buffer.append_printf (" glib:error-domain=\"%s\"", get_ccode_quark_name (edomain));
+		write_symbol_attributes (edomain);
 		buffer.append_printf (">\n");
 		indent++;
 
@@ -827,8 +822,6 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		write_doc (get_field_comment (f));
 
-		write_annotations (f);
-
 		write_type (f.variable_type);
 
 		indent--;
@@ -836,7 +829,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		buffer.append_printf ("</field>\n");
 	}
 
-	private void write_implicit_params (DataType type, ref int index, bool has_array_length, string name, ParameterDirection direction) {
+	private void write_implicit_params (DataType? type, ref int index, bool has_array_length, string? name, ParameterDirection direction) {
 		if (type is ArrayType && has_array_length) {
 			var int_type = new IntegerType (context.root.scope.lookup ("int") as Struct);
 			for (var i = 0; i < ((ArrayType) type).rank; i++) {
@@ -855,7 +848,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 	}
 
-	void skip_implicit_params (DataType type, ref int index, bool has_array_length) {
+	void skip_implicit_params (DataType? type, ref int index, bool has_array_length) {
 		if (type is ArrayType && has_array_length) {
 			index += ((ArrayType) type).rank;
 		} else if (type is DelegateType) {
@@ -913,7 +906,7 @@ public class Vala.GIRWriter : CodeVisitor {
 			}
 
 			foreach (Parameter param in params) {
-				write_param_or_return (param.variable_type, true, ref index, get_ccode_array_length (param), param.name, get_parameter_comment (param), param.direction);
+				write_param_or_return (param.variable_type, true, ref index, get_ccode_array_length (param), param.name, get_parameter_comment (param), param.direction, false, false, param.ellipsis);
 
 				write_implicit_params (param.variable_type, ref index, get_ccode_array_length (param), param.name, param.direction);
 			}
@@ -963,8 +956,6 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		write_doc (get_delegate_comment (cb));
 
-		write_annotations (cb);
-
 		write_params_and_return (cb.get_parameters (), cb.return_type, get_ccode_array_length (cb), get_delegate_return_comment (cb), false, null, cb.has_target);
 
 		indent--;
@@ -979,11 +970,6 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		// don't write interface implementation unless it's an abstract or virtual method
 		if (!check_accessibility (m) || m.overrides || (m.base_interface_method != null && !m.is_abstract && !m.is_virtual)) {
-			return;
-		}
-
-		// check for unsupported types
-		if (!check_signature (m)) {
 			return;
 		}
 
@@ -1005,7 +991,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 	}
 
-	bool check_type (DataType type) {
+	bool is_type_introspectable (DataType type) {
 		// gobject-introspection does not currently support va_list parameters
 		if (get_ccode_name (type) == "va_list") {
 			return false;
@@ -1014,16 +1000,24 @@ public class Vala.GIRWriter : CodeVisitor {
 		return true;
 	}
 
-	bool check_signature (Method m) {
-		if (!check_type (m.return_type)) {
+	bool is_method_introspectable (Method m) {
+		if (!is_type_introspectable (m.return_type)) {
 			return false;
 		}
 		foreach (var param in m.get_parameters ()) {
-			if (param.variable_type == null || !check_type (param.variable_type)) {
+			if (param.ellipsis || !is_type_introspectable (param.variable_type)) {
 				return false;
 			}
 		}
 		return true;
+	}
+
+	bool is_introspectable (Symbol sym) {
+		if (sym is Method && !is_method_introspectable ((Method) sym)) {
+			return false;
+		}
+
+		return is_visibility (sym);
 	}
 
 	private void write_signature (Method m, string tag_name, bool write_doc, bool instance = false) {
@@ -1077,8 +1071,6 @@ public class Vala.GIRWriter : CodeVisitor {
 			write_doc (get_method_comment (m));
 		}
 
-		write_annotations (m);
-
 		DataType instance_type = null;
 		if (instance) {
 			instance_type = CCodeBaseModule.get_data_type_for_symbol ((TypeSymbol) m.parent_symbol);
@@ -1121,13 +1113,11 @@ public class Vala.GIRWriter : CodeVisitor {
 		if (m.tree_can_fail) {
 			buffer.append_printf (" throws=\"1\"");
 		}
+		write_symbol_attributes (m);
 		buffer.append_printf (">\n");
 		indent++;
 
 		write_doc (get_method_comment (m));
-
-		write_annotations (m);
-
 
 		var datatype = CCodeBaseModule.get_data_type_for_symbol ((TypeSymbol) m.parent_symbol);
 		write_params_and_return (m.get_parameters (), datatype, false, get_method_return_comment (m), true);
@@ -1162,8 +1152,6 @@ public class Vala.GIRWriter : CodeVisitor {
 		indent++;
 
 		write_doc (get_property_comment (prop));
-
-		write_annotations (prop);
 
 		write_type (prop.property_type);
 
@@ -1203,8 +1191,6 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		write_doc (get_signal_comment (sig));
 
-		write_annotations (sig);
-
 		write_params_and_return (sig.get_parameters (), sig.return_type, false, get_signal_return_comment (sig));
 
 		indent--;
@@ -1229,10 +1215,13 @@ public class Vala.GIRWriter : CodeVisitor {
 	}
 
 
-	private void write_param_or_return (DataType type, bool is_parameter, ref int index, bool has_array_length, string? name = null, string? comment = null, ParameterDirection direction = ParameterDirection.IN, bool constructor = false, bool caller_allocates = false) {
+	private void write_param_or_return (DataType? type, bool is_parameter, ref int index, bool has_array_length, string? name = null, string? comment = null, ParameterDirection direction = ParameterDirection.IN, bool constructor = false, bool caller_allocates = false, bool ellipsis = false) {
 		write_indent ();
 		string tag = is_parameter ? "parameter" : "return-value";
 		buffer.append_printf ("<%s", tag);
+		if (ellipsis) {
+			name = "...";
+		}
 		if (name != null) {
 			buffer.append_printf (" name=\"%s\"", name);
 		}
@@ -1244,7 +1233,7 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		DelegateType delegate_type = type as DelegateType;
 
-		if ((type.value_owned && delegate_type == null) || (constructor && !type.data_type.is_subtype_of (ginitiallyunowned_type))) {
+		if (type != null && ((type.value_owned && delegate_type == null) || (constructor && !type.data_type.is_subtype_of (ginitiallyunowned_type)))) {
 			var any_owned = false;
 			foreach (var generic_arg in type.get_type_arguments ()) {
 				any_owned |= generic_arg.value_owned;
@@ -1260,7 +1249,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		if (caller_allocates) {
 			buffer.append_printf (" caller-allocates=\"1\"");
 		}
-		if (type.nullable) {
+		if (type != null && type.nullable) {
 			buffer.append_printf (" allow-none=\"1\"");
 		}
 
@@ -1284,11 +1273,16 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		write_doc (comment);
 
-		int length_param_index = -1;
-		if (has_array_length) {
-			length_param_index = is_parameter ? index + 1 : index;
+		if (ellipsis) {
+			write_indent ();
+			buffer.append ("<varargs/>\n");
+		} else if (type != null) {
+			int length_param_index = -1;
+			if (has_array_length) {
+				length_param_index = is_parameter ? index + 1 : index;
+			}
+			write_type (type, length_param_index, direction);
 		}
-		write_type (type, length_param_index, direction);
 
 		indent--;
 		write_indent ();
@@ -1367,23 +1361,6 @@ public class Vala.GIRWriter : CodeVisitor {
 		} else {
 			write_indent ();
 			buffer.append_printf ("<type name=\"%s\"/>\n", type.to_string ());
-		}
-	}
-
-	private void write_annotations (CodeNode node) {
-		foreach (Attribute attr in node.attributes) {
-			string name = camel_case_to_canonical (attr.name);
-			foreach (string arg_name in attr.args.get_keys ()) {
-				string value = attr.args.get (arg_name);
-				if (value.has_prefix ("\"")) {
-					// eval string
-					value = attr.get_string (arg_name);
-				}
-
-				write_indent ();
-				buffer.append_printf ("<attribute name=\"%s.%s\" value=\"%s\"/>\n",
-					name, camel_case_to_canonical (arg_name), value);
-			}
 		}
 	}
 
@@ -1476,11 +1453,6 @@ public class Vala.GIRWriter : CodeVisitor {
 		return null;
 	}
 
-	private string camel_case_to_canonical (string name) {
-		string[] parts = Symbol.camel_case_to_lower_case (name).split ("_");
-		return string.joinv ("-", parts);
-	}
-
 	private bool check_accessibility (Symbol sym) {
 		if (sym.access == SymbolAccessibility.PUBLIC ||
 		    sym.access == SymbolAccessibility.PROTECTED) {
@@ -1488,5 +1460,9 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 
 		return false;
+	}
+
+	private bool is_visibility (Symbol sym) {
+		return sym.get_attribute_bool ("GIR", "visible", true);
 	}
 }

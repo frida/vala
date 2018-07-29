@@ -68,9 +68,13 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			if (m.base_method != null) {
 				if (!method_has_wrapper (m.base_method)) {
 					var base_class = (Class) m.base_method.parent_symbol;
-					var vclass = new CCodeFunctionCall (new CCodeIdentifier ("%s_GET_CLASS".printf (get_ccode_upper_case_name (base_class))));
-					vclass.add_argument (pub_inst);
-					set_cvalue (expr, new CCodeMemberAccess.pointer (vclass, get_ccode_vfunc_name (m)));
+					if (!base_class.is_compact) {
+						var vclass = new CCodeFunctionCall (new CCodeIdentifier ("%s_GET_CLASS".printf (get_ccode_upper_case_name (base_class))));
+						vclass.add_argument (pub_inst);
+						set_cvalue (expr, new CCodeMemberAccess.pointer (vclass, get_ccode_vfunc_name (m)));
+					} else {
+						set_cvalue (expr, new CCodeMemberAccess.pointer (pub_inst, get_ccode_vfunc_name (m)));
+					}
 				} else {
 					set_cvalue (expr, new CCodeIdentifier (get_ccode_name (m.base_method)));
 				}
@@ -402,12 +406,12 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			} else if (delegate_type != null && delegate_type.delegate_symbol.has_target) {
 				if (is_in_coroutine ()) {
 					result.delegate_target_cvalue = new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), get_delegate_target_cname (get_local_cname (local)));
-					if (local.variable_type.value_owned) {
+					if (local.variable_type.is_disposable ()) {
 						result.delegate_target_destroy_notify_cvalue = new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), get_delegate_target_destroy_notify_cname (get_local_cname (local)));
 					}
 				} else {
 					result.delegate_target_cvalue = new CCodeIdentifier (get_delegate_target_cname (get_local_cname (local)));
-					if (local.variable_type.value_owned) {
+					if (local.variable_type.is_disposable ()) {
 						result.delegate_target_destroy_notify_cvalue = new CCodeIdentifier (get_delegate_target_destroy_notify_cname (get_local_cname (local)));
 					}
 				}
