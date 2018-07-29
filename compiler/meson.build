@@ -1,5 +1,5 @@
 valac_sources = [
-	'valacompiler.vala'
+	'valacompiler.vala',
 ]
 
 valac_name = 'valac@0@'.format(vala_version_suffix)
