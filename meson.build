@@ -1,19 +1,24 @@
 project('vala',
 	'c', 'vala',
-	version: '0.39.0',
-	meson_version: '>= 0.43',
+	version: '0.50.0-frida',
+	meson_version: '>= 0.47.0',
 	license: 'LGPL2.1'
 )
 
-vala_version_required = '0.16.1'
+vala_version_required = '0.39.5.8'
 vala = meson.get_compiler('vala')
 if not vala.version().version_compare('>= @0@'.format(vala_version_required))
 	error('valac >= @0@ required!'.format(vala_version_required))
 endif
 
 vala_version = meson.project_version()
-vala_api_version = '0.40'
+vala_api_version = '0.50'
 vala_version_suffix = '-@0@'.format(vala_api_version)
+
+vala_version_tokens = vala_version.split('.')
+vala_major_version = vala_version_tokens[0].to_int()
+vala_minor_version = vala_version_tokens[1].to_int()
+vala_micro_version = vala_version_tokens[2].split('-')[0].to_int()
 
 pkgdatadir = join_paths(get_option('prefix'), get_option('datadir'), 'vala@0@'.format(vala_version_suffix))
 pkglibdir = join_paths(get_option('prefix'), get_option('libdir'), 'vala@0@'.format(vala_version_suffix))
@@ -33,9 +38,6 @@ conf.set_quoted('VERSION', vala_version)
 conf.set_quoted('API_VERSION', vala_api_version)
 conf.set_quoted('BUILD_VERSION', vala_version)
 configure_file(input: 'config.h.meson', output: 'config.h', configuration: conf)
-
-
-vcs_tag(input: 'version.h.meson', output: 'version.h')
 
 
 pkgconf = configuration_data()
@@ -72,13 +74,13 @@ add_project_arguments([
 		'-Wno-discarded-qualifiers',
 		'-Wno-incompatible-pointer-types',
 		'-Wno-unused',
-		'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_40',
-		'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_40',
+		'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_48',
+		'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_48',
 	],
 	language: 'c',
 )
 
-glib_version_required = '2.40.0'
+glib_version_required = '2.48.0'
 libgvc_version_required = '2.16'
 
 glib_dep = dependency('glib-2.0', version: '>= @0@'.format(glib_version_required))
@@ -115,7 +117,7 @@ subdir('tests')
 
 install_data('vala.m4', install_dir: join_paths('share', 'aclocal'))
 
-pycat = find_program(join_paths(meson.source_root(), 'build-aux', 'meson', 'cat.py'))
+#pycat = find_program(join_paths(meson.source_root(), 'build-aux', 'meson', 'cat.py'))
 #custom_target(
 #	'libvala@0@.vapi'.format(vala_version_suffix),
 #	command: [pycat, '@INPUT@'],
