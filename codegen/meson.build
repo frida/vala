@@ -32,7 +32,7 @@ valacodegen_sources = [
 	'valatyperegisterfunction.vala'
 ]
 
-valacodegen_lib = shared_library(
+valacodegen_lib = library(
 	'valacodegen',
 	valacodegen_sources,
 	dependencies: [gobject_dep, valacore_dep, valaccode_dep],
