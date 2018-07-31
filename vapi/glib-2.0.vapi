@@ -1992,8 +1992,6 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -3603,11 +3601,7 @@ namespace GLib {
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h")]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h")]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -3648,11 +3642,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
@@ -5234,9 +5224,36 @@ namespace GLib {
 		public void prepend_vals (void* data, uint len);
 		public void insert_val (uint index, owned G value);
 		public void insert_vals (uint index, void* data, uint len);
-		public void remove_index (uint index);
-		public void remove_index_fast (uint index);
-		public void remove_range (uint index, uint length);
+		[CCode (cname = "g_array_remove_index")]
+		public void _remove_index (uint index);
+		[CCode (cname = "g_array_remove_index_fast")]
+		public void _remove_index_fast (uint index);
+		[CCode (cname = "g_array_remove_range")]
+		public void _remove_range (uint index, uint length);
+		[CCode (cname = "vala_g_array_remove_index")]
+		public G remove_index (uint index) {
+			assert (length > index);
+			G g = data[index];
+			_remove_index (index);
+			return g;
+		}
+		[CCode (cname = "vala_g_array_remove_index_fast")]
+		public G remove_index_fast (uint index) {
+			assert (length > index);
+			G g = data[index];
+			_remove_index_fast (index);
+			return g;
+		}
+		[CCode (cname = "vala_g_array_remove_range")]
+		public G[] remove_range (uint index, uint length) {
+			assert (this.length >= index + length);
+			G[] ga = new G[length];
+			for (uint i = 0; i < length; i++) {
+				ga[i] = data[i + index];
+			}
+			_remove_range (index, length);
+			return ga;
+		}
 		public void sort (CompareFunc<G> compare_func);
 		public void sort_with_data (CompareDataFunc<G> compare_func);
 		[CCode (generic_type_pos = 0.1)]
@@ -6077,11 +6094,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }
