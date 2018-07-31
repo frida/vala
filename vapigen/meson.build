@@ -13,8 +13,10 @@ vapigen_exe = executable(
 	vala_args: ['--pkg', 'gidl', '--vapidir', join_paths(meson.source_root(), 'gobject-introspection')],
 )
 
-# https://github.com/mesonbuild/meson/issues/1602
-meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs --relative @1@ vapigen'.format(join_paths(get_option('prefix'), get_option('bindir')), vapigen_name))
+if build_machine.system() != 'windows'
+  # https://github.com/mesonbuild/meson/issues/1602
+  meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs @1@ vapigen'.format(join_paths(get_option('prefix'), get_option('bindir')), vapigen_name))
+endif
 
 vapicheck_sources = [
 	'valavapicheck.vala',
@@ -30,8 +32,10 @@ executable(
 	vala_args: ['--pkg', 'gidl', '--vapidir', join_paths(meson.source_root(), 'gobject-introspection')],
 )
 
-# https://github.com/mesonbuild/meson/issues/1602
-meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs --relative @1@ vapicheck'.format(join_paths(get_option('prefix'), get_option('bindir')), vapicheck_name))
+if build_machine.system() != 'windows'
+  # https://github.com/mesonbuild/meson/issues/1602
+  meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs @1@ vapicheck'.format(join_paths(get_option('prefix'), get_option('bindir')), vapicheck_name))
+endif
 
 configure_file(
 	input: 'vapigen.pc.in',
