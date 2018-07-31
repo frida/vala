@@ -17,8 +17,10 @@ executable(
 	install: true,
 )
 
-# https://github.com/mesonbuild/meson/issues/1602
-meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs --relative @1@ valadoc'.format(join_paths(get_option('prefix'), get_option('bindir')), valadoc_name))
+if build_machine.system() != 'windows'
+  # https://github.com/mesonbuild/meson/issues/1602
+  meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs @1@ valadoc'.format(join_paths(get_option('prefix'), get_option('bindir')), valadoc_name))
+endif
 
 subdir('doclets')
 subdir('icons')
