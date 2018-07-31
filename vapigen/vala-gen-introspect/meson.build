@@ -5,5 +5,7 @@ configure_file(
 	install_dir: join_paths(get_option('prefix'), get_option('bindir')),
 )
 
-# https://github.com/mesonbuild/meson/issues/1602
-meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs @1@ vala-gen-introspect'.format(join_paths(get_option('prefix'), get_option('bindir')), 'vala-gen-introspect@0@'.format(vala_version_suffix)))
+if build_machine.system() != 'windows'
+  # https://github.com/mesonbuild/meson/issues/1602
+  meson.add_install_script('sh', '-c', 'cd $DESTDIR@0@; ln -fs @1@ vala-gen-introspect'.format(join_paths(get_option('prefix'), get_option('bindir')), 'vala-gen-introspect@0@'.format(vala_version_suffix)))
+endif
