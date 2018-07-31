@@ -152,7 +152,7 @@ valacore_sources = [
 	version_h,
 ]
 
-valacore_lib = shared_library(
+valacore_lib = library(
 	'vala@0@'.format(vala_version_suffix),
 	valacore_sources,
 	dependencies: [gobject_dep, gmodule_dep, valagee_dep],
