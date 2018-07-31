@@ -128,7 +128,7 @@ libvaladoc_sources = [
 	'html/htmlrenderer.vala',
 ]
 
-libvaladoc_lib = shared_library(
+libvaladoc_lib = library(
 	'valadoc@0@'.format(vala_version_suffix),
 	libvaladoc_sources,
 	dependencies: [gmodule_dep, valacore_dep, libgvc_dep],
