@@ -5,6 +5,8 @@ project('vala',
 	license: 'LGPL2.1'
 )
 
+cc = meson.get_compiler('c')
+
 vala_version_required = '0.39.5.8'
 vala = meson.get_compiler('vala')
 if not vala.version().version_compare('>= @0@'.format(vala_version_required))
@@ -70,15 +72,22 @@ add_project_arguments([
 	language: 'vala'
 )
 
-add_project_arguments([
+common_flags = [
+	'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_48',
+	'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_48',
+]
+if cc.get_id() == 'msvc'
+	common_flags += [
+		'-DYY_NO_UNISTD_H',
+	]
+else
+	common_flags += [
 		'-Wno-discarded-qualifiers',
 		'-Wno-incompatible-pointer-types',
 		'-Wno-unused',
-		'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_48',
-		'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_48',
-	],
-	language: 'c',
-)
+	]
+endif
+add_project_arguments(common_flags, language: 'c')
 
 glib_version_required = '2.48.0'
 libgvc_version_required = '2.16'
@@ -89,19 +98,16 @@ gmodule_dep = dependency('gmodule-2.0', version: '>= @0@'.format(glib_version_re
 libgvc_dep = dependency('libgvc', version: '>= @0@'.format(libgvc_version_required), required: false)
 
 # Check for CGraph support of libgvc
-if libgvc_dep.found()
-	cc = meson.get_compiler('c')
-	if cc.run('''#include <gvc.h>
-			int main(void) {
-			#ifdef WITH_CGRAPH
-				return 0;
-			#else
-				return -1;
-			#endif
-			}''',
-			dependencies: libgvc_dep).returncode() == 0
-		add_project_arguments('-D', 'WITH_CGRAPH', language: 'vala')
-	endif
+if libgvc_dep.found() and cc.run('''#include <gvc.h>
+		int main(void) {
+		#ifdef WITH_CGRAPH
+			return 0;
+		#else
+			return -1;
+		#endif
+		}''',
+		dependencies: libgvc_dep).returncode() == 0
+	add_project_arguments('-D', 'WITH_CGRAPH', language: 'vala')
 endif
 
 subdir('gobject-introspection')
