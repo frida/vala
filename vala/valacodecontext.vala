@@ -246,8 +246,6 @@ public class Vala.CodeContext {
 	public UsedAttr used_attr { get; set; }
 
 	public CodeContext () {
-		add_define ("VALA_OS_" + Config.VALA_HOST_OS.up ());
-
 		resolver = new SymbolResolver ();
 		analyzer = new SemanticAnalyzer ();
 		flow_analyzer = new FlowAnalyzer ();

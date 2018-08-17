@@ -1,5 +1,10 @@
 NULL =
 
+SUBDIRS = \
+	girwriter \
+	gtktemplate \
+	$(NULL)
+
 AM_CPPFLAGS = \
 	$(GLIB_CFLAGS) \
 	$(NULL)
@@ -75,6 +80,7 @@ TESTS = \
 	methods/contains.vala \
 	methods/iterator.vala \
 	methods/prepostconditions.vala \
+	methods/same-name.vala \
 	methods/symbolresolution.vala \
 	methods/bug595538.vala \
 	methods/bug596726.vala \
@@ -470,6 +476,7 @@ TESTS = \
 	parser/yield-method.test \
 	parser/bug728574.vala \
 	parser/bug749576.vala \
+	semantic/array-stacked.test \
 	semantic/array-incompatible-initializer.test \
 	semantic/array-incompatible-initializer2.test \
 	semantic/assignment-element-incompatible-ownership.test \
@@ -508,6 +515,7 @@ TESTS = \
 	semantic/field-namespace-owned.test \
 	semantic/field-non-constant.test \
 	semantic/field-void.test \
+	semantic/floating-reference.vala \
 	semantic/foreach-iterator-args.test \
 	semantic/foreach-iterator-void.test \
 	semantic/foreach-iterator-wrong-types.test \
@@ -532,6 +540,8 @@ TESTS = \
 	semantic/method-extern-abstract.test \
 	semantic/method-extern-body.test \
 	semantic/method-extern-virtual.test \
+	semantic/method-interface-already-found.test \
+	semantic/method-interface-not-found.test \
 	semantic/method-main-async.test \
 	semantic/method-main-inline.test \
 	semantic/method-main-throws.test \

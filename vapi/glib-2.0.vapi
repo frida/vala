@@ -263,8 +263,24 @@ public struct long {
 	[CCode (cname = "GLONG_FROM_LE")]
 	public static long from_little_endian (long val);
 
-	[CCode (cname = "atol", cheader_filename = "stdlib.h")]
-	public static long parse (string str);
+	[CCode (cname = "strtol", cheader_filename = "stdlib.h")]
+	static long strtol (string nptr, out char* endptr, uint _base);
+
+	public static long parse (string str) {
+		return strtol (str, null, 0);
+	}
+
+	public static bool try_parse (string str, out long result = null, out unowned string unparsed = null) {
+		char* endptr;
+		result = strtol (str, out endptr, 0);
+		if (endptr == (char*) str + str.length) {
+			unparsed = "";
+			return true;
+		} else {
+			unparsed = (string) endptr;
+			return false;
+		}
+	}
 }
 
 [SimpleType]
@@ -296,6 +312,25 @@ public struct ulong {
 	public static ulong from_big_endian (ulong val);
 	[CCode (cname = "GULONG_FROM_LE")]
 	public static ulong from_little_endian (ulong val);
+
+	[CCode (cname = "strtoul", cheader_filename = "stdlib.h")]
+	static ulong strtoul (string nptr, out char* endptr, uint _base);
+
+	public static ulong parse (string str) {
+		return strtoul (str, null, 0);
+	}
+
+	public static bool try_parse (string str, out ulong result = null, out unowned string unparsed = null) {
+		char* endptr;
+		result = strtoul (str, out endptr, 0);
+		if (endptr == (char*) str + str.length) {
+			unparsed = "";
+			return true;
+		} else {
+			unparsed = (string) endptr;
+			return false;
+		}
+	}
 }
 
 [SimpleType]
@@ -747,6 +782,7 @@ public struct uint64 {
 	public static uint64 parse (string str) {
 		return ascii_strtoull (str, null, 0);
 	}
+
 	public static bool try_parse (string str, out uint64 result = null, out unowned string unparsed = null) {
 		char* endptr;
 		result = ascii_strtoull (str, out endptr, 0);
@@ -820,6 +856,25 @@ public struct float {
 	public float clamp (float low, float high);
 	[CCode (cname = "fabsf")]
 	public float abs ();
+
+	[CCode (cname = "strtof", cheader_filename = "stdlib.h")]
+	static float strtof (string nptr, out char* endptr);
+
+	public static float parse (string str) {
+		return strtof (str, null);
+	}
+
+	public static bool try_parse (string str, out float result = null, out unowned string unparsed = null) {
+		char* endptr;
+		result = strtof (str, out endptr);
+		if (endptr == (char*) str + str.length) {
+			unparsed = "";
+			return true;
+		} else {
+			unparsed = (string) endptr;
+			return false;
+		}
+	}
 }
 
 [SimpleType]
@@ -889,6 +944,7 @@ public struct double {
 	public static double parse (string str) {
 		return ascii_strtod (str, null);
 	}
+
 	public static bool try_parse (string str, out double result = null, out unowned string unparsed = null) {
 		char* endptr;
 		result = ascii_strtod (str, out endptr);
@@ -1280,7 +1336,7 @@ public class string {
 	[Version (replacement = "double.parse")]
 	[CCode (cname = "g_ascii_strtod")]
 	public double to_double (out unowned string endptr = null);
-	[Version (replacement = "uint64.parse")]
+	[Version (replacement = "ulong.parse")]
 	[CCode (cname = "strtoul")]
 	public ulong to_ulong (out unowned string endptr = null, int _base = 0);
 	[Version (replacement = "int64.parse")]
@@ -1992,8 +2048,6 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -3603,11 +3657,7 @@ namespace GLib {
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h")]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h")]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -3648,11 +3698,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
@@ -4632,9 +4678,9 @@ namespace GLib {
 		[Version (since = "2.4")]
 		public int index (G data);
 		[Version (since = "2.4")]
-		public void remove (G data);
+		public bool remove (G data);
 		[Version (since = "2.4")]
-		public void remove_all (G data);
+		public uint remove_all (G data);
 		[Version (since = "2.4")]
 		public void delete_link (List<G> link);
 		[Version (since = "2.4")]
@@ -4762,6 +4808,7 @@ namespace GLib {
 		[Version (since = "2.12")]
 		public void remove_all ();
 		public uint foreach_remove (HRFunc<K,V> predicate);
+		public uint foreach_steal (HRFunc<K,V> predicate);
 		[CCode (cname = "g_hash_table_lookup")]
 		public unowned V? @get (K key);
 		[CCode (cname = "g_hash_table_insert")]
@@ -6104,11 +6151,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }
