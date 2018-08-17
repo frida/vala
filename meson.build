@@ -76,6 +76,14 @@ common_flags = [
 	'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_48',
 	'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_48',
 ]
+buildtype = get_option('buildtype')
+if buildtype == 'release' or buildtype == 'minsize'
+	common_flags += [
+		'-DG_DISABLE_CAST_CHECKS',
+		'-DG_DISABLE_ASSERT',
+		'-DG_DISABLE_CHECKS',
+	]
+endif
 if cc.get_id() == 'msvc'
 	common_flags += [
 		'-DYY_NO_UNISTD_H',
