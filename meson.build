@@ -76,6 +76,13 @@ common_flags = [
 	'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_48',
 	'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_48',
 ]
+if get_option('optimization') in ['2', '3', 's'] and not get_option('debug')
+	common_flags += [
+		'-DG_DISABLE_CAST_CHECKS',
+		'-DG_DISABLE_ASSERT',
+		'-DG_DISABLE_CHECKS',
+	]
+endif
 if cc.get_id() == 'msvc'
 	common_flags += [
 		'-DYY_NO_UNISTD_H',
