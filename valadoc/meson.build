@@ -5,6 +5,7 @@ valadoc_sources = [
 	'symbolresolver.vala',
 	'treebuilder.vala',
 	'valadoc.vala',
+	version_h,
 ]
 
 valadoc_name = 'valadoc@0@'.format(vala_version_suffix)

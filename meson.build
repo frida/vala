@@ -35,7 +35,7 @@ conf.set_quoted('BUILD_VERSION', vala_version)
 configure_file(input: 'config.h.meson', output: 'config.h', configuration: conf)
 
 
-vcs_tag(input: 'version.h.meson', output: 'version.h')
+version_h = vcs_tag(input: 'version.h.meson', output: 'version.h')
 
 
 pkgconf = configuration_data()

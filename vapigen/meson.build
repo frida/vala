@@ -1,6 +1,7 @@
 vapigen_sources = [
 	'valagidlparser.vala',
 	'valavapigen.vala',
+	version_h,
 ]
 
 vapigen_name = 'vapigen@0@'.format(vala_version_suffix)

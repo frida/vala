@@ -149,6 +149,7 @@ valacore_sources = [
 	'valavoidtype.vala',
 	'valawhilestatement.vala',
 	'valayieldstatement.vala',
+	version_h,
 ]
 
 valacore_lib = shared_library(

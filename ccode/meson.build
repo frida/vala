@@ -52,7 +52,8 @@ valaccode_sources = [
 	'valaccodeunaryexpression.vala',
 	'valaccodevariabledeclarator.vala',
 	'valaccodewhilestatement.vala',
-	'valaccodewriter.vala'
+	'valaccodewriter.vala',
+	version_h,
 ]
 
 valaccode_lib = static_library(
