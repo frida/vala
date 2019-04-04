@@ -80,7 +80,7 @@ if cc.get_id() == 'msvc'
 	common_flags += [
 		'-DYY_NO_UNISTD_H',
 	]
-else
+elif cc.get_id() == 'gcc'
 	common_flags += [
 		'-Wno-discarded-qualifiers',
 		'-Wno-incompatible-pointer-types',
