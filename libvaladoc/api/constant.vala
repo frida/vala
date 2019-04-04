@@ -26,7 +26,7 @@ using Valadoc.Content;
 /**
  * Represents a type member with a constant value.
  */
-public class Valadoc.Api.Constant : Member {
+public class Valadoc.Api.Constant : Symbol {
 	private string? cname;
 
 	/**
@@ -37,12 +37,12 @@ public class Valadoc.Api.Constant : Member {
 		get;
 	}
 
-	public Constant (Node parent, SourceFile file, string name, SymbolAccessibility accessibility,
-					 SourceComment? comment, string? cname, Vala.Constant data)
+	public Constant (Node parent, SourceFile file, string name, Vala.SymbolAccessibility accessibility,
+					 SourceComment? comment, Vala.Constant data)
 	{
 		base (parent, file, name, accessibility, comment, data);
 
-		this.cname = cname;
+		this.cname = Vala.get_ccode_name (data);
 	}
 
 	/**

@@ -2,7 +2,8 @@ include $(top_srcdir)/Makefile.common
 
 NULL =
 
-TESTS_ENVIRONMENT = EXEEXT=$(EXEEXT) PACKAGE_SUFFIX=$(PACKAGE_SUFFIX) TOPBUILDDIR=$(abs_top_builddir) TOPSRCDIR=$(abs_top_srcdir) $(srcdir)/testrunner.sh
+TESTS_ENVIRONMENT = EXEEXT=$(EXEEXT) PACKAGE_SUFFIX=$(PACKAGE_SUFFIX) TOPBUILDDIR=$(abs_top_builddir) TOPSRCDIR=$(abs_top_srcdir) \
+	CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' $(srcdir)/testrunner.sh
 
 TESTS = \
 	libvaladoc/errorreporter.vala \
@@ -16,11 +17,12 @@ TESTS = \
 	$(NULL)
 
 check-TESTS: $(TESTS)
-	@EXEEXT=$(EXEEXT) PACKAGE_SUFFIX=$(PACKAGE_SUFFIX) TOPBUILDDIR=$(abs_top_builddir) TOPSRCDIR=$(abs_top_srcdir) $(srcdir)/testrunner.sh $(TESTS)
+	@EXEEXT=$(EXEEXT) PACKAGE_SUFFIX=$(PACKAGE_SUFFIX) TOPBUILDDIR=$(abs_top_builddir) TOPSRCDIR=$(abs_top_srcdir) \
+		CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' $(srcdir)/testrunner.sh $(TESTS)
 	G_DEBUG=fatal_warnings $(builddir)/driver
 
 AM_CFLAGS = \
-	-DPACKAGE_DATADIR=\"$(libdir)/valadoc\" \
+	-DPACKAGE_VALADOC_LIBDIR=\"$(libdir)/valadoc\" \
 	-DPACKAGE_VERSION=\"$(VERSION)\" \
 	-DTOP_SRC_DIR=\"$(abs_top_srcdir)\" \
 	-I$(top_srcdir)/libvaladoc/ \
@@ -41,7 +43,6 @@ check_PROGRAMS = driver
 driver_VALASOURCES = \
 	drivers/driver-test.vala \
 	drivers/generic-api-test.vala \
-	$(top_srcdir)/valadoc/driver.vala \
 	$(top_srcdir)/valadoc/girwriter.vala \
 	$(top_srcdir)/valadoc/initializerbuilder.vala \
 	$(top_srcdir)/valadoc/symbolresolver.vala \
@@ -52,7 +53,6 @@ driver_SOURCES = \
 	driver.vala.stamp \
 	drivers/driver-test.c \
 	drivers/generic-api-test.c \
-	driver.c \
 	girwriter.c \
 	initializerbuilder.c \
 	symbolresolver.c \

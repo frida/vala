@@ -114,12 +114,12 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 		return "%s_length%d".printf (array_cname, dim);
 	}
 
-	public override string get_parameter_array_length_cname (Parameter param, int dim) {
-		if (get_ccode_array_length_name (param) != null) {
-			return get_ccode_array_length_name (param);
-		} else {
-			return get_array_length_cname (get_variable_cname (param.name), dim);
+	public override string get_variable_array_length_cname (Variable variable, int dim) {
+		string? length_cname = get_ccode_array_length_name (variable);
+		if (length_cname == null) {
+			length_cname = get_array_length_cname (get_ccode_name (variable), dim);
 		}
+		return (!) length_cname;
 	}
 
 	public override CCodeExpression get_array_length_cexpression (Expression array_expr, int dim = -1) {
@@ -147,7 +147,10 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 		}
 
 		List<CCodeExpression> size = ((GLibValue) value).array_length_cvalues;
-		assert (size != null && size.size >= dim);
+		if (size == null || size.size < dim) {
+			Report.error (null, "internal error: invalid array_length for given dimension");
+			return new CCodeInvalidExpression ();
+		}
 		return size[dim - 1];
 	}
 
@@ -169,7 +172,7 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 				int dim = int.parse (lit.value);
 				set_cvalue (expr, get_array_length_cexpression (memberaccess.inner, dim + 1));
 			} else {
-				Report.error (expr.source_reference, "only integer literals supported as index");
+				Report.error (expr.source_reference, "internal error: only integer literals supported as index");
 			}
 		} else {
 			// access to element in an array
@@ -720,36 +723,37 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 		}
 
 		string ctypename = get_ccode_name (param.variable_type);
+		string name = get_ccode_name (param);
+		var array_type = (ArrayType) param.variable_type;
+
+		if (array_type.fixed_length) {
+			ctypename += "*";
+		}
 
 		if (param.direction != ParameterDirection.IN) {
 			ctypename += "*";
 		}
 
-		var main_cparam = new CCodeParameter (get_variable_cname (param.name), ctypename);
-
-		var array_type = (ArrayType) param.variable_type;
+		var main_cparam = new CCodeParameter (name, ctypename);
 
 		generate_type_declaration (array_type.element_type, decl_space);
 
 		cparam_map.set (get_param_pos (get_ccode_pos (param)), main_cparam);
 		if (carg_map != null) {
-			carg_map.set (get_param_pos (get_ccode_pos (param)), get_variable_cexpression (param.name));
+			carg_map.set (get_param_pos (get_ccode_pos (param)), get_parameter_cexpression (param));
 		}
 
-		if (get_ccode_array_length (param)) {
-			string length_ctype = "int";
-			if (get_ccode_array_length_type (param) != null) {
-				length_ctype = get_ccode_array_length_type (param);
-			}
+		if (!array_type.fixed_length && get_ccode_array_length (param)) {
+			var length_ctype = get_ccode_array_length_type (param) ?? get_ccode_array_length_type (array_type);
 			if (param.direction != ParameterDirection.IN) {
 				length_ctype = "%s*".printf (length_ctype);
 			}
 
 			for (int dim = 1; dim <= array_type.rank; dim++) {
-				var cparam = new CCodeParameter (get_parameter_array_length_cname (param, dim), length_ctype);
+				var cparam = new CCodeParameter (get_variable_array_length_cname (param, dim), length_ctype);
 				cparam_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), cparam);
 				if (carg_map != null) {
-					carg_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), get_variable_cexpression (cparam.name));
+					carg_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), get_cexpression (cparam.name));
 				}
 			}
 		}

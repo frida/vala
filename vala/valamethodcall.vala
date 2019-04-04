@@ -103,7 +103,7 @@ public class Vala.MethodCall : Expression {
 		}
 
 		int index = argument_list.index_of (old_node);
-		if (index >= 0 && new_node.parent_node == null) {
+		if (index >= 0) {
 			argument_list[index] = new_node;
 			new_node.parent_node = this;
 		}
@@ -120,8 +120,8 @@ public class Vala.MethodCall : Expression {
 				// first argument is string
 				return argument_list[0].is_constant ();
 			} else if (method_type.method_symbol.get_full_name () == "GLib.NC_") {
-				// second argument is string
-				return argument_list[1].is_constant ();
+				// first and second argument is string
+				return argument_list[0].is_constant () && argument_list[1].is_constant ();
 			}
 		}
 
@@ -140,6 +140,31 @@ public class Vala.MethodCall : Expression {
 		}
 
 		return call.is_accessible (sym);
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		if (source_reference == null) {
+			source_reference = this.source_reference;
+		}
+		var mtype = call.value_type;
+		if (mtype is MethodType) {
+			var m = ((MethodType) mtype).method_symbol;
+			if (!(m != null && m.coroutine && !is_yield_expression && ((MemberAccess) call).member_name != "end")) {
+				m.get_error_types (collection, source_reference);
+			}
+		} else if (mtype is ObjectType) {
+			// constructor
+			var cl = (Class) ((ObjectType) mtype).type_symbol;
+			var m = cl.default_construction_method;
+			m.get_error_types (collection, source_reference);
+		} else if (mtype is DelegateType) {
+			var d = ((DelegateType) mtype).delegate_symbol;
+			d.get_error_types (collection, source_reference);
+		}
+
+		foreach (Expression expr in argument_list) {
+			expr.get_error_types (collection, source_reference);
+		}
 	}
 
 	public override bool check (CodeContext context) {
@@ -451,8 +476,23 @@ public class Vala.MethodCall : Expression {
 			}
 		}
 
+		bool force_lambda_method_closure = false;
 		foreach (Expression arg in get_argument_list ()) {
 			arg.check (context);
+
+			if (arg is LambdaExpression && ((LambdaExpression) arg).method.closure) {
+				force_lambda_method_closure = true;
+			}
+		}
+		// force all lambda arguments using the same closure scope
+		// TODO https://gitlab.gnome.org/GNOME/vala/issues/59
+		if (force_lambda_method_closure) {
+			foreach (Expression arg in get_argument_list ()) {
+				unowned LambdaExpression? lambda = arg as LambdaExpression;
+				if (lambda != null && lambda.method.binding != MemberBinding.STATIC) {
+					lambda.method.closure = true;
+				}
+			}
 		}
 
 		if (ret_type is VoidType) {
@@ -471,8 +511,6 @@ public class Vala.MethodCall : Expression {
 		formal_value_type = ret_type.copy ();
 		value_type = formal_value_type.get_actual_type (target_object_type, method_type_args, this);
 
-		bool may_throw = false;
-
 		if (mtype is MethodType) {
 			var m = ((MethodType) mtype).method_symbol;
 			if (is_yield_expression) {
@@ -485,19 +523,7 @@ public class Vala.MethodCall : Expression {
 					Report.error (source_reference, "yield expression not available outside async method");
 				}
 			}
-			if (m != null && m.coroutine && !is_yield_expression && ((MemberAccess) call).member_name != "end") {
-				// .begin call of async method, no error can happen here
-			} else {
-				foreach (DataType error_type in m.get_error_types ()) {
-					may_throw = true;
 
-					// ensure we can trace back which expression may throw errors of this type
-					var call_error_type = error_type.copy ();
-					call_error_type.source_reference = source_reference;
-
-					add_error_type (call_error_type);
-				}
-			}
 			if (m.returns_floating_reference) {
 				value_type.floating_reference = true;
 			}
@@ -505,8 +531,18 @@ public class Vala.MethodCall : Expression {
 				((MemberAccess) call).inner.lvalue = true;
 			}
 			// avoid passing possible null to ref_sink_function without checking
-			if (may_throw && !value_type.nullable && value_type.floating_reference && ret_type is ObjectType) {
+			if (tree_can_fail && !value_type.nullable && value_type.floating_reference && ret_type is ObjectType) {
 				value_type.nullable = true;
+			}
+
+			unowned Signal? sig = m.parent_symbol as Signal;
+			if (sig != null && m.name == "disconnect") {
+				var param = get_argument_list ()[0];
+				if (param is LambdaExpression) {
+					error = true;
+					Report.error (source_reference, "Cannot disconnect lambda expression from signal");
+					return false;
+				}
 			}
 
 			var dynamic_sig = m.parent_symbol as DynamicSignal;
@@ -524,7 +560,7 @@ public class Vala.MethodCall : Expression {
 				dynamic_sig.handler.target_type = new DelegateType (dynamic_sig.get_delegate (new ObjectType ((ObjectTypeSymbol) dynamic_sig.parent_symbol), this));
 			}
 
-			if (m != null && m.get_type_parameters ().size > 0) {
+			if (m != null && m.has_type_parameters ()) {
 				var ma = (MemberAccess) call;
 				if (ma.get_type_arguments ().size == 0) {
 					// infer type arguments
@@ -589,35 +625,20 @@ public class Vala.MethodCall : Expression {
 					mtype = new MethodType (m.get_end_method ());
 				}
 			}
-		} else if (mtype is ObjectType) {
-			// constructor
-			var cl = (Class) ((ObjectType) mtype).type_symbol;
-			var m = cl.default_construction_method;
-			foreach (DataType error_type in m.get_error_types ()) {
-				may_throw = true;
-
-				// ensure we can trace back which expression may throw errors of this type
-				var call_error_type = error_type.copy ();
-				call_error_type.source_reference = source_reference;
-
-				add_error_type (call_error_type);
-			}
-		} else if (mtype is DelegateType) {
-			var d = ((DelegateType) mtype).delegate_symbol;
-			foreach (DataType error_type in d.get_error_types ()) {
-				may_throw = true;
-
-				// ensure we can trace back which expression may throw errors of this type
-				var call_error_type = error_type.copy ();
-				call_error_type.source_reference = source_reference;
-
-				add_error_type (call_error_type);
-			}
 		}
 
 		if (!context.analyzer.check_arguments (this, mtype, params, get_argument_list ())) {
 			error = true;
 			return false;
+		}
+
+		//Resolve possible generic-type in SizeofExpression used as parameter default-value
+		foreach (Expression arg in get_argument_list ()) {
+			unowned SizeofExpression sizeof_expr = arg as SizeofExpression;
+			if (sizeof_expr != null && sizeof_expr.type_reference is GenericType) {
+				var sizeof_type = sizeof_expr.type_reference.get_actual_type (target_object_type, method_type_args, this);
+				replace_expression (arg, new SizeofExpression (sizeof_type, source_reference));
+			}
 		}
 
 		/* Check for constructv chain up */
@@ -628,7 +649,9 @@ public class Vala.MethodCall : Expression {
 			}
 		}
 
-		if (may_throw) {
+		value_type.check (context);
+
+		if (tree_can_fail) {
 			if (parent_node is LocalVariable || parent_node is ExpressionStatement) {
 				// simple statements, no side effects after method call
 			} else if (!(context.analyzer.current_symbol is Block)) {
@@ -648,7 +671,6 @@ public class Vala.MethodCall : Expression {
 				// don't set initializer earlier as this changes parent_node and parent_statement
 				local.initializer = this;
 				decl.check (context);
-
 
 				// move temp variable to insert block to ensure the
 				// variable is in the same block as the declaration
@@ -710,5 +732,27 @@ public class Vala.MethodCall : Expression {
 		}
 
 		return null;
+	}
+
+	public override string to_string () {
+		var b = new StringBuilder ();
+		b.append_c ('(');
+		if (is_yield_expression) {
+			b.append ("yield ");
+		}
+		b.append (call.to_string ());
+		b.append_c ('(');
+
+		bool first = true;
+		foreach (var expr in argument_list) {
+			if (!first) {
+				b.append (", ");
+			}
+			b.append (expr.to_string ());
+			first = false;
+		}
+		b.append ("))");
+
+		return b.str;
 	}
 }

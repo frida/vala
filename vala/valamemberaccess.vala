@@ -136,7 +136,7 @@ public class Vala.MemberAccess : Expression {
 			if (inner == null) {
 				return member_name;
 			} else {
-				return "%s.%s".printf (inner.to_string (), member_name);
+				return "%s%s%s".printf (inner.to_string (), pointer_member_access ? "->" : ".", member_name);
 			}
 		} else {
 			// ensure to always use fully-qualified name
@@ -190,6 +190,12 @@ public class Vala.MemberAccess : Expression {
 			return (c is EnumValue || !c.type_reference.nullable);
 		} else {
 			return false;
+		}
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		if (inner != null) {
+			inner.get_error_types (collection, source_reference);
 		}
 	}
 
@@ -397,16 +403,7 @@ public class Vala.MemberAccess : Expression {
 					}
 				} else if (parent_node is Assignment) {
 					var a = (Assignment) parent_node;
-					if (a.left == this
-					    && (a.operator == AssignmentOperator.ADD
-					        || a.operator == AssignmentOperator.SUB)) {
-						// dynamic signal
-						var s = new DynamicSignal (inner.value_type, member_name, new VoidType (), source_reference);
-						s.handler = a.right;
-						s.access = SymbolAccessibility.PUBLIC;
-						dynamic_object_type.type_symbol.scope.add (null, s);
-						symbol_reference = s;
-					} else if (a.left == this) {
+					if (a.left == this) {
 						// dynamic property assignment
 						var prop = new DynamicProperty (inner.value_type, member_name, source_reference);
 						prop.access = SymbolAccessibility.PUBLIC;
@@ -453,7 +450,7 @@ public class Vala.MemberAccess : Expression {
 		}
 
 		// enum-type inference
-		if (symbol_reference == null && target_type != null && target_type.data_type is Enum) {
+		if (inner == null && symbol_reference == null && target_type != null && target_type.data_type is Enum) {
 			var enum_type = (Enum) target_type.data_type;
 			foreach (var val in enum_type.get_values ()) {
 				if (member_name == val.name) {
@@ -706,12 +703,15 @@ public class Vala.MemberAccess : Expression {
 		} else if (member is Signal) {
 			instance = true;
 			access = member.access;
+		} else if (!creation_member && member is ErrorCode) {
+			symbol_reference = ((ErrorCode) member).code;
+			member = symbol_reference;
 		}
 
 		member.used = true;
 		member.version.check (source_reference);
 
-		if (access == SymbolAccessibility.PROTECTED) {
+		if (access == SymbolAccessibility.PROTECTED && member.parent_symbol is TypeSymbol) {
 			var target_type = (TypeSymbol) member.parent_symbol;
 
 			bool in_subtype = false;
@@ -763,8 +763,8 @@ public class Vala.MemberAccess : Expression {
 			// instance type might be a subtype of the parent symbol of the member
 			// that subtype might not be generic, so do not report an error in that case
 			var object_type = instance_type as ObjectType;
-			if (object_type != null && object_type.type_symbol.get_type_parameters ().size > 0 &&
-			    instance_type.get_type_arguments ().size == 0) {
+			if (object_type != null && object_type.type_symbol.has_type_parameters ()
+			    && !instance_type.has_type_arguments ()) {
 				error = true;
 				Report.error (inner.source_reference, "missing generic type arguments");
 				return false;
@@ -782,6 +782,8 @@ public class Vala.MemberAccess : Expression {
 				value_type = context.analyzer.get_value_type_for_symbol (symbol_reference, lvalue);
 			} else if (symbol_reference is Field) {
 				value_type = new FieldPrototype ((Field) symbol_reference);
+			} else if (symbol_reference is Property) {
+				value_type = new PropertyPrototype ((Property) symbol_reference);
 			} else {
 				value_type = new InvalidType ();
 			}
@@ -853,6 +855,10 @@ public class Vala.MemberAccess : Expression {
 				var parent_type = SemanticAnalyzer.get_data_type_for_symbol (symbol_reference.parent_symbol);
 				inner.target_type = parent_type.get_actual_type (inner.value_type, null, this);
 			}
+		}
+
+		if (value_type != null) {
+			value_type.check (context);
 		}
 
 		return !error;

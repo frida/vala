@@ -15,12 +15,16 @@ namespace GES {
 		public unowned GES.Asset? get_proxy_target ();
 		[NoWrapper]
 		public virtual void inform_proxy (string proxy_id);
+		[CCode (cname = "ges_list_assets")]
+		public static GLib.List<weak GES.Asset> list_assets (GLib.Type filter);
 		public unowned GLib.List<GES.Asset> list_proxies ();
 		public static bool needs_reload (GLib.Type extractable_type, string id);
 		[NoWrapper]
 		public virtual void proxied (GES.Asset proxy);
-		public static GES.Asset? request (GLib.Type extractable_type, string? id) throws GLib.Error;
-		public static async GES.Asset? request_async (GLib.Type extractable_type, string id, GLib.Cancellable? cancellable) throws GLib.Error;
+		[CCode (cname = "ges_asset_request", has_construct_function = false)]
+		public Asset.request (GLib.Type extractable_type, string? id) throws GLib.Error;
+		[CCode (cname = "ges_asset_request_async", has_construct_function = false, type = "void")]
+		public async Asset.request_async (GLib.Type extractable_type, string id, GLib.Cancellable? cancellable) throws GLib.Error;
 		[NoWrapper]
 		public virtual bool request_id_update (string proposed_new_id, GLib.Error error);
 		public bool set_proxy (GES.Asset? proxy);
@@ -151,8 +155,6 @@ namespace GES {
 	}
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_effect_asset_get_type ()")]
 	public class EffectAsset : GES.TrackElementAsset, GES.MetaContainer, GLib.AsyncInitable, GLib.Initable {
-		[CCode (array_length = false)]
-		public weak void* _ges_reserved[4];
 		[CCode (has_construct_function = false)]
 		protected EffectAsset ();
 	}
@@ -202,8 +204,6 @@ namespace GES {
 	}
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_layer_get_type ()")]
 	public class Layer : GLib.InitiallyUnowned, GES.Extractable, GES.MetaContainer {
-		[CCode (array_length = false)]
-		public weak void* _ges_reserved[4];
 		public uint32 max_nle_priority;
 		public uint32 min_nle_priority;
 		public weak GES.Timeline timeline;
@@ -283,6 +283,7 @@ namespace GES {
 		public Gst.Element video_sink { owned get; set; }
 	}
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_pitivi_formatter_get_type ()")]
+	[Version (deprecated = true, deprecated_since = "1.0")]
 	public class PitiviFormatter : GES.Formatter, GES.Extractable {
 		[CCode (has_construct_function = false)]
 		public PitiviFormatter ();
@@ -313,20 +314,6 @@ namespace GES {
 		public signal void error_loading_asset (GLib.Error error, string id, GLib.Type extractable_type);
 		public virtual signal void loaded (GES.Timeline timeline);
 		public virtual signal string? missing_uri (GLib.Error error, GES.Asset wrong_asset);
-	}
-	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_smart_adder_get_type ()")]
-	public class SmartAdder : Gst.Bin, Gst.ChildProxy {
-		[CCode (array_length = false)]
-		public weak void* _ges_reserved[4];
-		public weak Gst.Element adder;
-		public weak Gst.Caps caps;
-		public weak Gst.Element capsfilter;
-		public GLib.Mutex @lock;
-		public weak GLib.HashTable<void*,void*> pads_infos;
-		public weak Gst.Pad srcpad;
-		public weak GES.Track track;
-		[CCode (has_construct_function = false, type = "GstElement*")]
-		public SmartAdder (GES.Track track);
 	}
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_source_get_type ()")]
 	public class Source : GES.TrackElement, GES.Extractable, GES.MetaContainer {
@@ -449,8 +436,8 @@ namespace GES {
 		public virtual signal void layer_added (GES.Layer layer);
 		public virtual signal void layer_removed (GES.Layer layer);
 		public signal GLib.GenericArray<GES.Track> select_tracks_for_object (GES.Clip clip, GES.TrackElement track_element);
-		public signal void snapping_ended (GES.TrackElement object, GES.TrackElement p0, uint64 p1);
-		public signal void snapping_started (GES.TrackElement object, GES.TrackElement p0, uint64 p1);
+		public signal void snapping_ended (GES.TrackElement obj1, GES.TrackElement obj2, uint64 position);
+		public signal void snapping_started (GES.TrackElement obj1, GES.TrackElement obj2, uint64 position);
 		public virtual signal void track_added (GES.Track track);
 		public virtual signal void track_removed (GES.Track track);
 	}
@@ -469,6 +456,7 @@ namespace GES {
 		public GLib.Value get_child_property_by_pspec (GLib.ParamSpec pspec);
 		public Gst.ClockTime get_duration ();
 		public Gst.ClockTime get_inpoint ();
+		public virtual uint32 get_layer_priority ();
 		public Gst.ClockTime get_max_duration ();
 		public string get_name ();
 		public GES.TimelineElement? get_parent ();
@@ -491,17 +479,13 @@ namespace GES {
 		[NoWrapper]
 		public virtual void set_child_property (GLib.Object child, GLib.ParamSpec pspec, GLib.Value value);
 		public void set_child_property_by_pspec (GLib.ParamSpec pspec, GLib.Value value);
-		[NoWrapper]
 		public virtual bool set_duration (Gst.ClockTime duration);
-		[NoWrapper]
 		public virtual bool set_inpoint (Gst.ClockTime inpoint);
-		[NoWrapper]
 		public virtual bool set_max_duration (Gst.ClockTime maxduration);
 		public bool set_name (string? name);
 		public virtual bool set_parent (GES.TimelineElement parent);
-		[NoWrapper]
+		[Version (deprecated = true)]
 		public virtual bool set_priority (uint32 priority);
-		[NoWrapper]
 		public virtual bool set_start (Gst.ClockTime start);
 		public bool set_timeline (GES.Timeline timeline);
 		public virtual bool trim (uint64 start);
@@ -699,14 +683,15 @@ namespace GES {
 	}
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_uri_clip_asset_get_type ()")]
 	public class UriClipAsset : GES.ClipAsset, GES.MetaContainer, GLib.AsyncInitable, GLib.Initable {
-		[CCode (has_construct_function = false)]
-		protected UriClipAsset ();
+		[CCode (finish_name = "ges_asset_request_finish", has_construct_function = false, type = "void")]
+		public async UriClipAsset (string uri, GLib.Cancellable? cancellable) throws GLib.Error;
+		public static GES.UriClipAsset finish (GLib.AsyncResult res) throws GLib.Error;
 		public Gst.ClockTime get_duration ();
 		public unowned Gst.PbUtils.DiscovererInfo get_info ();
 		public unowned GLib.List<GES.UriSourceAsset> get_stream_assets ();
 		public bool is_image ();
-		public static async void @new (string uri, GLib.Cancellable? cancellable);
-		public static unowned GES.UriClipAsset? request_sync (string uri) throws GLib.Error;
+		[CCode (cname = "ges_uri_clip_asset_request_sync", has_construct_function = false)]
+		public UriClipAsset.request_sync (string uri) throws GLib.Error;
 		[CCode (cname = "ges_uri_clip_asset_class_set_timeout")]
 		public class void set_timeout (Gst.ClockTime timeout);
 		[NoAccessorMethod]
@@ -761,8 +746,6 @@ namespace GES {
 	}
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_xml_formatter_get_type ()")]
 	public class XmlFormatter : GES.BaseXmlFormatter, GES.Extractable {
-		[CCode (array_length = false)]
-		public weak void* _ges_reserved[4];
 		[CCode (has_construct_function = false)]
 		protected XmlFormatter ();
 	}
@@ -837,7 +820,8 @@ namespace GES {
 		[CCode (cname = "GES_EDGE_END")]
 		EDGE_END,
 		[CCode (cname = "GES_EDGE_NONE")]
-		EDGE_NONE
+		EDGE_NONE;
+		public unowned string name ();
 	}
 	[CCode (cheader_filename = "ges/ges.h", cprefix = "GES_EDIT_MODE_", type_id = "ges_edit_mode_get_type ()")]
 	public enum EditMode {
@@ -1023,8 +1007,10 @@ namespace GES {
 	[CCode (cheader_filename = "ges/ges.h", has_target = false)]
 	public delegate bool FormatterCanLoadURIMethod (GES.Formatter dummy_instance, string uri) throws GLib.Error;
 	[CCode (cheader_filename = "ges/ges.h", has_target = false)]
+	[Version (deprecated = true, deprecated_since = "1.16")]
 	public delegate bool FormatterLoadFromURIMethod (GES.Formatter formatter, GES.Timeline timeline, string uri) throws GLib.Error;
 	[CCode (cheader_filename = "ges/ges.h", has_target = false)]
+	[Version (deprecated = true, deprecated_since = "1.16")]
 	public delegate bool FormatterSaveToURIMethod (GES.Formatter formatter, GES.Timeline timeline, string uri, bool overwrite) throws GLib.Error;
 	[CCode (cheader_filename = "ges/ges.h", instance_pos = 3.9)]
 	public delegate void MetaForeachFunc (GES.MetaContainer container, string key, GLib.Value value);
@@ -1052,6 +1038,8 @@ namespace GES {
 	public const int PADDING;
 	[CCode (cheader_filename = "ges/ges.h", cname = "GES_PADDING_LARGE")]
 	public const int PADDING_LARGE;
+	[CCode (cheader_filename = "ges/ges.h", cname = "GES_TIMELINE_ELEMENT_NO_LAYER_PRIORITY")]
+	public const uint32 TIMELINE_ELEMENT_NO_LAYER_PRIORITY;
 	[CCode (cheader_filename = "ges/ges.h", cname = "GES_VERSION_MAJOR")]
 	public const int VERSION_MAJOR;
 	[CCode (cheader_filename = "ges/ges.h", cname = "GES_VERSION_MICRO")]
@@ -1069,11 +1057,11 @@ namespace GES {
 	[CCode (cheader_filename = "ges/ges.h")]
 	public static bool init_check ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref string[]? argv) throws GLib.Error;
 	[CCode (cheader_filename = "ges/ges.h")]
-	public static GLib.List<weak GES.Asset> list_assets (GLib.Type filter);
+	public static bool is_initialized ();
 	[CCode (cheader_filename = "ges/ges.h")]
 	public static Gst.Sample play_sink_convert_frame (Gst.Element playsink, Gst.Caps caps);
 	[CCode (cheader_filename = "ges/ges.h")]
-	public static bool pspec_equal (void* key_spec_1, void* key_spec_2);
+	public static bool pspec_equal ([CCode (type = "gconstpointer")] GLib.ParamSpec key_spec_1, [CCode (type = "gconstpointer")] GLib.ParamSpec key_spec_2);
 	[CCode (cheader_filename = "ges/ges.h")]
 	public static uint pspec_hash (void* key_spec);
 	[CCode (cheader_filename = "ges/ges.h")]

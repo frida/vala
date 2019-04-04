@@ -48,10 +48,25 @@ public class Vala.StatementList : CodeNode, Statement {
 		list.insert (index, stmt);
 	}
 
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		foreach (var stmt in list) {
+			stmt.get_error_types (collection, source_reference);
+		}
+	}
+
 	public override void accept (CodeVisitor visitor) {
 		foreach (Statement stmt in list) {
 			stmt.accept (visitor);
 		}
+	}
+
+	public override bool check (CodeContext context) {
+		foreach (Statement stmt in list) {
+			if (!stmt.check (context)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public override void emit (CodeGenerator codegen) {

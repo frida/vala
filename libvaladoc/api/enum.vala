@@ -28,14 +28,16 @@ using Valadoc.Content;
  */
 public class Valadoc.Api.Enum : TypeSymbol {
 	private string cname;
+	private string? type_id;
 
-	public Enum (Node parent, SourceFile file, string name, SymbolAccessibility accessibility,
-				 SourceComment? comment, string? cname, string? type_macro_name,
-				 string? type_function_name, Vala.Enum data)
+	public Enum (Node parent, SourceFile file, string name, Vala.SymbolAccessibility accessibility,
+				 SourceComment? comment,
+				 Vala.Enum data)
 	{
-		base (parent, file, name, accessibility, comment, type_macro_name, null, null,
-			type_function_name, false, data);
-		this.cname = cname;
+		base (parent, file, name, accessibility, comment, false, data);
+
+		this.cname = Vala.get_ccode_name (data);
+		this.type_id = Vala.get_ccode_type_id (data);
 	}
 
 	/**
@@ -43,6 +45,13 @@ public class Valadoc.Api.Enum : TypeSymbol {
 	 */
 	public string? get_cname () {
 		return cname;
+	}
+
+	/**
+	 * Returns the C symbol representing the runtime type id for this data type.
+	 */
+	public string? get_type_id () {
+		return type_id;
 	}
 
 	/**

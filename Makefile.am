@@ -13,8 +13,18 @@ SUBDIRS = \
 	doc \
 	gobject-introspection \
 	vapigen \
+	$(NULL)
+
+if ENABLE_VALADOC
+SUBDIRS += \
 	libvaladoc \
 	valadoc \
+	$(NULL)
+endif
+
+DISTCHECK_CONFIGURE_FLAGS = \
+	--enable-valadoc \
+	--enable-unversioned \
 	$(NULL)
 
 if ENABLE_UNVERSIONED
@@ -31,7 +41,8 @@ libvala@PACKAGE_SUFFIX@.pc: libvala.pc
 .PHONY: bootstrap
 bootstrap: all
 	find $(top_srcdir) -name "*.vala.stamp" | xargs rm -f
-	$(MAKE) $(AM_MAKEFLAGS) all VALAC=$(abs_top_builddir)/compiler/valac$(EXEEXT) V=$V
+	$(MAKE) $(AM_MAKEFLAGS) all VALAC=$(abs_top_builddir)/compiler/valac$(EXEEXT) V=$V \
+		VALAFLAGS="$(VALAFLAGS) --hide-internal --abi-stability"
 
 .PHONY: test
 test:
@@ -83,6 +94,7 @@ CLEANFILES = \
 EXTRA_DIST = \
 	ChangeLog.pre-0-4 \
 	ChangeLog.pre-0-5-7 \
+	README.md \
 	libvala.pc.in \
 	vala.m4 \
 	.version \

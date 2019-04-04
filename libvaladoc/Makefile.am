@@ -3,15 +3,16 @@ include $(top_srcdir)/Makefile.common
 NULL =
 
 AM_CFLAGS = \
-	-DPACKAGE_ICONDIR=\"$(datadir)/valadoc/icons/\" \
-	-DPACKAGE_DATADIR=\"$(libdir)/valadoc\" \
+	-DPACKAGE_VALADOC_LIBDIR=\"$(libdir)/valadoc\" \
 	-DPACKAGE_VERSION=\"$(VERSION)\" \
 	$(COVERAGE_CFLAGS) \
 	$(LIBGVC_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(GMODULE_CFLAGS) \
 	-I$(top_srcdir)/gee \
+	-I$(top_srcdir)/ccode \
 	-I$(top_srcdir)/vala \
+	-I$(top_srcdir)/codegen \
 	$(NULL)
 
 AM_VALAFLAGS = \
@@ -51,10 +52,8 @@ libvaladoc_la_VALASOURCES = \
 	importer/valadocdocumentationimporterscanner.vala \
 	importer/girdocumentationimporter.vala \
 	importer/internalidregistrar.vala \
-	api/symbolaccessibility.vala \
 	api/sourcecomment.vala \
 	api/girsourcecomment.vala \
-	api/attributeargument.vala \
 	api/attribute.vala \
 	api/array.vala \
 	api/callable.vala \
@@ -68,12 +67,9 @@ libvaladoc_la_VALASOURCES = \
 	api/errordomain.vala \
 	api/field.vala \
 	api/formalparameter.vala \
-	api/formalparametertype.vala \
 	api/interface.vala \
 	api/item.vala \
-	api/member.vala \
 	api/method.vala \
-	api/methodbindingtype.vala \
 	api/namespace.vala \
 	api/node.vala \
 	api/nodetype.vala \
@@ -82,8 +78,6 @@ libvaladoc_la_VALASOURCES = \
 	api/pointer.vala \
 	api/property.vala \
 	api/propertyaccessor.vala \
-	api/propertyaccessortype.vala \
-	api/propertybindingtype.vala \
 	api/signal.vala \
 	api/signaturebuilder.vala \
 	api/sourcefile.vala \
@@ -93,9 +87,7 @@ libvaladoc_la_VALASOURCES = \
 	api/typeparameter.vala \
 	api/typereference.vala \
 	api/typesymbol.vala \
-	api/browsable.vala \
 	api/visitor.vala \
-	api/driver.vala \
 	content/block.vala \
 	content/blockcontent.vala \
 	content/comment.vala \
@@ -185,6 +177,8 @@ libvaladoc.vala.stamp: $(libvaladoc_la_VALASOURCES)
 		--vapidir $(top_srcdir)/vapi --pkg libgvc \
 		--vapidir $(top_srcdir)/gee --pkg gee \
 		--vapidir $(top_srcdir)/vala --pkg vala \
+		--vapidir $(top_srcdir)/ccode --pkg ccode \
+		--vapidir $(top_srcdir)/codegen --pkg codegen \
 		--pkg config \
 		$(filter %.vala %.c,$^)
 	touch $@
@@ -199,6 +193,7 @@ libvaladoc@PACKAGE_SUFFIX@_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(GMODULE_LIBS) \
 	$(top_builddir)/vala/libvala@PACKAGE_SUFFIX@.la \
+	$(top_builddir)/codegen/libvalaccodegen.la \
 	$(NULL)
 
 libvaladocincludedir = $(includedir)/valadoc@PACKAGE_SUFFIX@

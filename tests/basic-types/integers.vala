@@ -16,42 +16,62 @@ void test_int () {
 	// +
 	i = 42 + 23;
 	assert (i == 65);
+	i += 7;
+	assert (i == 72);
 
 	// -
 	i = 42 - 23;
 	assert (i == 19);
+	i -= 7;
+	assert (i == 12);
 
 	// *
 	i = 42 * 23;
 	assert (i == 966);
+	i *= 7;
+	assert (i == 6762);
 
 	// /
 	i = 42 / 23;
+	assert (i == 1);
+	i /= 1;
 	assert (i == 1);
 
 	// %
 	i = 42 % 23;
 	assert (i == 19);
+	i %= 7;
+	assert (i == 5);
 
 	// <<
 	i = 42 << 3;
 	assert (i == 336);
+	i <<= 7;
+	assert (i == 43008);
 
 	// >>
 	i = 42 >> 3;
 	assert (i == 5);
+	i >>= 2;
+	assert (i == 1);
 
 	// &
 	i = 42 & 23;
 	assert (i == 2);
+	i &= 1;
+	assert (i == 0);
 
 	// |
 	i = 42 | 23;
 	assert (i == 63);
+	i |= 128;
+	assert (i == 191);
 
 	// ^
 	i = 42 ^ 23;
 	assert (i == 61);
+	i ^= 23;
+	assert (i == 42);
 
 	// equality and relational
 	i = 42;
@@ -71,17 +91,21 @@ void test_int () {
 	assert (s == "42");
 
 	unowned string unparsed;
+	s = "%lim".printf (long.MIN);
 	long l;
-	long.try_parse ("%lim".printf (long.MIN), out l, out unparsed);
+	long.try_parse (s, out l, out unparsed);
 	assert (l == long.MIN);
 	assert (unparsed == "m");
-	assert (!long.try_parse ("%lum".printf (ulong.MAX), out l));
+	s = "%lum".printf (ulong.MAX);
+	assert (!long.try_parse (s, out l));
 
+	s = "%lum".printf (ulong.MAX);
 	ulong ul;
-	ulong.try_parse ("%lum".printf (ulong.MAX), out ul, out unparsed);
+	ulong.try_parse (s, out ul, out unparsed);
 	assert (ul == ulong.MAX);
 	assert (unparsed == "m");
-	assert (!ulong.try_parse ("%lim".printf (long.MIN), out ul));
+	s = "%lim".printf (long.MIN);
+	assert (!ulong.try_parse (s, out ul));
 
 	int64 i64;
 	int64.try_parse ("-4711inch", out i64, out unparsed);

@@ -188,6 +188,8 @@ public class Vala.Method : Subroutine, Callable {
 	private List<Expression> postconditions;
 	private DataType _return_type;
 
+	protected List<DataType> error_types;
+
 	private weak Method _base_method;
 	private weak Method _base_interface_method;
 	private DataType _base_interface_type;
@@ -272,8 +274,10 @@ public class Vala.Method : Subroutine, Callable {
 			param.accept (visitor);
 		}
 
-		foreach (DataType error_type in get_error_types ()) {
+		if (error_types != null) {
+			foreach (DataType error_type in error_types) {
 			error_type.accept (visitor);
+		}
 		}
 
 		if (result_var != null) {
@@ -306,6 +310,21 @@ public class Vala.Method : Subroutine, Callable {
 	 * @return true if the specified method is compatible to this method
 	 */
 	public bool compatible (Method base_method, out string? invalid_match) {
+		return compatible_internal (base_method, out invalid_match, this);
+	}
+
+	/**
+	 * Checks whether the parameters and return type of this method are
+	 * compatible with the specified method
+	 *
+	 * @param base_method a method
+	 * @return true if the specified method is compatible to this method
+	 */
+	public bool compatible_no_error (Method base_method) {
+		return compatible_internal (base_method, null, null);
+	}
+
+	bool compatible_internal (Method base_method, out string? invalid_match, CodeNode? node_reference) {
 		// method is always compatible to itself
 		if (this == base_method) {
 			invalid_match = null;
@@ -336,7 +355,7 @@ public class Vala.Method : Subroutine, Callable {
 		}
 
 		List<DataType> method_type_args = null;
-		if (this.get_type_parameters ().size > 0) {
+		if (this.has_type_parameters ()) {
 			method_type_args = new ArrayList<DataType> ();
 			foreach (TypeParameter type_parameter in this.get_type_parameters ()) {
 				var type_arg = new GenericType (type_parameter);
@@ -345,7 +364,7 @@ public class Vala.Method : Subroutine, Callable {
 			}
 		}
 
-		var actual_base_type = base_method.return_type.get_actual_type (object_type, method_type_args, this);
+		var actual_base_type = base_method.return_type.get_actual_type (object_type, method_type_args, node_reference);
 		if (!return_type.equals (actual_base_type)) {
 			invalid_match = "Base method expected return type `%s', but `%s' was provided".printf (actual_base_type.to_prototype_string (), return_type.to_prototype_string ());
 			return false;
@@ -371,7 +390,7 @@ public class Vala.Method : Subroutine, Callable {
 					return false;
 				}
 
-				actual_base_type = base_param.variable_type.get_actual_type (object_type, method_type_args, this);
+				actual_base_type = base_param.variable_type.get_actual_type (object_type, method_type_args, node_reference);
 				if (!actual_base_type.equals (param.variable_type)) {
 					invalid_match = "incompatible type of parameter %d".printf (param_index);
 					return false;
@@ -387,9 +406,12 @@ public class Vala.Method : Subroutine, Callable {
 		}
 
 		/* this method may throw less but not more errors than the base method */
-		foreach (DataType method_error_type in get_error_types ()) {
+		var base_method_errors = new ArrayList<DataType> ();
+		base_method.get_error_types (base_method_errors);
+		if (error_types != null) {
+			foreach (DataType method_error_type in error_types) {
 			bool match = false;
-			foreach (DataType base_method_error_type in base_method.get_error_types ()) {
+				foreach (DataType base_method_error_type in base_method_errors) {
 				if (method_error_type.compatible (base_method_error_type)) {
 					match = true;
 					break;
@@ -400,6 +422,7 @@ public class Vala.Method : Subroutine, Callable {
 				invalid_match = "incompatible error type `%s'".printf (method_error_type.to_string ());
 				return false;
 			}
+		}
 		}
 		if (base_method.coroutine != this.coroutine) {
 			invalid_match = "async mismatch";
@@ -451,6 +474,10 @@ public class Vala.Method : Subroutine, Callable {
 			i++;
 		}
 		return -1;
+	}
+
+	public bool has_type_parameters () {
+		return (type_parameters != null && type_parameters.size > 0);
 	}
 
 	/**
@@ -509,6 +536,32 @@ public class Vala.Method : Subroutine, Callable {
 		return _empty_expression_list;
 	}
 
+	/**
+	 * Adds an error type to the exceptions that can be
+	 * thrown by this method.
+	 */
+	public void add_error_type (DataType error_type) {
+		if (error_types == null) {
+			error_types = new ArrayList<DataType> ();
+		}
+		error_types.add (error_type);
+		error_type.parent_node = this;
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		if (error_types != null) {
+			foreach (var error_type in error_types) {
+				if (source_reference != null) {
+					var type = error_type.copy ();
+					type.source_reference = source_reference;
+					collection.add (type);
+				} else {
+					collection.add (error_type);
+				}
+			}
+		}
+	}
+
 	public override void replace_type (DataType old_type, DataType new_type) {
 		if (base_interface_type == old_type) {
 			base_interface_type = new_type;
@@ -518,13 +571,14 @@ public class Vala.Method : Subroutine, Callable {
 			return_type = new_type;
 			return;
 		}
-		var error_types = get_error_types ();
+		if (error_types != null) {
 		for (int i = 0; i < error_types.size; i++) {
 			if (error_types[i] == old_type) {
 				error_types[i] = new_type;
 				return;
 			}
 		}
+	}
 	}
 
 	private void find_base_methods () {
@@ -566,6 +620,7 @@ public class Vala.Method : Subroutine, Callable {
 				}
 
 				_base_method = base_method;
+				copy_attribute_double (base_method, "CCode", "instance_pos");
 				return;
 			}
 		}
@@ -576,6 +631,11 @@ public class Vala.Method : Subroutine, Callable {
 	}
 
 	private void find_base_interface_method (Class cl) {
+		Method? base_match = null;
+
+		string? invalid_error = null;
+		Method? invalid_base_match = null;
+
 		foreach (DataType type in cl.get_base_types ()) {
 			if (type.data_type is Interface) {
 				if (base_interface_type != null && base_interface_type.data_type != type.data_type) {
@@ -606,17 +666,26 @@ public class Vala.Method : Subroutine, Callable {
 
 						string invalid_match = null;
 						if (!compatible (base_method, out invalid_match)) {
-							error = true;
-							var base_method_type = new MethodType (base_method);
-							Report.error (source_reference, "overriding method `%s' is incompatible with base method `%s': %s.".printf (get_full_name (), base_method_type.to_prototype_string (), invalid_match));
-							return;
+							invalid_error = invalid_match;
+							invalid_base_match = base_method;
+						} else {
+							base_match = base_method;
+							break;
 						}
-
-						_base_interface_method = base_method;
-						return;
 					}
 				}
 			}
+		}
+
+		if (base_match != null) {
+			_base_interface_method = base_match;
+			copy_attribute_double (base_match, "CCode", "instance_pos");
+			return;
+		} else if (invalid_base_match != null) {
+			error = true;
+			var base_method_type = new MethodType (invalid_base_match);
+			Report.error (source_reference, "overriding method `%s' is incompatible with base method `%s': %s.".printf (get_full_name (), base_method_type.to_prototype_string (), invalid_error));
+			return;
 		}
 
 		if (base_interface_type != null) {
@@ -635,7 +704,7 @@ public class Vala.Method : Subroutine, Callable {
 			this_parameter.variable_type.value_owned = true;
 		}
 		if (get_attribute ("NoThrow") != null) {
-			get_error_types ().clear ();
+			error_types = null;
 		}
 
 		if (parent_symbol is Class && (is_abstract || is_virtual)) {
@@ -735,6 +804,11 @@ public class Vala.Method : Subroutine, Callable {
 				error = true;
 				Report.error (param.source_reference, "Reference parameters are not supported for async methods");
 			}
+			if (!external_package && coroutine && (param.ellipsis || param.variable_type.data_type == context.analyzer.va_list_type.data_type)) {
+				error = true;
+				Report.error (param.source_reference, "Variadic parameters are not supported for async methods");
+				return false;
+			}
 			// TODO: begin and end parameters must be checked separately for coroutines
 			if (coroutine) {
 				continue;
@@ -746,7 +820,22 @@ public class Vala.Method : Subroutine, Callable {
 			}
 		}
 
-		foreach (DataType error_type in get_error_types ()) {
+		if (coroutine) {
+			// TODO: async methods with out-parameters before in-parameters are not supported
+			bool requires_pointer = false;
+			for (int i = parameters.size - 1; i >= 0; i--) {
+				var param = parameters[i];
+				if (param.direction == ParameterDirection.IN) {
+					requires_pointer = true;
+				} else if (requires_pointer) {
+					error = true;
+					Report.error (param.source_reference, "Synchronous out-parameters are not supported in async methods");
+				}
+			}
+		}
+
+		if (error_types != null) {
+			foreach (DataType error_type in error_types) {
 			error_type.check (context);
 
 			// check whether error type is at least as accessible as the method
@@ -755,6 +844,7 @@ public class Vala.Method : Subroutine, Callable {
 				Report.error (source_reference, "error type `%s' is less accessible than method `%s'".printf (error_type.to_string (), get_full_name ()));
 				return false;
 			}
+		}
 		}
 
 		if (result_var != null) {
@@ -849,12 +939,16 @@ public class Vala.Method : Subroutine, Callable {
 
 		// check that all errors that can be thrown in the method body are declared
 		if (body != null) {
-			foreach (DataType body_error_type in body.get_error_types ()) {
+			var body_errors = new ArrayList<DataType> ();
+			body.get_error_types (body_errors);
+			foreach (DataType body_error_type in body_errors) {
 				bool can_propagate_error = false;
-				foreach (DataType method_error_type in get_error_types ()) {
+				if (error_types != null) {
+					foreach (DataType method_error_type in error_types) {
 					if (body_error_type.compatible (method_error_type)) {
 						can_propagate_error = true;
 					}
+				}
 				}
 				bool is_dynamic_error = body_error_type is ErrorType && ((ErrorType) body_error_type).dynamic_error;
 				if (!can_propagate_error && !is_dynamic_error) {
@@ -872,7 +966,9 @@ public class Vala.Method : Subroutine, Callable {
 				bool throws_gerror = false;
 				bool throws_gioerror = false;
 				bool throws_gdbuserror = false;
-				foreach (DataType error_type in get_error_types ()) {
+				var error_types = new ArrayList<DataType> ();
+				get_error_types (error_types);
+				foreach (DataType error_type in error_types) {
 					if (!(error_type is ErrorType)) {
 						continue;
 					}
@@ -1012,6 +1108,7 @@ public class Vala.Method : Subroutine, Callable {
 			foreach (var param in get_type_parameters ()) {
 				end_method.add_type_parameter (param);
 			}
+			end_method.copy_attribute_double (this, "CCode", "async_result_pos");
 		}
 		return end_method;
 	}
@@ -1076,7 +1173,7 @@ public class Vala.Method : Subroutine, Callable {
 		var result_type = new ObjectType ((ObjectTypeSymbol) glib_ns.scope.lookup ("AsyncResult"));
 
 		var result_param = new Parameter ("_res_", result_type);
-		result_param.set_attribute_double ("CCode", "pos", 0.1);
+		result_param.set_attribute_double ("CCode", "pos", get_attribute_double ("CCode", "async_result_pos", 0.1));
 		params.add (result_param);
 
 		foreach (var param in parameters) {
@@ -1123,7 +1220,7 @@ public class Vala.Method : Subroutine, Callable {
 	}
 
 	public bool has_error_type_parameter () {
-		if (get_error_types ().size > 0) {
+		if (tree_can_fail) {
 			return true;
 		}
 		if (base_method != null && base_method != this && base_method.has_error_type_parameter ()) {

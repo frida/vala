@@ -132,7 +132,7 @@ class Vala.VAPIGen {
 		foreach (string source in sources) {
 			if (FileUtils.test (source, FileTest.EXISTS)) {
 				var source_file = new SourceFile (context, SourceFileType.PACKAGE, source);
-				source_file.explicit = true;
+				source_file.from_commandline = true;
 				context.add_source_file (source_file);
 			} else {
 				Report.error (null, "%s not found".printf (source));
@@ -170,6 +170,9 @@ class Vala.VAPIGen {
 			return quit ();
 		}
 
+		// candidates to match library against
+		string[] package_names = {};
+
 		// interface writer ignores external packages
 		foreach (SourceFile file in context.get_source_files ()) {
 			if (file.filename.has_suffix (".vapi")) {
@@ -181,14 +184,21 @@ class Vala.VAPIGen {
 					// mark relative metadata as source
 					string? metadata_filename = context.get_metadata_path (file.filename);
 					if (metadata_filename != null) {
-						foreach (SourceFile metadata_file in context.get_source_files ()) {
-							if (metadata_file.filename == metadata_filename) {
-								metadata_file.file_type = SourceFileType.SOURCE;
-							}
+						unowned SourceFile? metadata_file = context.get_source_file (metadata_filename);
+						if (metadata_file != null) {
+							metadata_file.file_type = SourceFileType.SOURCE;
 						}
+					}
+					if (file.from_commandline && file.package_name != null) {
+						package_names += file.package_name;
 					}
 				}
 			}
+		}
+
+		var library_name = Path.get_basename (library);
+		if (package_names.length > 0 && !(library_name in package_names)) {
+			Report.warning (null, "Given library name `%s' does not match pkg-config name `%s'".printf (library_name, string.join ("', `", package_names)));
 		}
 
 		var interface_writer = new CodeWriter (CodeWriterType.VAPIGEN);

@@ -365,6 +365,8 @@ namespace Atspi {
 		public GLib.HashTable<string,string> get_text_attributes (int offset, out int start_offset, out int end_offset) throws GLib.Error;
 		public Atspi.TextRange get_text_before_offset (int offset, Atspi.TextBoundaryType type) throws GLib.Error;
 		public bool remove_selection (int selection_num) throws GLib.Error;
+		public bool scroll_substring_to (int start_offset, int end_offset, Atspi.ScrollType type) throws GLib.Error;
+		public bool scroll_substring_to_point (int start_offset, int end_offset, Atspi.CoordType coords, int x, int y) throws GLib.Error;
 		public bool set_caret_offset (int new_offset) throws GLib.Error;
 		public bool set_selection (int selection_num, int start_offset, int end_offset) throws GLib.Error;
 	}
@@ -434,7 +436,6 @@ namespace Atspi {
 	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_CACHE_", type_id = "atspi_cache_get_type ()")]
 	[Flags]
 	public enum Cache {
-		INTERFACES,
 		NONE,
 		PARENT,
 		CHILDREN,
@@ -442,6 +443,7 @@ namespace Atspi {
 		DESCRIPTION,
 		STATES,
 		ROLE,
+		INTERFACES,
 		ATTRIBUTES,
 		ALL,
 		DEFAULT,
@@ -518,7 +520,9 @@ namespace Atspi {
 		RELEASE,
 		PRESSRELEASE,
 		SYM,
-		STRING
+		STRING,
+		LOCKMODIFIERS,
+		UNLOCKMODIFIERS
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_LOCALE_TYPE_", type_id = "atspi_locale_type_get_type ()")]
 	public enum LocaleType {

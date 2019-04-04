@@ -102,6 +102,16 @@ public class Vala.CastExpression : Expression {
 		}
 	}
 
+	public override string to_string () {
+		if (is_non_null_cast) {
+			return "(!) %s".printf (inner.to_string ());
+		} else if (is_silent_cast) {
+			return "%s as %s".printf (inner.to_string (), type_reference.to_string ());
+		} else {
+			return "(%s) %s".printf (type_reference.to_string (), inner.to_string ());
+		}
+	}
+
 	public override void replace_expression (Expression old_node, Expression new_node) {
 		if (inner == old_node) {
 			inner = new_node;
@@ -120,6 +130,10 @@ public class Vala.CastExpression : Expression {
 		if (type_reference == old_type) {
 			type_reference = new_type;
 		}
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		inner.get_error_types (collection, source_reference);
 	}
 
 	public override bool check (CodeContext context) {
@@ -166,9 +180,13 @@ public class Vala.CastExpression : Expression {
 			value_type.nullable = true;
 		}
 
-		if (is_gvariant (context, inner.value_type) && !is_gvariant (context, value_type)) {
+		if (context.profile == Profile.GOBJECT
+		    && is_gvariant (context, inner.value_type) && !is_gvariant (context, value_type)) {
 			// GVariant unboxing returns owned value
 			value_type.value_owned = true;
+			if (value_type.get_type_signature () == null) {
+				Report.error (source_reference, "Casting of `GLib.Variant' to `%s' is not supported".printf (value_type.to_qualified_string ()));
+			}
 		}
 
 		inner.target_type = inner.value_type.copy ();

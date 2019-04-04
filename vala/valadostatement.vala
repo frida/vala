@@ -86,7 +86,19 @@ public class Vala.DoStatement : CodeNode, Statement {
 		return (literal != null && literal.value);
 	}
 
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		if (condition == old_node) {
+			condition = new_node;
+		}
+	}
+
 	public override bool check (CodeContext context) {
+		if (checked) {
+			return !error;
+		}
+
+		checked = true;
+
 		// convert to simple loop
 
 		// do not generate variable and if block if condition is always true
@@ -96,7 +108,11 @@ public class Vala.DoStatement : CodeNode, Statement {
 			var parent_block = (Block) parent_node;
 			parent_block.replace_statement (this, loop);
 
-			return loop.check (context);
+			if (!loop.check (context)) {
+				error = true;
+			}
+
+			return !error;
 		}
 
 		var block = new Block (source_reference);
@@ -121,6 +137,10 @@ public class Vala.DoStatement : CodeNode, Statement {
 		var parent_block = (Block) parent_node;
 		parent_block.replace_statement (this, block);
 
-		return block.check (context);
+		if (!block.check (context)) {
+			error = true;
+		}
+
+		return !error;
 	}
 }

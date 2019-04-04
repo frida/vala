@@ -83,6 +83,8 @@ namespace Gdk {
 		public unowned uint8[] get_pixels_with_length ();
 		public int get_rowstride ();
 		public int get_width ();
+		[Version (since = "2.40")]
+		public static bool init_modules (string path) throws GLib.Error;
 		[Version (since = "2.32")]
 		public GLib.Bytes read_pixel_bytes ();
 		[Version (since = "2.32")]
@@ -311,8 +313,9 @@ namespace Gdk {
 	}
 	[CCode (cheader_filename = "gdk-pixbuf/gdk-pixbuf.h", instance_pos = 1.9)]
 	public delegate void PixbufDestroyNotify ([CCode (array_length = false)] uint8[] pixels);
-	[CCode (cheader_filename = "gdk-pixbuf/gdk-pixdata.h", instance_pos = -0.9)]
-	public delegate bool PixbufSaveFunc ([CCode (array_length_type = "gsize")] uint8[] buf) throws GLib.Error;
+	[CCode (cheader_filename = "gdk-pixbuf/gdk-pixbuf.h", error_pos = 1.8, instance_pos = 1.9)]
+	[Version (since = "2.4")]
+	public delegate bool PixbufSaveFunc ([CCode (array_length_cname = "count", array_length_pos = 1.1, array_length_type = "gsize")] uint8[] buf) throws GLib.Error;
 	[CCode (cheader_filename = "gdk-pixbuf/gdk-pixbuf.h", cname = "GDK_PIXBUF_FEATURES_H")]
 	public const int PIXBUF_FEATURES_H;
 	[CCode (cheader_filename = "gdk-pixbuf/gdk-pixbuf.h", cname = "GDK_PIXBUF_MAGIC_NUMBER")]

@@ -153,6 +153,8 @@ namespace Gst {
 			public size_t get_in_frames (size_t out_frames);
 			public size_t get_max_latency ();
 			public size_t get_out_frames (size_t in_frames);
+			[Version (since = "1.16")]
+			public bool is_passthrough ();
 			public void reset ();
 			public bool samples (Gst.Audio.ConverterFlags flags, void* @in, size_t in_frames, void* @out, size_t out_frames);
 			public bool supports_inplace ();
@@ -174,6 +176,8 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool decide_allocation (Gst.Query query);
 			public Gst.FlowReturn finish_frame (Gst.Buffer buf, int frames);
+			[Version (since = "1.16")]
+			public Gst.FlowReturn finish_subframe (Gst.Buffer buf);
 			[NoWrapper]
 			public virtual void flush (bool hard);
 			public void get_allocator (out Gst.Allocator allocator, out Gst.AllocationParams @params);
@@ -215,6 +219,8 @@ namespace Gst {
 			public void set_max_errors (int num);
 			public void set_min_latency (Gst.ClockTime num);
 			public void set_needs_format (bool enabled);
+			[Version (since = "1.16")]
+			public bool set_output_caps (Gst.Caps caps);
 			public bool set_output_format (Gst.Audio.Info info);
 			public void set_plc (bool enabled);
 			public void set_plc_aware (bool plc);
@@ -972,6 +978,9 @@ namespace Gst {
 		public static unowned Gst.Audio.ClippingMeta? buffer_add_audio_clipping_meta (Gst.Buffer buffer, Gst.Format format, uint64 start, uint64 end);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_buffer_add_audio_downmix_meta")]
 		public static unowned Gst.Audio.DownmixMeta? buffer_add_audio_downmix_meta (Gst.Buffer buffer, [CCode (array_length_cname = "from_channels", array_length_pos = 2.5)] Gst.Audio.ChannelPosition[] from_position, [CCode (array_length_cname = "to_channels", array_length_pos = 3.5)] Gst.Audio.ChannelPosition[] to_position, float matrix);
+		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_buffer_add_audio_meta")]
+		[Version (since = "1.16")]
+		public static unowned Gst.Audio.Meta? buffer_add_audio_meta (Gst.Buffer buffer, Gst.Audio.Info info, size_t samples, size_t? offsets);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_buffer_get_audio_downmix_meta_for_channels")]
 		public static unowned Gst.Audio.DownmixMeta? buffer_get_audio_downmix_meta_for_channels (Gst.Buffer buffer, [CCode (array_length_cname = "to_channels", array_length_pos = 2.1)] Gst.Audio.ChannelPosition[] to_position);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_stream_volume_convert_volume")]

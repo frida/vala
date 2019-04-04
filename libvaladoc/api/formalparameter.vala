@@ -56,10 +56,10 @@ public class Valadoc.Api.FormalParameter : Symbol {
 		set;
 	}
 
-	private FormalParameterType type;
+	private Vala.ParameterDirection type;
 
-	public FormalParameter (Node parent, SourceFile file, string? name, SymbolAccessibility accessibility, FormalParameterType type, bool ellipsis, Vala.Parameter data) {
-		base (parent, file, name, accessibility, data);
+	public FormalParameter (Node parent, SourceFile file, string? name, Vala.SymbolAccessibility accessibility, Vala.ParameterDirection type, bool ellipsis, Vala.Parameter data) {
+		base (parent, file, name, accessibility, null, data);
 		assert ((name == null && ellipsis) || (name != null && !ellipsis));
 
 		this.ellipsis = ellipsis;
@@ -71,7 +71,7 @@ public class Valadoc.Api.FormalParameter : Symbol {
 	 */
 	public bool is_out {
 		get {
-			return type == FormalParameterType.OUT;
+			return type == Vala.ParameterDirection.OUT;
 		}
 	}
 
@@ -80,7 +80,7 @@ public class Valadoc.Api.FormalParameter : Symbol {
 	 */
 	public bool is_ref {
 		get {
-			return type == FormalParameterType.REF;
+			return type == Vala.ParameterDirection.REF;
 		}
 	}
 

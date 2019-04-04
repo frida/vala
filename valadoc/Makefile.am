@@ -9,7 +9,7 @@ SUBDIRS = \
 	$(NULL)
 
 AM_CFLAGS = \
-	-DPACKAGE_DATADIR=\"$(libdir)/valadoc\" \
+	-DPACKAGE_VALADOC_LIBDIR=\"$(libdir)/valadoc\" \
 	-DPACKAGE_VERSION=\"$(VERSION)\" \
 	-I$(top_srcdir)/libvaladoc/ \
 	-I$(top_srcdir)/gee \
@@ -27,7 +27,6 @@ BUILT_SOURCES = valadoc.vala.stamp
 bin_PROGRAMS = valadoc
 
 valadoc_VALASOURCES = \
-	driver.vala \
 	girwriter.vala \
 	initializerbuilder.vala \
 	symbolresolver.vala \

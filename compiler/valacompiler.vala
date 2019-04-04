@@ -65,7 +65,6 @@ class Vala.Compiler {
 	static bool compile_only;
 	static string output;
 	static bool debug;
-	static bool thread;
 	static bool mem_profiler;
 	static bool disable_assert;
 	static bool enable_checking;
@@ -129,7 +128,7 @@ class Vala.Compiler {
 		{ "compile", 'c', 0, OptionArg.NONE, ref compile_only, "Compile but do not link", null },
 		{ "output", 'o', 0, OptionArg.FILENAME, ref output, "Place output in file FILE", "FILE" },
 		{ "debug", 'g', 0, OptionArg.NONE, ref debug, "Produce debug information", null },
-		{ "thread", 0, 0, OptionArg.NONE, ref thread, "Enable multithreading support (DEPRECATED AND IGNORED)", null },
+		{ "thread", 0, OptionFlags.OPTIONAL_ARG, OptionArg.CALLBACK, (void*) option_deprecated, "Enable multithreading support (DEPRECATED AND IGNORED)", null },
 		{ "enable-mem-profiler", 0, 0, OptionArg.NONE, ref mem_profiler, "Enable GLib memory profiler", null },
 		{ "define", 'D', 0, OptionArg.STRING_ARRAY, ref defines, "Define SYMBOL", "SYMBOL..." },
 		{ "main", 0, 0, OptionArg.STRING, ref entry_point, "Use SYMBOL as entry point", "SYMBOL..." },
@@ -154,7 +153,7 @@ class Vala.Compiler {
 		{ "verbose", 'v', 0, OptionArg.NONE, ref verbose_mode, "Print additional messages to the console", null },
 		{ "no-color", 0, 0, OptionArg.NONE, ref disable_colored_output, "Disable colored output, alias for --color=never", null },
 		{ "color", 0, OptionFlags.OPTIONAL_ARG, OptionArg.CALLBACK, (void*) option_parse_color, "Enable color output, options are 'always', 'never', or 'auto'", "WHEN" },
-		{ "target-glib", 0, 0, OptionArg.STRING, ref target_glib, "Target version of glib for code generation", "MAJOR.MINOR" },
+		{ "target-glib", 0, 0, OptionArg.STRING, ref target_glib, "Target version of glib for code generation", "'MAJOR.MINOR', or 'auto'" },
 		{ "gresources", 0, 0, OptionArg.FILENAME_ARRAY, ref gresources, "XML of gresources", "FILE..." },
 		{ "gresourcesdir", 0, 0, OptionArg.FILENAME_ARRAY, ref gresources_directories, "Look for resources in DIRECTORY", "DIRECTORY..." },
 		{ "enable-version-header", 0, 0, OptionArg.NONE, ref enable_version_header, "Write vala build version in generated files", null },
@@ -173,6 +172,11 @@ class Vala.Compiler {
 			case "always": colored_output = Report.Colored.ALWAYS; break;
 			default: throw new OptionError.FAILED ("Invalid --color argument '%s'", val);
 		}
+		return true;
+	}
+
+	static bool option_deprecated (string option_name, string? val, void* data) throws OptionError {
+		stdout.printf ("Command-line option `%s` is deprecated and will be ignored\n", option_name);
 		return true;
 	}
 
@@ -300,30 +304,14 @@ class Vala.Compiler {
 			}
 		}
 
-		for (int i = 2; i <= 42; i += 2) {
-			context.add_define ("VALA_0_%d".printf (i));
-		}
-
 		if (context.profile == Profile.POSIX) {
 			if (!nostdpkg) {
 				/* default package */
 				context.add_external_package ("posix");
 			}
 		} else if (context.profile == Profile.GOBJECT) {
-			int glib_major = 2;
-			int glib_minor = 40;
-			if (target_glib != null && target_glib.scanf ("%d.%d", out glib_major, out glib_minor) != 2) {
-				Report.error (null, "Invalid format for --target-glib");
-			}
-
-			context.target_glib_major = glib_major;
-			context.target_glib_minor = glib_minor;
-			if (context.target_glib_major != 2) {
-				Report.error (null, "This version of valac only supports GLib 2");
-			}
-
-			for (int i = 16; i <= glib_minor; i += 2) {
-				context.add_define ("GLIB_2_%d".printf (i));
+			if (target_glib != null) {
+				context.set_target_glib_version (target_glib);
 			}
 
 			if (!nostdpkg) {

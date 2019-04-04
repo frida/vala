@@ -197,7 +197,7 @@ public abstract class Vala.Symbol : CodeNode {
 	private weak Scope _owner;
 	private Scope _scope;
 
-	public Symbol (string? name, SourceReference? source_reference, Comment? comment = null) {
+	protected Symbol (string? name, SourceReference? source_reference, Comment? comment = null) {
 		this.name = name;
 		this.source_reference = source_reference;
 		this.comment = comment;
@@ -472,13 +472,27 @@ public abstract class Vala.Symbol : CodeNode {
 	public virtual void add_destructor (Destructor d) {
 		Report.error (d.source_reference, "unexpected declaration");
 	}
+
+	public override string to_string () {
+		return get_full_name ();
+	}
 }
 
 public enum Vala.SymbolAccessibility {
 	PRIVATE,
 	INTERNAL,
 	PROTECTED,
-	PUBLIC
+	PUBLIC;
+
+	public unowned string to_string () {
+		switch (this) {
+		case PROTECTED: return "protected";
+		case INTERNAL: return "internal";
+		case PRIVATE: return "private";
+		case PUBLIC: return "public";
+		default: assert_not_reached ();
+		}
+	}
 }
 
 public enum Vala.MemberBinding {

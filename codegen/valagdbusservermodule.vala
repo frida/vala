@@ -150,13 +150,14 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 				var array_type = param.variable_type as ArrayType;
 				if (array_type != null) {
+					var length_ctype = get_ccode_array_length_type (array_type);
 					for (int dim = 1; dim <= array_type.rank; dim++) {
-						string length_cname = get_parameter_array_length_cname (param, dim);
+						string length_cname = get_variable_array_length_cname (param, dim);
 
 						if (ready_data_struct != null) {
-							ready_data_struct.add_field ("int", length_cname);
+							ready_data_struct.add_field (length_ctype, length_cname);
 						} else {
-							ccode.add_declaration ("int", new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
+							ccode.add_declaration (length_ctype, new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
 						}
 					}
 				}
@@ -233,7 +234,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 			var array_type = param.variable_type as ArrayType;
 			if (array_type != null) {
 				for (int dim = 1; dim <= array_type.rank; dim++) {
-					string length_cname = get_parameter_array_length_cname (param, dim);
+					string length_cname = get_variable_array_length_cname (param, dim);
 
 					CCodeExpression length_expr;
 					if (ready_data_expr != null && param.direction == ParameterDirection.IN)
@@ -273,7 +274,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 		}
 
 		if (!m.coroutine || ready) {
-			if (m.get_error_types ().size > 0) {
+			if (m.tree_can_fail) {
 				ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("error")));
 			}
 		}
@@ -285,7 +286,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 				ccode.add_assignment (new CCodeIdentifier ("result"), ccall);
 			}
 
-			if (m.get_error_types ().size > 0) {
+			if (m.tree_can_fail) {
 				ccode.open_if (new CCodeIdentifier ("error"));
 
 				var return_error = new CCodeFunctionCall (new CCodeIdentifier ("g_dbus_method_invocation_return_gerror"));
@@ -340,10 +341,11 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 				var array_type = param.variable_type as ArrayType;
 				if (array_type != null) {
+					var length_ctype = get_ccode_array_length_type (array_type);
 					for (int dim = 1; dim <= array_type.rank; dim++) {
-						string length_cname = get_parameter_array_length_cname (param, dim);
+						string length_cname = get_variable_array_length_cname (param, dim);
 
-						ccode.add_declaration ("int", new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
+						ccode.add_declaration (length_ctype, new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
 					}
 				}
 
@@ -366,10 +368,11 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 					var array_type = m.return_type as ArrayType;
 					if (array_type != null) {
+						var length_ctype = get_ccode_array_length_type (array_type);
 						for (int dim = 1; dim <= array_type.rank; dim++) {
 							string length_cname = get_array_length_cname ("result", dim);
 
-							ccode.add_declaration ("int", new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
+							ccode.add_declaration (length_ctype, new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
 						}
 					}
 
@@ -451,7 +454,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 						var array_type = owned_type as ArrayType;
 						if (array_type != null) {
 							for (int dim = 1; dim <= array_type.rank; dim++) {
-								string length_cname = get_parameter_array_length_cname (param, dim);
+								string length_cname = get_variable_array_length_cname (param, dim);
 
 								target.append_array_length_cvalue (new CCodeMemberAccess.pointer (ready_data_expr, length_cname));
 							}
@@ -504,8 +507,9 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 			function.add_parameter (cparam);
 			if (param.variable_type is ArrayType) {
 				var array_type = (ArrayType) param.variable_type;
+				var length_ctype = get_ccode_array_length_type (array_type);
 				for (int dim = 1; dim <= array_type.rank; dim++) {
-					function.add_parameter (new CCodeParameter (get_parameter_array_length_cname (param, dim), "int"));
+					function.add_parameter (new CCodeParameter (get_variable_array_length_cname (param, dim), length_ctype));
 				}
 			}
 		}
@@ -578,10 +582,11 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 			var array_type = prop.get_accessor.value_type as ArrayType;
 			if (array_type != null) {
+				var length_ctype = get_ccode_array_length_type (array_type);
 				for (int dim = 1; dim <= array_type.rank; dim++) {
 					string length_cname = get_array_length_cname ("result", dim);
 
-					ccode.add_declaration ("int", new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
+					ccode.add_declaration (length_ctype, new CCodeVariableDeclarator.zero (length_cname, new CCodeConstant ("0")));
 					ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (length_cname)));
 				}
 			}
@@ -640,8 +645,9 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 			var array_type = prop.property_type as ArrayType;
 			if (array_type != null) {
+				var length_ctype = get_ccode_array_length_type (array_type);
 				for (int dim = 1; dim <= array_type.rank; dim++) {
-					ccode.add_declaration ("int", new CCodeVariableDeclarator (get_array_length_cname ("value", dim)));
+					ccode.add_declaration (length_ctype, new CCodeVariableDeclarator (get_array_length_cname ("value", dim)));
 					ccall.add_argument (new CCodeIdentifier (get_array_length_cname ("value", dim)));
 				}
 			}
@@ -1016,7 +1022,7 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 		cregister.add_argument (get_cvalue (obj_arg));
 		cregister.add_argument (get_cvalue (ma.inner));
 		cregister.add_argument (get_cvalue (path_arg));
-		cregister.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_variable_cexpression ("_inner_error_")));
+		cregister.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_inner_error_cexpression ()));
 
 		if (expr.parent_node is ExpressionStatement) {
 			ccode.add_expression (cregister);

@@ -27,18 +27,25 @@ using Valadoc.Content;
  * Represents a get or set accessor of a property.
  */
 public class Valadoc.Api.PropertyAccessor : Symbol {
-	private PropertyAccessorType type;
 	private Ownership ownership;
 	private string? cname;
 
-	public PropertyAccessor (Property parent, SourceFile file, string name, SymbolAccessibility accessibility,
-							 string? cname, PropertyAccessorType type, Ownership ownership, Vala.PropertyAccessor data)
+	public PropertyAccessor (Property parent, SourceFile file, string name, Vala.SymbolAccessibility accessibility,
+							 Vala.PropertyAccessor data)
 	{
-		base (parent, file, name, accessibility, data);
+		base (parent, file, name, accessibility, null, data);
 
-		this.ownership = ownership;
-		this.cname = cname;
-		this.type = type;
+		this.ownership = get_property_ownership (data);
+		this.cname = Vala.get_ccode_name (data);
+	}
+
+	Ownership get_property_ownership (Vala.PropertyAccessor element) {
+		if (element.value_type.value_owned) {
+			return Ownership.OWNED;
+		}
+
+		// the exact type (weak, unowned) does not matter
+		return Ownership.UNOWNED;
 	}
 
 	/**
@@ -66,7 +73,7 @@ public class Valadoc.Api.PropertyAccessor : Symbol {
 	 */
 	public bool is_construct {
 		get {
-			return (type & PropertyAccessorType.CONSTRUCT) != 0;
+			return ((Vala.PropertyAccessor) data).construction;
 		}
 	}
 
@@ -75,7 +82,7 @@ public class Valadoc.Api.PropertyAccessor : Symbol {
 	 */
 	public bool is_set {
 		get {
-			return (type & PropertyAccessorType.SET) != 0;
+			return ((Vala.PropertyAccessor) data).writable;
 		}
 	}
 
@@ -84,7 +91,7 @@ public class Valadoc.Api.PropertyAccessor : Symbol {
 	 */
 	public bool is_get {
 		get {
-			return (type & PropertyAccessorType.GET) != 0;
+			return ((Vala.PropertyAccessor) data).readable;
 		}
 	}
 
@@ -113,11 +120,14 @@ public class Valadoc.Api.PropertyAccessor : Symbol {
 		}
 
 		if (is_set || is_construct) {
-			if (is_construct) {
-				signature.append_keyword ("construct");
+			if (is_owned) {
+				signature.append_keyword ("owned");
 			}
 			if (is_set) {
 				signature.append_keyword ("set");
+			}
+			if (is_construct) {
+				signature.append_keyword ("construct");
 			}
 		} else if (is_get) {
 			if (is_owned) {

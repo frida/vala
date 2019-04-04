@@ -36,12 +36,29 @@ public class Vala.LockStatement : CodeNode, Statement {
 	/**
 	 * Expression representing the resource to be locked.
 	 */
-	public Expression resource { get; set; }
+	public Expression resource {
+		get { return _resource; }
+		set {
+			_resource = value;
+			_resource.parent_node = this;
+		}
+	}
 
 	/**
 	 * The statement during its execution the resource is locked.
 	 */
-	public Block? body { get; set; }
+	public Block? body {
+		get { return _body; }
+		set {
+			_body = value;
+			if (_body != null) {
+				_body.parent_node = this;
+			}
+		}
+	}
+
+	private Expression _resource;
+	private Block _body;
 
 	public LockStatement (Expression resource, Block? body, SourceReference? source_reference = null) {
 		this.body = body;
@@ -55,6 +72,12 @@ public class Vala.LockStatement : CodeNode, Statement {
 			body.accept (visitor);
 		}
 		visitor.visit_lock_statement (this);
+	}
+
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		if (resource == old_node) {
+			resource = new_node;
+		}
 	}
 
 	public override bool check (CodeContext context) {
@@ -95,6 +118,15 @@ public class Vala.LockStatement : CodeNode, Statement {
 			error = true;
 			resource.error = true;
 			Report.error (resource.source_reference, "Only members of the current class are lockable");
+			return false;
+		}
+
+		/* parent class must not be compact */
+		if (context.analyzer.current_class.is_compact) {
+			error = true;
+			resource.error = true;
+			Report.error (resource.source_reference, "Only members of the non-compact classes are lockable");
+			return false;
 		}
 
 		((Lockable) resource.symbol_reference).lock_used = true;

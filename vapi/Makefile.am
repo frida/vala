@@ -43,6 +43,7 @@ dist_vapi_DATA = \
 	geocode-glib-1.0.deps \
 	geocode-glib-1.0.vapi \
 	glib-2.0.vapi \
+	gdesktopenums-3.0.vapi \
 	gdk-2.0.deps \
 	gdk-2.0.vapi \
 	gdk-3.0.deps \
@@ -69,14 +70,18 @@ dist_vapi_DATA = \
 	gnet-2.0.vapi \
 	gnome-desktop-2.0.deps \
 	gnome-desktop-2.0.vapi \
+	gnome-desktop-3.0.deps \
+	gnome-desktop-3.0.vapi \
 	gnome-vfs-2.0.vapi \
 	gnutls.vapi \
 	gobject-2.0.vapi \
 	gobject-introspection-1.0.vapi \
 	goocanvas.deps \
 	goocanvas.vapi \
-	graphene-1.0.deps \
-	graphene-1.0.vapi \
+	goocanvas-2.0.deps \
+	goocanvas-2.0.vapi \
+	graphene-gobject-1.0.deps \
+	graphene-gobject-1.0.vapi \
 	gsl.vapi \
 	gstreamer-1.0.vapi \
 	gstreamer-allocators-1.0.vapi \
@@ -123,14 +128,14 @@ dist_vapi_DATA = \
 	gtk+-2.0.vapi \
 	gtk+-3.0.deps \
 	gtk+-3.0.vapi \
-	gtk+-4.0.deps \
-	gtk+-4.0.vapi \
 	gtk+-unix-print-2.0.deps \
 	gtk+-unix-print-2.0.vapi \
 	gtk+-unix-print-3.0.deps \
 	gtk+-unix-print-3.0.vapi \
-	gtk+-unix-print-4.0.deps \
-	gtk+-unix-print-4.0.vapi \
+	gtk4.deps \
+	gtk4.vapi \
+	gtk4-unix-print.deps \
+	gtk4-unix-print.vapi \
 	gtkmozembed.deps \
 	gtkmozembed.vapi \
 	gtksourceview-2.0.deps \
@@ -154,10 +159,6 @@ dist_vapi_DATA = \
 	libesmtp.vapi \
 	libftdi.deps \
 	libftdi.vapi \
-	libgda-report-4.0.deps \
-	libgda-report-4.0.vapi \
-	libgda-4.0.deps \
-	libgda-4.0.vapi \
 	libgeoclue-2.0.vapi \
 	libgeoclue-2.0.deps \
 	libglade-2.0.deps \
@@ -252,10 +253,6 @@ dist_vapi_DATA = \
 	unique-1.0.deps \
 	unique-1.0.vapi \
 	v4l2.vapi \
-	vte.deps \
-	vte.vapi \
-	vte-2.90.deps \
-	vte-2.90.vapi \
 	webkit-1.0.deps \
 	webkit-1.0.vapi \
 	webkit2gtk-4.0.vapi \
@@ -265,6 +262,7 @@ dist_vapi_DATA = \
 	x11.vapi \
 	xcb.vapi \
 	xcb-icccm.vapi \
+	xcb-icccm.deps \
 	xtst.vapi \
 	xtst.deps \
 	zlib.vapi \
@@ -280,7 +278,6 @@ GIDL_BINDINGS = \
 	gconf-2.0 \
 	gdk-2.0 \
 	gdk-x11-2.0 \
-	gdk-x11-3.0 \
 	gdl-1.0 \
 	gio-unix-2.0 \
 	gnome-desktop-2.0 \
@@ -289,13 +286,11 @@ GIDL_BINDINGS = \
 	gtk+-2.0 \
 	gtk+-unix-print-2.0 \
 	gtk+-unix-print-3.0 \
-	gtk+-unix-print-4.0 \
+	gtk4-unix-print \
 	gtksourceview-2.0 \
 	hildon-1 \
 	hildon-fm-2 \
 	libepc-1.0 \
-	libgda-4.0 \
-	libgda-report-4.0 \
 	libglade-2.0 \
 	libgnome-2.0 \
 	libgnome-menu \
@@ -306,7 +301,6 @@ GIDL_BINDINGS = \
 	loudmouth-1.0 \
 	purple \
 	unique-1.0 \
-	vte \
 	webkit-1.0 \
 	$(NULL)
 
@@ -344,16 +338,19 @@ GIR_BINDINGS = \
 	clutter-gst-3.0 \
 	clutter-x11-1.0 \
 	cogl-pango-1.0 \
+	gdesktopenums-3.0 \
 	gdk-3.0 \
 	gdk-x11-3.0 \
 	gdk-pixbuf-2.0 \
 	gdl-3.0 \
 	geocode-glib-1.0 \
 	gio-2.0 \
+	gnome-desktop-3.0 \
 	gobject-introspection-1.0 \
-	graphene-1.0 \
+	goocanvas-2.0 \
+	graphene-gobject-1.0 \
 	gtk+-3.0 \
-	gtk+-4.0 \
+	gtk4 \
 	gudev-1.0 \
 	javascriptcoregtk-4.0 \
 	json-glib-1.0 \
@@ -375,7 +372,6 @@ GIR_BINDINGS = \
 	rest-0.7 \
 	rest-extras-0.7 \
 	udisks2 \
-	vte-2.90 \
 	webkit2gtk-4.0 \
 	webkit2gtk-web-extension-4.0 \
 	$(GSTREAMER_1_0_BINDINGS) \
@@ -404,7 +400,7 @@ atk:
 	$(GENVAPI) --library $(srcdir)/atk --metadatadir $(METADATADIR) $(METADATADIR)/Atk-1.0-custom.vala $(GIRDIR)/Atk-1.0.gir
 
 atspi-2:
-	$(GENVAPI) --library $(srcdir)/atspi-2 --metadatadir $(METADATADIR) $(METADATADIR)/Atspi-2.0-custom.vala $(GIRDIR)/Atspi-2.0.gir
+	$(GENVAPI) --library $(srcdir)/atspi-2 --metadatadir $(METADATADIR) $(GIRDIR)/Atspi-2.0.gir
 
 clutter-1.0:
 	$(GENVAPI) --library $(srcdir)/clutter-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/Clutter-1.0-custom.vala --pkg atk --pkg cairo --pkg pango --pkg cogl-1.0 --pkg cogl-pango-1.0 --pkg json-glib-1.0 $(GIRDIR)/Clutter-1.0.gir
@@ -439,6 +435,9 @@ gconf-2.0:
 geocode-glib-1.0:
 	$(GENVAPI) --library $(srcdir)/geocode-glib-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GeocodeGlib-1.0.gir
 
+gdesktopenums-3.0:
+	$(GENVAPI) --library $(srcdir)/gdesktopenums-3.0 --metadatadir $(METADATADIR) $(GIRDIR)/GDesktopEnums-3.0.gir
+
 gdk-2.0:
 	$(GENVAPI) --library $(srcdir)/gdk-2.0 $(PACKAGESDIR)/gdk-2.0/gdk-2.0-custom.vala $(PACKAGESDIR)/gdk-2.0/gdk-2.0.gi
 
@@ -472,6 +471,9 @@ gio-unix-2.0:
 gnome-desktop-2.0:
 	$(GENVAPI) --library $(srcdir)/gnome-desktop-2.0 $(PACKAGESDIR)/gnome-desktop-2.0/gnome-desktop-2.0.gi
 
+gnome-desktop-3.0:
+	$(GENVAPI) --library $(srcdir)/gnome-desktop-3.0 --pkg gtk+-3.0 --metadatadir $(METADATADIR) $(METADATADIR)/GnomeDesktop-3.0-custom.vala $(GIRDIR)/GnomeDesktop-3.0.gir
+
 gnome-vfs-2.0:
 	$(GENVAPI) --library $(srcdir)/gnome-vfs-2.0 $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0-custom.vala $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0.gi
 
@@ -481,8 +483,11 @@ gobject-introspection-1.0:
 goocanvas:
 	$(GENVAPI) --library $(srcdir)/goocanvas $(PACKAGESDIR)/goocanvas/goocanvas-custom.vala $(PACKAGESDIR)/goocanvas/goocanvas.gi
 
-graphene-1.0:
-	$(GENVAPI) --library $(srcdir)/graphene-1.0 --pkg gobject-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Graphene-1.0.gir
+goocanvas-2.0:
+	$(GENVAPI) --library $(srcdir)/goocanvas-2.0 --pkg cairo --pkg gtk+-3.0 --metadatadir $(METADATADIR) $(GIRDIR)/GooCanvas-2.0.gir
+
+graphene-gobject-1.0:
+	$(GENVAPI) --library $(srcdir)/graphene-gobject-1.0 --pkg gobject-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Graphene-1.0.gir
 
 gstreamer-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/Gst-1.0-custom.vala $(GIRDIR)/Gst-1.0.gir
@@ -553,8 +558,8 @@ gtk+-2.0:
 gtk+-3.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-3.0 --pkg atk --pkg gdk-3.0 --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg pango --pkg cairo --metadatadir $(METADATADIR) $(METADATADIR)/Gtk-3.0-custom.vala $(GIRDIR)/Gtk-3.0.gir
 
-gtk+-4.0:
-	$(GENVAPI) --library $(srcdir)/gtk+-4.0 --pkg atk --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-1.0 --pkg pango --pkg x11 \
+gtk4:
+	$(GENVAPI) --library $(srcdir)/gtk4 --pkg atk --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg x11 \
 		--metadatadir $(METADATADIR) \
 		$(METADATADIR)/GdkX11-4.0-custom.vala $(GIRDIR)/GdkX11-4.0.gir \
 		$(METADATADIR)/Gdk-4.0-custom.vala $(GIRDIR)/Gdk-4.0.gir \
@@ -567,8 +572,8 @@ gtk+-unix-print-2.0:
 gtk+-unix-print-3.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-unix-print-3.0 $(PACKAGESDIR)/gtk+-unix-print-3.0/gtk+-unix-print-3.0-custom.vala $(PACKAGESDIR)/gtk+-unix-print-3.0/gtk+-unix-print-3.0.gi
 
-gtk+-unix-print-4.0:
-	$(GENVAPI) --library $(srcdir)/gtk+-unix-print-4.0 $(PACKAGESDIR)/gtk+-unix-print-4.0/gtk+-unix-print-4.0-custom.vala $(PACKAGESDIR)/gtk+-unix-print-4.0/gtk+-unix-print-4.0.gi
+gtk4-unix-print:
+	$(GENVAPI) --library $(srcdir)/gtk4-unix-print $(PACKAGESDIR)/gtk4-unix-print/gtk4-unix-print-custom.vala $(PACKAGESDIR)/gtk4-unix-print/gtk4-unix-print.gi
 
 gtksourceview-2.0:
 	$(GENVAPI) --library $(srcdir)/gtksourceview-2.0 $(PACKAGESDIR)/gtksourceview-2.0/gtksourceview-2.0.gi
@@ -590,12 +595,6 @@ json-glib-1.0:
 
 libepc-1.0:
 	$(GENVAPI) --library $(srcdir)/libepc-1.0 $(PACKAGESDIR)/libepc-1.0/libepc-1.0.gi
-
-libgda-4.0:
-	$(GENVAPI) --library $(srcdir)/libgda-4.0 $(PACKAGESDIR)/libgda-4.0/libgda-4.0-custom.vala $(PACKAGESDIR)/libgda-4.0/libgda-4.0.gi
-
-libgda-report-4.0:
-	$(GENVAPI) --library $(srcdir)/libgda-report-4.0 $(PACKAGESDIR)/libgda-report-4.0/libgda-report-4.0.gi
 
 libgeoclue-2.0:
 	$(GENVAPI) --library $(srcdir)/libgeoclue-2.0 --pkg gio-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/Geoclue-2.0.gir
@@ -680,12 +679,6 @@ udisks2:
 
 unique-1.0:
 	$(GENVAPI) --library $(srcdir)/unique-1.0 $(PACKAGESDIR)/unique-1.0/unique-1.0.gi
-
-vte:
-	$(GENVAPI) --library $(srcdir)/vte $(PACKAGESDIR)/vte/vte.gi
-
-vte-2.90:
-	$(GENVAPI) --library $(srcdir)/vte-2.90 --metadatadir $(METADATADIR) --pkg atk --pkg gdk-3.0 --pkg gtk+-3.0 --pkg gio-2.0 --pkg pango $(GIRDIR)/Vte-2.90.gir $(METADATADIR)/Vte-2.90-custom.vala
 
 webkit-1.0:
 	$(GENVAPI) --library $(srcdir)/webkit-1.0 $(PACKAGESDIR)/webkit-1.0/webkit-1.0.gi

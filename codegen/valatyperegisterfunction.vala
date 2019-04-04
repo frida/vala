@@ -66,7 +66,7 @@ public abstract class Vala.TypeRegisterFunction {
 
 		CCodeFunction fun;
 		if (!plugin) {
-			fun = new CCodeFunction ("%s_get_type".printf (get_ccode_lower_case_name (type_symbol)), "GType");
+			fun = new CCodeFunction (get_ccode_type_function (type_symbol), "GType");
 			fun.modifiers = CCodeModifiers.CONST;
 
 			/* Function will not be prototyped anyway */
@@ -85,7 +85,11 @@ public abstract class Vala.TypeRegisterFunction {
 			fun = new CCodeFunction ("%s_register_type".printf (get_ccode_lower_case_name (type_symbol)), "GType");
 			fun.add_parameter (new CCodeParameter ("module", "GTypeModule *"));
 
-			var get_fun = new CCodeFunction ("%s_get_type".printf (get_ccode_lower_case_name (type_symbol)), "GType");
+			fun.is_declaration = true;
+			declaration_fragment.append (fun.copy ());
+			fun.is_declaration = false;
+
+			var get_fun = new CCodeFunction (get_ccode_type_function (type_symbol), "GType");
 			get_fun.modifiers = CCodeModifiers.CONST;
 
 			get_fun.is_declaration = true;
@@ -217,7 +221,7 @@ public abstract class Vala.TypeRegisterFunction {
 			get_type_interface_init_statements (context, type_init, plugin);
 		}
 
-		if (cl != null && (cl.has_private_fields || cl.get_type_parameters ().size > 0)) {
+		if (cl != null && (cl.has_private_fields || cl.has_type_parameters ())) {
 			if (!plugin) {
 				var ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_type_add_instance_private"));
 				ccall.add_argument (new CCodeIdentifier (type_id_name));

@@ -20,6 +20,7 @@ namespace Goo {
 	}
 	[CCode (cheader_filename = "goocanvas.h")]
 	public class Canvas : Gtk.Container, Atk.Implementor, Gtk.Buildable {
+		public uint before_initial_expose;
 		[CCode (has_construct_function = false)]
 		public Canvas ();
 		public void convert_bounds_to_item_space (Goo.CanvasItem item, ref Goo.CanvasBounds bounds);
@@ -27,10 +28,12 @@ namespace Goo {
 		public void convert_from_pixels (ref double x, ref double y);
 		public void convert_to_item_space (Goo.CanvasItem item, ref double x, ref double y);
 		public void convert_to_pixels (ref double x, ref double y);
+		public void convert_units_from_pixels (ref double x, ref double y);
+		public void convert_units_to_pixels (ref double x, ref double y);
 		public unowned Cairo.Context create_cairo_context ();
 		public virtual unowned Goo.CanvasItem create_item (Goo.CanvasItemModel model);
-		public static void create_path (GLib.Array<Goo.CanvasPathCommand> commands, Cairo.Context cr);
-		public void get_bounds (out unowned double? left, out unowned double? top, out unowned double? right, out unowned double? bottom);
+		public static void create_path (GLib.Array<Goo.CanvasPathCommand?> commands, Cairo.Context cr);
+		public void get_bounds (out double left, out double top, out double right, out double bottom);
 		public double get_default_line_width ();
 		public unowned Goo.CanvasItem? get_item (Goo.CanvasItemModel model);
 		public unowned Goo.CanvasItem? get_item_at (double x, double y, bool is_pointer_event);
@@ -44,7 +47,7 @@ namespace Goo {
 		public void grab_focus (Goo.CanvasItem item);
 		public Gdk.GrabStatus keyboard_grab (Goo.CanvasItem item, bool owner_events, uint32 time);
 		public void keyboard_ungrab (Goo.CanvasItem item, uint32 time);
-		public static GLib.Array<Goo.CanvasPathCommand> parse_path_data (string path_data);
+		public static GLib.Array<Goo.CanvasPathCommand?> parse_path_data (string path_data);
 		public Gdk.GrabStatus pointer_grab (Goo.CanvasItem item, Gdk.EventMask event_mask, Gdk.Cursor? cursor, uint32 time);
 		public void pointer_ungrab (Goo.CanvasItem item, uint32 time);
 		public void register_widget_item (Goo.CanvasWidget witem);
@@ -303,6 +306,8 @@ namespace Goo {
 		[CCode (cname = "goo_canvas_image_new", type = "GooCanvasItem*")]
 		public static unowned Goo.CanvasImage create (Goo.CanvasItem? parent, Gdk.Pixbuf pixbuf, double x, double y, ...);
 		[NoAccessorMethod]
+		public double alpha { get; set; }
+		[NoAccessorMethod]
 		public double height { get; set; }
 		[NoAccessorMethod]
 		public Goo.CairoPattern pattern { owned get; set; }
@@ -323,6 +328,8 @@ namespace Goo {
 		protected CanvasImageModel ();
 		[CCode (cname = "goo_canvas_image_model_new", type = "GooCanvasItemModel*")]
 		public static unowned Goo.CanvasImageModel create (Goo.CanvasItemModel? parent, Gdk.Pixbuf pixbuf, double x, double y, ...);
+		[NoAccessorMethod]
+		public double alpha { get; set; }
 		[NoAccessorMethod]
 		public double height { get; set; }
 		[NoAccessorMethod]
@@ -630,7 +637,7 @@ namespace Goo {
 	[CCode (cheader_filename = "goocanvas.h")]
 	public class CanvasStyle : GLib.Object {
 		public weak Goo.CanvasStyle? parent;
-		public weak GLib.Array<Goo.CanvasStyleProperty> properties;
+		public weak GLib.Array<Goo.CanvasStyleProperty?> properties;
 		[CCode (has_construct_function = false)]
 		public CanvasStyle ();
 		public Goo.CanvasStyle copy ();
@@ -782,6 +789,7 @@ namespace Goo {
 		public abstract int get_n_children ();
 		public abstract unowned Goo.CanvasItem? get_parent ();
 		public abstract bool get_requested_area (Cairo.Context cr, out Goo.CanvasBounds requested_area);
+		public abstract bool get_requested_area_for_width (Cairo.Context cr, double width, out Goo.CanvasBounds requested_area);
 		public abstract double get_requested_height (Cairo.Context cr, double width);
 		public bool get_simple_transform (out double x, out double y, out double scale, out double rotation);
 		public abstract unowned Goo.CanvasStyle get_style ();
@@ -912,7 +920,7 @@ namespace Goo {
 	[CCode (cheader_filename = "goocanvas.h")]
 	public struct CanvasItemSimpleData {
 		public Cairo.Matrix? transform;
-		public weak GLib.Array<Goo.CanvasPathCommand> clip_path_commands;
+		public weak GLib.Array<Goo.CanvasPathCommand?> clip_path_commands;
 		public weak Goo.CanvasStyle style;
 		public weak string tooltip;
 		public double visibility_threshold;

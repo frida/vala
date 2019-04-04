@@ -305,11 +305,9 @@ public abstract class Valadoc.Html.BasicDoclet : Api.Visitor, Doclet {
 	}
 
 	protected void fetch_subnamespace_names (Api.Node node, Vala.ArrayList<Namespace> namespaces) {
-		Vala.ArrayList<Api.Node> sorted_list = new Vala.ArrayList<Api.Node> ();
-		sorted_list.add_all (node.get_children_by_type (Api.NodeType.NAMESPACE));
-		sorted_list.sort ((CompareDataFunc) Api.Node.compare_to);
-
-		foreach (Api.Node child in sorted_list) {
+		var children = node.get_children_by_type (Api.NodeType.NAMESPACE);
+		children.sort ((CompareDataFunc) Api.Node.compare_to);
+		foreach (Api.Node child in children) {
 			namespaces.add ((Namespace) child);
 			this.fetch_subnamespace_names (child, namespaces);
 		}
@@ -475,14 +473,14 @@ public abstract class Valadoc.Html.BasicDoclet : Api.Visitor, Doclet {
 			Symbol symbol = (Symbol) element;
 			Attribute? version;
 			Attribute? deprecated;
-			AttributeArgument? replacement;
-			AttributeArgument? since;
+			string? replacement;
+			string? since;
 			if ((version = symbol.get_attribute ("Version")) != null) {
-				replacement = version.get_argument ("replacement");
-				since = version.get_argument ("deprecated_since");
+				replacement = ((Vala.Attribute) version.data).get_string ("replacement");
+				since = ((Vala.Attribute) version.data).get_string ("deprecated_since");
 			} else if ((deprecated = symbol.get_attribute ("Deprecated")) != null) {
-				replacement = deprecated.get_argument ("replacement");
-				since = deprecated.get_argument ("version");
+				replacement = ((Vala.Attribute) deprecated.data).get_string ("replacement");
+				since = ((Vala.Attribute) deprecated.data).get_string ("version");
 			} else {
 				assert_not_reached ();
 			}
@@ -494,19 +492,18 @@ public abstract class Valadoc.Html.BasicDoclet : Api.Visitor, Doclet {
 			writer.text (" %s is deprecated".printf (element.name));
 
 			if (since != null) {
-				writer.text (" since %s".printf (since.get_value_as_string ()));
+				writer.text (" since %s".printf (since));
 			}
 
 			writer.text (".");
 
-			if (replacement != null) {
-				string replacement_name = replacement.get_value_as_string ();
+			if (replacement != null && replacement.length > 2) {
 				Api.Node? replacement_node = tree.search_symbol_str (pos,
-					replacement_name.substring (1, replacement_name.length - 2));
+					replacement.substring (1, replacement.length - 2));
 
 				writer.text (" Use ");
 				if (replacement_node == null) {
-					writer.text (replacement_name);
+					writer.text (replacement);
 				} else {
 					string? link = get_link (replacement_node, pos);
 					if (link != null) {
@@ -613,7 +610,7 @@ public abstract class Valadoc.Html.BasicDoclet : Api.Visitor, Doclet {
 
 	private uint html_id_counter = 0;
 
-	private inline Vala.Collection<Api.Node> get_accessible_nodes_from_list (Vala.Collection<Api.Node> nodes) {
+	private inline Vala.ArrayList<Api.Node> get_accessible_nodes_from_list (Vala.Collection<Api.Node> nodes) {
 		var list = new Vala.ArrayList<Api.Node> ();
 
 		foreach (var node in nodes) {
@@ -630,6 +627,8 @@ public abstract class Valadoc.Html.BasicDoclet : Api.Visitor, Doclet {
 		if (nodes.size == 0) {
 			return ;
 		}
+
+		nodes.sort ((CompareDataFunc) Api.Node.compare_to);
 
 		// Box:
 		var html_id = "box-content-" + html_id_counter.to_string ();
@@ -984,6 +983,7 @@ public abstract class Valadoc.Html.BasicDoclet : Api.Visitor, Doclet {
 	protected void write_children (Api.Node node, Api.NodeType type, string type_string, Api.Node? container) {
 		var children = node.get_children_by_type (type);
 		if (children.size > 0) {
+			children.sort ((CompareDataFunc) Api.Node.compare_to);
 			writer.start_tag ("h3", {"class", css_title})
 				.text (type_string)
 				.text (":")

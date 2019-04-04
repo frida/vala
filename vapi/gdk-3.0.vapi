@@ -4670,7 +4670,7 @@ namespace Gdk {
 		[Version (deprecated = true, deprecated_since = "3.20.", since = "3.0")]
 		public Gdk.GrabStatus grab (Gdk.Window window, Gdk.GrabOwnership grab_ownership, bool owner_events, Gdk.EventMask event_mask, Gdk.Cursor? cursor, uint32 time_);
 		[Version (since = "3.0")]
-		public GLib.List<weak Gdk.Atom> list_axes ();
+		public GLib.List<Gdk.Atom> list_axes ();
 		public GLib.List<weak Gdk.Device>? list_slave_devices ();
 		public void set_axis_use (uint index_, Gdk.AxisUse use);
 		public void set_key (uint index_, uint keyval, Gdk.ModifierType modifiers);
@@ -5334,7 +5334,7 @@ namespace Gdk {
 		[Version (since = "3.8")]
 		public void end_updating ();
 		[Version (since = "3.8")]
-		public Gdk.FrameTimings? get_current_timings ();
+		public unowned Gdk.FrameTimings? get_current_timings ();
 		[Version (since = "3.8")]
 		public int64 get_frame_counter ();
 		[Version (since = "3.8")]
@@ -5344,7 +5344,7 @@ namespace Gdk {
 		[Version (since = "3.8")]
 		public void get_refresh_info (int64 base_time, out int64 refresh_interval_return, out int64 presentation_time_return);
 		[Version (since = "3.8")]
-		public Gdk.FrameTimings? get_timings (int64 frame_counter);
+		public unowned Gdk.FrameTimings? get_timings (int64 frame_counter);
 		[Version (since = "3.8")]
 		public void request_phase (Gdk.FrameClockPhase phase);
 		public signal void after_paint ();
@@ -6800,7 +6800,7 @@ namespace Gdk {
 	public static unowned Cairo.Surface? offscreen_window_get_surface (Gdk.Window window);
 	[CCode (cheader_filename = "gdk/gdk.h")]
 	[Version (since = "2.18")]
-	public static void offscreen_window_set_embedder (Gdk.Window window, Gdk.Window embedder);
+	public static void offscreen_window_set_embedder (Gdk.Window window, Gdk.Window? embedder);
 	[CCode (cheader_filename = "gdk/gdk.h")]
 	public static Pango.Context pango_context_get ();
 	[CCode (cheader_filename = "gdk/gdk.h")]

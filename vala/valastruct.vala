@@ -31,6 +31,7 @@ public class Vala.Struct : TypeSymbol {
 	private List<Field> fields = new ArrayList<Field> ();
 	private List<Method> methods = new ArrayList<Method> ();
 	private List<Property> properties = new ArrayList<Property> ();
+	private Set<weak Field> property_fields = new HashSet<weak Field> ();
 	private DataType _base_type = null;
 
 	private bool? boolean_type;
@@ -71,7 +72,7 @@ public class Vala.Struct : TypeSymbol {
 	/**
 	 * Specifies the default construction method.
 	 */
-	public Method default_construction_method { get; set; }
+	public CreationMethod? default_construction_method { get; private set; }
 
 	/**
 	 * Specifies if 'const' should be emitted for input parameters
@@ -232,8 +233,6 @@ public class Vala.Struct : TypeSymbol {
 	 * @param m a method
 	 */
 	public override void add_method (Method m) {
-		return_if_fail (m != null);
-
 		if (m.binding == MemberBinding.INSTANCE || m is CreationMethod) {
 			m.this_parameter = new Parameter ("this", SemanticAnalyzer.get_data_type_for_symbol (this));
 			m.scope.add (m.this_parameter.name, m.this_parameter);
@@ -244,7 +243,7 @@ public class Vala.Struct : TypeSymbol {
 		}
 		if (m is CreationMethod) {
 			if (m.name == null) {
-				default_construction_method = m;
+				default_construction_method = (CreationMethod) m;
 				m.name = ".new";
 			}
 
@@ -284,6 +283,7 @@ public class Vala.Struct : TypeSymbol {
 
 		if (prop.field != null) {
 			add_field (prop.field);
+			property_fields.add (prop.field);
 		}
 	}
 
@@ -517,6 +517,14 @@ public class Vala.Struct : TypeSymbol {
 				Report.error (f.source_reference, "Instance field initializers not supported");
 				return false;
 			}
+
+			if (f.binding == MemberBinding.STATIC && f.initializer != null) {
+				// for backing property fields a dedicated error will be reported later
+				if (!(f in property_fields) && !(f.initializer.value_type is NullType) && f.variable_type.is_disposable () && f.variable_type.value_owned) {
+					error = true;
+					Report.error (f.initializer.source_reference, "Owned static struct fields can only be initialized in a function or method");
+				}
+			}
 		}
 
 		foreach (Constant c in constants) {
@@ -529,20 +537,30 @@ public class Vala.Struct : TypeSymbol {
 
 		foreach (Property prop in properties) {
 			prop.check (context);
+
+			if (prop.binding == MemberBinding.STATIC) {
+				unowned Field? field = prop.field;
+				if (field != null && field.initializer != null && !(field.initializer.value_type is NullType) && field.variable_type.is_disposable () && field.variable_type.value_owned) {
+					error = true;
+					Report.error (field.initializer.source_reference, "Owned static struct properties can only be initialized in a function or method");
+				}
+			}
 		}
 
 		if (!external && !external_package) {
-			if (base_type == null && get_fields ().size == 0 && !is_boolean_type () && !is_integer_type () && !is_floating_type ()) {
-				error = true;
-				Report.error (source_reference, "structs cannot be empty: %s".printf(name));
-			} else if (base_type != null) {
-				foreach (Field f in fields) {
-					if (f.binding == MemberBinding.INSTANCE) {
-						error = true;
-						Report.error (source_reference, "derived structs may not have instance fields");
-						break;
-					}
+			bool has_instance_field = false;
+			foreach (Field f in fields) {
+				if (f.binding == MemberBinding.INSTANCE) {
+					has_instance_field = true;
+					break;
 				}
+			}
+			if (base_type == null && !has_instance_field && !is_boolean_type () && !is_integer_type () && !is_floating_type ()) {
+				error = true;
+				Report.error (source_reference, "struct `%s' cannot be empty".printf (get_full_name ()));
+			} else if (base_type != null && has_instance_field) {
+				error = true;
+				Report.error (source_reference, "derived struct `%s' may not have instance fields".printf (get_full_name ()));
 			}
 		}
 

@@ -106,10 +106,25 @@ public class Vala.InitializerList : Expression {
 		return true;
 	}
 
+	public override string to_string () {
+		var builder = new StringBuilder ("{");
+		bool first = true;
+		foreach (var initializer in initializers) {
+			if (first) {
+				builder.append (initializer.to_string ());
+				first = false;
+			} else {
+				builder.append_printf (", %s", initializer.to_string ());
+			}
+		}
+		return builder.str;
+	}
+
 	public override void replace_expression (Expression old_node, Expression new_node) {
 		for (int i = 0; i < initializers.size; i++) {
 			if (initializers[i] == old_node) {
 				initializers[i] = new_node;
+				new_node.parent_node = this;
 			}
 		}
 	}
@@ -149,6 +164,7 @@ public class Vala.InitializerList : Expression {
 				var old_parent_node = parent_node;
 
 				var array_creation = new ArrayCreationExpression (array_type.element_type.copy (), array_type.rank, this, source_reference);
+				array_creation.length_type = array_type.length_type.copy ();
 				array_creation.target_type = target_type;
 				old_parent_node.replace_expression (this, array_creation);
 
@@ -229,6 +245,10 @@ public class Vala.InitializerList : Expression {
 			/* everything seems to be correct */
 			value_type = target_type.copy ();
 			value_type.nullable = false;
+		}
+
+		if (value_type != null) {
+			value_type.check (context);
 		}
 
 		return !error;

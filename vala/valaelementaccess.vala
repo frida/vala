@@ -75,13 +75,27 @@ public class Vala.ElementAccess : Expression {
 		}
 	}
 
+	public override string to_string () {
+		var s = "%s[".printf (container.to_string ());
+		bool first = true;
+		foreach (var index in indices) {
+			if (first) {
+				s += index.to_string ();
+				first = false;
+			} else {
+				s += ", %s".printf (index.to_string ());
+			}
+		}
+		return s + "]";
+	}
+
 	public override void replace_expression (Expression old_node, Expression new_node) {
 		if (container == old_node) {
 			container = new_node;
 		}
 
 		int index = indices.index_of (old_node);
-		if (index >= 0 && new_node.parent_node == null) {
+		if (index >= 0) {
 			indices[index] = new_node;
 			new_node.parent_node = this;
 		}
@@ -104,6 +118,13 @@ public class Vala.ElementAccess : Expression {
 		}
 
 		return container.is_accessible (sym);
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		container.get_error_types (collection, source_reference);
+		foreach (Expression e in indices) {
+			e.get_error_types (collection, source_reference);
+		}
 	}
 
 	public override bool check (CodeContext context) {
@@ -132,7 +153,16 @@ public class Vala.ElementAccess : Expression {
 				Report.error (source_reference, "Element access with more than one dimension is not supported for signals");
 				return false;
 			}
-			get_indices ().get (0).target_type = context.analyzer.string_type.copy ();
+
+			var detail_expr = get_indices ().get (0);
+			detail_expr.target_type = context.analyzer.string_type.copy ();
+			detail_expr.check (context);
+
+			if (detail_expr.value_type is NullType || !detail_expr.value_type.compatible (context.analyzer.string_type)) {
+				error = true;
+				Report.error (detail_expr.source_reference, "only string details are supported");
+				return false;
+			}
 		}
 
 		foreach (Expression index in get_indices ()) {
@@ -216,6 +246,8 @@ public class Vala.ElementAccess : Expression {
 				}
 			}
 		}
+
+		value_type.check (context);
 
 		return !error;
 	}

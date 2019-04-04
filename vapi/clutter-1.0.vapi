@@ -5370,7 +5370,7 @@ namespace Clutter {
 		public virtual signal void paint ();
 		[Version (since = "0.2")]
 		public virtual signal void parent_set (Clutter.Actor? old_parent);
-		[Version (deprecated = true, deprecated_since = "1.12", since = "1.0")]
+		[Version (since = "1.0")]
 		public virtual signal void pick (Clutter.Color color);
 		[HasEmitter]
 		[Version (since = "1.2")]
@@ -5791,7 +5791,7 @@ namespace Clutter {
 		public static unowned Clutter.BindingPool get_for_class (void* klass);
 		public void install_action (string action_name, uint key_val, Clutter.ModifierType modifiers, owned Clutter.BindingActionFunc callback);
 		public void install_closure (string action_name, uint key_val, Clutter.ModifierType modifiers, GLib.Closure closure);
-		public void override_action (uint key_val, Clutter.ModifierType modifiers, owned GLib.Callback callback);
+		public void override_action (uint key_val, Clutter.ModifierType modifiers, owned Clutter.BindingActionFunc callback);
 		public void override_closure (uint key_val, Clutter.ModifierType modifiers, GLib.Closure closure);
 		public void remove_action (uint key_val, Clutter.ModifierType modifiers);
 		public void unblock_action (string action_name);

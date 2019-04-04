@@ -26,22 +26,20 @@ using Valadoc.Content;
 /**
  * Represents a property declaration.
  */
-public class Valadoc.Api.Property : Member {
-	private PropertyBindingType binding_type;
+public class Valadoc.Api.Property : Symbol {
 	private string? dbus_name;
 	private string? cname;
 
-	public Property (Node parent, SourceFile file, string name, SymbolAccessibility accessibility,
-					 SourceComment? comment, string? cname, string? dbus_name, bool is_dbus_visible,
-					 PropertyBindingType binding_type, Vala.Property data)
+	public Property (Node parent, SourceFile file, string name, Vala.SymbolAccessibility accessibility,
+					 SourceComment? comment,
+					 Vala.Property data)
 	{
 		base (parent, file, name, accessibility, comment, data);
 
-		this.is_dbus_visible = is_dbus_visible;
-		this.binding_type = binding_type;
+		this.is_dbus_visible = Vala.GDBusModule.is_dbus_visible (data);
 
-		this.dbus_name = dbus_name;
-		this.cname = cname;
+		this.dbus_name = Vala.GDBusModule.get_dbus_name_for_member (data);
+		this.cname = Vala.get_ccode_name (data);
 	}
 
 	/**
@@ -71,7 +69,7 @@ public class Valadoc.Api.Property : Member {
 	 */
 	public bool is_virtual {
 		get {
-			return binding_type == PropertyBindingType.VIRTUAL;
+			return ((Vala.Property) data).is_virtual;
 		}
 	}
 
@@ -80,7 +78,7 @@ public class Valadoc.Api.Property : Member {
 	 */
 	public bool is_abstract {
 		get {
-			return binding_type == PropertyBindingType.ABSTRACT;
+			return ((Vala.Property) data).is_abstract;
 		}
 	}
 
@@ -89,7 +87,7 @@ public class Valadoc.Api.Property : Member {
 	 */
 	public bool is_override {
 		get {
-			return binding_type == PropertyBindingType.OVERRIDE;
+			return ((Vala.Property) data).overrides;
 		}
 	}
 
@@ -169,12 +167,12 @@ public class Valadoc.Api.Property : Member {
 		signature.append_symbol (this);
 		signature.append ("{");
 
-		if (setter != null && setter.do_document) {
-			signature.append_content (setter.signature);
-		}
-
 		if (getter != null && getter.do_document) {
 			signature.append_content (getter.signature);
+		}
+
+		if (setter != null && setter.do_document) {
+			signature.append_content (setter.signature);
 		}
 
 		signature.append ("}");

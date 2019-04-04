@@ -343,8 +343,13 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 		List<TypeParameter> type_parameters = null;
 		if (sym is ObjectTypeSymbol) {
-			type = new ObjectType ((ObjectTypeSymbol) sym);
-			type_parameters = ((ObjectTypeSymbol) sym).get_type_parameters ();
+			var cl = sym as Class;
+			if (cl != null && cl.is_error_base) {
+				type = new ErrorType (null, null);
+			} else {
+				type = new ObjectType ((ObjectTypeSymbol) sym);
+				type_parameters = ((ObjectTypeSymbol) sym).get_type_parameters ();
+			}
 		} else if (sym is Struct) {
 			var st = (Struct) sym;
 			if (st.is_boolean_type ()) {
@@ -402,6 +407,8 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public bool check_arguments (Expression expr, DataType mtype, List<Parameter> params, List<Expression> args) {
+		bool error = false;
+
 		Expression prev_arg = null;
 		Iterator<Expression> arg_it = args.iterator ();
 
@@ -420,7 +427,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 					var arg = arg_it.get ();
 					if (!check_argument (arg, i, param.direction)) {
 						expr.error = true;
-						return false;
+						error = true;
 					}
 
 					i++;
@@ -438,7 +445,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 					} else {
 						Report.error (expr.source_reference, "Too few arguments, method `%s' does not take %d arguments".printf (mtype.to_string (), args.size));
 					}
-					return false;
+					error = true;
 				} else {
 					var invocation_expr = expr as MethodCall;
 					var object_creation_expr = expr as ObjectCreationExpression;
@@ -455,7 +462,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 				var arg = arg_it.get ();
 				if (!check_argument (arg, i, param.direction)) {
 					expr.error = true;
-					return false;
+					error = true;
 				}
 
 				prev_arg = arg;
@@ -466,7 +473,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 		if (ellipsis && !check_variadic_arguments (arg_it, i, expr.source_reference)) {
 			expr.error = true;
-			return false;
+			error = true;
 		} else if (!ellipsis && arg_it != null && arg_it.next ()) {
 			expr.error = true;
 			var m = mtype as MethodType;
@@ -475,7 +482,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			} else {
 				Report.error (expr.source_reference, "Too many arguments, method `%s' does not take %d arguments".printf (mtype.to_string (), args.size));
 			}
-			return false;
+			error = true;
 		}
 
 		if (diag && prev_arg != null) {
@@ -485,7 +492,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			}
 		}
 
-		return true;
+		return !error;
 	}
 
 	bool check_argument (Expression arg, int i, ParameterDirection direction) {
@@ -758,7 +765,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		return instance_base_type;
 	}
 
-	internal static DataType? get_instance_base_type_for_member (DataType derived_instance_type, TypeSymbol type_symbol, CodeNode node_reference) {
+	internal static DataType? get_instance_base_type_for_member (DataType derived_instance_type, TypeSymbol type_symbol, CodeNode? node_reference) {
 		DataType instance_type = derived_instance_type;
 
 		while (instance_type is PointerType) {
@@ -833,7 +840,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		return null;
 	}
 
-	public static DataType get_actual_type (DataType? derived_instance_type, List<DataType>? method_type_arguments, GenericType generic_type, CodeNode node_reference) {
+	public static DataType get_actual_type (DataType? derived_instance_type, List<DataType>? method_type_arguments, GenericType generic_type, CodeNode? node_reference) {
 		DataType actual_type = null;
 		if (generic_type.type_parameter.parent_symbol is TypeSymbol) {
 			if (derived_instance_type != null) {
@@ -841,9 +848,11 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 				var instance_type = get_instance_base_type_for_member (derived_instance_type, (TypeSymbol) generic_type.type_parameter.parent_symbol, node_reference);
 
 				if (instance_type == null) {
-					CodeNode? reference = get_symbol_for_data_type (derived_instance_type);
-					Report.error ((reference ?? node_reference).source_reference, "The type-parameter `%s' is missing".printf (generic_type.to_string ()));
-					node_reference.error = true;
+					if (node_reference != null) {
+						CodeNode? reference = get_symbol_for_data_type (derived_instance_type);
+						Report.error ((reference ?? node_reference).source_reference, "The type-parameter `%s' is missing".printf (generic_type.to_string ()));
+						node_reference.error = true;
+					}
 					return new InvalidType ();
 				}
 
@@ -854,8 +863,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 					param_index = instance_type.data_type.get_type_parameter_index (generic_type.type_parameter.name);
 				}
 				if (param_index == -1) {
-					Report.error (node_reference.source_reference, "internal error: unknown type parameter %s".printf (generic_type.type_parameter.name));
-					node_reference.error = true;
+					if (node_reference != null) {
+						Report.error (node_reference.source_reference, "internal error: unknown type parameter %s".printf (generic_type.type_parameter.name));
+						node_reference.error = true;
+					}
 					return new InvalidType ();
 				}
 
@@ -869,8 +880,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 			int param_index = m.get_type_parameter_index (generic_type.type_parameter.name);
 			if (param_index == -1) {
-				Report.error (node_reference.source_reference, "internal error: unknown type parameter %s".printf (generic_type.type_parameter.name));
-				node_reference.error = true;
+				if (node_reference != null) {
+					Report.error (node_reference.source_reference, "internal error: unknown type parameter %s".printf (generic_type.type_parameter.name));
+					node_reference.error = true;
+				}
 				return new InvalidType ();
 			}
 

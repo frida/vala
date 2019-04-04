@@ -27,6 +27,7 @@
  */
 public abstract class Valadoc.Api.Symbol : Node {
 	private Vala.ArrayList<Attribute> attributes;
+	private SourceComment? source_comment;
 
 	public bool is_deprecated {
 		default = false;
@@ -34,12 +35,13 @@ public abstract class Valadoc.Api.Symbol : Node {
 		get;
 	}
 
-	public Symbol (Node parent, SourceFile file, string? name, SymbolAccessibility accessibility,
-				   Vala.Symbol data)
+	protected Symbol (Node parent, SourceFile file, string? name, Vala.SymbolAccessibility accessibility,
+				   SourceComment? comment, Vala.Symbol data)
 	{
 		base (parent, file, name, data);
 
 		this.accessibility = accessibility;
+		this.source_comment = comment;
 	}
 
 	public void add_attribute (Attribute att) {
@@ -47,21 +49,19 @@ public abstract class Valadoc.Api.Symbol : Node {
 			attributes = new Vala.ArrayList<Attribute> ();
 		}
 
+		Vala.Attribute attr = (Vala.Attribute) att.data;
+
 		// register deprecated symbols:
 		if (att.name == "Version") {
-			AttributeArgument? deprecated = att.get_argument ("deprecated");
-			AttributeArgument? version = att.get_argument ("deprecated_since");
-			if ((deprecated != null && deprecated.get_value_as_boolean ()) || version != null) {
-				string? version_str = (version != null) ? version.get_value_as_string () : null;
-
-				package.register_deprecated_symbol (this, version_str);
+			var deprecated = attr.get_bool ("deprecated");
+			var version = attr.get_string ("deprecated_since");
+			if (deprecated || version != null) {
+				package.register_deprecated_symbol (this, version);
 				is_deprecated = true;
 			}
 		} else if (att.name == "Deprecated") {
-			AttributeArgument? version = att.get_argument ("version");
-			string? version_str = (version != null) ? version.get_value_as_string () : null;
-
-			package.register_deprecated_symbol (this, version_str);
+			var version = attr.get_string ("version");
+			package.register_deprecated_symbol (this, version);
 			is_deprecated = true;
 		}
 
@@ -113,7 +113,7 @@ public abstract class Valadoc.Api.Symbol : Node {
 		return true;
 	}
 
-	public SymbolAccessibility accessibility {
+	public Vala.SymbolAccessibility accessibility {
 		private set;
 		get;
 	}
@@ -123,7 +123,7 @@ public abstract class Valadoc.Api.Symbol : Node {
 	 */
 	public bool is_public {
 		get {
-			return accessibility == SymbolAccessibility.PUBLIC;
+			return accessibility == Vala.SymbolAccessibility.PUBLIC;
 		}
 	}
 
@@ -132,7 +132,7 @@ public abstract class Valadoc.Api.Symbol : Node {
 	 */
 	public bool is_protected {
 		get {
-			return accessibility == SymbolAccessibility.PROTECTED;
+			return accessibility == Vala.SymbolAccessibility.PROTECTED;
 		}
 	}
 
@@ -141,7 +141,7 @@ public abstract class Valadoc.Api.Symbol : Node {
 	 */
 	public bool is_internal {
 		get {
-			return accessibility == SymbolAccessibility.INTERNAL;
+			return accessibility == Vala.SymbolAccessibility.INTERNAL;
 		}
 	}
 
@@ -150,8 +150,34 @@ public abstract class Valadoc.Api.Symbol : Node {
 	 */
 	public bool is_private {
 		get {
-			return accessibility == SymbolAccessibility.PRIVATE;
+			return accessibility == Vala.SymbolAccessibility.PRIVATE;
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	internal override void parse_comments (Settings settings, DocumentationParser parser) {
+		if (documentation != null) {
+			return ;
+		}
+
+		if (source_comment != null) {
+			documentation = parser.parse (this, source_comment);
+		}
+
+		base.parse_comments (settings, parser);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	internal override void check_comments (Settings settings, DocumentationParser parser) {
+		if (documentation != null) {
+			parser.check (this, documentation);
+		}
+
+		base.check_comments (settings, parser);
 	}
 }
 

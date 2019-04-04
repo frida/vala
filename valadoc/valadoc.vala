@@ -36,7 +36,6 @@ public class ValaDoc : Object {
 	private static string gir_name = null;
 	private static string gir_namespace = null;
 	private static string gir_version = null;
-	private static string driverpath = null;
 
 	private static bool add_inherited = false;
 	private static bool _protected = true;
@@ -49,6 +48,7 @@ public class ValaDoc : Object {
 	private static bool disable_diagnostic_colors = false;
 	private static bool verbose = false;
 	private static bool force = false;
+	private static bool fatal_warnings = false;
 
 	private static string basedir = null;
 	[CCode (array_length = false, array_null_terminated = true)]
@@ -89,7 +89,7 @@ public class ValaDoc : Object {
 		{ "vapidir", 0, 0, OptionArg.FILENAME_ARRAY, ref vapi_directories, "Look for package bindings in DIRECTORY", "DIRECTORY..." },
 		{ "pkg", 0, 0, OptionArg.STRING_ARRAY, ref packages, "Include binding for PACKAGE", "PACKAGE..." },
 
-		{ "driver", 0, 0, OptionArg.STRING, ref driverpath, "Name of an driver or path to a custom driver", null },
+		{ "driver", 0, OptionFlags.OPTIONAL_ARG, OptionArg.CALLBACK, (void*) option_deprecated, "Name of an driver or path to a custom driver (DEPRECATED AND IGNORED)", null },
 
 		{ "importdir", 0, 0, OptionArg.FILENAME_ARRAY, ref import_directories, "Look for external documentation in DIRECTORY", "DIRECTORY..." },
 		{ "import", 0, 0, OptionArg.STRING_ARRAY, ref import_packages, "Include binding for PACKAGE", "PACKAGE..." },
@@ -114,16 +114,22 @@ public class ValaDoc : Object {
 		{ "version", 0, 0, OptionArg.NONE, ref version, "Display version number", null },
 
 		{ "force", 0, 0, OptionArg.NONE, ref force, "force", null },
+		{ "fatal-warnings", 0, 0, OptionArg.NONE, ref fatal_warnings, "Treat warnings as fatal", null },
 		{ "verbose", 0, 0, OptionArg.NONE, ref verbose, "Show all warnings", null },
 		{ "no-color", 0, 0, OptionArg.NONE, ref disable_diagnostic_colors, "Disable colored output", null },
-		{ "target-glib", 0, 0, OptionArg.STRING, ref target_glib, "Target version of glib for code generation", "MAJOR.MINOR" },
+		{ "target-glib", 0, 0, OptionArg.STRING, ref target_glib, "Target version of glib for code generation", "'MAJOR.MINOR', or 'auto'" },
 		{ OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, ref tsources, null, "FILE..." },
 
 		{ null }
 	};
 
+	static bool option_deprecated (string option_name, string? val, void* data) throws OptionError {
+		stdout.printf ("Command-line option `%s` is deprecated and will be ignored\n", option_name);
+		return true;
+	}
+
 	private static int quit (ErrorReporter reporter) {
-		if (reporter.errors == 0) {
+		if (reporter.errors == 0 && (!fatal_warnings || reporter.warnings == 0)) {
 			stdout.printf ("Succeeded - %d warning(s)\n", reporter.warnings);
 			return 0;
 		} else {
@@ -161,11 +167,10 @@ public class ValaDoc : Object {
 		return ValaDoc.pkg_name;
 	}
 
-	private ModuleLoader? create_module_loader (ErrorReporter reporter, out Doclet? doclet, out Driver? driver) {
+	private ModuleLoader? create_module_loader (ErrorReporter reporter, out Doclet? doclet) {
 		ModuleLoader modules = ModuleLoader.get_instance ();
 
 		doclet = null;
-		driver = null;
 
 		// doclet:
 		string? pluginpath = ModuleLoader.get_doclet_path (docletpath, reporter);
@@ -178,12 +183,6 @@ public class ValaDoc : Object {
 			reporter.simple_error (null, "failed to load doclet");
 			return null;
 		}
-
-
-		// driver:
-		driver = new Valadoc.Drivers.Driver ();
-
-		assert (driver != null && doclet != null);
 
 		return modules;
 	}
@@ -235,21 +234,20 @@ public class ValaDoc : Object {
 
 		// load plugins:
 		Doclet? doclet = null;
-		Driver? driver = null;
-
-		ModuleLoader? modules = create_module_loader (reporter, out doclet, out driver);
+		ModuleLoader? modules = create_module_loader (reporter, out doclet);
 		if (reporter.errors > 0 || modules == null) {
 			return quit (reporter);
 		}
 
-
 		// Create tree:
-		Valadoc.Api.Tree doctree = driver.build (settings, reporter);
+		TreeBuilder builder = new TreeBuilder ();
+		Valadoc.Api.Tree doctree = builder.build (settings, reporter);
 		if (reporter.errors > 0) {
-			driver = null;
 			doclet = null;
 			return quit (reporter);
 		}
+		SymbolResolver resolver = new SymbolResolver (builder);
+		doctree.accept (resolver);
 
 		// register child symbols:
 		Valadoc.Api.ChildSymbolRegistrar registrar = new Valadoc.Api.ChildSymbolRegistrar ();
@@ -282,7 +280,13 @@ public class ValaDoc : Object {
 		}
 
 		if (ValaDoc.gir_name != null) {
-			driver.write_gir (settings, reporter);
+			var gir_writer = new GirWriter (resolver);
+			gir_writer.write_file (doctree.context,
+				settings.gir_directory,
+				"%s-%s.gir".printf (settings.gir_namespace, settings.gir_version),
+				settings.gir_namespace,
+				settings.gir_version,
+				settings.pkg_name);
 			if (reporter.errors > 0) {
 				return quit (reporter);
 			}

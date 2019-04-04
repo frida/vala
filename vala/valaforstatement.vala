@@ -136,6 +136,24 @@ public class Vala.ForStatement : CodeNode, Statement {
 		body.accept (visitor);
 	}
 
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		if (condition == old_node) {
+			condition = new_node;
+		}
+		for (int i=0; i < initializer.size; i++) {
+			if (initializer[i] == old_node) {
+				initializer[i] = new_node;
+				new_node.parent_node = this;
+			}
+		}
+		for (int i=0; i < iterator.size; i++) {
+			if (iterator[i] == old_node) {
+				iterator[i] = new_node;
+				new_node.parent_node = this;
+			}
+		}
+	}
+
 	bool always_true (Expression condition) {
 		var literal = condition as BooleanLiteral;
 		return (literal != null && literal.value);
@@ -147,6 +165,12 @@ public class Vala.ForStatement : CodeNode, Statement {
 	}
 
 	public override bool check (CodeContext context) {
+		if (checked) {
+			return !error;
+		}
+
+		checked = true;
+
 		// convert to simple loop
 
 		var block = new Block (source_reference);
@@ -188,6 +212,10 @@ public class Vala.ForStatement : CodeNode, Statement {
 		var parent_block = (Block) parent_node;
 		parent_block.replace_statement (this, block);
 
-		return block.check (context);
+		if (!block.check (context)) {
+			error = true;
+		}
+
+		return !error;
 	}
 }

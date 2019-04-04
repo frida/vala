@@ -91,7 +91,19 @@ public class Vala.WhileStatement : CodeNode, Statement {
 		return (literal != null && !literal.value);
 	}
 
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		if (condition == old_node) {
+			condition = new_node;
+		}
+	}
+
 	public override bool check (CodeContext context) {
+		if (checked) {
+			return !error;
+		}
+
+		checked = true;
+
 		// convert to simple loop
 
 		if (always_true (condition)) {
@@ -112,7 +124,11 @@ public class Vala.WhileStatement : CodeNode, Statement {
 		var parent_block = (Block) parent_node;
 		parent_block.replace_statement (this, loop);
 
-		return loop.check (context);
+		if (!loop.check (context)) {
+			error = true;
+		}
+
+		return !error;
 	}
 }
 

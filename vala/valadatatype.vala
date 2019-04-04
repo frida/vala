@@ -153,7 +153,7 @@ public abstract class Vala.DataType : CodeNode {
 				} else {
 					first = false;
 				}
-				if (!type_arg.value_owned) {
+				if (type_arg.is_weak ()) {
 					s += "weak ";
 				}
 				s += type_arg.to_qualified_string (scope);
@@ -305,11 +305,25 @@ public abstract class Vala.DataType : CodeNode {
 			return true;
 		}
 
+		// check for matching ownership of type-arguments
+		var type_args = get_type_arguments ();
+		var target_type_args = target_type.get_type_arguments ();
+		if (type_args.size == target_type_args.size) {
+			for (int i = 0; i < type_args.size; i++) {
+				var type_arg = type_args[i];
+				var target_type_arg = target_type_args[i];
+				// Ignore non-boxed simple-type structs
+				if (!type_arg.is_non_null_simple_type ()
+				    && type_arg.is_weak () != target_type_arg.is_weak ()) {
+					return false;
+				}
+			}
+		}
+
 		if (data_type != null && target_type.data_type != null && data_type.is_subtype_of (target_type.data_type)) {
 			var base_type = SemanticAnalyzer.get_instance_base_type_for_member(this, target_type.data_type, this);
 			// check compatibility of generic type arguments
 			var base_type_args = base_type.get_type_arguments();
-			var target_type_args = target_type.get_type_arguments();
 			if (base_type_args.size == target_type_args.size) {
 				for (int i = 0; i < base_type_args.size; i++) {
 					// mutable generic types require type argument equality,
@@ -378,10 +392,6 @@ public abstract class Vala.DataType : CodeNode {
 		       this is GenericType;
 	}
 
-	public virtual bool is_array () {
-		return false;
-	}
-
 	// check whether this type is at least as accessible as the specified symbol
 	public virtual bool is_accessible (Symbol sym) {
 		foreach (var type_arg in get_type_arguments ()) {
@@ -422,6 +432,14 @@ public abstract class Vala.DataType : CodeNode {
 		return is_real_struct_type () && !nullable;
 	}
 
+	public bool is_non_null_simple_type () {
+		unowned Struct s = data_type as Struct;
+		if (s != null && s.is_simple_type ()) {
+			return !nullable;
+		}
+		return false;
+	}
+
 	/**
 	 * Returns whether the value needs to be disposed, i.e. whether
 	 * allocated memory or other resources need to be released when
@@ -438,18 +456,14 @@ public abstract class Vala.DataType : CodeNode {
 		return false;
 	}
 
-	public virtual DataType get_actual_type (DataType? derived_instance_type, List<DataType>? method_type_arguments, CodeNode node_reference) {
+	public virtual DataType get_actual_type (DataType? derived_instance_type, List<DataType>? method_type_arguments, CodeNode? node_reference) {
 		DataType result = this.copy ();
 
 		if (derived_instance_type == null && method_type_arguments == null) {
 			return result;
 		}
 
-		if (result is GenericType) {
-			result = SemanticAnalyzer.get_actual_type (derived_instance_type, method_type_arguments, (GenericType) result, node_reference);
-			// don't try to resolve type arguments of returned actual type
-			// they can never be resolved and are not related to the instance type
-		} else if (result.type_argument_list != null) {
+		if (result.type_argument_list != null) {
 			// recursely get actual types for type arguments
 			for (int i = 0; i < result.type_argument_list.size; i++) {
 				result.type_argument_list[i] = result.type_argument_list[i].get_actual_type (derived_instance_type, method_type_arguments, node_reference);
@@ -503,5 +517,75 @@ public abstract class Vala.DataType : CodeNode {
 		}
 
 		return true;
+	}
+
+	public string? get_type_signature (Symbol? symbol = null) {
+		if (symbol != null) {
+			string sig = symbol.get_attribute_string ("DBus", "signature");
+			if (sig != null) {
+				// allow overriding signature in attribute, used for raw GVariants
+				return sig;
+			}
+		}
+
+		unowned ArrayType? array_type = this as ArrayType;
+
+		if (array_type != null) {
+			string element_type_signature = array_type.element_type.get_type_signature ();
+
+			if (element_type_signature == null) {
+				return null;
+			}
+
+			return string.nfill (array_type.rank, 'a') + element_type_signature;
+		} else if (data_type != null && data_type is Enum && data_type.get_attribute_bool ("DBus", "use_string_marshalling")) {
+			return "s";
+		} else if (data_type != null) {
+			string sig = data_type.get_attribute_string ("CCode", "type_signature");
+
+			unowned Struct? st = data_type as Struct;
+			unowned Enum? en = data_type as Enum;
+			if (sig == null && st != null) {
+				var str = new StringBuilder ();
+				str.append_c ('(');
+				foreach (Field f in st.get_fields ()) {
+					if (f.binding == MemberBinding.INSTANCE) {
+						str.append (f.variable_type.get_type_signature (f));
+					}
+				}
+				str.append_c (')');
+				sig = str.str;
+			} else if (sig == null && en != null) {
+				if (en.is_flags) {
+					return "u";
+				} else {
+					return "i";
+				}
+			}
+
+			var type_args = get_type_arguments ();
+			if (sig != null && "%s" in sig && type_args.size > 0) {
+				string element_sig = "";
+				foreach (DataType type_arg in type_args) {
+					var s = type_arg.get_type_signature ();
+					if (s != null) {
+						element_sig += s;
+					}
+				}
+
+				sig = sig.replace ("%s", element_sig);
+			}
+
+			if (sig == null &&
+			    (data_type.get_full_name () == "GLib.UnixInputStream" ||
+			     data_type.get_full_name () == "GLib.UnixOutputStream" ||
+			     data_type.get_full_name () == "GLib.Socket")) {
+				return "h";
+			}
+
+			return sig;
+		} else {
+			return null;
+		}
 	}
 }

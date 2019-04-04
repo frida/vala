@@ -29,9 +29,19 @@ public class Vala.SwitchLabel : CodeNode {
 	/**
 	 * Specifies the label expression.
 	 */
-	public Expression expression { get; set; }
+	public Expression expression {
+		get { return _expression; }
+		set {
+			_expression = value;
+			_expression.parent_node = this;
+		}
+	}
 
-	public weak SwitchSection section { get; set; }
+	public weak SwitchSection section {
+		get { return (SwitchSection) parent_node; }
+	}
+
+	private Expression _expression;
 
 	/**
 	 * Creates a new switch case label.
@@ -68,6 +78,12 @@ public class Vala.SwitchLabel : CodeNode {
 	}
 
 	public override bool check (CodeContext context) {
+		if (checked) {
+			return !error;
+		}
+
+		checked = true;
+
 		if (expression != null) {
 			var switch_statement = (SwitchStatement) section.parent_node;
 
@@ -84,7 +100,10 @@ public class Vala.SwitchLabel : CodeNode {
 				}
 			}
 
-			expression.check (context);
+			if (!expression.check (context)) {
+				error = true;
+				return false;
+			}
 
 			if (!expression.is_constant ()) {
 				error = true;

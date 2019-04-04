@@ -24,6 +24,8 @@
 public class Vala.CCodeFile {
 	public bool is_header { get; set; }
 
+	public weak SourceFile? file { get; private set; }
+
 	Set<string> features = new HashSet<string> (str_hash, str_equal);
 	Set<string> declarations = new HashSet<string> (str_hash, str_equal);
 	Set<string> includes = new HashSet<string> (str_hash, str_equal);
@@ -35,6 +37,10 @@ public class Vala.CCodeFile {
 	CCodeFragment type_member_declaration = new CCodeFragment ();
 	CCodeFragment constant_declaration = new CCodeFragment ();
 	CCodeFragment type_member_definition = new CCodeFragment ();
+
+	public CCodeFile (SourceFile? source_file = null) {
+		file = source_file;
+	}
 
 	public bool add_declaration (string name) {
 		if (name in declarations) {
@@ -50,7 +56,7 @@ public class Vala.CCodeFile {
 
 	public void add_feature_test_macro (string feature_test_macro) {
 		if (!(feature_test_macro in features)) {
-			feature_test_macros.append (new CCodeFeatureTestMacro (feature_test_macro));
+			feature_test_macros.append (new CCodeDefine (feature_test_macro));
 			features.add (feature_test_macro);
 		}
 	}
@@ -181,7 +187,7 @@ public class Vala.CCodeFile {
 			once.append (constant_declaration);
 			once.append (new CCodeNewline ());
 
-			if (begin_decls != null) {
+			if (end_decls != null) {
 				once.append (new CCodeIdentifier (end_decls));
 				once.append (new CCodeNewline ());
 			}

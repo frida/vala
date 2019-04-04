@@ -48,6 +48,19 @@ void test_integer_array () {
 	d[1] = null;
 	assert (d[0] == 10);
 	assert (d[1] == null);
+
+	// element assignment
+	int[] e = { 13, 47 };
+	e[0] = 96;
+	assert (e[0] == 96);
+	e[0] /= 24;
+	assert (e[0] == 4);
+	e[0] += 2;
+	assert (e[0] == 6);
+	e[0] *= 4;
+	assert (e[0] == 24);
+	e[0] -= 23;
+	assert (e[0] == 1);
 }
 
 void test_string_array () {
@@ -250,8 +263,48 @@ const Foo[] FOO_ARRAY_CONST = {
 	{ { "foo", "bar" }, 42 },
 };
 
+struct Bar {
+	public int bar;
+}
+
 void test_struct_array () {
 	assert (FOO_ARRAY_CONST[0].bar == 42);
+
+	Bar b = { 4711 };
+	var bar = new Bar[23];
+	bar[7] = b;
+	assert (b in bar);
+}
+
+void give_fixed_array (out int i[3]) {
+	i = { 3, 4, 5 };
+}
+
+void take_fixed_array (int i[3]) {
+	assert (i.length == 3);
+	assert (i[1] == 2);
+}
+
+void change_fixed_array (ref int i[3]) {
+	assert (i.length == 3);
+	//FIXME assert (i[1] == 7);
+	//FIXME i[1] = 9;
+}
+
+void test_fixed_array () {
+	int i[3] = { 1, 2, 3 };
+	assert (i.length == 3);
+	take_fixed_array (i);
+
+	int k[3] = { 6, 7, 8 };
+	change_fixed_array (ref k);
+	assert (k.length == 3);
+	//FIXME assert (k[1] == 9);
+
+	int j[3];
+	give_fixed_array (out j);
+	assert (j.length == 3);
+	//FIXME assert (j[1] == 4);
 }
 
 void main () {
@@ -270,4 +323,5 @@ void main () {
 	test_array_move ();
 	test_array_resize ();
 	test_struct_array ();
+	test_fixed_array ();
 }

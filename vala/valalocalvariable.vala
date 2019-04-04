@@ -79,6 +79,19 @@ public class Vala.LocalVariable : Variable {
 
 		checked = true;
 
+		if (!context.experimental_non_null) {
+			// local reference variables are considered nullable
+			// except when using experimental non-null enhancements
+			if (variable_type is ReferenceType) {
+				var array_type = variable_type as ArrayType;
+				if (array_type != null && array_type.fixed_length) {
+					// local fixed length arrays are not nullable
+				} else {
+					variable_type.nullable = true;
+				}
+			}
+		}
+
 		if (variable_type != null) {
 			if (variable_type is VoidType) {
 				error = true;
@@ -100,7 +113,10 @@ public class Vala.LocalVariable : Variable {
 				is_initializer_list = true;
 			}
 
-			initializer.check (context);
+			if (!initializer.check (context)) {
+				error = true;
+				return false;
+			}
 		}
 
 		if (variable_type == null) {
@@ -116,7 +132,7 @@ public class Vala.LocalVariable : Variable {
 				Report.error (source_reference, "var declaration not allowed with non-typed initializer");
 				return false;
 			}
-			if (initializer.value_type is FieldPrototype) {
+			if (initializer.value_type is FieldPrototype || initializer.value_type is PropertyPrototype) {
 				error = true;
 				Report.error (initializer.source_reference, "Access to instance member `%s' denied".printf (initializer.symbol_reference.get_full_name ()));
 				return false;
@@ -127,6 +143,14 @@ public class Vala.LocalVariable : Variable {
 			variable_type.floating_reference = false;
 
 			initializer.target_type = variable_type;
+			variable_type.check (context);
+		}
+
+		unowned ArrayType? variable_array_type = variable_type as ArrayType;
+		if (variable_array_type != null && variable_array_type.fixed_length
+		    && initializer is ArrayCreationExpression && ((ArrayCreationExpression) initializer).initializer_list == null) {
+			Report.warning (source_reference, "Arrays with fixed length don't require an explicit instantiation");
+			initializer = null;
 		}
 
 		if (initializer != null && !initializer.error) {
@@ -164,8 +188,6 @@ public class Vala.LocalVariable : Variable {
 				return false;
 			}
 
-
-			ArrayType variable_array_type = variable_type as ArrayType;
 			if (variable_array_type != null && variable_array_type.inline_allocated && !variable_array_type.fixed_length && is_initializer_list) {
 				variable_array_type.length = new IntegerLiteral (initializer_size.to_string ());
 				variable_array_type.fixed_length = true;

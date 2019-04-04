@@ -264,9 +264,18 @@ TreeModel
 // Vala-specific, not really bugs
 /////////////////////////////////
 
+CellArea
+  .cell_get_property.value ref
+  .get_cell_property.value ref
+Container
+  .get_child_property.value ref
+  .child_get_property.value ref
+
 // Backwards compatibility
 AccelGroup
   .find type="Gtk.AccelKey*"
+CellAccessibleParent
+  .get_cell_area return_void
 CssProvider
   .load_from_data name="load_from_buffer"
 EntryBuffer
@@ -328,7 +337,7 @@ Widget
   .get_allocation return_void
   .grab_add parent="Gtk" symbol_type="function"
   .grab_remove parent="Gtk" symbol_type="function"
-  .intersect.intersection unowned=false nullable default=null
+  .size_allocate#method name="size_allocate_emit"
 WidgetPath
   .free destroys_instance
 TreeModel
@@ -362,8 +371,6 @@ Button
   .set_label.label nullable
 ComboBox
   .get_row_separator_func skip=false
-Entry
-  .populate_popup#signal.widget type="Gtk.Menu"
 FileChooserNative
   .accept_label nullable
   .cancel_label nullable
@@ -379,7 +386,6 @@ NativeDialog
   .set_transient_for.parent nullable
 Window
   .list_toplevels type="GLib.List<unowned Gtk.Window>"
-  .set_focus#signal.object nullable
 TreeModel
   .get_path nullable
   .iter_next.iter ref
@@ -392,6 +398,10 @@ TextView
   .populate_popup.popup type="Gtk.Menu"
 TreeView
   .get_*_func skip=false
+
+editable_delegate_get_property skip
+editable_delegate_set_property skip
+editable_install_properties skip
 
 // Sure
 binding_set_by_class.object_class type="GLib.ObjectClass"

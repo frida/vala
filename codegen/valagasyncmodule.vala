@@ -30,12 +30,7 @@ public class Vala.GAsyncModule : GtkModule {
 		data.add_field ("int", "_state_");
 		data.add_field ("GObject*", "_source_object_");
 		data.add_field ("GAsyncResult*", "_res_");
-
 		data.add_field ("GTask*", "_async_result");
-		if (!context.require_glib_version (2, 44)) {
-			data.add_field ("GAsyncReadyCallback", "_callback_");
-			data.add_field ("gboolean", "_task_complete_");
-		}
 
 		if (m is CreationMethod) {
 			data.add_field ("GType", "object_type");
@@ -53,21 +48,22 @@ public class Vala.GAsyncModule : GtkModule {
 		foreach (Parameter param in m.get_parameters ()) {
 			var param_type = param.variable_type.copy ();
 			param_type.value_owned = true;
-			data.add_field (get_ccode_name (param_type), get_variable_cname (param.name));
+			data.add_field (get_ccode_name (param_type), get_ccode_name (param));
 
 			if (param.variable_type is ArrayType) {
 				var array_type = (ArrayType) param.variable_type;
 				if (get_ccode_array_length (param)) {
+					var length_ctype = get_ccode_array_length_type (array_type);
 					for (int dim = 1; dim <= array_type.rank; dim++) {
-						data.add_field ("gint", get_parameter_array_length_cname (param, dim));
+						data.add_field (length_ctype, get_variable_array_length_cname (param, dim));
 					}
 				}
 			} else if (param.variable_type is DelegateType) {
 				var deleg_type = (DelegateType) param.variable_type;
 				if (deleg_type.delegate_symbol.has_target) {
-					data.add_field ("gpointer", get_ccode_delegate_target_name (param));
+					data.add_field (get_ccode_name (delegate_target_type), get_ccode_delegate_target_name (param));
 					if (deleg_type.is_disposable ()) {
-						data.add_field ("GDestroyNotify", get_delegate_target_destroy_notify_cname (get_variable_cname (param.name)));
+						data.add_field (get_ccode_name (delegate_target_destroy_type), get_ccode_delegate_target_destroy_notify_name (param));
 					}
 				}
 			}
@@ -84,15 +80,16 @@ public class Vala.GAsyncModule : GtkModule {
 			if (m.return_type is ArrayType) {
 				var array_type = (ArrayType) m.return_type;
 				if (get_ccode_array_length (m)) {
+					var length_ctype = get_ccode_array_length_type (array_type);
 					for (int dim = 1; dim <= array_type.rank; dim++) {
-						data.add_field ("gint", get_array_length_cname ("result", dim));
+						data.add_field (length_ctype, get_array_length_cname ("result", dim));
 					}
 				}
 			} else if (m.return_type is DelegateType) {
 				var deleg_type = (DelegateType) m.return_type;
 				if (deleg_type.delegate_symbol.has_target) {
-					data.add_field ("gpointer", get_delegate_target_cname ("result"));
-					data.add_field ("GDestroyNotify", get_delegate_target_destroy_notify_cname ("result"));
+					data.add_field (get_ccode_name (delegate_target_type), get_delegate_target_cname ("result"));
+					data.add_field (get_ccode_name (delegate_target_destroy_type), get_delegate_target_destroy_notify_cname ("result"));
 				}
 			}
 		}
@@ -159,57 +156,8 @@ public class Vala.GAsyncModule : GtkModule {
 		return freefunc;
 	}
 
-	void generate_async_ready_callback_wrapper (Method m, string function_name) {
-		var function = new CCodeFunction (function_name, "void");
-		function.modifiers = CCodeModifiers.STATIC;
-
-		function.add_parameter (new CCodeParameter ("*source_object", "GObject"));
-		function.add_parameter (new CCodeParameter ("*res", "GAsyncResult"));
-		function.add_parameter (new CCodeParameter ("*user_data", "void"));
-
-		push_function (function);
-
-		// Set _task_complete_ to false after calling back to the real func
-		var async_result_cast = new CCodeFunctionCall (new CCodeIdentifier ("G_TASK"));
-		async_result_cast.add_argument (new CCodeIdentifier ("res"));
-
-		var dataname = Symbol.lower_case_to_camel_case (get_ccode_name (m)) + "Data";
-		ccode.add_declaration (dataname + "*", new CCodeVariableDeclarator ("_task_data_"));
-
-		var get_data_call = new CCodeFunctionCall (new CCodeIdentifier ("g_task_get_task_data"));
-		get_data_call.add_argument (async_result_cast);
-
-		var data_var = new CCodeIdentifier ("_task_data_");
-		ccode.add_assignment (data_var, get_data_call);
-
-		var task_inner_callback = new CCodeMemberAccess.pointer (data_var, "_callback_");
-		var callback_is_nonnull = new CCodeBinaryExpression (CCodeBinaryOperator.INEQUALITY, task_inner_callback, new CCodeConstant ("NULL"));
-
-		ccode.open_if (callback_is_nonnull);
-		var nested_callback = new CCodeFunctionCall (task_inner_callback);
-		nested_callback.add_argument (new CCodeIdentifier ("source_object"));
-		nested_callback.add_argument (new CCodeIdentifier ("res"));
-		nested_callback.add_argument (new CCodeIdentifier ("user_data"));
-		ccode.add_expression (nested_callback);
-		ccode.close ();
-
-		ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, "_task_complete_"), new CCodeConstant ("TRUE"));
-
-		pop_function ();
-
-		cfile.add_function_declaration (function);
-		cfile.add_function (function);
-	}
-
 	void generate_async_function (Method m) {
 		push_context (new EmitContext ());
-
-		string? callback_wrapper = null;
-
-		if (!context.require_glib_version (2, 44)) {
-			callback_wrapper = get_ccode_real_name (m) + "_async_ready_wrapper";
-			generate_async_ready_callback_wrapper (m, callback_wrapper);
-		}
 
 		var dataname = Symbol.lower_case_to_camel_case (get_ccode_name (m)) + "Data";
 		var asyncfunc = new CCodeFunction (get_ccode_real_name (m), "void");
@@ -259,10 +207,6 @@ public class Vala.GAsyncModule : GtkModule {
 		ccode.add_declaration (dataname + "*", new CCodeVariableDeclarator ("_data_"));
 		ccode.add_assignment (data_var, dataalloc);
 
-		if (!context.require_glib_version (2, 44)) {
-			ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, "_callback_"), new CCodeConstant ("_callback_"));
-		}
-
 		var create_result = new CCodeFunctionCall (new CCodeIdentifier ("g_task_new"));
 
 		var t = m.parent_symbol as TypeSymbol;
@@ -288,27 +232,13 @@ public class Vala.GAsyncModule : GtkModule {
 		if (cancellable_param == null) {
 			create_result.add_argument (new CCodeConstant ("NULL"));
 		} else {
-			create_result.add_argument (new CCodeIdentifier (get_variable_cname (cancellable_param.name)));
+			create_result.add_argument (new CCodeIdentifier (get_ccode_name (cancellable_param)));
 		}
 
-		if (context.require_glib_version (2, 44)) {
-			create_result.add_argument (new CCodeIdentifier ("_callback_"));
-		} else {
-			create_result.add_argument (new CCodeIdentifier (callback_wrapper));
-		}
+		create_result.add_argument (new CCodeIdentifier ("_callback_"));
 		create_result.add_argument (new CCodeIdentifier ("_user_data_"));
 
 		ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, "_async_result"), create_result);
-
-		if (!context.require_glib_version (2, 44)) {
-			var task_completed_var = new CCodeMemberAccess.pointer (data_var, "_task_complete_");
-			var callback = new CCodeIdentifier ("_callback_");
-			var callback_is_null = new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, callback, new CCodeConstant ("NULL"));
-
-			ccode.open_if (callback_is_null);
-			ccode.add_assignment (task_completed_var, new CCodeConstant ("TRUE"));
-			ccode.close ();
-		}
 
 		var attach_data_call = new CCodeFunctionCall (new CCodeIdentifier ("g_task_set_task_data"));
 
@@ -391,6 +321,8 @@ public class Vala.GAsyncModule : GtkModule {
 			if (add_symbol_declaration (decl_space, m, get_ccode_name (m))) {
 				return;
 			}
+
+			generate_type_declaration (new MethodType (m), decl_space);
 
 			var cl = m.parent_symbol as Class;
 
@@ -582,7 +514,7 @@ public class Vala.GAsyncModule : GtkModule {
 
 		var cparam_map = new HashMap<int,CCodeParameter> (direct_hash, direct_equal);
 
-		cparam_map.set (get_param_pos (0.1), new CCodeParameter ("_res_", "GAsyncResult*"));
+		cparam_map.set (get_param_pos (get_ccode_async_result_pos (m)), new CCodeParameter ("_res_", "GAsyncResult*"));
 
 		generate_cparameters (m, cfile, cparam_map, finishfunc, null, null, null, 2);
 
@@ -615,7 +547,7 @@ public class Vala.GAsyncModule : GtkModule {
 		var ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_task_propagate_pointer"));
 		ccall.add_argument (async_result_cast);
 
-		if (m.get_error_types ().size > 0) {
+		if (m.tree_can_fail) {
 			ccall.add_argument (new CCodeIdentifier ("error"));
 		} else {
 			ccall.add_argument (new CCodeConstant ("NULL"));
@@ -633,7 +565,7 @@ public class Vala.GAsyncModule : GtkModule {
 		}
 
 		// If a task is cancelled, g_task_propagate_pointer returns NULL
-		if (m.get_error_types ().size > 0 || has_cancellable) {
+		if (m.tree_can_fail || has_cancellable) {
 			var is_null = new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, new CCodeConstant ("NULL"), data_var);
 
 			ccode.open_if (is_null);
@@ -646,7 +578,7 @@ public class Vala.GAsyncModule : GtkModule {
 			if (param.direction != ParameterDirection.IN) {
 				return_out_parameter (param);
 				if (!(param.variable_type is ValueType) || param.variable_type.nullable) {
-					ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, get_variable_cname (param.name)), new CCodeConstant ("NULL"));
+					ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, get_ccode_name (param)), new CCodeConstant ("NULL"));
 				}
 			}
 		}
@@ -713,10 +645,6 @@ public class Vala.GAsyncModule : GtkModule {
 		ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, "_source_object_"), new CCodeIdentifier ("source_object"));
 		ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, "_res_"), new CCodeIdentifier ("_res_"));
 
-		if (!context.require_glib_version (2, 44)) {
-			ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, "_task_complete_"), new CCodeConstant ("TRUE"));
-		}
-
 		var ccall = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_real_name (m) + "_co"));
 		ccall.add_argument (data_var);
 		ccode.add_expression (ccall);
@@ -773,37 +701,12 @@ public class Vala.GAsyncModule : GtkModule {
 			return;
 		}
 
-		if (stmt.yield_expression == null) {
-			int state = emit_context.next_coroutine_state++;
+		int state = emit_context.next_coroutine_state++;
 
-			ccode.add_assignment (new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_state_"), new CCodeConstant (state.to_string ()));
-			ccode.add_return (new CCodeConstant ("FALSE"));
-			ccode.add_label ("_state_%d".printf (state));
-			ccode.add_statement (new CCodeEmptyStatement ());
-
-			return;
-		}
-
-		if (stmt.yield_expression.error) {
-			stmt.error = true;
-			return;
-		}
-
-		ccode.add_expression (get_cvalue (stmt.yield_expression));
-
-		if (stmt.tree_can_fail && stmt.yield_expression.tree_can_fail) {
-			// simple case, no node breakdown necessary
-
-			add_simple_check (stmt.yield_expression);
-		}
-
-		/* free temporary objects */
-
-		foreach (var value in temp_ref_values) {
-			ccode.add_expression (destroy_value (value));
-		}
-
-		temp_ref_values.clear ();
+		ccode.add_assignment (new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_state_"), new CCodeConstant (state.to_string ()));
+		ccode.add_return (new CCodeConstant ("FALSE"));
+		ccode.add_label ("_state_%d".printf (state));
+		ccode.add_statement (new CCodeEmptyStatement ());
 	}
 
 	public override void return_with_exception (CCodeExpression error_expr)
@@ -853,9 +756,9 @@ public class Vala.GAsyncModule : GtkModule {
 					carg_map.set (get_param_pos (-0.9), new CCodeIdentifier ("_user_data_"));
 				}
 			} else if (direction == 2) {
-				cparam_map.set (get_param_pos (0.1), new CCodeParameter ("_res_", "GAsyncResult*"));
+				cparam_map.set (get_param_pos (get_ccode_async_result_pos (m)), new CCodeParameter ("_res_", "GAsyncResult*"));
 				if (carg_map != null) {
-					carg_map.set (get_param_pos (0.1), new CCodeIdentifier ("_res_"));
+					carg_map.set (get_param_pos (get_ccode_async_result_pos (m)), new CCodeIdentifier ("_res_"));
 				}
 			}
 		}

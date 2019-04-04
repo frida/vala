@@ -80,6 +80,22 @@ public class Vala.Class : ObjectTypeSymbol {
 	}
 
 	/**
+	 * Instances of immutable classes are immutable after construction.
+	 */
+	public bool is_singleton {
+		get {
+			if (_is_singleton == null) {
+				_is_singleton = get_attribute ("SingleInstance") != null;
+			}
+			return _is_singleton;
+		}
+		set {
+			_is_singleton = value;
+			set_attribute ("SingleInstance", value);
+		}
+	}
+
+	/**
 	 * Specifies whether this class has private fields.
 	 */
 	public bool has_private_fields { get; set; }
@@ -91,37 +107,64 @@ public class Vala.Class : ObjectTypeSymbol {
 
 	private bool? _is_compact;
 	private bool? _is_immutable;
+	private bool? _is_singleton;
 
 	private List<DataType> base_types = new ArrayList<DataType> ();
+	private HashMap<Method,Method> implicit_implementations = new HashMap<Method,Method> ();
 
 	/**
 	 * Specifies the default construction method.
 	 */
-	public CreationMethod default_construction_method { get; set; }
+	public CreationMethod? default_construction_method { get; private set; }
 
 	/**
 	 * Specifies the instance constructor.
 	 */
-	public Constructor constructor { get; set; }
+	public Constructor? constructor {
+		get { return _constructor; }
+		private set {
+			_constructor = value;
+			if (_constructor != null) {
+				_constructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies the class constructor.
 	 */
-	public Constructor class_constructor { get; set; }
+	public Constructor? class_constructor {
+		get { return _class_constructor; }
+		private set {
+			_class_constructor = value;
+			if (_class_constructor != null) {
+				_class_constructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies the static class constructor.
 	 */
-	public Constructor static_constructor { get; set; }
+	public Constructor? static_constructor {
+		get { return _static_constructor; }
+		private set {
+			_static_constructor = value;
+			if (_static_constructor != null) {
+				_static_constructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies the instance destructor.
 	 */
 	public Destructor? destructor {
 		get { return _destructor; }
-		set {
+		private set {
 			_destructor = value;
 			if (_destructor != null) {
+				_destructor.owner = scope;
 				if (_destructor.this_parameter != null) {
 					_destructor.scope.remove (_destructor.this_parameter.name);
 				}
@@ -134,12 +177,28 @@ public class Vala.Class : ObjectTypeSymbol {
 	/**
 	 * Specifies the class destructor.
 	 */
-	public Destructor? static_destructor { get; set; }
+	public Destructor? static_destructor {
+		get { return _static_destructor; }
+		private set {
+			_static_destructor = value;
+			if (_static_destructor != null) {
+				_static_destructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies the class destructor.
 	 */
-	public Destructor? class_destructor { get; set; }
+	public Destructor? class_destructor {
+		get { return _class_destructor; }
+		private set {
+			_class_destructor = value;
+			if (_class_destructor != null) {
+				_class_destructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies whether this class denotes an error base.
@@ -150,7 +209,12 @@ public class Vala.Class : ObjectTypeSymbol {
 		}
 	}
 
+	Constructor? _constructor;
+	Constructor? _class_constructor;
+	Constructor? _static_constructor;
 	Destructor? _destructor;
+	Destructor? _class_destructor;
+	Destructor? _static_destructor;
 
 	/**
 	 * Creates a new class.
@@ -232,14 +296,23 @@ public class Vala.Class : ObjectTypeSymbol {
 				m.error = true;
 				return;
 			}
+			if (is_abstract && cm.access == SymbolAccessibility.PUBLIC) {
+				//TODO Report an error for external constructors too
+				if (external_package) {
+					Report.warning (m.source_reference, "Creation method of abstract class cannot be public.");
+				} else {
+					Report.error (m.source_reference, "Creation method of abstract class cannot be public.");
+					error = true;
+					return;
+				}
+			}
 		}
 
 		base.add_method (m);
-		// explicit interface method implementation
-		if (m.base_interface_type != null) {
-			scope.remove (m.name);
-			scope.add (null, m);
-		}
+	}
+
+	public HashMap<Method,Method> get_implicit_implementations () {
+		return implicit_implementations;
 	}
 
 	/**
@@ -259,40 +332,52 @@ public class Vala.Class : ObjectTypeSymbol {
 	}
 
 	public override void add_constructor (Constructor c) {
-		if (c.binding == MemberBinding.INSTANCE) {
+		switch (c.binding) {
+		case MemberBinding.INSTANCE:
 			if (constructor != null) {
 				Report.error (c.source_reference, "class already contains a constructor");
 			}
 			constructor = c;
-		} else if (c.binding == MemberBinding.CLASS) {
+			break;
+		case MemberBinding.CLASS:
 			if (class_constructor != null) {
 				Report.error (c.source_reference, "class already contains a class constructor");
 			}
 			class_constructor = c;
-		} else {
+			break;
+		case MemberBinding.STATIC:
 			if (static_constructor != null) {
 				Report.error (c.source_reference, "class already contains a static constructor");
 			}
 			static_constructor = c;
+			break;
+		default:
+			assert_not_reached ();
 		}
 	}
 
 	public override void add_destructor (Destructor d) {
-		if (d.binding == MemberBinding.INSTANCE) {
+		switch (d.binding) {
+		case MemberBinding.INSTANCE:
 			if (destructor != null) {
 				Report.error (d.source_reference, "class already contains a destructor");
 			}
 			destructor = d;
-		} else if (d.binding == MemberBinding.CLASS) {
+			break;
+		case MemberBinding.CLASS:
 			if (class_destructor != null) {
 				Report.error (d.source_reference, "class already contains a class destructor");
 			}
 			class_destructor = d;
-		} else {
+			break;
+		case MemberBinding.STATIC:
 			if (static_destructor != null) {
 				Report.error (d.source_reference, "class already contains a static destructor");
 			}
 			static_destructor = d;
+			break;
+		default:
+			assert_not_reached ();
 		}
 	}
 
@@ -495,12 +580,41 @@ public class Vala.Class : ObjectTypeSymbol {
 			p.check (context);
 		}
 
+		if (base_class != null && base_class.is_singleton) {
+			error = true;
+			Report.error (source_reference, "`%s' cannot inherit from SingleInstance class `%s'".printf (get_full_name (), base_class.get_full_name ()));
+		}
+
+		if (is_singleton && !is_subtype_of (context.analyzer.object_type)) {
+			error = true;
+			Report.error (source_reference, "SingleInstance class `%s' requires inheritance from `GLib.Object'".printf (get_full_name ()));
+		}
+
+		/* singleton classes require an instance construtor */
+		if (is_singleton && constructor == null) {
+			var c = new Constructor (source_reference);
+			c.body = new Block (source_reference);
+			add_constructor (c);
+		}
+
 		/* process enums first to avoid order problems in C code */
 		foreach (Enum en in get_enums ()) {
 			en.check (context);
 		}
 
 		foreach (Field f in get_fields ()) {
+			if (is_compact && f.binding != MemberBinding.STATIC) {
+				//FIXME Should external bindings follow this too?
+				if (!external_package && f.access == SymbolAccessibility.PRIVATE) {
+					Report.error (source_reference, "private fields are not supported in compact classes");
+					error = true;
+				}
+				if (f.binding == MemberBinding.CLASS) {
+					Report.error (f.source_reference, "class fields are not supported in compact classes");
+					error = true;
+				}
+			}
+
 			f.check (context);
 		}
 
@@ -634,13 +748,19 @@ public class Vala.Class : ObjectTypeSymbol {
 						if (m.is_abstract) {
 							var implemented = false;
 							var base_class = this;
-							while (base_class != null) {
+							while (base_class != null && !implemented) {
 								foreach (var impl in base_class.get_methods ()) {
-									if (impl.name == m.name && (impl.base_interface_type == null || impl.base_interface_type.data_type == iface)) {
+									if (impl.base_interface_method == m || (base_class != this
+									    && impl.base_interface_method == null && impl.name == m.name
+									    && (impl.base_interface_type == null || impl.base_interface_type.data_type == iface)
+									    && impl.compatible_no_error (m))) {
 										// method is used as interface implementation, so it is not unused
 										impl.version.check (source_reference);
 										impl.used = true;
 										implemented = true;
+										if (impl.base_interface_method == null) {
+											implicit_implementations.set (m, impl);
+										}
 										break;
 									}
 								}

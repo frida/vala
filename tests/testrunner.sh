@@ -33,27 +33,19 @@ VALAFLAGS="$VALAFLAGS \
 	--disable-warnings \
 	--main main \
 	--save-temps \
+	--cc $CC \
 	-X -g \
 	-X -O0 \
 	-X -pipe \
 	-X -lm \
-	-X -DGETTEXT_PACKAGE=\"valac\" \
-	-X -Werror=return-type \
-	-X -Werror=init-self \
-	-X -Werror=implicit \
-	-X -Werror=sequence-point \
-	-X -Werror=return-type \
-	-X -Werror=uninitialized \
-	-X -Werror=pointer-arith \
-	-X -Werror=int-to-pointer-cast \
-	-X -Werror=pointer-to-int-cast \
-	-X -Wformat \
-	-X -Werror=format-security \
-	-X -Werror=format-nonliteral \
-	-X -Werror=redundant-decls \
-	-X -Werror=int-conversion"
+	-X -DGETTEXT_PACKAGE=\\\"valac\\\""
 VAPIGEN=$topbuilddir/vapigen/vapigen$EXEEXT
 VAPIGENFLAGS="--vapidir $vapidir"
+
+# Incorporate the TEST_CFLAGS.
+for cflag in ${TEST_CFLAGS}; do
+    VALAFLAGS="${VALAFLAGS} -X ${cflag}"
+done
 
 # Incorporate the user's CFLAGS. Matters if the user decided to insert
 # -m32 in CFLAGS, for example.
@@ -69,10 +61,11 @@ function testheader() {
 		INVALIDCODE=1
 		INHEADER=0
 		testpath=${testfile/.test/}
-		ns=${testpath//\//.}
-		ns=${ns//-/_}
+		ns=${testpath//\//_}
+		ns=${ns//-/_}\_invalid
 		SOURCEFILE=$ns.vala
 	elif [ "$1" = "D-Bus" ]; then
+		DBUSTEST=1
 		run_prefix="dbus-run-session -- $run_prefix"
 	elif [ "$1" = "GIR" ]; then
 		GIRTEST=1
@@ -81,17 +74,18 @@ function testheader() {
 
 function sourceheader() {
 	if [ "$1" = "Program:" ]; then
+		if [ "$2" = "server" ]; then
+			ISSERVER=1
+		fi
 		testpath=${testfile/.test/}/$2
-		ns=${testpath//\//.}
+		ns=${testpath//\//_}
 		ns=${ns//-/_}
 		SOURCEFILE=$ns.vala
 		SOURCEFILES="$SOURCEFILES $SOURCEFILE"
-		echo "	case \"/$testpath\": $ns.main (); break;" >> main.vala
-		echo "namespace $ns {" > $SOURCEFILE
 	elif [ $GIRTEST -eq 1 ]; then
 		if [ "$1" = "Input:" ]; then
 			testpath=${testfile/.test/}
-			ns=${testpath//\//.}
+			ns=${testpath//\//_}
 			ns=${ns//-/_}
 			SOURCEFILE=$ns.gir
 			cat <<EOF > $SOURCEFILE
@@ -110,7 +104,7 @@ function sourceheader() {
 EOF
 		elif [ "$1" = "Output:" ]; then
 			testpath=${testfile/.test/}
-			ns=${testpath//\//.}
+			ns=${testpath//\//_}
 			ns=${ns//-/_}
 			SOURCEFILE=$ns.vapi.ref
 		fi
@@ -127,10 +121,17 @@ function sourceend() {
 				echo "  </namespace>" >> $SOURCEFILE
 				echo "</repository>" >> $SOURCEFILE
 			fi
-			echo "$VAPIGEN $VAPIGENFLAGS --library $ns $ns.gir && tail -n +5 $ns.vapi|sed '\$d'|diff -wu $ns.vapi.ref -" > check
+			echo "G_DEBUG=fatal-warnings $VAPIGEN $VAPIGENFLAGS --library $ns $ns.gir && tail -n +5 $ns.vapi|sed '\$d'|diff -wu $ns.vapi.ref -" > check
 		else
-			echo "}" >> $SOURCEFILE
-			echo "./test$EXEEXT /$testpath" > check
+			PACKAGEFLAGS=$([ -z "$PACKAGES" ] || echo $PACKAGES | xargs -n 1 echo -n " --pkg")
+			echo "G_DEBUG=fatal-warnings $VALAC $VALAFLAGS $PACKAGEFLAGS -o $ns$EXEEXT $SOURCEFILE" >> prepare
+			if [ $DBUSTEST -eq 1 ]; then
+				if [ $ISSERVER -eq 1 ]; then
+					echo "G_DEBUG=fatal-warnings ./$ns$EXEEXT" >> check
+				fi
+			else
+				echo "G_DEBUG=fatal-warnings ./$ns$EXEEXT" >> check
+			fi
 		fi
 	fi
 }
@@ -140,44 +141,51 @@ rm -rf $testdir
 mkdir $testdir
 cd $testdir
 
-echo -n -e "TEST: Building...\033[72G"
+echo -n -e "TEST: Preparing...\033[72G"
 
 cat << "EOF" > checkall
 all=0
 fail=0
 EOF
 
-cat << "EOF" > main.vala
-void main (string[] args) {
-	switch (args[1]) {
-EOF
-
 PACKAGES=gio-2.0
-SOURCEFILES=
 for testfile in "$@"; do
 	rm -f prepare check
 	echo 'set -e' >> prepare
+	run_prefix=""
 
 	case "$testfile" in
 	*.vala)
 		testpath=${testfile/.vala/}
-		ns=${testpath//\//.}
+		ns=${testpath//\//_}
 		ns=${ns//-/_}
 		SOURCEFILE=$ns.vala
-		SOURCEFILES="$SOURCEFILES $SOURCEFILE"
 
-		echo "	case \"/$testpath\": $ns.main (); break;" >> main.vala
-		echo "namespace $ns {" > $SOURCEFILE
 		cat "$srcdir/$testfile" >> $SOURCEFILE
-		echo "}" >> $SOURCEFILE
 
-		echo "G_DEBUG=fatal-warnings ./test$EXEEXT /$testpath" > check
+		PACKAGEFLAGS=$([ -z "$PACKAGES" ] || echo $PACKAGES | xargs -n 1 echo -n " --pkg")
+		echo "G_DEBUG=fatal-warnings $VALAC $VALAFLAGS $PACKAGEFLAGS -o $ns$EXEEXT $SOURCEFILE" >> prepare
+		echo "G_DEBUG=fatal-warnings ./$ns$EXEEXT" >> check
+		;;
+	*.gs)
+		testpath=${testfile/.gs/}
+		ns=${testpath//\//_}
+		ns=${ns//-/_}
+		SOURCEFILE=$ns.gs
+
+		cat "$srcdir/$testfile" >> $SOURCEFILE
+
+		PACKAGEFLAGS=$([ -z "$PACKAGES" ] || echo $PACKAGES | xargs -n 1 echo -n " --pkg")
+		echo "G_DEBUG=fatal-warnings $VALAC $VALAFLAGS $PACKAGEFLAGS -o $ns$EXEEXT $SOURCEFILE" >> prepare
+		echo "G_DEBUG=fatal-warnings ./$ns$EXEEXT" >> check
 		;;
 	*.test)
 		PART=0
 		INHEADER=1
 		INVALIDCODE=0
 		GIRTEST=0
+		DBUSTEST=0
+		ISSERVER=0
 		testpath=
 		while IFS="" read -r line; do
 			if [ $PART -eq 0 ]; then
@@ -233,23 +241,7 @@ else
 fi
 EOF
 
-cat << "EOF" >> main.vala
-	default: assert_not_reached ();
-	}
-}
-EOF
-
-cat $SOURCEFILES >> main.vala
-
-if $VALAC $VALAFLAGS -o test$EXEEXT $([ -z "$PACKAGES" ] || echo $PACKAGES | xargs -n 1 echo -n " --pkg") main.vala &>log; then
-	echo -e "\033[0;32mOK\033[m"
-else
-	echo -e "\033[0;31mFAIL\033[m"
-	cat log
-
-	cd $builddir
-	exit 1
-fi
+echo -e "\033[0;33mDONE\033[m"
 
 if bash checkall; then
 	cd $builddir

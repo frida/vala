@@ -52,7 +52,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			if (ma.inner != null && ma.inner.value_type is EnumValueType && ((EnumValueType) ma.inner.value_type).get_to_string_method() == m) {
 				// Enum.VALUE.to_string()
 				var en = (Enum) ma.inner.value_type.data_type;
-				ccall.call = new CCodeIdentifier (generate_enum_tostring_function (en));
+				ccall.call = new CCodeIdentifier (generate_enum_to_string_function (en));
 			} else if (context.profile == Profile.POSIX && ma.inner != null && ma.inner.value_type != null && ma.inner.value_type.data_type == string_type.data_type && ma.member_name == "printf") {
 				ccall.call = new CCodeIdentifier (generate_string_printf_function ());
 			} else if (expr.is_constructv_chainup) {
@@ -97,7 +97,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			if (ma.inner is BaseAccess) {
 				if (m.base_method != null) {
 					var base_class = (Class) m.base_method.parent_symbol;
-					var vcast = new CCodeFunctionCall (new CCodeIdentifier ("%s_CLASS".printf (get_ccode_upper_case_name (base_class, null))));
+					var vcast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_type_function (base_class)));
 					vcast.add_argument (new CCodeIdentifier ("%s_parent_class".printf (get_ccode_lower_case_name (current_class, null))));
 
 					async_call.call = new CCodeMemberAccess.pointer (vcast, get_ccode_vfunc_name (m));
@@ -129,7 +129,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				// output arguments used separately
 				out_arg_map = new HashMap<int,CCodeExpression> (direct_hash, direct_equal);
 				// pass GAsyncResult stored in closure to finish function
-				out_arg_map.set (get_param_pos (0.1), new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_res_"));
+				out_arg_map.set (get_param_pos (get_ccode_async_result_pos (m)), new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_res_"));
 			}
 		}
 
@@ -185,7 +185,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			}
 		} else if (m is CreationMethod && m.parent_symbol is Struct) {
 			ccall.add_argument (get_this_cexpression ());
-		} else if (m != null && m.get_type_parameters ().size > 0 && !get_ccode_has_generic_type_parameter (m) && !get_ccode_simple_generics (m) && (ccall != finish_call || expr.is_yield_expression)) {
+		} else if (m != null && m.has_type_parameters () && !get_ccode_has_generic_type_parameter (m) && !get_ccode_simple_generics (m) && (ccall != finish_call || expr.is_yield_expression)) {
 			// generic method
 			// don't add generic arguments for .end() calls
 			add_generic_type_arguments (in_arg_map, ma.get_type_arguments (), expr);
@@ -243,7 +243,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			}
 		} else if (m != null && m.binding == MemberBinding.CLASS) {
 			var cl = (Class) m.parent_symbol;
-			var cast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_upper_case_name (cl, null) + "_CLASS"));
+			var cast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_type_function (cl)));
 
 			CCodeExpression klass;
 			if (ma.inner == null) {
@@ -270,7 +270,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 		if (m != null && get_ccode_has_generic_type_parameter (m)) {
 			// insert type argument for macros
-			if (m.get_type_parameters ().size > 0) {
+			if (m.has_type_parameters ()) {
 				// generic method
 				int type_param_index = 0;
 				foreach (var type_arg in ma.get_type_arguments ()) {
@@ -328,7 +328,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				ccode.add_assignment (new CCodeMemberAccess.pointer (get_variable_cexpression ("_data%d_".printf (get_block_id (current_method.body))), "self"), ref_call);
 			}
 
-			if (!current_class.is_compact && current_class.get_type_parameters ().size > 0) {
+			if (!current_class.is_compact && current_class.has_type_parameters ()) {
 				/* type, dup func, and destroy func fields for generic types */
 				var suffices = new string[] {"type", "dup_func", "destroy_func"};
 				foreach (TypeParameter type_param in current_class.get_type_parameters ()) {
@@ -354,29 +354,27 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 			var carg_map = in_arg_map;
 
+			Parameter? param = null;
 			if (params_it.next ()) {
-				var param = params_it.get ();
+				param = params_it.get ();
 				ellipsis = param.params_array || param.ellipsis;
-				if (!ellipsis) {
+			}
+
+			if (param != null && !ellipsis) {
 					if (param.direction == ParameterDirection.OUT) {
 						carg_map = out_arg_map;
 					}
 
 					var unary = arg as UnaryExpression;
 					if (unary == null || unary.operator != UnaryOperator.OUT) {
-						if (get_ccode_array_length (param) && param.variable_type is ArrayType) {
+						if (get_ccode_array_length (param) && param.variable_type is ArrayType && !((ArrayType) param.variable_type).fixed_length) {
 							var array_type = (ArrayType) param.variable_type;
+							var length_ctype = get_ccode_array_length_type (param) ?? get_ccode_array_length_type (array_type);
+							if (unary != null && unary.operator == UnaryOperator.REF) {
+								length_ctype = "%s*".printf (length_ctype);
+							}
 							for (int dim = 1; dim <= array_type.rank; dim++) {
-								CCodeExpression? array_length_expr = null;
-								if (get_ccode_array_length_type (param) != null) {
-									string length_ctype = get_ccode_array_length_type (param);
-									if (unary != null && unary.operator == UnaryOperator.REF) {
-										length_ctype = "%s*".printf (length_ctype);
-									}
-									array_length_expr = new CCodeCastExpression (get_array_length_cexpression (arg, dim), length_ctype);
-								} else {
-									array_length_expr = get_array_length_cexpression (arg, dim);
-								}
+								var array_length_expr = new CCodeCastExpression (get_array_length_cexpression (arg, dim), length_ctype);
 								carg_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), array_length_expr);
 							}
 						} else if (param.variable_type is DelegateType) {
@@ -430,14 +428,11 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 						cexpr = new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_cvalue (arg));
 
-						if (get_ccode_array_length (param) && param.variable_type is ArrayType) {
+						if (get_ccode_array_length (param) && param.variable_type is ArrayType && !((ArrayType) param.variable_type).fixed_length) {
 							var array_type = (ArrayType) param.variable_type;
-							var array_length_type = int_type;
-							if (get_ccode_array_length_type (param) != null) {
-								array_length_type = new CType (get_ccode_array_length_type (param));
-							}
+							var length_ctype = get_ccode_array_length_type (param) ?? get_ccode_array_length_type (array_type);
 							for (int dim = 1; dim <= array_type.rank; dim++) {
-								var temp_array_length = get_temp_variable (array_length_type);
+								var temp_array_length = get_temp_variable (new CType (length_ctype, "0"), true, null, true);
 								emit_temp_var (temp_array_length);
 								append_array_length (arg, get_variable_cexpression (temp_array_length.name));
 								carg_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_array_lengths (arg).get (dim - 1)));
@@ -462,16 +457,27 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 					if (get_ccode_type (param) != null) {
 						cexpr = new CCodeCastExpression (cexpr, get_ccode_type (param));
 					}
+			} else {
+				// ellipsis arguments
+				var unary = arg as UnaryExpression;
+				if (ellipsis && unary != null && unary.operator == UnaryOperator.OUT) {
+					carg_map = out_arg_map;
+
+					arg.target_value = null;
+
+					// infer type and ownership from argument expression
+					var temp_var = get_temp_variable (arg.value_type, arg.value_type.value_owned, null, true);
+					emit_temp_var (temp_var);
+					set_cvalue (arg, get_variable_cexpression (temp_var.name));
+					arg.target_value.value_type = arg.value_type;
+
+					cexpr = new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_cvalue (arg));
 				} else {
 					cexpr = handle_struct_argument (null, arg, cexpr);
 				}
-				arg_pos = get_param_pos (get_ccode_pos (param), ellipsis);
-			} else {
-				// default argument position
-				cexpr = handle_struct_argument (null, arg, cexpr);
-				arg_pos = get_param_pos (i, ellipsis);
 			}
 
+			arg_pos = get_param_pos (param != null ? get_ccode_pos (param) : i, ellipsis);
 			carg_map.set (arg_pos, cexpr);
 
 			if (arg is NamedArgument && ellipsis) {
@@ -512,13 +518,8 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 					append_array_length (expr, len_call);
 				} else if (get_ccode_array_length (m)) {
-					LocalVariable temp_var;
-
-					if (get_ccode_array_length_type (m) == null) {
-						temp_var = get_temp_variable (int_type);
-					} else {
-						temp_var = get_temp_variable (new CType (get_ccode_array_length_type (m)));
-					}
+					var length_ctype = get_ccode_array_length_type (m) ?? get_ccode_array_length_type (array_type);
+					var temp_var = get_temp_variable (new CType (length_ctype, "0"), true, null, true);
 					var temp_ref = get_variable_cexpression (temp_var.name);
 
 					emit_temp_var (temp_var);
@@ -535,7 +536,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		} else if (m != null && m.return_type is DelegateType && async_call != ccall) {
 			var deleg_type = (DelegateType) m.return_type;
 			if (deleg_type.delegate_symbol.has_target) {
-				var temp_var = get_temp_variable (new PointerType (new VoidType ()));
+				var temp_var = get_temp_variable (new PointerType (new VoidType ()), true, null, true);
 				var temp_ref = get_variable_cexpression (temp_var.name);
 
 				emit_temp_var (temp_var);
@@ -545,7 +546,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				set_delegate_target (expr, temp_ref);
 
 				if (deleg_type.is_disposable ()) {
-					temp_var = get_temp_variable (gdestroynotify_type);
+					temp_var = get_temp_variable (gdestroynotify_type, true, null, true);
 					temp_ref = get_variable_cexpression (temp_var.name);
 
 					emit_temp_var (temp_var);
@@ -581,7 +582,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 					append_array_length (expr, len_call);
 				} else if (get_ccode_array_length (deleg)) {
-					var temp_var = get_temp_variable (int_type);
+					var temp_var = get_temp_variable (array_type.length_type, true, null, true);
 					var temp_ref = get_variable_cexpression (temp_var.name);
 
 					emit_temp_var (temp_var);
@@ -596,7 +597,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		} else if (deleg != null && deleg.return_type is DelegateType) {
 			var deleg_type = (DelegateType) deleg.return_type;
 			if (deleg_type.delegate_symbol.has_target) {
-				var temp_var = get_temp_variable (new PointerType (new VoidType ()));
+				var temp_var = get_temp_variable (new PointerType (new VoidType ()), true, null, true);
 				var temp_ref = get_variable_cexpression (temp_var.name);
 
 				emit_temp_var (temp_var);
@@ -606,7 +607,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				set_delegate_target (expr, temp_ref);
 
 				if (deleg_type.is_disposable ()) {
-					temp_var = get_temp_variable (gdestroynotify_type);
+					temp_var = get_temp_variable (gdestroynotify_type, true, null, true);
 					temp_ref = get_variable_cexpression (temp_var.name);
 
 					emit_temp_var (temp_var);
@@ -630,10 +631,10 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			// method can fail
 			current_method_inner_error = true;
 			// add &inner_error before the ellipsis arguments
-			out_arg_map.set (get_param_pos (-1), new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_variable_cexpression ("_inner_error_")));
+			out_arg_map.set (get_param_pos (get_ccode_error_pos ((Callable) m ?? deleg)), new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_inner_error_cexpression ()));
 		} else if (m != null && m.has_error_type_parameter () && async_call != ccall) {
 			// inferred error argument from base method
-			out_arg_map.set (get_param_pos (-1), new CCodeConstant ("NULL"));
+			out_arg_map.set (get_param_pos (get_ccode_error_pos (m)), new CCodeConstant ("NULL"));
 		}
 
 		if (ellipsis) {
@@ -665,7 +666,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 			if (ma != null && ma.inner is BaseAccess && sig.is_virtual) {
 				// normal return value for base access
-			} else if (!get_signal_has_emitter (sig) || ma.source_reference.file == sig.source_reference.file) {
+			} else if (!get_ccode_has_emitter (sig) || ma.source_reference.file == sig.source_reference.file) {
 				return_result_via_out_param = true;
 			}
 		}
@@ -827,7 +828,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			} else if (m != null && m.get_attribute_bool ("CCode", "use_inplace", false)) {
 				set_cvalue (expr, ccall_expr);
 			} else if (!return_result_via_out_param
-			    && ((m != null && !has_ref_out_param (m)) || (deleg != null && !has_ref_out_param (deleg)))
+			    && !has_ref_out_argument (expr)
 			    && (result_type is ValueType && !result_type.is_disposable ())) {
 				set_cvalue (expr, ccall_expr);
 			} else if (!return_result_via_out_param) {
@@ -851,10 +852,6 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 			if (params_it.next ()) {
 				param = params_it.get ();
-				if (param.params_array || param.ellipsis) {
-					// ignore ellipsis arguments as we currently don't use temporary variables for them
-					break;
-				}
 			}
 
 			var unary = arg as UnaryExpression;
@@ -883,11 +880,14 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		if (m is CreationMethod && m.parent_symbol is Class && ((current_class.is_compact && current_class.base_class != null) || current_class.base_class == gsource_type)) {
 			var cinitcall = new CCodeFunctionCall (new CCodeIdentifier ("%s_instance_init".printf (get_ccode_lower_case_name (current_class, null))));
 			cinitcall.add_argument (get_this_cexpression ());
+			if (!current_class.is_compact) {
+				cinitcall.add_argument (new CCodeConstant ("NULL"));
+			}
 			ccode.add_expression (cinitcall);
 		}
 	}
 
-	private string generate_enum_tostring_function (Enum en) {
+	private string generate_enum_to_string_function (Enum en) {
 		var to_string_func = "_%s_to_string".printf (get_ccode_lower_case_name (en));
 
 		if (!add_wrapper (to_string_func)) {
@@ -922,9 +922,10 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		return to_string_func;
 	}
 
-	bool has_ref_out_param (Callable c) {
-		foreach (var param in c.get_parameters ()) {
-			if (param.direction != ParameterDirection.IN) {
+	bool has_ref_out_argument (MethodCall c) {
+		foreach (var arg in c.get_argument_list ()) {
+			unowned UnaryExpression? unary = arg as UnaryExpression;
+			if (unary != null && (unary.operator == UnaryOperator.OUT || unary.operator == UnaryOperator.REF)) {
 				return true;
 			}
 		}

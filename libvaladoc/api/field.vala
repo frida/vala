@@ -26,19 +26,19 @@ using Valadoc.Content;
 /**
  * Represents a field.
  */
-public class Valadoc.Api.Field : Member {
+public class Valadoc.Api.Field : Symbol {
 	private string? cname;
 
-	public Field (Node parent, SourceFile file, string name, SymbolAccessibility accessibility,
-				  SourceComment? comment, string? cname, bool is_static, bool is_volatile,
+	public Field (Node parent, SourceFile file, string name, Vala.SymbolAccessibility accessibility,
+				  SourceComment? comment,
 				  Vala.Field data)
 	{
 		base (parent, file, name, accessibility, comment, data);
 
-		this.is_static = !(parent is Namespace) && is_static;
-		this.is_volatile = is_volatile;
+		this.is_static = !(parent is Namespace) && data.binding == Vala.MemberBinding.STATIC;
+		this.is_volatile = data.is_volatile;
 
-		this.cname = cname;
+		this.cname = Vala.get_ccode_name (data);
 	}
 
 	/**

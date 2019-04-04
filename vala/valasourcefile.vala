@@ -29,7 +29,7 @@ public class Vala.SourceFile {
 	/**
 	 * The name of this source file.
 	 */
-	public string filename { get; set; }
+	public string filename { get; private set; }
 
 	public string? relative_filename {
 		set {
@@ -123,11 +123,6 @@ public class Vala.SourceFile {
 	 * been emitted into C code as a definition or declaration).
 	 */
 	public bool used { get; set; }
-
-	/**
-	 * Whether this source-file was explicitly passed on the commandline.
-	 */
-	public bool explicit { get; set; }
 
 	private ArrayList<Comment> comments = new ArrayList<Comment> ();
 

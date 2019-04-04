@@ -9,7 +9,6 @@ Rectangle struct
 // Move static methods into classes (mostly Util)
 add_focus_tracker parent="Atk.Util"
 add_global_event_listener parent="Atk.Util"
-  .listener type="Atk.SignalEmissionHook"
 add_key_event_listener parent="Atk.Util"
 focus_tracker_init parent="Atk.Util"
 focus_tracker_notify parent="Atk.Util"
@@ -33,9 +32,7 @@ Role.edit_bar name="editbar"
 
 // G-I doesn't distinguish between abstract and virtual
 Document.*#virtual_method virtual
-
-// Can't document callback fields
-Text.get_bounded_ranges skip
+Text.get_bounded_ranges#virtual_method virtual
 
 // Callbacks without user data
 add_focus_tracker skip=false
@@ -48,3 +45,7 @@ Component.add_focus_handler skip=false
 // Ownership of fields
 TextRange.content unowned=false
 Attribute.* unowned=false
+
+// Should be fixed upstream
+// https://gitlab.gnome.org/GNOME/atk/commit/96d13ae47f6f77445483ee8a0d7d6569a95f35bf
+Implementor* skip // g-ir-scanner doesn't realize this is an interface

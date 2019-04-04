@@ -537,9 +537,9 @@ public class Gtkdoc.Generator : Api.Visitor {
 			gcomment = add_symbol (filename, cl.get_set_value_function_cname ());
 			gcomment.brief_comment = "Set the contents of a %s derived <link linkend=\"GValue\"><type>GValue</type></link> to @v_object."
 				.printf (get_docbook_type_link (cl));
-			gcomment.long_comment = "<link linkend=\"%s\"><function>%s()</function></link> increases the reference count of @v_object (the <link linkend=\"GValue\"><type>GValue</type></link> holds a reference to @v_object). If you do not wish to increase the reference count of the object (i.e. you wish to pass your current reference to the <link linkend=\"GValue\"><type>GValue</type></link> because you no longer need it), use <link linkend=\"%s\"><function>%s()</function></link> instead.
+			gcomment.long_comment = """<link linkend="%s"><function>%s()</function></link> increases the reference count of @v_object (the <link linkend="GValue"><type>GValue</type></link> holds a reference to @v_object). If you do not wish to increase the reference count of the object (i.e. you wish to pass your current reference to the <link linkend="GValue"><type>GValue</type></link> because you no longer need it), use <link linkend="%s"><function>%s()</function></link> instead.
 
-It is important that your <link linkend=\"GValue\"><type>GValue</type></link> holds a reference to @v_object (either its own, or one it has taken) to ensure that the object won't be destroyed while the <link linkend=\"GValue\"><type>GValue</type></link> still exists)."
+It is important that your <link linkend="GValue"><type>GValue</type></link> holds a reference to @v_object (either its own, or one it has taken) to ensure that the object won't be destroyed while the <link linkend="GValue"><type>GValue</type></link> still exists)."""
 				.printf (to_docbook_id (cl.get_set_value_function_cname ()),
 						 cl.get_set_value_function_cname (),
 						 to_docbook_id (cl.get_take_value_function_cname ()),
@@ -1339,21 +1339,21 @@ It is important that your <link linkend=\"GValue\"><type>GValue</type></link> ho
 		if (sym.is_deprecated) {
 			Attribute? version;
 			Attribute? deprecated;
-			AttributeArgument? deprecated_since;
-			AttributeArgument? replacement;
+			string? deprecated_since;
+			string? replacement;
 			if ((version = sym.get_attribute ("Version")) != null) {
-				deprecated_since = version.get_argument ("deprecated_since");
-				replacement = version.get_argument ("replacement");
+				deprecated_since = ((Vala.Attribute) version.data).get_string ("deprecated_since");
+				replacement = ((Vala.Attribute) version.data).get_string ("replacement");
 			} else if ((deprecated = sym.get_attribute ("Deprecated")) != null) {
-				deprecated_since = deprecated.get_argument ("since");
-				replacement = deprecated.get_argument ("replacement");
+				deprecated_since = ((Vala.Attribute) deprecated.data).get_string ("since");
+				replacement = ((Vala.Attribute) deprecated.data).get_string ("replacement");
 			} else {
 				assert_not_reached ();
 			}
 
 			string? since = null;
 			if (deprecated_since != null) {
-				since = deprecated_since.value;
+				since = deprecated_since;
 
 				// Strip surrounding quotation marks.
 				if (since.has_prefix ("\"")) {
@@ -1368,7 +1368,7 @@ It is important that your <link linkend=\"GValue\"><type>GValue</type></link> ho
 			Api.Node? replacement_symbol = null;
 
 			if (replacement != null) {
-				replacement_symbol_name = replacement.value;
+				replacement_symbol_name = replacement;
 
 				// Strip surrounding quotation marks.
 				if (replacement_symbol_name.has_prefix ("\"")) {

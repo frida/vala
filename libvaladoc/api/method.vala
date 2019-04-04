@@ -26,13 +26,11 @@ using Valadoc.Content;
 /**
  * Represents a function or a method.
  */
-public class Valadoc.Api.Method : Member, Callable {
+public class Valadoc.Api.Method : Symbol, Callable {
 	private string? finish_function_cname;
 	private string? dbus_result_name;
 	private string? dbus_name;
 	private string? cname;
-
-	private MethodBindingType binding_type;
 
 	/**
 	 * {@inheritDoc}
@@ -43,22 +41,19 @@ public class Valadoc.Api.Method : Member, Callable {
 	}
 
 
-	public Method (Node parent, SourceFile file, string name, SymbolAccessibility accessibility,
-				   SourceComment? comment, string? cname, string? dbus_name, string? dbus_result_name,
-				   string? finish_function_cname, MethodBindingType binding_type, bool is_yields,
-				   bool is_dbus_visible, bool is_constructor, Vala.Method data)
+	public Method (Node parent, SourceFile file, string name, Vala.SymbolAccessibility accessibility,
+				   SourceComment? comment, Vala.Method data)
 	{
 		base (parent, file, name, accessibility, comment, data);
 
-		this.finish_function_cname = finish_function_cname;
-		this.dbus_result_name = dbus_result_name;
-		this.dbus_name = dbus_name;
-		this.cname = cname;
+		this.finish_function_cname = (data.coroutine ? Vala.get_ccode_finish_name (data) : null);
+		this.dbus_result_name = Vala.GDBusModule.dbus_result_name (data);
+		this.dbus_name = Vala.GDBusModule.get_dbus_name_for_member (data);
+		this.cname = Vala.get_ccode_name (data);
 
-		this.binding_type = binding_type;
-		this.is_dbus_visible = is_dbus_visible;
-		this.is_constructor = is_constructor;
-		this.is_yields = is_yields;
+		this.is_dbus_visible = Vala.GDBusModule.is_dbus_visible (data);
+		this.is_constructor = data is Vala.CreationMethod;
+		this.is_yields = data.coroutine;
 	}
 
 	/**
@@ -115,7 +110,7 @@ public class Valadoc.Api.Method : Member, Callable {
 	 */
 	public bool is_abstract {
 		get {
-			return binding_type == MethodBindingType.ABSTRACT;
+			return ((Vala.Method) data).is_abstract;
 		}
 	}
 
@@ -124,7 +119,7 @@ public class Valadoc.Api.Method : Member, Callable {
 	 */
 	public bool is_virtual {
 		get {
-			return binding_type == MethodBindingType.VIRTUAL;
+			return ((Vala.Method) data).is_virtual;
 		}
 	}
 
@@ -133,7 +128,7 @@ public class Valadoc.Api.Method : Member, Callable {
 	 */
 	public bool is_override {
 		get {
-			return binding_type == MethodBindingType.OVERRIDE;
+			return ((Vala.Method) data).overrides;
 		}
 	}
 
@@ -142,7 +137,7 @@ public class Valadoc.Api.Method : Member, Callable {
 	 */
 	public bool is_static {
 		get {
-			return !is_constructor && binding_type == MethodBindingType.STATIC
+			return !is_constructor && ((Vala.Method) data).binding == Vala.MemberBinding.STATIC
 				&& parent is Namespace == false;
 		}
 	}
@@ -160,7 +155,7 @@ public class Valadoc.Api.Method : Member, Callable {
 	 */
 	public bool is_inline {
 		get {
-			return binding_type == MethodBindingType.INLINE;
+			return ((Vala.Method) data).is_inline;
 		}
 	}
 
@@ -193,10 +188,13 @@ public class Valadoc.Api.Method : Member, Callable {
 			if (is_inline) {
 				signature.append_keyword ("inline");
 			}
-			if (is_yields) {
-				signature.append_keyword ("async");
-			}
+		}
 
+		if (is_yields) {
+			signature.append_keyword ("async");
+		}
+
+		if (!is_constructor) {
 			signature.append_content (return_type.signature);
 		}
 

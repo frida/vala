@@ -108,34 +108,8 @@ public class Vala.BinaryExpression : Expression {
 		}
 	}
 
-	private unowned string get_operator_string () {
-		switch (_operator) {
-		case BinaryOperator.PLUS: return "+";
-		case BinaryOperator.MINUS: return "-";
-		case BinaryOperator.MUL: return "*";
-		case BinaryOperator.DIV: return "/";
-		case BinaryOperator.MOD: return "%";
-		case BinaryOperator.SHIFT_LEFT: return "<<";
-		case BinaryOperator.SHIFT_RIGHT: return ">>";
-		case BinaryOperator.LESS_THAN: return "<";
-		case BinaryOperator.GREATER_THAN: return ">";
-		case BinaryOperator.LESS_THAN_OR_EQUAL: return "<=";
-		case BinaryOperator.GREATER_THAN_OR_EQUAL: return ">=";
-		case BinaryOperator.EQUALITY: return "==";
-		case BinaryOperator.INEQUALITY: return "!=";
-		case BinaryOperator.BITWISE_AND: return "&";
-		case BinaryOperator.BITWISE_OR: return "|";
-		case BinaryOperator.BITWISE_XOR: return "^";
-		case BinaryOperator.AND: return "&&";
-		case BinaryOperator.OR: return "||";
-		case BinaryOperator.IN: return "in";
-		case BinaryOperator.COALESCE: return "??";
-		default: assert_not_reached ();
-		}
-	}
-
 	public override string to_string () {
-		return _left.to_string () + get_operator_string () + _right.to_string ();
+		return "(%s %s %s)".printf (_left.to_string (), operator.to_string (), _right.to_string ());
 	}
 
 	public override bool is_constant () {
@@ -154,6 +128,11 @@ public class Vala.BinaryExpression : Expression {
 		return left.is_accessible (sym) && right.is_accessible (sym);
 	}
 
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		left.get_error_types (collection, source_reference);
+		right.get_error_types (collection, source_reference);
+	}
+
 	public override bool check (CodeContext context) {
 		if (checked) {
 			return !error;
@@ -170,7 +149,6 @@ public class Vala.BinaryExpression : Expression {
 
 			var local = new LocalVariable (context.analyzer.bool_type.copy (), get_temp_name (), null, source_reference);
 			var decl = new DeclarationStatement (local, source_reference);
-			decl.check (context);
 
 			var right_stmt = new ExpressionStatement (new Assignment (new MemberAccess.simple (local.name, right.source_reference), right, AssignmentOperator.SIMPLE, right.source_reference), right.source_reference);
 
@@ -192,6 +170,8 @@ public class Vala.BinaryExpression : Expression {
 			insert_statement (context.analyzer.insert_block, decl);
 			insert_statement (context.analyzer.insert_block, if_stmt);
 
+			decl.check (context);
+
 			if (!if_stmt.check (context)) {
 				error = true;
 				return false;
@@ -200,9 +180,10 @@ public class Vala.BinaryExpression : Expression {
 			var ma = new MemberAccess.simple (local.name, source_reference);
 			ma.target_type = target_type;
 			ma.formal_target_type = formal_target_type;
-			ma.check (context);
 
 			parent_node.replace_expression (this, ma);
+
+			ma.check (context);
 
 			return true;
 		}
@@ -281,9 +262,10 @@ public class Vala.BinaryExpression : Expression {
 				cast.target_type.nullable = false;
 				replace_expr = cast;
 			}
-			replace_expr.check (context);
 
 			parent_node.replace_expression (this, replace_expr);
+
+			replace_expr.check (context);
 
 			return true;
 		}
@@ -324,12 +306,12 @@ public class Vala.BinaryExpression : Expression {
 			return false;
 		}
 
-		if (left.value_type is FieldPrototype) {
+		if (left.value_type is FieldPrototype || left.value_type is PropertyPrototype) {
 			error = true;
 			Report.error (left.source_reference, "Access to instance member `%s' denied".printf (left.symbol_reference.get_full_name ()));
 			return false;
 		}
-		if (right.value_type is FieldPrototype) {
+		if (right.value_type is FieldPrototype || right.value_type is PropertyPrototype) {
 			error = true;
 			Report.error (right.source_reference, "Access to instance member `%s' denied".printf (right.symbol_reference.get_full_name ()));
 			return false;
@@ -460,6 +442,26 @@ public class Vala.BinaryExpression : Expression {
 			   || operator == BinaryOperator.INEQUALITY) {
 			/* relational operation */
 
+			// Implicit cast for comparsion expression of GValue with other type
+			var gvalue_type = context.analyzer.gvalue_type.data_type;
+			if ((left.target_type.data_type == gvalue_type && right.target_type.data_type != gvalue_type)
+			    || (left.target_type.data_type != gvalue_type && right.target_type.data_type == gvalue_type)) {
+				Expression gvalue_expr;
+				DataType target_type;
+				if (left.target_type.data_type == gvalue_type) {
+					gvalue_expr = left;
+					target_type = right.target_type;
+				} else {
+					gvalue_expr = right;
+					target_type = left.target_type;
+				}
+
+				var cast_expr = new CastExpression (gvalue_expr, target_type, gvalue_expr.source_reference);
+				replace_expression (gvalue_expr, cast_expr);
+				checked = false;
+				return check (context);
+			}
+
 			if (!right.value_type.compatible (left.value_type)
 			    && !left.value_type.compatible (right.value_type)) {
 				Report.error (source_reference, "Equality operation: `%s' and `%s' are incompatible".printf (right.value_type.to_string (), left.value_type.to_string ()));
@@ -543,8 +545,12 @@ public class Vala.BinaryExpression : Expression {
 			value_type = context.analyzer.bool_type;
 
 		} else {
-			assert_not_reached ();
+			error = true;
+			Report.error (source_reference, "internal error: unsupported binary operator");
+			return false;
 		}
+
+		value_type.check (context);
 
 		return !error;
 	}
@@ -590,5 +596,31 @@ public enum Vala.BinaryOperator {
 	AND,
 	OR,
 	IN,
-	COALESCE
+	COALESCE;
+
+	public unowned string to_string () {
+		switch (this) {
+		case PLUS: return "+";
+		case MINUS: return "-";
+		case MUL: return "*";
+		case DIV: return "/";
+		case MOD: return "%";
+		case SHIFT_LEFT: return "<<";
+		case SHIFT_RIGHT: return ">>";
+		case LESS_THAN: return "<";
+		case GREATER_THAN: return ">";
+		case LESS_THAN_OR_EQUAL: return "<=";
+		case GREATER_THAN_OR_EQUAL: return ">=";
+		case EQUALITY: return "==";
+		case INEQUALITY: return "!=";
+		case BITWISE_AND: return "&";
+		case BITWISE_OR: return "|";
+		case BITWISE_XOR: return "^";
+		case AND: return "&&";
+		case OR: return "||";
+		case IN: return "in";
+		case COALESCE: return "??";
+		default: assert_not_reached ();
+		}
+	}
 }

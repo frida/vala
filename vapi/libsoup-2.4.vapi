@@ -511,8 +511,8 @@ namespace Soup {
 		public weak Soup.MessageHeaders response_headers;
 		[CCode (has_construct_function = false)]
 		public Message (string method, string uri_string);
-		public uint add_header_handler (string @signal, string header, GLib.Callback callback);
-		public uint add_status_code_handler (string @signal, uint status_code, GLib.Callback callback);
+		public uint add_header_handler (string @signal, string header, GLib.Callback callback, void* user_data);
+		public uint add_status_code_handler (string @signal, uint status_code, GLib.Callback callback, void* user_data);
 		[Version (since = "2.28")]
 		public void disable_feature (GLib.Type feature_type);
 		[CCode (has_construct_function = false)]
@@ -1878,10 +1878,16 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static GLib.HashTable<string,string> header_parse_param_list (string header);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.66")]
+	public static GLib.HashTable<string,string>? header_parse_param_list_strict (string header);
+	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static GLib.SList<string> header_parse_quality_list (string header, out GLib.SList<string> unacceptable);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	[Version (since = "2.24")]
 	public static GLib.HashTable<string,string> header_parse_semi_param_list (string header);
+	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.66")]
+	public static GLib.HashTable<string,string>? header_parse_semi_param_list_strict (string header);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	[Version (since = "2.26")]
 	public static bool headers_parse (string str, int len, Soup.MessageHeaders dest);

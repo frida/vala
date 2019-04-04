@@ -125,6 +125,15 @@ public class Vala.Block : Symbol, Statement {
 		scope.add (constant.name, constant);
 	}
 
+	/**
+	 * Returns the list of local constants.
+	 *
+	 * @return constants list
+	 */
+	public List<Constant> get_local_constants () {
+		return local_constants;
+	}
+
 	public override void accept (CodeVisitor visitor) {
 		visitor.visit_block (this);
 	}
@@ -161,15 +170,17 @@ public class Vala.Block : Symbol, Statement {
 			constant.active = false;
 		}
 
-		// use get_statements () instead of statement_list to not miss errors within StatementList objects
-		foreach (Statement stmt in get_statements ()) {
-			add_error_types (stmt.get_error_types ());
-		}
-
 		context.analyzer.current_symbol = old_symbol;
 		context.analyzer.insert_block = old_insert_block;
 
 		return !error;
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		// use get_statements () instead of statement_list to not miss errors within StatementList objects
+		foreach (Statement stmt in get_statements ()) {
+			stmt.get_error_types (collection, source_reference);
+		}
 	}
 
 	public override void emit (CodeGenerator codegen) {

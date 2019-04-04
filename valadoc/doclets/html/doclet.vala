@@ -73,7 +73,9 @@ public class Valadoc.Html.Doclet : Valadoc.Html.BasicDoclet {
 		base.process (settings, tree, reporter);
 
 		DirUtils.create_with_parents (this.settings.path, 0777);
-		copy_directory (icons_dir, settings.path);
+		if (!copy_directory (Config.PACKAGE_VALADOC_ICONDIR, settings.path)) {
+			reporter.simple_warning ("Html", "Couldn't copy resources from `%s'".printf (Config.PACKAGE_VALADOC_ICONDIR));
+		}
 
 		write_wiki_pages (tree, css_path_wiki, js_path_wiki, Path.build_filename(settings.path, settings.pkg_name));
 
@@ -108,6 +110,10 @@ public class Valadoc.Html.Doclet : Valadoc.Html.BasicDoclet {
 
 		string pkg_name = package.name;
 		string path = GLib.Path.build_filename ( this.settings.path, pkg_name );
+
+		if (package.is_package && FileUtils.test (path, FileTest.EXISTS)) {
+			return;
+		}
 
 		var rt = DirUtils.create (path, 0777);
 		rt = DirUtils.create (GLib.Path.build_filename (path, "img"), 0777);

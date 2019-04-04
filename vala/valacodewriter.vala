@@ -299,25 +299,8 @@ public class Vala.CodeWriter : CodeVisitor {
 		}
 
 		var sorted_symbols = new ArrayList<Symbol> ();
-		foreach (Symbol sym in symbols) {
-			int left = 0;
-			int right = sorted_symbols.size - 1;
-			if (left > right || sym.name < sorted_symbols[left].name) {
-				sorted_symbols.insert (0, sym);
-			} else if (sym.name > sorted_symbols[right].name) {
-				sorted_symbols.add (sym);
-			} else {
-				while (right - left > 1) {
-					int i = (right + left) / 2;
-					if (sym.name > sorted_symbols[i].name) {
-						left = i;
-					} else {
-						right = i;
-					}
-				}
-				sorted_symbols.insert (left + 1, sym);
-			}
-		}
+		sorted_symbols.add_all (symbols);
+		sorted_symbols.sort ((a, b) => strcmp (a.name, b.name));
 		foreach (Symbol sym in sorted_symbols) {
 			sym.accept (this);
 		}
@@ -723,7 +706,9 @@ public class Vala.CodeWriter : CodeVisitor {
 
 		write_params (cb.get_parameters ());
 
-		write_error_domains (cb.get_error_types ());
+		var error_types = new ArrayList<DataType> ();
+		cb.get_error_types (error_types);
+		write_error_domains (error_types);
 
 		write_string (";");
 
@@ -811,7 +796,9 @@ public class Vala.CodeWriter : CodeVisitor {
 
 		write_params (m.get_parameters ());
 
-		write_error_domains (m.get_error_types ());
+		var error_types = new ArrayList<DataType> ();
+		m.get_error_types (error_types);
+		write_error_domains (error_types);
 
 		write_code_block (m.body);
 
@@ -1120,10 +1107,6 @@ public class Vala.CodeWriter : CodeVisitor {
 	public override void visit_yield_statement (YieldStatement y) {
 		write_indent ();
 		write_string ("yield");
-		if (y.yield_expression != null) {
-			write_string (" ");
-			y.yield_expression.accept (this);
-		}
 		write_string (";");
 		write_newline ();
 	}
@@ -1237,6 +1220,10 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	public override void visit_method_call (MethodCall expr) {
+		if (expr.is_yield_expression) {
+			write_string ("yield ");
+		}
+
 		expr.call.accept (this);
 		write_string (" (");
 
@@ -1293,6 +1280,10 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	public override void visit_object_creation_expression (ObjectCreationExpression expr) {
+		if (expr.is_yield_expression) {
+			write_string ("yield ");
+		}
+
 		if (!expr.struct_creation) {
 			write_string ("new ");
 		}
@@ -1332,34 +1323,7 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	public override void visit_unary_expression (UnaryExpression expr) {
-		switch (expr.operator) {
-		case UnaryOperator.PLUS:
-			write_string ("+");
-			break;
-		case UnaryOperator.MINUS:
-			write_string ("-");
-			break;
-		case UnaryOperator.LOGICAL_NEGATION:
-			write_string ("!");
-			break;
-		case UnaryOperator.BITWISE_COMPLEMENT:
-			write_string ("~");
-			break;
-		case UnaryOperator.INCREMENT:
-			write_string ("++");
-			break;
-		case UnaryOperator.DECREMENT:
-			write_string ("--");
-			break;
-		case UnaryOperator.REF:
-			write_string ("ref ");
-			break;
-		case UnaryOperator.OUT:
-			write_string ("out ");
-			break;
-		default:
-			assert_not_reached ();
-		}
+		write_string (expr.operator.to_string ());
 		expr.inner.accept (this);
 	}
 
@@ -1401,72 +1365,9 @@ public class Vala.CodeWriter : CodeVisitor {
 
 	public override void visit_binary_expression (BinaryExpression expr) {
 		expr.left.accept (this);
-
-		switch (expr.operator) {
-		case BinaryOperator.PLUS:
-			write_string (" + ");
-			break;
-		case BinaryOperator.MINUS:
-			write_string (" - ");
-			break;
-		case BinaryOperator.MUL:
-			write_string (" * ");
-			break;
-		case BinaryOperator.DIV:
-			write_string (" / ");
-			break;
-		case BinaryOperator.MOD:
-			write_string (" % ");
-			break;
-		case BinaryOperator.SHIFT_LEFT:
-			write_string (" << ");
-			break;
-		case BinaryOperator.SHIFT_RIGHT:
-			write_string (" >> ");
-			break;
-		case BinaryOperator.LESS_THAN:
-			write_string (" < ");
-			break;
-		case BinaryOperator.GREATER_THAN:
-			write_string (" > ");
-			break;
-		case BinaryOperator.LESS_THAN_OR_EQUAL:
-			write_string (" <= ");
-			break;
-		case BinaryOperator.GREATER_THAN_OR_EQUAL:
-			write_string (" >= ");
-			break;
-		case BinaryOperator.EQUALITY:
-			write_string (" == ");
-			break;
-		case BinaryOperator.INEQUALITY:
-			write_string (" != ");
-			break;
-		case BinaryOperator.BITWISE_AND:
-			write_string (" & ");
-			break;
-		case BinaryOperator.BITWISE_OR:
-			write_string (" | ");
-			break;
-		case BinaryOperator.BITWISE_XOR:
-			write_string (" ^ ");
-			break;
-		case BinaryOperator.AND:
-			write_string (" && ");
-			break;
-		case BinaryOperator.OR:
-			write_string (" || ");
-			break;
-		case BinaryOperator.IN:
-			write_string (" in ");
-			break;
-		case BinaryOperator.COALESCE:
-			write_string (" ?? ");
-			break;
-		default:
-			assert_not_reached ();
-		}
-
+		write_string (" ");
+		write_string (expr.operator.to_string ());
+		write_string (" ");
 		expr.right.accept (this);
 	}
 
@@ -1723,15 +1624,8 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	private void write_accessibility (Symbol sym) {
-		if (sym.access == SymbolAccessibility.PUBLIC) {
-			write_string ("public ");
-		} else if (sym.access == SymbolAccessibility.PROTECTED) {
-			write_string ("protected ");
-		} else if (sym.access == SymbolAccessibility.INTERNAL) {
-			write_string ("internal ");
-		} else if (sym.access == SymbolAccessibility.PRIVATE) {
-			write_string ("private ");
-		}
+		write_string (sym.access.to_string ());
+		write_string (" ");
 
 		if (type != CodeWriterType.EXTERNAL && type != CodeWriterType.VAPIGEN && sym.external && !sym.external_package) {
 			write_string ("extern ");
@@ -1739,13 +1633,12 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	void write_property_accessor_accessibility (Symbol sym) {
-		if (sym.access == SymbolAccessibility.PROTECTED) {
-			write_string (" protected");
-		} else if (sym.access == SymbolAccessibility.INTERNAL) {
-			write_string (" internal");
-		} else if (sym.access == SymbolAccessibility.PRIVATE) {
-			write_string (" private");
+		if (sym.access == SymbolAccessibility.PUBLIC) {
+			return;
 		}
+
+		write_string (" ");
+		write_string (sym.access.to_string ());
 	}
 
 	void write_type_parameters (List<TypeParameter> type_params) {

@@ -47,7 +47,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 
 	private List<Constant> constants = new ArrayList<Constant> ();
 
-	public ObjectTypeSymbol (string name, SourceReference? source_reference = null, Comment? comment = null) {
+	protected ObjectTypeSymbol (string name, SourceReference? source_reference = null, Comment? comment = null) {
 		base (name, source_reference, comment);
 	}
 
@@ -115,7 +115,14 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	public override void add_method (Method m) {
 		methods.add (m);
 		members.add (m);
-		scope.add (m.name, m);
+
+		// explicit interface method implementation
+		// virtual/abstract methods needs to be scoped and overridable
+		if (this is Class && m.base_interface_type != null && !(m.is_abstract || m.is_virtual)) {
+			scope.add (null, m);
+		} else {
+			scope.add (m.name, m);
+		}
 	}
 
 	/**
@@ -252,6 +259,10 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 */
 	public List<TypeParameter> get_type_parameters () {
 		return type_parameters;
+	}
+
+	public bool has_type_parameters () {
+		return (type_parameters != null && type_parameters.size > 0);
 	}
 
 	public override int get_type_parameter_index (string name) {

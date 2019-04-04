@@ -104,6 +104,40 @@ public class Vala.ConditionalExpression : Expression {
 		return condition.is_accessible (sym) && true_expression.is_accessible (sym) && false_expression.is_accessible (sym);
 	}
 
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		condition.get_error_types (collection, source_reference);
+		true_expression.get_error_types (collection, source_reference);
+		false_expression.get_error_types (collection, source_reference);
+	}
+
+	public override string to_string () {
+		return "(%s ? %s : %s)".printf (condition.to_string (), true_expression.to_string (), false_expression.to_string ());
+	}
+
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		if (condition == old_node) {
+			condition = new_node;
+		}
+		if (true_expression == old_node) {
+			true_expression = new_node;
+		}
+		if (false_expression == old_node) {
+			false_expression = new_node;
+		}
+	}
+
+	public override void get_defined_variables (Collection<Variable> collection) {
+		condition.get_defined_variables (collection);
+		true_expression.get_defined_variables (collection);
+		false_expression.get_defined_variables (collection);
+	}
+
+	public override void get_used_variables (Collection<Variable> collection) {
+		condition.get_used_variables (collection);
+		true_expression.get_used_variables (collection);
+		false_expression.get_used_variables (collection);
+	}
+
 	public override bool check (CodeContext context) {
 		if (checked) {
 			return !error;
@@ -166,6 +200,7 @@ public class Vala.ConditionalExpression : Expression {
 
 		value_type.value_owned = (true_expression.value_type.value_owned || false_expression.value_type.value_owned);
 		value_type.floating_reference = false;
+		value_type.check (context);
 
 		local.variable_type = value_type;
 		decl.check (context);
@@ -174,20 +209,20 @@ public class Vala.ConditionalExpression : Expression {
 		false_expression.target_type = value_type;
 
 		var true_stmt = new ExpressionStatement (new Assignment (new MemberAccess.simple (local.name, true_expression.source_reference), true_expression, AssignmentOperator.SIMPLE, true_expression.source_reference), true_expression.source_reference);
-		true_stmt.check (context);
 
 		var false_stmt = new ExpressionStatement (new Assignment (new MemberAccess.simple (local.name, false_expression.source_reference), false_expression, AssignmentOperator.SIMPLE, false_expression.source_reference), false_expression.source_reference);
-		false_stmt.check (context);
 
 		true_block.replace_statement (true_decl, true_stmt);
 		false_block.replace_statement (false_decl, false_stmt);
+		true_stmt.check (context);
+		false_stmt.check (context);
 
 		var ma = new MemberAccess.simple (local.name, source_reference);
 		ma.formal_target_type = formal_target_type;
 		ma.target_type = target_type;
-		ma.check (context);
 
 		parent_node.replace_expression (this, ma);
+		ma.check (context);
 
 		return true;
 	}

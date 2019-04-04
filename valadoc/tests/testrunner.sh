@@ -38,24 +38,11 @@ VALAFLAGS="$VALAFLAGS \
 	--disable-warnings \
 	--main main \
 	--save-temps \
+	--cc $CC \
 	-X -g \
 	-X -O0 \
 	-X -pipe \
 	-X -lm \
-	-X -Werror=return-type \
-	-X -Werror=init-self \
-	-X -Werror=implicit \
-	-X -Werror=sequence-point \
-	-X -Werror=return-type \
-	-X -Werror=uninitialized \
-	-X -Werror=pointer-arith \
-	-X -Werror=int-to-pointer-cast \
-	-X -Werror=pointer-to-int-cast \
-	-X -Wformat \
-	-X -Werror=format-security \
-	-X -Werror=format-nonliteral \
-	-X -Werror=redundant-decls \
-	-X -Werror=int-conversion \
 	-X -L$topbuilddir/vala/.libs -X -lvala$PACKAGE_SUFFIX \
 	-X -L$topbuilddir/libvaladoc/.libs -X -lvaladoc$PACKAGE_SUFFIX \
 	-X -I$topsrcdir/gee \
@@ -63,6 +50,10 @@ VALAFLAGS="$VALAFLAGS \
 	-X -I$topsrcdir/libvaladoc \
 	$topsrcdir/valadoc/tests/libvaladoc/parser/generic-scanner.vala"
 
+# Incorporate the TEST_CFLAGS.
+for cflag in ${TEST_CFLAGS}; do
+    VALAFLAGS="${VALAFLAGS} -X ${cflag}"
+done
 
 # Incorporate the user's CFLAGS. Matters if the user decided to insert
 # -m32 in CFLAGS, for example.

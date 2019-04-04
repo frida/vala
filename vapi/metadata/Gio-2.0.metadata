@@ -57,29 +57,24 @@ Action
   .parameter_type nullable
   .state nullable
   .state_type nullable
-  .get_state_hint nullable
 PropertyAction
   .state nullable
 ActionEntry
   .*#field skip
 ActionGroup
   .query_action#virtual_method virtual
-Application.handle_local_options#virtual_method skip=false
-Application.local_command_line
-  .arguments ref type="unowned string[]"
-  .exit_status out
+Application
+  .local_command_line.arguments unowned
 Application.run.argv default=null
 ApplicationCommandLine
-  .get_platform_data nullable
   .print skip=false printf_format
   .printerr skip=false printf_format
 BufferedInputStream
   .peek.offset default=0
 Cancellable
   .connect.callback type="owned GLib.Func<GLib.Cancellable>"
-  .get_current nullable
   .set_error_if_cancelled throws="GLib.IOError"
-  .source_new skip=false type="GLib.CancellableSource"
+  .source_new skip=false parent="GLib.CancellableSource" symbol_type="constructor" name="new"
 Credentials
   .get_native skip=false
 DatagramBased
@@ -90,7 +85,6 @@ DatagramBased
   .send_messages#virtual_method virtual name="datagram_send_messages"
 DataInputStream
   .read_* throws="GLib.IOError"
-  .read_line* nullable
   .read_line_finish_utf8 skip
   .read_line_utf8.length default=null
 DataOutputStream
@@ -99,6 +93,7 @@ DBusAuthObserver.authorize_authenticated_peer virtual
 DBusConnection
   .*.observer#parameter default=null
   .send_message_with_reply*.out_serial default=null
+  .send_message_with_reply_finish throws="GLib.IOError"
   .send_message_with_reply_sync throws="GLib.IOError"
 DBusInterfaceSkeleton
   .get_vtable skip=false nullable unowned=false
@@ -132,10 +127,7 @@ File
   .load_contents.cancellable#parameter default=()
   .monitor_dir* throws="GLib.IOError"
   .monitor_file throws="GLib.IOError"
-FileInfo
-  .list_attributes nullable
-FileEnumerator
-  .next_file nullable
+  .replace_contents_bytes_async finish_name="g_file_replace_contents_finish"
 io_error_from_errno type="int" name="io_error__from_errno"
 IOStream
   .close virtual vfunc_name="close_fn" throws="GLib.IOError"
@@ -220,6 +212,7 @@ SimpleProxyResolver
   .new symbol_type="constructor"
 Socket
   .condition_wait throws="GLib.IOError"
+  .connection_factory_create_connection parent="GLib.SocketConnection" name="factory_create_connection" symbol_type="function"
   .create_source skip=false type="GLib.SocketSource"
 SocketControlMessage
   .serialize.data type="uint8[]"
@@ -242,16 +235,10 @@ Task
   .report_error skip
   .report_new_error skip
   .return_new_error skip=false printf_format
-TlsDatabase
-  .create_certificate_handle nullable
 TlsPassword
-  .get_value type="unowned uint8[]" array_length_idx=0
-  .set_value skip=false
-  .set_value.value type="uint8[]" array_length_idx=1
-  .set_value_full skip // Because the "owned" part in the value argument doesn't work
-  // .set_value_full.value type="owned uint8[]" array_length_idx=1
-  // .set_value_full.destroy default=GLib.free
-  .set_value#virtual_method skip
+  .get_value array array_length_idx=0
+  .set_value#virtual_method.value owned
+  .set_value#virtual_method.destroy default=GLib.free
 Vfs
   // TODO: should probably be a simple generic
   .local_file_add_info.extra_data default=null
@@ -263,14 +250,13 @@ Volume
 ZlibCompressor
   .new.level default=-1
 Converter
-  .convert.outbuf type="uint8[]" array_length_idx=3
+  .convert.outbuf nullable=false
 File
   // FIXME: gir-parser gets confused by async *and* notified callbacks at the same time
   .copy_async skip
   .copy_finish skip
   .copy*.progress_callback default=null
   .get_basename nullable
-  .get_parent nullable
   .get_path nullable
   .get_relative_path nullable
   .load_partial_contents_async skip
@@ -278,7 +264,6 @@ File
   .move.progress_callback default=null
 Icon
   .new_for_string nullable
-  .to_string nullable
   .to_tokens skip
 Initable
   .new* skip=false throws="GLib.Error"
@@ -307,8 +292,9 @@ OutputMessage
   .num_control_messages type="uint*"
 DBusError errordomain
 DBusSubtreeEnumerateFunc unowned=false skip=false
-ReallocFunc skip=false
-pollable_source_new_full skip
+pollable_source_new parent="GLib.PollableSource" symbol_type="constructor" name="new"
+pollable_source_new_full parent="GLib.PollableSource" symbol_type="constructor" name="new_full"
+  .child_source default=null
 pollable_stream_read
   .buffer type="uint8[]" array_length_idx=2
 
@@ -317,7 +303,6 @@ content_types_get_registered parent="GLib.ContentType" name="list_registered"
 io_modules_* parent="GLib.IOModule" name="io_modules_(.*)"
 io_scheduler_cancel_all_jobs parent="GLib.IOSchedulerJob" name="cancel_all"
 io_scheduler_push_job parent="GLib.IOSchedulerJob" name="push"
-pollable_source_new skip
 network_monitor_get_default skip
 proxy_get_default_for_protocol skip
 proxy_resolver_get_default skip
@@ -336,17 +321,13 @@ DBusConnection
 DBusConnection
   .register_object skip
 
-// Bug #: Reparenting instance method breaks arguments
-Socket
-  .connection_factory_create_connection skip // parent="GLib.SocketConnection" name="factory_create_connection"
-
 // Bug #: out + allow-none parameters missing ? in vapi
 LoadableIcon
   .load.type nullable
 
-// Bug #666798: GIR parser should detect delegate types which throw errors
-DBusInterfaceGetPropertyFunc skip
-DBusInterfaceSetPropertyFunc skip
+// Issue #728: Support non-default error parameter position
+DBusInterfaceGetPropertyFunc.error out unowned=false
+DBusInterfaceSetPropertyFunc.error out unowned=false
 
 // Bug #666799: symbols with moved-to annotations should be deprecated at the old locations
 app_info*#function skip
@@ -366,14 +347,6 @@ File
   .*_async#virtual_method virtual
   .measure_disk_usage#virtual_method virtual
 
-// Need to ask about this... annotated as out, but that seems wrong
-DBus*Info.generate_xml.string_builder out=false
-
-// out_serial must not be out in the async function
-DBusConnection
-  .send_message_with_reply skip
-  .send_message_with_reply_finish skip
-
 // Back compat
 TlsCertificate abstract=false
 DataInputStream
@@ -385,35 +358,26 @@ DataInputStream
 // Forward upstream
 *.ref unowned
 NativeSocketAddress skip
-content_type_from_mime_type nullable
-content_type_get_mime_type nullable
 ActionGroup
   .get_action* nullable
   .get_action_enabled nullable=false
-  .get_action_state_type unowned
 Application
   .set_default symbol_type="function"
-AsyncReadyCallback.source_object nullable
 Converter
   .convert.inbuf nullable=false
-DBusMessage
-  .get_body unowned
 DBusSubtreeVTable.enumerate skip=false
 File
-  .measure_disk_usage skip=false
-  .measure_disk_usage_async skip=false
-  .measure_disk_usage_finish skip=false
-  .measure_disk_usage.* default=()
-  .measure_disk_usage_async.* default=()
-  .measure_disk_usage_finish.* default=()
+  .measure_disk_usage* skip=false
+  .measure_disk_usage*.* default=()
 FileAttributeInfoList
   .infos array array_length_field="n_infos" unowned=false
 LoadableIcon
-  .load_finish.type out nullable unowned=false default=null
+  .load_finish.type nullable default=null
 Socket
   .receive_message.address nullable
-  .receive_message.messages out unowned=false
-  .receive_message.flags ref
+SocketAddress
+	// Factory method
+	.new_from_native symbol_type="function" name="from_native" nullable
 Task
   .get_source_object name="get_unowned_source_object" nullable
 TlsBackend

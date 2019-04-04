@@ -109,6 +109,7 @@ public class Vala.ReferenceTransferExpression : Expression {
 
 		value_type = inner.value_type.copy ();
 		value_type.value_owned = true;
+		value_type.check (context);
 
 		return !error;
 	}
@@ -141,5 +142,9 @@ public class Vala.ReferenceTransferExpression : Expression {
 		} else if (param != null && param.direction == ParameterDirection.OUT) {
 			collection.add (param);
 		}
+	}
+
+	public override string to_string () {
+		return "(owned) %s".printf (inner.to_string ());
 	}
 }

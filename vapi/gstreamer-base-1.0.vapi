@@ -55,6 +55,7 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstAggregator", lower_case_cprefix = "gst_aggregator_", type_id = "gst_aggregator_get_type ()")]
 		[GIR (name = "Aggregator")]
+		[Version (since = "1.14")]
 		public abstract class Aggregator : Gst.Element {
 			public weak Gst.Pad srcpad;
 			[CCode (has_construct_function = false)]
@@ -102,10 +103,14 @@ namespace Gst {
 			[NoAccessorMethod]
 			public uint64 latency { get; set; }
 			[NoAccessorMethod]
+			[Version (since = "1.16")]
+			public uint64 min_upstream_latency { get; set; }
+			[NoAccessorMethod]
 			public uint64 start_time { get; set; }
 		}
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstAggregatorPad", lower_case_cprefix = "gst_aggregator_pad_", type_id = "gst_aggregator_pad_get_type ()")]
 		[GIR (name = "AggregatorPad")]
+		[Version (since = "1.14")]
 		public class AggregatorPad : Gst.Pad {
 			public weak Gst.Segment segment;
 			[CCode (has_construct_function = false)]
@@ -828,12 +833,6 @@ namespace Gst {
 			public uint get_remaining ();
 			[CCode (cname = "gst_bit_writer_get_size")]
 			public uint get_size ();
-			[CCode (cname = "gst_bit_writer_init")]
-			public void init ();
-			[CCode (cname = "gst_bit_writer_init_with_data")]
-			public void init_with_data ([CCode (array_length_cname = "size", array_length_pos = 1.5, array_length_type = "guint")] uint8[] data, bool initialized);
-			[CCode (cname = "gst_bit_writer_init_with_size")]
-			public void init_with_size (uint32 size, bool fixed);
 			[CCode (cname = "gst_bit_writer_put_bits_uint16")]
 			public bool put_bits_uint16 (uint16 value, uint nbits);
 			[CCode (cname = "gst_bit_writer_put_bits_uint32")]

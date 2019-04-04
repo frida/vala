@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip subdir-objects])
 AM_MAINTAINER_MODE([enable])
 
-API_VERSION=0.42
+API_VERSION=0.46
 PACKAGE_SUFFIX="-$API_VERSION"
 
 VALA_MAJOR_VERSION=`echo $PACKAGE_VERSION | cut -d. -f1 | sed s/[[a-zA-Z\-]].*//g`
@@ -82,6 +82,12 @@ if test x$enable_boostrap = xyes; then
 	VALAFLAGS="$VALAFLAGS --hide-internal --abi-stability"
 fi
 
+AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [Enable debug build]), enable_debug=$enableval, enable_debug=no)
+if test "$enable_debug" = "yes"; then
+	VALAFLAGS="$VALAFLAGS -g"
+	CFLAGS="$CFLAGS -g -O0"
+fi
+
 AC_SUBST(VALAFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
@@ -106,7 +112,38 @@ AC_SUBST(COVERAGE_VALAFLAGS)
 AC_SUBST(COVERAGE_CFLAGS)
 AC_SUBST(COVERAGE_LIBS)
 
-GLIB_REQUIRED=2.40.0
+
+# Check supported compiler flags used in testrunner.sh
+TEST_EXTRA_CFLAGS="-Werror=init-self \
+-Werror=implicit \
+-Werror=pointer-arith \
+-Werror=redundant-decls \
+-Werror=return-type \
+-Werror=sequence-point \
+-Werror=uninitialized \
+-Werror=int-to-pointer-cast \
+-Werror=pointer-to-int-cast \
+-Wformat=2 \
+-Werror=format-security \
+-Werror=format-nonliteral \
+-Werror=int-conversion \
+-Werror=duplicated-branches \
+-Werror=duplicated-cond \
+-Werror=declaration-after-statement \
+-Werror=maybe-uninitialized \
+-Werror=missing-prototypes \
+-Werror=strict-prototypes \
+-Werror=enum-conversion"
+
+TEST_CFLAGS=
+for flag in $TEST_EXTRA_CFLAGS; do
+	AX_CHECK_COMPILE_FLAG([$flag],[TEST_CFLAGS="$TEST_CFLAGS $flag"])
+done
+
+AC_SUBST(TEST_CFLAGS)
+
+
+GLIB_REQUIRED=2.48.0
 LIBGVC_REQUIRED=2.16
 
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED)
@@ -119,35 +156,50 @@ PKG_CHECK_MODULES(GMODULE, gmodule-2.0 >= $GLIB_REQUIRED)
 AC_SUBST(GMODULE_CFLAGS)
 AC_SUBST(GMODULE_LIBS)
 
-PKG_CHECK_MODULES(LIBGVC, libgvc >= $LIBGVC_REQUIRED)
-AC_MSG_CHECKING([for CGRAPH])
-cgraph_tmp_LIBADD="$LIBADD"
-cgraph_tmp_CFLAGS="$CFLAGS"
-LIBADD="$LIBADD $LIBGVC_LIBS"
-CFLAGS="$CFLAGS $LIBGVC_CFLAGS"
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([
-		#include <gvc.h>
-
-		int main(void) {
-			#ifdef WITH_CGRAPH
-				return 0;
-			#else
-				return -1;
-			#endif
-		}
-	])], [
-		AC_MSG_RESULT([yes])
-		VALAFLAGS="$VALAFLAGS -D WITH_CGRAPH"
-		have_cgraph=yes
-	], [
-		AC_MSG_RESULT([no])
-		have_cgraph=no
-	]
-)
-LIBADD="$cgraph_tmp_LIBADD"
-CFLAGS="$cgraph_tmp_CFLAGS"
+AC_ARG_WITH(cgraph, AS_HELP_STRING([--with-cgraph], [Required flag for cross-compilation to define capability of graphviz]), [], with_cgraph=check)
+AC_ARG_ENABLE(valadoc, AS_HELP_STRING([--disable-valadoc], [Disable valadoc]), enable_valadoc=$enableval, enable_valadoc=yes)
+if test x$enable_valadoc = xyes; then
+	PKG_CHECK_MODULES(LIBGVC, libgvc >= $LIBGVC_REQUIRED)
+	AC_MSG_CHECKING([for CGRAPH])
+	cgraph_tmp_LIBADD="$LIBADD"
+	cgraph_tmp_CFLAGS="$CFLAGS"
+	LIBADD="$LIBADD $LIBGVC_LIBS"
+	CFLAGS="$CFLAGS $LIBGVC_CFLAGS"
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([
+			#include <gvc.h>
+			int main(void) {
+				#ifdef WITH_CGRAPH
+					return 0;
+				#else
+					return -1;
+				#endif
+			}
+		])], [
+			AC_MSG_RESULT([yes])
+			VALAFLAGS="$VALAFLAGS -D WITH_CGRAPH"
+			have_cgraph=yes
+		], [
+			AC_MSG_RESULT([no])
+			have_cgraph=no
+		], [
+			if test x$with_cgraph = xcheck; then
+				AC_MSG_ERROR([--with-cgraph=yes/no is required for cross-compilation])
+			elif test x$with_cgraph = xyes; then
+				AC_MSG_RESULT([yes])
+				VALAFLAGS="$VALAFLAGS -D WITH_CGRAPH"
+				have_cgraph=yes
+			else
+				AC_MSG_RESULT([no])
+				have_cgraph=no
+			fi
+		]
+	)
+	LIBADD="$cgraph_tmp_LIBADD"
+	CFLAGS="$cgraph_tmp_CFLAGS"
+fi
 AM_CONDITIONAL(HAVE_CGRAPH, test "$have_cgraph" = "yes")
+AM_CONDITIONAL(ENABLE_VALADOC, test x$enable_valadoc = xyes)
 
 AC_PATH_PROG([XSLTPROC], [xsltproc], :)
 AM_CONDITIONAL(HAVE_XSLTPROC, test "$XSLTPROC" != :)

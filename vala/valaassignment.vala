@@ -84,6 +84,10 @@ public class Vala.Assignment : Expression {
 		right.accept (visitor);
 	}
 
+	public override string to_string () {
+		return "(%s %s %s)".printf (_left.to_string (), operator.to_string (), _right.to_string ());
+	}
+
 	public override void replace_expression (Expression old_node, Expression new_node) {
 		if (left == old_node) {
 			left = new_node;
@@ -101,6 +105,11 @@ public class Vala.Assignment : Expression {
 		return left.is_accessible (sym) && right.is_accessible (sym);
 	}
 
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		left.get_error_types (collection, source_reference);
+		right.get_error_types (collection, source_reference);
+	}
+
 	public override bool check (CodeContext context) {
 		if (checked) {
 			return !error;
@@ -113,15 +122,15 @@ public class Vala.Assignment : Expression {
 
 			var local = new LocalVariable (null, get_temp_name (), right, right.source_reference);
 			var decl = new DeclarationStatement (local, source_reference);
-			decl.check (context);
 			insert_statement (context.analyzer.insert_block, decl);
+			decl.check (context);
 
 			int i = 0;
 			ExpressionStatement stmt = null;
 			foreach (var expr in tuple.get_expressions ()) {
 				if (stmt != null) {
-					stmt.check (context);
 					insert_statement (context.analyzer.insert_block, stmt);
+					stmt.check (context);
 				}
 
 				var temp_access = new MemberAccess.simple (local.name, right.source_reference);
@@ -155,7 +164,7 @@ public class Vala.Assignment : Expression {
 				return false;
 			}
 
-			if ((!(ma.symbol_reference is Signal || ma.symbol_reference is DynamicProperty) && ma.value_type == null) ||
+			if ((!(ma.symbol_reference is DynamicProperty) && ma.value_type == null) ||
 			    (ma.inner == null && ma.member_name == "this" && context.analyzer.is_in_instance_method ())) {
 				error = true;
 				Report.error (source_reference, "unsupported lvalue in assignment");
@@ -173,18 +182,7 @@ public class Vala.Assignment : Expression {
 				return false;
 			}
 
-			if (ma.symbol_reference is DynamicSignal) {
-				// target_type not available for dynamic signals
-				if (!context.deprecated) {
-					Report.warning (source_reference, "deprecated syntax, use `connect' method instead");
-				}
-			} else if (ma.symbol_reference is Signal) {
-				if (!context.deprecated) {
-					Report.warning (source_reference, "deprecated syntax, use `connect' method instead");
-				}
-				var sig = (Signal) ma.symbol_reference;
-				right.target_type = new DelegateType (sig.get_delegate (ma.inner.value_type, this));
-			} else if (ma.symbol_reference is DynamicProperty) {
+			if (ma.symbol_reference is DynamicProperty) {
 				// target_type not available for dynamic properties
 			} else {
 				right.formal_target_type = ma.formal_value_type.copy ();
@@ -197,10 +195,6 @@ public class Vala.Assignment : Expression {
 				error = true;
 				Report.error (ea.source_reference, "strings are immutable");
 				return false;
-			} else if (ea.container is MemberAccess && ea.container.symbol_reference is Signal) {
-				var ma = (MemberAccess) ea.container;
-				var sig = (Signal) ea.container.symbol_reference;
-				right.target_type = new DelegateType (sig.get_delegate (ma.inner.value_type, this));
 			} else if (ea.container.value_type.get_member ("set") is Method) {
 				var set_call = new MethodCall (new MemberAccess (ea.container, "set", source_reference), source_reference);
 				foreach (Expression e in ea.get_indices ()) {
@@ -210,10 +204,14 @@ public class Vala.Assignment : Expression {
 				parent_node.replace_expression (this, set_call);
 				return set_call.check (context);
 			} else {
-				right.target_type = left.value_type;
+				right.target_type = left.value_type.copy ();
 			}
 		} else if (left is PointerIndirection) {
-			right.target_type = left.value_type;
+			right.target_type = left.value_type.copy ();
+		} else if (left is Literal) {
+			error = true;
+			Report.error (source_reference, "Literals are immutable");
+			return false;
 		} else {
 			error = true;
 			Report.error (source_reference, "unsupported lvalue in assignment");
@@ -226,79 +224,46 @@ public class Vala.Assignment : Expression {
 			return false;
 		}
 
-		if (operator != AssignmentOperator.SIMPLE && left is MemberAccess) {
+		unowned MemberAccess? ma = left as MemberAccess;
+		if (operator != AssignmentOperator.SIMPLE && ma != null
+		    && !(left.value_type.is_non_null_simple_type () && ma.symbol_reference is LocalVariable)) {
 			// transform into simple assignment
 			// FIXME: only do this if the backend doesn't support
 			// the assignment natively
 
-			var ma = (MemberAccess) left;
+			var old_value = new MemberAccess (ma.inner, ma.member_name);
 
-			if (!(ma.symbol_reference is Signal)) {
-				var old_value = new MemberAccess (ma.inner, ma.member_name);
+			BinaryOperator bop;
 
-				var bin = new BinaryExpression (BinaryOperator.PLUS, old_value, right, source_reference);
-				bin.target_type = right.target_type;
-				right.target_type = right.target_type.copy ();
-				right.target_type.value_owned = false;
-
-				switch (operator) {
-				case AssignmentOperator.BITWISE_OR: bin.operator = BinaryOperator.BITWISE_OR; break;
-				case AssignmentOperator.BITWISE_AND: bin.operator = BinaryOperator.BITWISE_AND; break;
-				case AssignmentOperator.BITWISE_XOR: bin.operator = BinaryOperator.BITWISE_XOR; break;
-				case AssignmentOperator.ADD: bin.operator = BinaryOperator.PLUS; break;
-				case AssignmentOperator.SUB: bin.operator = BinaryOperator.MINUS; break;
-				case AssignmentOperator.MUL: bin.operator = BinaryOperator.MUL; break;
-				case AssignmentOperator.DIV: bin.operator = BinaryOperator.DIV; break;
-				case AssignmentOperator.PERCENT: bin.operator = BinaryOperator.MOD; break;
-				case AssignmentOperator.SHIFT_LEFT: bin.operator = BinaryOperator.SHIFT_LEFT; break;
-				case AssignmentOperator.SHIFT_RIGHT: bin.operator = BinaryOperator.SHIFT_RIGHT; break;
-				}
-
-				right = bin;
-				right.check (context);
-
-				operator = AssignmentOperator.SIMPLE;
+			switch (operator) {
+			case AssignmentOperator.BITWISE_OR: bop = BinaryOperator.BITWISE_OR; break;
+			case AssignmentOperator.BITWISE_AND: bop = BinaryOperator.BITWISE_AND; break;
+			case AssignmentOperator.BITWISE_XOR: bop = BinaryOperator.BITWISE_XOR; break;
+			case AssignmentOperator.ADD: bop = BinaryOperator.PLUS; break;
+			case AssignmentOperator.SUB: bop = BinaryOperator.MINUS; break;
+			case AssignmentOperator.MUL: bop = BinaryOperator.MUL; break;
+			case AssignmentOperator.DIV: bop = BinaryOperator.DIV; break;
+			case AssignmentOperator.PERCENT: bop = BinaryOperator.MOD; break;
+			case AssignmentOperator.SHIFT_LEFT: bop = BinaryOperator.SHIFT_LEFT; break;
+			case AssignmentOperator.SHIFT_RIGHT: bop = BinaryOperator.SHIFT_RIGHT; break;
+			default:
+				error = true;
+				Report.error (source_reference, "internal error: unsupported assignment operator");
+				return false;
 			}
+
+			var bin = new BinaryExpression (bop, old_value, right, source_reference);
+			bin.target_type = right.target_type;
+			right.target_type = right.target_type.copy ();
+			right.target_type.value_owned = false;
+
+			right = bin;
+			right.check (context);
+
+			operator = AssignmentOperator.SIMPLE;
 		}
 
-		if (left.symbol_reference is Signal) {
-			var sig = (Signal) left.symbol_reference;
-
-			var m = right.symbol_reference as Method;
-
-			if (m == null) {
-				error = true;
-				Report.error (right.source_reference, "unsupported expression for signal handler");
-				return false;
-			}
-
-			var dynamic_sig = sig as DynamicSignal;
-			var right_ma = right as MemberAccess;
-			if (dynamic_sig != null) {
-				bool first = true;
-				foreach (Parameter param in dynamic_sig.handler.value_type.get_parameters ()) {
-					if (first) {
-						// skip sender parameter
-						first = false;
-					} else {
-						dynamic_sig.add_parameter (param.copy ());
-					}
-				}
-				right.target_type = new DelegateType (sig.get_delegate (new ObjectType ((ObjectTypeSymbol) sig.parent_symbol), this));
-			} else if (!right.value_type.compatible (right.target_type)) {
-				var delegate_type = (DelegateType) right.target_type;
-
-				error = true;
-				Report.error (right.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'".printf (right.value_type.to_string (), right.target_type.to_string (), delegate_type.to_prototype_string (m.name)));
-				return false;
-			} else if (right_ma != null && right_ma.prototype_access) {
-				error = true;
-				Report.error (right.source_reference, "Access to instance member `%s' denied".printf (m.get_full_name ()));
-				return false;
-			}
-		} else if (left is MemberAccess) {
-			var ma = (MemberAccess) left;
-
+		if (ma != null) {
 			if (ma.symbol_reference is Property) {
 				var prop = (Property) ma.symbol_reference;
 
@@ -341,11 +306,20 @@ public class Vala.Assignment : Expression {
 						return false;
 					}
 
-					right.value_type = variable.variable_type;
+					right.value_type = variable.variable_type.copy ();
 				} else {
 					error = true;
 					Report.error (source_reference, "Assignment: Invalid assignment attempt");
 					return false;
+				}
+			} else if (ma.symbol_reference is Variable) {
+				unowned Variable variable = (Variable) ma.symbol_reference;
+				unowned ArrayType? variable_array_type = variable.variable_type as ArrayType;
+				if (variable_array_type != null && variable_array_type.fixed_length
+				    && right is ArrayCreationExpression && ((ArrayCreationExpression) right).initializer_list == null) {
+					Report.warning (source_reference, "Arrays with fixed length don't require an explicit instantiation");
+					((Block) parent_node.parent_node).replace_statement ((Statement) parent_node, new EmptyStatement (source_reference));
+					return true;
 				}
 			}
 
@@ -440,8 +414,9 @@ public class Vala.Assignment : Expression {
 			value_type = null;
 		}
 
-		add_error_types (left.get_error_types ());
-		add_error_types (right.get_error_types ());
+		if (value_type != null) {
+			value_type.check (context);
+		}
 
 		return !error;
 	}
@@ -512,7 +487,7 @@ public class Vala.Assignment : Expression {
 
 			if (instance && ma.inner != null && property != null) {
 				ma.inner.emit (codegen);
-			} else {
+			} else if (property == null) {
 				// always process full lvalue
 				// current codegen depends on it
 				// should be removed when moving codegen from
@@ -576,5 +551,22 @@ public enum Vala.AssignmentOperator {
 	DIV,
 	PERCENT,
 	SHIFT_LEFT,
-	SHIFT_RIGHT
+	SHIFT_RIGHT;
+
+	public unowned string to_string () {
+		switch (this) {
+		case SIMPLE: return "=";
+		case BITWISE_OR: return "|=";
+		case BITWISE_AND: return "&=";
+		case BITWISE_XOR: return "^=";
+		case ADD: return "+=";
+		case SUB: return "-=";
+		case MUL: return "*=";
+		case DIV: return "/=";
+		case PERCENT: return "%=";
+		case SHIFT_LEFT: return "<<=";
+		case SHIFT_RIGHT: return ">>=";
+		default: assert_not_reached ();
+		}
+	}
 }
