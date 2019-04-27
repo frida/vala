@@ -4039,6 +4039,17 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		ccode.add_expression (ccall);
 	}
 
+	bool is_compact_class_destructor_call (Expression expr) {
+		unowned Class? cl = expr.value_type.data_type as Class;
+		if (cl != null && cl.is_compact && expr.parent_node is MemberAccess) {
+			unowned MethodType? mt = ((MemberAccess) expr.parent_node).value_type as MethodType;
+			if (mt != null && mt.method_symbol != null && mt.method_symbol.get_attribute ("DestroysInstance") != null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public override void visit_expression (Expression expr) {
 		if (get_cvalue (expr) != null && !expr.lvalue) {
 			if (expr.formal_value_type is GenericType && !(expr.value_type is GenericType)) {
@@ -4074,6 +4085,11 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			if (!(expr.value_type is ValueType && !expr.value_type.nullable)) {
 				((GLibValue) expr.target_value).non_null = expr.is_non_null ();
 			}
+		} else if (expr.value_type != null && is_compact_class_destructor_call (expr)) {
+			// transfer ownership here and consume given instance
+			var temp_value = store_temp_value (expr.target_value, expr);
+			ccode.add_assignment (get_cvalue (expr), new CCodeConstant ("NULL"));
+			expr.target_value = temp_value;
 		}
 	}
 

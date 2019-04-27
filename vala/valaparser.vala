@@ -1710,6 +1710,7 @@ public class Vala.Parser : CodeVisitor {
 
 		var stmt = parse_embedded_statement_without_block (statement_name, accept_empty_body);
 		block.add_statement (stmt);
+		block.source_reference.end = get_last_src ().end;
 
 		return block;
 
@@ -1769,7 +1770,7 @@ public class Vala.Parser : CodeVisitor {
 			}
 		}
 
-		block.source_reference.end = get_current_src ().end;
+		block.source_reference.end = get_last_src ().end;
 
 		return block;
 	}
@@ -1781,16 +1782,18 @@ public class Vala.Parser : CodeVisitor {
 	}
 
 	void parse_local_variable_declarations (Block block) throws ParseError {
+		var begin = get_location ();
 		DataType variable_type;
 		if (accept (TokenType.VAR)) {
 			variable_type = null;
 		} else {
 			variable_type = parse_type (true, true);
 		}
+		bool is_first = true;
 		do {
 			if (variable_type == null && accept (TokenType.OPEN_PARENS)) {
 				// tuple
-				var begin = get_location ();
+				begin = get_location ();
 
 				string[] identifiers = {};
 				do {
@@ -1814,12 +1817,18 @@ public class Vala.Parser : CodeVisitor {
 				continue;
 			}
 
+			if (!is_first) {
+				begin = get_location ();
+			} else {
+				is_first = false;
+			}
+
 			DataType type_copy = null;
 			if (variable_type != null) {
 				type_copy = variable_type.copy ();
 			}
 			var local = parse_local_variable (type_copy);
-			block.add_statement (new DeclarationStatement (local, local.source_reference));
+			block.add_statement (new DeclarationStatement (local, get_src (begin)));
 		} while (accept (TokenType.COMMA));
 		expect (TokenType.SEMICOLON);
 	}
@@ -1827,17 +1836,18 @@ public class Vala.Parser : CodeVisitor {
 	LocalVariable parse_local_variable (DataType? variable_type) throws ParseError {
 		var begin = get_location ();
 		string id = parse_identifier ();
-
 		var type = parse_inline_array_type (variable_type);
+		var src = get_src (begin);
 
 		Expression initializer = null;
 		if (accept (TokenType.ASSIGN)) {
 			initializer = parse_expression ();
 		}
-		return new LocalVariable (type, id, initializer, get_src (begin));
+		return new LocalVariable (type, id, initializer, src);
 	}
 
 	void parse_local_constant_declarations (Block block) throws ParseError {
+		var begin = get_location ();
 		expect (TokenType.CONST);
 		var constant_type = parse_type (false, false);
 
@@ -1847,10 +1857,17 @@ public class Vala.Parser : CodeVisitor {
 			array_type.element_type.value_owned = false;
 		}
 
+		bool is_first = true;
 		do {
+			if (!is_first) {
+				begin = get_location ();
+			} else {
+				is_first = false;
+			}
+
 			DataType type_copy = constant_type.copy ();
 			var local = parse_local_constant (type_copy);
-			block.add_statement (new DeclarationStatement (local, local.source_reference));
+			block.add_statement (new DeclarationStatement (local, get_src (begin)));
 			block.add_local_constant (local);
 			local.active = false;
 		} while (accept (TokenType.COMMA));
@@ -1860,20 +1877,21 @@ public class Vala.Parser : CodeVisitor {
 	Constant parse_local_constant (DataType constant_type) throws ParseError {
 		var begin = get_location ();
 		string id = parse_identifier ();
-
 		var type = parse_inline_array_type (constant_type);
+		var src = get_src (begin);
 
 		expect (TokenType.ASSIGN);
 		var initializer = parse_expression ();
 
-		return new Constant (id, type, initializer, get_src (begin));
+		return new Constant (id, type, initializer, src);
 	}
 
 	Statement parse_expression_statement () throws ParseError {
 		var begin = get_location ();
 		var expr = parse_statement_expression ();
+		var src = get_src (begin);
 		expect (TokenType.SEMICOLON);
-		return new ExpressionStatement (expr, get_src (begin));
+		return new ExpressionStatement (expr, src);
 	}
 
 	Expression parse_statement_expression () throws ParseError {
@@ -1979,8 +1997,10 @@ public class Vala.Parser : CodeVisitor {
 				expect (TokenType.SEMICOLON);
 			} else {
 				// variable declaration in initializer
-				block = new Block (get_src (begin));
+				var decl_begin = get_location ();
+				block = new Block (get_src (decl_begin));
 				parse_local_variable_declarations (block);
+				block.source_reference.end = get_last_src ().end;
 			}
 		}
 		Expression condition = null;
