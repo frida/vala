@@ -39,19 +39,14 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 
 		generate_type_declaration (new DelegateType (d), decl_space);
 
-		string return_type_cname = get_ccode_name (d.return_type);
+		var creturn_type = get_callable_creturn_type (d);
 
-		if (d.return_type.is_real_non_null_struct_type ()) {
-			// structs are returned via out parameter
-			return_type_cname = "void";
-		}
-
-		if (return_type_cname == get_ccode_name (d)) {
+		if (creturn_type is DelegateType && ((DelegateType) creturn_type).delegate_symbol == d) {
 			// recursive delegate
-			return_type_cname = "GCallback";
-		} else {
-			generate_type_declaration (d.return_type, decl_space);
+			creturn_type = new DelegateType ((Delegate) context.root.scope.lookup ("GLib").scope.lookup ("Callback"));
 		}
+
+		generate_type_declaration (creturn_type, decl_space);
 
 		var cparam_map = new HashMap<int,CCodeParameter> (direct_hash, direct_equal);
 
@@ -114,15 +109,13 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			last_pos = min_pos;
 		}
 
-		var ctypedef = new CCodeTypeDefinition (return_type_cname, cfundecl);
+		var ctypedef = new CCodeTypeDefinition (get_ccode_name (creturn_type), cfundecl);
 		ctypedef.modifiers |= (d.version.deprecated ? CCodeModifiers.DEPRECATED : 0);
 
 		decl_space.add_type_declaration (ctypedef);
 	}
 
 	public override void visit_delegate (Delegate d) {
-		d.accept_children (this);
-
 		generate_delegate_declaration (d, cfile);
 
 		if (!d.is_internal_symbol ()) {
@@ -131,6 +124,8 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 		if (!d.is_private_symbol ()) {
 			generate_delegate_declaration (d, internal_header_file);
 		}
+
+		d.accept_children (this);
 	}
 
 	public override string get_delegate_target_cname (string delegate_cname) {
@@ -193,15 +188,9 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 		}
 
 		// declaration
+		var creturn_type = get_callable_creturn_type (d);
 
-		string return_type_cname = get_ccode_name (d.return_type);
-
-		if (d.return_type.is_real_non_null_struct_type ()) {
-			// structs are returned via out parameter
-			return_type_cname = "void";
-		}
-
-		var function = new CCodeFunction (wrapper_name, return_type_cname);
+		var function = new CCodeFunction (wrapper_name, get_ccode_name (creturn_type));
 		function.modifiers = CCodeModifiers.STATIC;
 
 		push_function (function);
@@ -222,7 +211,7 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 		foreach (Parameter param in d_params) {
 			if (dynamic_sig != null
 			    && param.variable_type is ArrayType
-			    && ((ArrayType) param.variable_type).element_type.data_type == string_type.data_type) {
+			    && ((ArrayType) param.variable_type).element_type.type_symbol == string_type.type_symbol) {
 				// use null-terminated string arrays for dynamic signals for compatibility reasons
 				param.set_attribute_bool ("CCode", "array_length", false);
 				param.set_attribute_bool ("CCode", "array_null_terminated", true);
@@ -294,8 +283,8 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			} else {
 				// use first delegate parameter as instance
 				if (d_params.size == 0 || m.closure) {
-					Report.error (node != null ? node.source_reference : null, "Cannot create delegate without target for instance method or closure");
-					arg = new CCodeConstant ("NULL");
+					Report.error (node != null ? node.source_reference : null, "internal: Cannot create delegate wrapper");
+					arg = new CCodeInvalidExpression ();
 				} else {
 					arg = new CCodeIdentifier (get_ccode_name (d_params.get (0)));
 					i = 1;
@@ -411,14 +400,14 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			ccode.add_expression (ccall);
 			if (!(d.return_type is VoidType || d.return_type.is_real_non_null_struct_type ())) {
 				// return a default value
-				ccode.add_declaration (return_type_cname, new CCodeVariableDeclarator ("result", default_value_for_type (d.return_type, true)));
+				ccode.add_declaration (get_ccode_name (creturn_type), new CCodeVariableDeclarator ("result", default_value_for_type (d.return_type, true)));
 			}
 		} else {
 			CCodeExpression result = ccall;
 			if (d.return_type is GenericType) {
 				result = convert_to_generic_pointer (result, m.return_type);
 			}
-			ccode.add_declaration (return_type_cname, new CCodeVariableDeclarator ("result", result));
+			ccode.add_declaration (get_ccode_name (creturn_type), new CCodeVariableDeclarator ("result", result));
 		}
 
 		if (d.has_target /* TODO: && dt.value_owned */ && dt.is_called_once) {
@@ -427,7 +416,7 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			if (m.closure) {
 				int block_id = get_block_id (current_closure_block);
 				destroy_notify = new CCodeIdentifier ("block%d_data_unref".printf (block_id));
-			} else if (get_this_type () != null && m.binding != MemberBinding.STATIC && !m.is_async_callback && is_reference_counting (m.this_parameter.variable_type.data_type)) {
+			} else if (get_this_type () != null && m.binding != MemberBinding.STATIC && !m.is_async_callback && is_reference_counting (m.this_parameter.variable_type.type_symbol)) {
 				destroy_notify = get_destroy_func_expression (m.this_parameter.variable_type);
 			}
 

@@ -139,6 +139,7 @@ namespace Gsf {
 		[CCode (vfunc_name = "OpenSibling")]
 		public virtual Gsf.Input sibling (string name) throws GLib.Error;
 		public Gsf.off_t tell ();
+		[DestroysInstance]
 		public Gsf.Input uncompress ();
 		[NoAccessorMethod]
 		public Gsf.Infile container { owned get; }
@@ -385,6 +386,8 @@ namespace Gsf {
 		[CCode (has_construct_function = false, type = "GsfOutput*")]
 		public OutputGZip (Gsf.Output sink) throws GLib.Error;
 		[NoAccessorMethod]
+		public int deflate_level { get; set; }
+		[NoAccessorMethod]
 		public bool raw { get; construct; }
 		[NoAccessorMethod]
 		public Gsf.Output sink { owned get; construct; }
@@ -422,6 +425,8 @@ namespace Gsf {
 		public OutputMemory ();
 		[CCode (array_length = false)]
 		public unowned uint8[]? get_bytes ();
+		[CCode (array_length = false)]
+		public unowned uint8[]? steal_bytes ();
 	}
 	[CCode (cheader_filename = "gsf/gsf.h", type_id = "gsf_output_stdio_get_type ()")]
 	public class OutputStdio : Gsf.Output {
@@ -732,8 +737,6 @@ namespace Gsf {
 	public const string META_NAME_TITLE;
 	[CCode (cheader_filename = "gsf/gsf.h", cname = "GSF_META_NAME_WORD_COUNT")]
 	public const string META_NAME_WORD_COUNT;
-	[CCode (cheader_filename = "gsf/gsf.h", cname = "GSF_PARAM_STATIC")]
-	public const int PARAM_STATIC;
 	[CCode (cheader_filename = "gsf/gsf.h")]
 	public static size_t base64_decode_simple ([CCode (array_length = false)] uint8[] data, size_t len);
 	[CCode (cheader_filename = "gsf/gsf.h")]
@@ -811,6 +814,8 @@ namespace Gsf {
 	public static void shutdown ();
 	[CCode (cheader_filename = "gsf/gsf.h")]
 	public static void shutdown_dynamic (GLib.TypeModule module);
+	[CCode (cheader_filename = "gsf/gsf.h")]
+	public static unowned GLib.Array<GLib.Value?>? value_get_docprop_array (GLib.Value value);
 	[CCode (cheader_filename = "gsf/gsf.h")]
 	public static GLib.ValueArray value_get_docprop_varray (GLib.Value value);
 	[CCode (cheader_filename = "gsf/gsf.h")]

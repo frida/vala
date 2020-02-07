@@ -217,15 +217,15 @@ namespace JSC {
 	public class Class : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Class ();
-		public JSC.Value add_constructor_variadic (string? name, GLib.Callback callback, void* user_data, GLib.DestroyNotify? destroy_notify, GLib.Type return_type);
-		public JSC.Value add_constructorv (string? name, GLib.Callback callback, void* user_data, GLib.DestroyNotify? destroy_notify, GLib.Type return_type, [CCode (array_length_cname = "n_parameters", array_length_pos = 5.5, array_length_type = "guint")] GLib.Type[]? parameter_types);
-		public void add_method_variadic (string name, GLib.Callback callback, void* user_data, GLib.DestroyNotify? destroy_notify, GLib.Type return_type);
-		public void add_methodv (string name, GLib.Callback callback, void* user_data, GLib.DestroyNotify? destroy_notify, GLib.Type return_type, [CCode (array_length_cname = "n_parameters", array_length_pos = 5.5, array_length_type = "guint")] GLib.Type[]? parameter_types);
+		[CCode (cname = "jsc_class_add_constructor_variadic")]
+		public JSC.Value add_constructor (string? name, [CCode (delegate_target_pos = 2.33333, destroy_notify_pos = 2.66667, type = "GCallback")] owned JSC.ClassConstructorCb callback, GLib.Type return_type);
+		[CCode (cname = "jsc_class_add_method_variadic")]
+		public void add_method (string name, [CCode (delegate_target_pos = 2.33333, destroy_notify_pos = 2.66667, type = "GCallback")] owned JSC.ClassMethodCb callback, GLib.Type return_type);
 		public void add_property (string name, GLib.Type property_type, [CCode (scope = "async")] GLib.Callback? getter, GLib.Callback? setter, void* user_data, GLib.DestroyNotify? destroy_notify);
 		public unowned string get_name ();
 		public unowned JSC.Class get_parent ();
 		[NoAccessorMethod]
-		public JSC.Context context { owned get; construct; }
+		public JSC.Context context { construct; }
 		public string name { get; construct; }
 		public JSC.Class parent { get; construct; }
 	}
@@ -280,6 +280,9 @@ namespace JSC {
 		[CCode (has_construct_function = false)]
 		public Value.boolean (JSC.Context context, bool value);
 		public JSC.Value constructor_callv ([CCode (array_length_cname = "n_parameters", array_length_pos = 0.5, array_length_type = "guint")] JSC.Value[]? parameters);
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.28")]
+		public Value.from_json (JSC.Context context, global::string json);
 		public JSC.Value function_callv ([CCode (array_length_cname = "n_parameters", array_length_pos = 0.5, array_length_type = "guint")] JSC.Value[]? parameters);
 		[CCode (has_construct_function = false)]
 		public Value.function_variadic (JSC.Context context, global::string? name, GLib.Callback callback, void* user_data, GLib.DestroyNotify? destroy_notify, GLib.Type return_type);
@@ -320,6 +323,8 @@ namespace JSC {
 		public bool to_boolean ();
 		public double to_double ();
 		public int32 to_int32 ();
+		[Version (since = "2.28")]
+		public global::string to_json (uint indent);
 		public global::string to_string ();
 		public GLib.Bytes to_string_as_bytes ();
 		[CCode (has_construct_function = false)]
@@ -380,6 +385,8 @@ namespace JSC {
 		ENUMERABLE,
 		WRITABLE
 	}
+	[CCode (cheader_filename = "jsc/jsc.h", instance_pos = 1.9, type_cname = "GCallback")]
+	public delegate T ClassConstructorCb<T> (GLib.GenericArray<JSC.Value> values);
 	[CCode (cheader_filename = "jsc/jsc.h", has_target = false)]
 	public delegate bool ClassDeletePropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name);
 	[CCode (array_length = false, array_null_terminated = true, cheader_filename = "jsc/jsc.h", has_target = false)]
@@ -388,6 +395,8 @@ namespace JSC {
 	public delegate JSC.Value? ClassGetPropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name);
 	[CCode (cheader_filename = "jsc/jsc.h", has_target = false)]
 	public delegate bool ClassHasPropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name);
+	[CCode (cheader_filename = "jsc/jsc.h", instance_pos = 2.9, type_cname = "GCallback")]
+	public delegate T ClassMethodCb<T> (JSC.Class instance, GLib.GenericArray<JSC.Value> values);
 	[CCode (cheader_filename = "jsc/jsc.h", has_target = false)]
 	public delegate bool ClassSetPropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name, JSC.Value value);
 	[CCode (cheader_filename = "jsc/jsc.h", instance_pos = 2.9)]

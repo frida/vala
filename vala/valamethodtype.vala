@@ -26,22 +26,14 @@ using GLib;
  * The type of a method referencea.
  */
 public class Vala.MethodType : CallableType {
-	public weak Method method_symbol { get; set; }
+	public weak Method method_symbol {
+		get {
+			return (Method) symbol;
+		}
+	}
 
 	public MethodType (Method method_symbol) {
-		this.method_symbol = method_symbol;
-	}
-
-	public override bool is_invokable () {
-		return true;
-	}
-
-	public override DataType? get_return_type () {
-		return method_symbol.return_type;
-	}
-
-	public override List<Parameter>? get_parameters () {
-		return method_symbol.get_parameters ();
+		base (method_symbol);
 	}
 
 	public override DataType copy () {
@@ -49,7 +41,7 @@ public class Vala.MethodType : CallableType {
 	}
 
 	public override bool compatible (DataType target_type) {
-		var dt = target_type as DelegateType;
+		unowned DelegateType? dt = target_type as DelegateType;
 		if (dt == null) {
 			// method types incompatible to anything but delegates
 			return false;

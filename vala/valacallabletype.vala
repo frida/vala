@@ -26,11 +26,33 @@ using GLib;
  * A callable type, i.e. a delegate, method, or signal type.
  */
 public abstract class Vala.CallableType : DataType {
+	public weak Callable callable_symbol {
+		get {
+			return (Callable) symbol;
+		}
+	}
+
+	protected CallableType (Symbol symbol) {
+		base.with_symbol (symbol);
+	}
+
+	public override bool is_invokable () {
+		return true;
+	}
+
+	public override unowned DataType? get_return_type () {
+		return callable_symbol.return_type;
+	}
+
+	public override unowned List<Parameter>? get_parameters () {
+		return callable_symbol.get_parameters ();
+	}
+
 	public override string to_prototype_string (string? override_name = null) {
 		StringBuilder builder = new StringBuilder ();
 
 		// Append return-type
-		var return_type = get_return_type ();
+		unowned DataType return_type = get_return_type ();
 		if (return_type.is_weak ()) {
 			builder.append ("unowned ");
 		}
@@ -45,9 +67,9 @@ public abstract class Vala.CallableType : DataType {
 		builder.append_c ('(');
 		int i = 1;
 		// add sender parameter for internal signal-delegates
-		var delegate_type = this as DelegateType;
+		unowned DelegateType? delegate_type = this as DelegateType;
 		if (delegate_type != null) {
-			var delegate_symbol = delegate_type.delegate_symbol;
+			unowned Delegate delegate_symbol = delegate_type.delegate_symbol;
 			if (delegate_symbol.parent_symbol is Signal && delegate_symbol.sender_type != null) {
 				builder.append (delegate_symbol.sender_type.to_qualified_string ());
 				i++;
@@ -61,6 +83,10 @@ public abstract class Vala.CallableType : DataType {
 			if (param.ellipsis) {
 				builder.append ("...");
 				continue;
+			}
+
+			if (param.params_array) {
+				builder.append ("params ");
 			}
 
 			if (param.direction == ParameterDirection.IN) {

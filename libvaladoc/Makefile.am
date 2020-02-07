@@ -4,7 +4,7 @@ NULL =
 
 AM_CFLAGS = \
 	-DG_LOG_DOMAIN=\"valadoc\" \
-	-DPACKAGE_VALADOC_LIBDIR=\"$(libdir)/valadoc\" \
+	-DPACKAGE_VALADOC_LIBDIR=\"$(libdir)/valadoc@PACKAGE_SUFFIX@\" \
 	-DPACKAGE_VERSION=\"$(VERSION)\" \
 	$(COVERAGE_CFLAGS) \
 	$(LIBGVC_CFLAGS) \
@@ -67,7 +67,6 @@ libvaladoc_la_VALASOURCES = \
 	api/errorcode.vala \
 	api/errordomain.vala \
 	api/field.vala \
-	api/formalparameter.vala \
 	api/interface.vala \
 	api/item.vala \
 	api/method.vala \
@@ -76,6 +75,7 @@ libvaladoc_la_VALASOURCES = \
 	api/nodetype.vala \
 	api/ownership.vala \
 	api/package.vala \
+	api/parameter.vala \
 	api/pointer.vala \
 	api/property.vala \
 	api/propertyaccessor.vala \

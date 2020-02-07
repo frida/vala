@@ -30,7 +30,11 @@ public class Vala.ErrorType : ReferenceType {
 	/**
 	 * The error domain or null for generic error.
 	 */
-	public weak ErrorDomain? error_domain { get; set; }
+	public weak ErrorDomain? error_domain {
+		get {
+			return symbol as ErrorDomain;
+		}
+	}
 
 	/**
 	 * The error code or null for generic error.
@@ -40,8 +44,7 @@ public class Vala.ErrorType : ReferenceType {
 	public bool dynamic_error { get; set; }
 
 	public ErrorType (ErrorDomain? error_domain, ErrorCode? error_code, SourceReference? source_reference = null) {
-		this.error_domain = error_domain;
-		this.data_type = error_domain;
+		base ((Symbol) error_domain ?? CodeContext.get ().root.scope.lookup ("GLib").scope.lookup ("Error"));
 		this.error_code = error_code;
 		this.source_reference = source_reference;
 	}
@@ -52,7 +55,7 @@ public class Vala.ErrorType : ReferenceType {
 			return true;
 		}
 
-		var et = target_type as ErrorType;
+		unowned ErrorType? et = target_type as ErrorType;
 
 		/* error types are only compatible to error types */
 		if (et == null) {
@@ -102,7 +105,7 @@ public class Vala.ErrorType : ReferenceType {
 	}
 
 	public override bool equals (DataType type2) {
-		var et = type2 as ErrorType;
+		unowned ErrorType? et = type2 as ErrorType;
 
 		if (et == null) {
 			return false;

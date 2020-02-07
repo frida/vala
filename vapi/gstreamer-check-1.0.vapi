@@ -38,6 +38,8 @@ namespace Gst {
 			public static Gst.ClockTime id_list_get_latest_time (GLib.List<Gst.ClockID?>? pending_list);
 			public uint peek_id_count ();
 			public bool peek_next_pending_id (out Gst.ClockID pending_id);
+			[Version (since = "1.18")]
+			public bool process_id (owned Gst.ClockID pending_id);
 			[Version (since = "1.4")]
 			public uint process_id_list (GLib.List<Gst.ClockID?>? pending_list);
 			public Gst.ClockID process_next_clock_id ();
@@ -121,6 +123,9 @@ namespace Gst {
 			public Gst.Buffer pull ();
 			[CCode (cname = "gst_harness_pull_event")]
 			public Gst.Event pull_event ();
+			[CCode (cname = "gst_harness_pull_until_eos")]
+			[Version (since = "1.18")]
+			public bool pull_until_eos (out Gst.Buffer buf);
 			[CCode (cname = "gst_harness_pull_upstream_event")]
 			public Gst.Event pull_upstream_event ();
 			[CCode (cname = "gst_harness_push")]

@@ -41,11 +41,11 @@ public class Vala.InitializerList : Expression {
 	}
 
 	/**
-	 * Returns a copy of the expression
+	 * Returns the initalizer expression list
 	 *
 	 * @return expression list
 	 */
-	public List<Expression> get_initializers () {
+	public unowned List<Expression> get_initializers () {
 		return initializers;
 	}
 
@@ -117,6 +117,7 @@ public class Vala.InitializerList : Expression {
 				builder.append_printf (", %s", initializer.to_string ());
 			}
 		}
+		builder.append_c ('}');
 		return builder.str;
 	}
 
@@ -142,7 +143,7 @@ public class Vala.InitializerList : Expression {
 			return false;
 		} else if (target_type is ArrayType) {
 			/* initializer is used as array initializer */
-			var array_type = (ArrayType) target_type;
+			unowned ArrayType array_type = (ArrayType) target_type;
 
 			bool requires_constants_only = false;
 			unowned CodeNode? node = parent_node;
@@ -155,7 +156,7 @@ public class Vala.InitializerList : Expression {
 			}
 
 			if (!(parent_node is ArrayCreationExpression) && !requires_constants_only
-			    && (!(parent_node is InitializerList) || ((InitializerList) parent_node).target_type.data_type is Struct)) {
+			    && (!(parent_node is InitializerList) || ((InitializerList) parent_node).target_type.type_symbol is Struct)) {
 				// transform shorthand form
 				//     int[] array = { 42 };
 				// into
@@ -166,6 +167,7 @@ public class Vala.InitializerList : Expression {
 				var array_creation = new ArrayCreationExpression (array_type.element_type.copy (), array_type.rank, this, source_reference);
 				array_creation.length_type = array_type.length_type.copy ();
 				array_creation.target_type = target_type;
+				array_creation.formal_target_type = formal_target_type;
 				old_parent_node.replace_expression (this, array_creation);
 
 				checked = false;
@@ -185,9 +187,9 @@ public class Vala.InitializerList : Expression {
 			foreach (Expression e in get_initializers ()) {
 				e.target_type = inner_target_type;
 			}
-		} else if (target_type.data_type is Struct) {
+		} else if (target_type.type_symbol is Struct) {
 			/* initializer is used as struct initializer */
-			var st = (Struct) target_type.data_type;
+			unowned Struct st = (Struct) target_type.type_symbol;
 			while (st.base_struct != null) {
 				st = st.base_struct;
 			}
@@ -231,7 +233,7 @@ public class Vala.InitializerList : Expression {
 				continue;
 			}
 
-			var unary = e as UnaryExpression;
+			unowned UnaryExpression? unary = e as UnaryExpression;
 			if (unary != null && (unary.operator == UnaryOperator.REF || unary.operator == UnaryOperator.OUT)) {
 				// TODO check type for ref and out expressions
 			} else if (!e.value_type.compatible (e.target_type)) {

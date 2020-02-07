@@ -70,7 +70,7 @@ public class Vala.Block : Symbol, Statement {
 	public List<Statement> get_statements () {
 		var list = new ArrayList<Statement> ();
 		foreach (Statement stmt in statement_list) {
-			var stmt_list = stmt as StatementList;
+			unowned StatementList? stmt_list = stmt as StatementList;
 			if (stmt_list != null) {
 				for (int i = 0; i < stmt_list.length; i++) {
 					list.add (stmt_list.get (i));
@@ -88,7 +88,7 @@ public class Vala.Block : Symbol, Statement {
 	 * @param local a variable declarator
 	 */
 	public void add_local_variable (LocalVariable local) {
-		var parent_block = parent_symbol;
+		unowned Symbol? parent_block = parent_symbol;
 		while (parent_block is Block || parent_block is Method || parent_block is PropertyAccessor) {
 			if (parent_block.scope.lookup (local.name) != null) {
 				Report.error (local.source_reference, "Local variable `%s' conflicts with a local variable or constant declared in a parent scope".printf (local.name));
@@ -104,16 +104,16 @@ public class Vala.Block : Symbol, Statement {
 	}
 
 	/**
-	 * Returns a copy of the list of local variables.
+	 * Returns the list of local variables.
 	 *
 	 * @return variable declarator list
 	 */
-	public List<LocalVariable> get_local_variables () {
+	public unowned List<LocalVariable> get_local_variables () {
 		return local_variables;
 	}
 
 	public void add_local_constant (Constant constant) {
-		var parent_block = parent_symbol;
+		unowned Symbol? parent_block = parent_symbol;
 		while (parent_block is Block || parent_block is Method || parent_block is PropertyAccessor) {
 			if (parent_block.scope.lookup (constant.name) != null) {
 				Report.error (constant.source_reference, "Local constant `%s' conflicts with a local variable or constant declared in a parent scope".printf (constant.name));
@@ -130,7 +130,7 @@ public class Vala.Block : Symbol, Statement {
 	 *
 	 * @return constants list
 	 */
-	public List<Constant> get_local_constants () {
+	public unowned List<Constant> get_local_constants () {
 		return local_constants;
 	}
 
@@ -159,7 +159,9 @@ public class Vala.Block : Symbol, Statement {
 		context.analyzer.insert_block = this;
 
 		for (int i = 0; i < statement_list.size; i++) {
-			statement_list[i].check (context);
+			if (!statement_list[i].check (context)) {
+				error = true;
+			}
 		}
 
 		foreach (LocalVariable local in get_local_variables ()) {

@@ -381,8 +381,8 @@ public class Vala.Property : Symbol, Lockable {
 	private void find_base_interface_property (Class cl) {
 		// FIXME report error if multiple possible base properties are found
 		foreach (DataType type in cl.get_base_types ()) {
-			if (type.data_type is Interface) {
-				var sym = type.data_type.scope.lookup (name);
+			if (type.type_symbol is Interface) {
+				var sym = type.type_symbol.scope.lookup (name);
 				if (sym is Property) {
 					var base_property = (Property) sym;
 					if (base_property.is_abstract || base_property.is_virtual) {
@@ -407,6 +407,10 @@ public class Vala.Property : Symbol, Lockable {
 		}
 
 		checked = true;
+
+		if (this_parameter != null) {
+			this_parameter.check (context);
+		}
 
 		if (parent_symbol is Class && (is_abstract || is_virtual)) {
 			var cl = (Class) parent_symbol;
@@ -465,6 +469,9 @@ public class Vala.Property : Symbol, Lockable {
 		}
 
 		property_type.check (context);
+		if (!external_package) {
+			context.analyzer.check_type (property_type);
+		}
 
 		if (get_accessor == null && set_accessor == null) {
 			error = true;
@@ -493,7 +500,7 @@ public class Vala.Property : Symbol, Lockable {
 			Report.error (source_reference, "property type `%s' is less accessible than property `%s'".printf (property_type.to_string (), get_full_name ()));
 		}
 
-		if (overrides && base_property == null) {
+		if (overrides && base_property == null && base_interface_property == null) {
 			Report.error (source_reference, "%s: no suitable property found to override".printf (get_full_name ()));
 		}
 

@@ -84,6 +84,7 @@ public class Vala.ArrayType : ReferenceType {
 	private ArrayCopyMethod copy_method;
 
 	public ArrayType (DataType element_type, int rank, SourceReference? source_reference) {
+		base (null);
 		this.element_type = element_type;
 		this.rank = rank;
 		this.source_reference = source_reference;
@@ -105,7 +106,7 @@ public class Vala.ArrayType : ReferenceType {
 		return null;
 	}
 
-	private ArrayLengthField get_length_field () {
+	unowned ArrayLengthField get_length_field () {
 		if (length_field == null) {
 			length_field = new ArrayLengthField (source_reference);
 
@@ -122,14 +123,18 @@ public class Vala.ArrayType : ReferenceType {
 		return length_field;
 	}
 
-	private ArrayResizeMethod get_resize_method () {
+	unowned ArrayResizeMethod get_resize_method () {
 		if (resize_method == null) {
 			resize_method = new ArrayResizeMethod (source_reference);
 
 			resize_method.return_type = new VoidType ();
 			resize_method.access = SymbolAccessibility.PUBLIC;
 
-			resize_method.set_attribute_string ("CCode", "cname", "g_renew");
+			if (CodeContext.get ().profile == Profile.POSIX) {
+				resize_method.set_attribute_string ("CCode", "cname", "realloc");
+			} else {
+				resize_method.set_attribute_string ("CCode", "cname", "g_renew");
+			}
 
 			resize_method.add_parameter (new Parameter ("length", length_type));
 
@@ -138,7 +143,7 @@ public class Vala.ArrayType : ReferenceType {
 		return resize_method;
 	}
 
-	private ArrayMoveMethod get_move_method () {
+	unowned ArrayMoveMethod get_move_method () {
 		if (move_method == null) {
 			move_method = new ArrayMoveMethod (source_reference);
 
@@ -154,7 +159,7 @@ public class Vala.ArrayType : ReferenceType {
 		return move_method;
 	}
 
-	private ArrayCopyMethod get_copy_method () {
+	unowned ArrayCopyMethod get_copy_method () {
 		if (copy_method == null) {
 			copy_method = new ArrayCopyMethod (source_reference);
 
@@ -200,19 +205,19 @@ public class Vala.ArrayType : ReferenceType {
 	}
 
 	public override bool compatible (DataType target_type) {
-		if (CodeContext.get ().profile == Profile.GOBJECT && target_type.data_type != null) {
-			if (target_type.data_type.is_subtype_of (CodeContext.get ().analyzer.gvalue_type.data_type) && element_type.data_type == CodeContext.get ().root.scope.lookup ("string")) {
+		if (CodeContext.get ().profile == Profile.GOBJECT && target_type.type_symbol != null) {
+			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvalue_type.type_symbol) && element_type.type_symbol == CodeContext.get ().root.scope.lookup ("string")) {
 				// allow implicit conversion from string[] to GValue
 				return true;
 			}
 
-			if (target_type.data_type.is_subtype_of (CodeContext.get ().analyzer.gvariant_type.data_type)) {
+			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvariant_type.type_symbol)) {
 				// allow implicit conversion to GVariant
 				return true;
 			}
 		}
 
-		if (target_type is PointerType || (target_type.data_type != null && target_type.data_type.get_attribute ("PointerType") != null)) {
+		if (target_type is PointerType || (target_type.type_symbol != null && target_type.type_symbol.get_attribute ("PointerType") != null)) {
 			/* any array type can be cast to a generic pointer */
 			return true;
 		}
@@ -222,7 +227,7 @@ public class Vala.ArrayType : ReferenceType {
 			return true;
 		}
 
-		var target_array_type = target_type as ArrayType;
+		unowned ArrayType? target_array_type = target_type as ArrayType;
 		if (target_array_type == null) {
 			return false;
 		}
@@ -331,7 +336,7 @@ public class Vala.ArrayType : ReferenceType {
 	}
 
 	public override DataType? infer_type_argument (TypeParameter type_param, DataType value_type) {
-		var array_type = value_type as ArrayType;
+		unowned ArrayType? array_type = value_type as ArrayType;
 		if (array_type != null) {
 			return element_type.infer_type_argument (type_param, array_type.element_type);
 		}

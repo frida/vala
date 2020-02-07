@@ -67,10 +67,10 @@ public class Vala.Constructor : Subroutine {
 
 		checked = true;
 
-		this_parameter = new Parameter ("this", new ObjectType (context.analyzer.current_class));
-		scope.add (this_parameter.name, this_parameter);
+		if (this_parameter != null) {
+			this_parameter.check (context);
+		}
 
-		owner = context.analyzer.current_symbol.scope;
 		context.analyzer.current_symbol = this;
 
 		if (body != null) {
@@ -85,7 +85,7 @@ public class Vala.Constructor : Subroutine {
 			}
 		}
 
-		context.analyzer.current_symbol = context.analyzer.current_symbol.parent_symbol;
+		context.analyzer.current_symbol = parent_symbol;
 
 		return !error;
 	}

@@ -50,6 +50,9 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/gst.h")]
 		public static void log_default (Gst.DebugCategory category, Gst.DebugLevel level, string file, string function, int line, GLib.Object? object, Gst.DebugMessage message, void* user_data = null);
 		[CCode (cheader_filename = "gst/gst.h")]
+		[Version (since = "1.18")]
+		public static string log_get_line (Gst.DebugCategory category, Gst.DebugLevel level, string file, string function, int line, GLib.Object? object, Gst.DebugMessage message);
+		[CCode (cheader_filename = "gst/gst.h")]
 		public static void log_valist (Gst.DebugCategory category, Gst.DebugLevel level, string file, string function, int line, GLib.Object? object, string format, va_list args);
 		[CCode (cheader_filename = "gst/gst.h")]
 		public static void print_stack_trace ();
@@ -145,6 +148,8 @@ namespace Gst {
 		public const Gst.ElementFactoryListType ENCRYPTOR;
 		[CCode (cheader_filename = "gst/gst.h", cname = "GST_ELEMENT_FACTORY_TYPE_FORMATTER")]
 		public const Gst.ElementFactoryListType FORMATTER;
+		[CCode (cheader_filename = "gst/gst.h", cname = "GST_ELEMENT_FACTORY_TYPE_HARDWARE")]
+		public const Gst.ElementFactoryListType HARDWARE;
 		[CCode (cheader_filename = "gst/gst.h", cname = "GST_ELEMENT_FACTORY_TYPE_MAX_ELEMENTS")]
 		public const Gst.ElementFactoryListType MAX_ELEMENTS;
 		[CCode (cheader_filename = "gst/gst.h", cname = "GST_ELEMENT_FACTORY_TYPE_MEDIA_ANY")]
@@ -562,6 +567,7 @@ namespace Gst {
 		public size_t padding;
 		public size_t prefix;
 		public Gst.AllocationParams? copy ();
+		[DestroysInstance]
 		public void free ();
 		public void init ();
 	}
@@ -581,6 +587,7 @@ namespace Gst {
 		public static Gst.Allocator? find (string? name);
 		public virtual void free (owned Gst.Memory memory);
 		public static void register (string name, owned Gst.Allocator allocator);
+		[DestroysInstance]
 		public void set_default ();
 	}
 	[CCode (cheader_filename = "gst/gst.h", ref_function = "gst_atomic_queue_ref", type_id = "gst_atomic_queue_get_type ()", unref_function = "gst_atomic_queue_unref")]
@@ -621,6 +628,8 @@ namespace Gst {
 		public Gst.ElementFlags get_suppressed_flags ();
 		[NoWrapper]
 		public virtual void handle_message (Gst.Message message);
+		[Version (since = "1.18")]
+		public Gst.Iterator? iterate_all_by_element_factory_name (string factory_name);
 		public Gst.Iterator? iterate_all_by_interface (GLib.Type iface);
 		public Gst.Iterator? iterate_elements ();
 		public Gst.Iterator? iterate_recurse ();
@@ -673,8 +682,10 @@ namespace Gst {
 		public unowned Gst.ReferenceTimestampMeta? add_reference_timestamp_meta (Gst.Caps reference, Gst.ClockTime timestamp, Gst.ClockTime duration);
 		[CCode (has_construct_function = false)]
 		public Buffer.allocate (Gst.Allocator? allocator, size_t size, Gst.AllocationParams? @params);
+		[DestroysInstance]
 		public Gst.Buffer append (owned Gst.Buffer buf2);
 		public void append_memory (owned Gst.Memory mem);
+		[DestroysInstance]
 		public Gst.Buffer append_region (owned Gst.Buffer buf2, ssize_t offset, ssize_t size);
 		[Version (since = "1.6")]
 		public Gst.Buffer copy_deep ();
@@ -842,6 +853,7 @@ namespace Gst {
 		public void append_structure_full (owned Gst.Structure structure, owned Gst.CapsFeatures? features = null);
 		public bool can_intersect (Gst.Caps caps2);
 		public Gst.Caps copy ();
+		[Version (since = "1.16")]
 		public Gst.Caps copy_nth (uint nth);
 		[CCode (has_construct_function = false)]
 		public Caps.empty ();
@@ -849,6 +861,7 @@ namespace Gst {
 		public Caps.empty_simple (string media_type);
 		[Version (since = "1.6")]
 		public void filter_and_map_in_place (Gst.CapsFilterMapFunc func);
+		[DestroysInstance]
 		public Gst.Caps fixate ();
 		[Version (since = "1.6")]
 		public bool @foreach (Gst.CapsForeachFunc func);
@@ -876,10 +889,14 @@ namespace Gst {
 		public bool is_subset_structure_full (Gst.Structure structure, Gst.CapsFeatures? features);
 		[Version (since = "1.6")]
 		public bool map_in_place (Gst.CapsMapFunc func);
+		[DestroysInstance]
 		public Gst.Caps merge (owned Gst.Caps caps2);
+		[DestroysInstance]
 		public Gst.Caps merge_structure (owned Gst.Structure structure);
+		[DestroysInstance]
 		[Version (since = "1.2")]
 		public Gst.Caps merge_structure_full (owned Gst.Structure structure, owned Gst.CapsFeatures? features);
+		[DestroysInstance]
 		public Gst.Caps normalize ();
 		public void remove_structure (uint idx);
 		[Version (since = "1.2")]
@@ -891,10 +908,12 @@ namespace Gst {
 		public void set_value (string field, GLib.Value value);
 		[CCode (has_construct_function = false)]
 		public Caps.simple (string media_type, string fieldname, ...);
+		[DestroysInstance]
 		public Gst.Caps simplify ();
 		public Gst.Structure? steal_structure (uint index);
 		public Gst.Caps subtract (Gst.Caps subtrahend);
 		public string to_string ();
+		[DestroysInstance]
 		public Gst.Caps truncate ();
 	}
 	[CCode (cheader_filename = "gst/gst.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_caps_features_get_type ()")]
@@ -912,6 +931,7 @@ namespace Gst {
 		public Gst.CapsFeatures copy ();
 		[CCode (has_construct_function = false)]
 		public CapsFeatures.empty ();
+		[DestroysInstance]
 		public void free ();
 		public static Gst.CapsFeatures? from_string (string features);
 		public unowned string? get_nth (uint i);
@@ -1041,7 +1061,13 @@ namespace Gst {
 		[CCode (has_construct_function = false)]
 		public DateTime.from_unix_epoch_local_time (int64 secs);
 		[CCode (has_construct_function = false)]
+		[Version (since = "1.18")]
+		public DateTime.from_unix_epoch_local_time_usecs (int64 usecs);
+		[CCode (has_construct_function = false)]
 		public DateTime.from_unix_epoch_utc (int64 secs);
+		[CCode (has_construct_function = false)]
+		[Version (since = "1.18")]
+		public DateTime.from_unix_epoch_utc_usecs (int64 usecs);
 		public int get_day ();
 		public int get_hour ();
 		public int get_microsecond ();
@@ -1064,6 +1090,7 @@ namespace Gst {
 		public unowned Gst.DateTime @ref ();
 		public GLib.DateTime? to_g_date_time ();
 		public string? to_iso8601_string ();
+		[DestroysInstance]
 		public void unref ();
 		[CCode (has_construct_function = false)]
 		public DateTime.y (int year);
@@ -1082,7 +1109,7 @@ namespace Gst {
 	public abstract class Device : Gst.Object {
 		[CCode (has_construct_function = false)]
 		protected Device ();
-		public virtual Gst.Element? create_element (string? name);
+		public virtual unowned Gst.Element? create_element (string? name);
 		public Gst.Caps? get_caps ();
 		public string get_device_class ();
 		public string get_display_name ();
@@ -1250,6 +1277,10 @@ namespace Gst {
 		public Gst.Context? get_context_unlocked (string context_type);
 		[Version (since = "1.8")]
 		public GLib.List<Gst.Context> get_contexts ();
+		[Version (since = "1.18")]
+		public Gst.ClockTime get_current_clock_time ();
+		[Version (since = "1.18")]
+		public Gst.ClockTime get_current_running_time ();
 		public unowned Gst.ElementFactory? get_factory ();
 		[Version (since = "1.14")]
 		public unowned string get_metadata (string key);
@@ -1373,6 +1404,12 @@ namespace Gst {
 		public unowned Gst.Structure? get_structure ();
 		public bool has_name (string name);
 		[CCode (has_construct_function = false)]
+		[Version (since = "1.18")]
+		public Event.instant_rate_change (double rate_multiplier, Gst.SegmentFlags new_flags);
+		[CCode (has_construct_function = false)]
+		[Version (since = "1.18")]
+		public Event.instant_rate_sync_time (double rate_multiplier, Gst.ClockTime running_time, Gst.ClockTime upstream_running_time);
+		[CCode (has_construct_function = false)]
 		public Event.latency (Gst.ClockTime latency);
 		[CCode (has_construct_function = false)]
 		public Event.navigation (owned Gst.Structure structure);
@@ -1382,6 +1419,10 @@ namespace Gst {
 		public void parse_gap (out Gst.ClockTime timestamp, out Gst.ClockTime duration);
 		[Version (since = "1.2")]
 		public bool parse_group_id (out uint group_id);
+		[Version (since = "1.18")]
+		public void parse_instant_rate_change (out double rate_multiplier, out Gst.SegmentFlags new_flags);
+		[Version (since = "1.18")]
+		public void parse_instant_rate_sync_time (out double rate_multiplier, out Gst.ClockTime running_time, out Gst.ClockTime upstream_running_time);
 		public void parse_latency (out Gst.ClockTime latency);
 		[Version (since = "1.6")]
 		public void parse_protection (out unowned string system_id, out unowned Gst.Buffer data, out unowned string origin);
@@ -1534,6 +1575,7 @@ namespace Gst {
 		public bool is_span (Gst.Memory mem2, out size_t offset);
 		[Version (since = "1.2")]
 		public bool is_type (string mem_type);
+		[DestroysInstance]
 		public Gst.Memory? make_mapped (out Gst.MapInfo info, Gst.MapFlags flags);
 		public bool map (out Gst.MapInfo info, Gst.MapFlags flags);
 		[CCode (has_construct_function = false, simple_generics = true)]
@@ -1600,6 +1642,9 @@ namespace Gst {
 		[Version (since = "1.10")]
 		public Message.info_with_details (Gst.Object? src, GLib.Error error, string debug, owned Gst.Structure? details);
 		[CCode (has_construct_function = false)]
+		[Version (since = "1.18")]
+		public Message.instant_rate_request (Gst.Object src, double rate_multiplier);
+		[CCode (has_construct_function = false)]
 		public Message.latency (Gst.Object? src);
 		[CCode (has_construct_function = false)]
 		[Version (since = "1.2")]
@@ -1629,6 +1674,8 @@ namespace Gst {
 		public void parse_info (out GLib.Error gerror, out string debug);
 		[Version (since = "1.10")]
 		public void parse_info_details (out unowned Gst.Structure structure);
+		[Version (since = "1.18")]
+		public void parse_instant_rate_request (out double rate_multiplier);
 		public void parse_new_clock (out unowned Gst.Clock clock);
 		public void parse_progress (out Gst.ProgressType type, out string code, out string text);
 		[Version (since = "1.10")]
@@ -1734,6 +1781,7 @@ namespace Gst {
 		public T get_qdata<T> (GLib.Quark quark);
 		public bool is_writable ();
 		public bool @lock (Gst.LockFlags flags);
+		[DestroysInstance]
 		[ReturnsModifiedPointer]
 		public Gst.MiniObject make_writable ();
 		public unowned Gst.MiniObject @ref ();
@@ -1822,6 +1870,8 @@ namespace Gst {
 		public Gst.Element? get_parent_element ();
 		public Gst.Pad? get_peer ();
 		public Gst.FlowReturn get_range (uint64 offset, uint size, out Gst.Buffer buffer);
+		[Version (since = "1.18")]
+		public Gst.Pad? get_single_internal_link ();
 		public Gst.Event? get_sticky_event (Gst.EventType event_type, uint idx);
 		[Version (since = "1.10")]
 		public Gst.Stream? get_stream ();
@@ -1950,6 +2000,7 @@ namespace Gst {
 		[CCode (has_construct_function = false)]
 		public ParseContext ();
 		public Gst.ParseContext? copy ();
+		[DestroysInstance]
 		public void free ();
 		[CCode (array_length = false, array_null_terminated = true)]
 		public string[]? get_missing_elements ();
@@ -2038,6 +2089,7 @@ namespace Gst {
 		[Version (since = "1.16")]
 		public bool fd_has_pri (Gst.PollFD fd);
 		public void fd_ignored (Gst.PollFD fd);
+		[DestroysInstance]
 		public void free ();
 		public void get_read_gpollfd (GLib.PollFD fd);
 		public bool read_control ();
@@ -2263,6 +2315,7 @@ namespace Gst {
 		public Gst.Segment copy ();
 		public void copy_into (Gst.Segment dest);
 		public bool do_seek (double rate, Gst.Format format, Gst.SeekFlags flags, Gst.SeekType start_type, uint64 start, Gst.SeekType stop_type, uint64 stop, out bool update);
+		[DestroysInstance]
 		public void free ();
 		public void init (Gst.Format format);
 		[Version (since = "1.6")]
@@ -2341,8 +2394,10 @@ namespace Gst {
 		public bool fixate_field_nearest_int (string field_name, int target);
 		public bool fixate_field_string (string field_name, string target);
 		public bool @foreach (Gst.StructureForeachFunc func);
+		[DestroysInstance]
 		public void free ();
-		public static Gst.Structure? from_string (string string, out unowned string end);
+		[CCode (cname = "gst_structure_from_string", has_construct_function = false)]
+		public Structure.from_string (string string, out unowned string end);
 		public bool @get (...);
 		public bool get_array (string fieldname, out GLib.ValueArray array);
 		public bool get_boolean (string fieldname, out bool value);
@@ -2358,6 +2413,7 @@ namespace Gst {
 		public bool get_int (string fieldname, out int value);
 		[Version (since = "1.4")]
 		public bool get_int64 (string fieldname, out int64 value);
+		[Version (since = "1.12")]
 		public bool get_list (string fieldname, out GLib.ValueArray array);
 		public unowned string get_name ();
 		public GLib.Quark get_name_id ();
@@ -2392,12 +2448,16 @@ namespace Gst {
 		public void remove_fields (params string[] field_names);
 		public void remove_fields_valist (string fieldname, va_list varargs);
 		public void @set (string fieldname, ...);
+		[Version (since = "1.12")]
 		public void set_array (string fieldname, GLib.ValueArray array);
+		[Version (since = "1.12")]
 		public void set_list (string fieldname, GLib.ValueArray array);
 		public void set_name (string name);
 		public bool set_parent_refcount (int refcount);
 		public void set_valist (string fieldname, va_list varargs);
 		public void set_value (string fieldname, GLib.Value value);
+		[Version (since = "1.18")]
+		public static bool take (ref Gst.Structure? oldstr_ptr, owned Gst.Structure? newstr);
 		public void take_value (string fieldname, owned GLib.Value value);
 		public string to_string ();
 		[CCode (has_construct_function = false)]
@@ -2541,6 +2601,7 @@ namespace Gst {
 	public abstract class Tracer : Gst.Object {
 		[CCode (has_construct_function = false)]
 		protected Tracer ();
+		public static bool register (Gst.Plugin? plugin, string name, GLib.Type type);
 		[NoAccessorMethod]
 		public string @params { owned get; set construct; }
 	}
@@ -2614,6 +2675,7 @@ namespace Gst {
 		public bool is_writable ();
 		[Version (since = "1.6")]
 		public Gst.Uri? join (Gst.Uri? ref_uri);
+		[DestroysInstance]
 		[ReturnsModifiedPointer]
 		[Version (since = "1.6")]
 		public Gst.Uri make_writable ();
@@ -2771,6 +2833,7 @@ namespace Gst {
 	}
 	[CCode (cheader_filename = "gst/gst.h", has_type_id = false)]
 	public struct DebugCategory {
+		[Version (deprecated = true)]
 		public void free ();
 		public uint get_color ();
 		public unowned string get_description ();
@@ -3056,7 +3119,8 @@ namespace Gst {
 	public enum ClockType {
 		REALTIME,
 		MONOTONIC,
-		OTHER
+		OTHER,
+		TAI
 	}
 	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_DEBUG_", type_id = "gst_debug_color_flags_get_type ()")]
 	[Flags]
@@ -3139,6 +3203,7 @@ namespace Gst {
 		PROTECTION,
 		SEGMENT_DONE,
 		GAP,
+		INSTANT_RATE_CHANGE,
 		QOS,
 		SEEK,
 		NAVIGATION,
@@ -3147,6 +3212,7 @@ namespace Gst {
 		RECONFIGURE,
 		TOC_SELECT,
 		SELECT_STREAMS,
+		INSTANT_RATE_SYNC_TIME,
 		CUSTOM_UPSTREAM,
 		CUSTOM_DOWNSTREAM,
 		CUSTOM_DOWNSTREAM_OOB,
@@ -3283,6 +3349,7 @@ namespace Gst {
 		STREAMS_SELECTED,
 		REDIRECT,
 		DEVICE_CHANGED,
+		INSTANT_RATE_REQUEST,
 		ANY;
 		public unowned string get_name ();
 		public GLib.Quark to_quark ();
@@ -3525,7 +3592,9 @@ namespace Gst {
 		SNAP_AFTER,
 		SNAP_NEAREST,
 		TRICKMODE_KEY_UNITS,
-		TRICKMODE_NO_AUDIO
+		TRICKMODE_NO_AUDIO,
+		TRICKMODE_FORWARD_PREDICTED,
+		INSTANT_RATE_CHANGE
 	}
 	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_SEEK_TYPE_", type_id = "gst_seek_type_get_type ()")]
 	public enum SeekType {
@@ -3542,12 +3611,14 @@ namespace Gst {
 		SKIP,
 		SEGMENT,
 		TRICKMODE_KEY_UNITS,
+		TRICKMODE_FORWARD_PREDICTED,
 		TRICKMODE_NO_AUDIO
 	}
 	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_STACK_TRACE_SHOW_", type_id = "gst_stack_trace_flags_get_type ()")]
 	[Flags]
 	[Version (since = "1.12")]
 	public enum StackTraceFlags {
+		NONE,
 		FULL
 	}
 	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_STATE_", type_id = "gst_state_get_type ()")]
@@ -3984,6 +4055,8 @@ namespace Gst {
 	public const Gst.ClockTimeDiff NSECOND;
 	[CCode (cheader_filename = "gst/gst.h", cname = "GST_PARAM_CONTROLLABLE")]
 	public const int PARAM_CONTROLLABLE;
+	[CCode (cheader_filename = "gst/gst.h", cname = "GST_PARAM_DOC_SHOW_DEFAULT")]
+	public const int PARAM_DOC_SHOW_DEFAULT;
 	[CCode (cheader_filename = "gst/gst.h", cname = "GST_PARAM_MUTABLE_PAUSED")]
 	public const int PARAM_MUTABLE_PAUSED;
 	[CCode (cheader_filename = "gst/gst.h", cname = "GST_PARAM_MUTABLE_PLAYING")]
@@ -4004,6 +4077,8 @@ namespace Gst {
 	public const Gst.QueryTypeFlags QUERY_TYPE_BOTH;
 	[CCode (cheader_filename = "gst/gst.h", cname = "GST_SECOND")]
 	public const Gst.ClockTimeDiff SECOND;
+	[CCode (cheader_filename = "gst/gst.h", cname = "GST_SEGMENT_INSTANT_FLAGS")]
+	public const int SEGMENT_INSTANT_FLAGS;
 	[CCode (cheader_filename = "gst/gst.h", cname = "GST_SEQNUM_INVALID")]
 	[Version (since = "1.14")]
 	public const int SEQNUM_INVALID;
@@ -4082,6 +4157,11 @@ namespace Gst {
 	public static bool segtrap_is_enabled ();
 	[CCode (cheader_filename = "gst/gst.h")]
 	public static void segtrap_set_enabled (bool enabled);
+	[CCode (cheader_filename = "gst/gst.h")]
+	[Version (since = "1.18")]
+	public static GLib.List<Gst.Tracer> tracing_get_active_tracers ();
+	[CCode (cheader_filename = "gst/gst.h")]
+	public static void tracing_register_hook (Gst.Tracer tracer, string detail, [CCode (scope = "async")] GLib.Callback func);
 	[CCode (cheader_filename = "gst/gst.h")]
 	public static bool update_registry ();
 	[CCode (cheader_filename = "gst/gst.h")]

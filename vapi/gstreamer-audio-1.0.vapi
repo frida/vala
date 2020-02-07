@@ -5,6 +5,7 @@ namespace Gst {
 	namespace Audio {
 		[CCode (cheader_filename = "gst/audio/audio.h", type_id = "gst_audio_aggregator_get_type ()")]
 		[GIR (name = "AudioAggregator")]
+		[Version (since = "1.14")]
 		public abstract class Aggregator : Gst.Base.Aggregator {
 			public weak Gst.Caps current_caps;
 			[CCode (has_construct_function = false)]
@@ -20,9 +21,13 @@ namespace Gst {
 			public uint64 discont_wait { get; set; }
 			[NoAccessorMethod]
 			public uint64 output_buffer_duration { get; set; }
+			[NoAccessorMethod]
+			[Version (since = "1.18")]
+			public Gst.Fraction output_buffer_duration_fraction { owned get; set; }
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", type_id = "gst_audio_aggregator_convert_pad_get_type ()")]
 		[GIR (name = "AudioAggregatorConvertPad")]
+		[Version (since = "1.14")]
 		public class AggregatorConvertPad : Gst.Audio.AggregatorPad {
 			[CCode (has_construct_function = false)]
 			protected AggregatorConvertPad ();
@@ -31,6 +36,7 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", type_id = "gst_audio_aggregator_pad_get_type ()")]
 		[GIR (name = "AudioAggregatorPad")]
+		[Version (since = "1.14")]
 		public class AggregatorPad : Gst.Base.AggregatorPad {
 			public weak Gst.Audio.Info info;
 			[CCode (has_construct_function = false)]
@@ -438,15 +444,23 @@ namespace Gst {
 			[CCode (has_construct_function = false)]
 			protected Sink ();
 			[NoWrapper]
+			public virtual void clear_all ();
+			[NoWrapper]
 			public virtual bool close ();
 			[NoWrapper]
 			public virtual uint delay ();
 			[NoWrapper]
 			public virtual bool open ();
 			[NoWrapper]
+			public virtual void pause ();
+			[NoWrapper]
 			public virtual bool prepare (Gst.Audio.RingBufferSpec spec);
 			[NoWrapper]
 			public virtual void reset ();
+			[NoWrapper]
+			public virtual void resume ();
+			[NoWrapper]
+			public virtual void stop ();
 			[NoWrapper]
 			public virtual bool unprepare ();
 			[NoWrapper]
@@ -934,6 +948,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_channel_positions_to_mask")]
 		public static bool audio_channel_positions_to_mask ([CCode (array_length_cname = "channels", array_length_pos = 1.5)] Gst.Audio.ChannelPosition[] position, bool force_order, out uint64 channel_mask);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_channel_positions_to_string")]
+		[Version (since = "1.10")]
 		public static string audio_channel_positions_to_string ([CCode (array_length_cname = "channels", array_length_pos = 1.1)] Gst.Audio.ChannelPosition[] position);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_channel_positions_to_valid_order")]
 		public static bool audio_channel_positions_to_valid_order ([CCode (array_length_cname = "channels", array_length_pos = 1.1)] Gst.Audio.ChannelPosition[] position);

@@ -78,24 +78,26 @@ public class Vala.BaseAccess : Expression {
 			Report.error (source_reference, "Base access invalid without base class");
 			return false;
 		} else if (context.analyzer.current_class.is_compact && context.analyzer.current_method != null
-		    && !(context.analyzer.current_method is CreationMethod)) {
+		    && !(context.analyzer.current_method is CreationMethod)
+		    && (context.analyzer.current_method.overrides || context.analyzer.current_method.is_virtual)) {
 			error = true;
 			Report.error (source_reference, "Base access invalid in virtual overridden method of compact class");
 			return false;
-		} else if (context.analyzer.current_class.is_compact && context.analyzer.current_property_accessor != null) {
+		} else if (context.analyzer.current_class.is_compact && context.analyzer.current_property_accessor != null
+		    && (context.analyzer.current_property_accessor.prop.overrides || context.analyzer.current_property_accessor.prop.is_virtual)) {
 			error = true;
 			Report.error (source_reference, "Base access invalid in virtual overridden property of compact class");
 			return false;
 		} else {
 			foreach (var base_type in context.analyzer.current_class.get_base_types ()) {
-				if (base_type.data_type is Class) {
+				if (base_type.type_symbol is Class) {
 					value_type = base_type.copy ();
 					value_type.value_owned = false;
 				}
 			}
 		}
 
-		symbol_reference = value_type.data_type;
+		symbol_reference = value_type.type_symbol;
 
 		return !error;
 	}

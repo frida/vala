@@ -86,11 +86,6 @@ namespace GLib {
 		public MemoryOutputStream ([CCode (array_length_type = "gsize")] owned uint8[]? data, GLib.ReallocFunc? realloc_function = GLib.g_realloc, GLib.DestroyNotify? destroy_function = GLib.g_free);
 	}
 
-	[CCode (cheader_filename = "gio/gio.h", type_id = "g_native_socket_address_get_type ()")]
-	public class NativeSocketAddress : GLib.SocketAddress {
-		public NativeSocketAddress (void* native, size_t len);
-	}
-
 	public abstract class NativeVolumeMonitor : GLib.VolumeMonitor {
 		[NoWrapper]
 		public abstract GLib.Mount get_mount_for_mount_path (string mount_path, GLib.Cancellable? cancellable = null);
@@ -134,10 +129,10 @@ namespace GLib {
 		[Version (since = "2.36")]
 		public Task (GLib.Object? source_object, GLib.Cancellable? cancellable, [CCode (scope = "async")] GLib.TaskReadyCallback callback);
 		[Version (since = "2.36")]
-		public static void report_error (GLib.Object? source_object, [CCode (scope = "async")] GLib.AsyncReadyCallback callback, void* source_tag, owned GLib.Error error);
+		public static void report_error (GLib.Object? source_object, [CCode (scope = "async")] GLib.TaskReadyCallback callback, void* source_tag, owned GLib.Error error);
 		[PrintfFormat]
 		[Version (since = "2.36")]
-		public static void report_new_error (GLib.Object? source_object, [CCode (scope = "async")] GLib.AsyncReadyCallback callback, void* source_tag, GLib.Quark domain, int code, string format, ...);
+		public static void report_new_error (GLib.Object? source_object, [CCode (scope = "async")] GLib.TaskReadyCallback callback, void* source_tag, GLib.Quark domain, int code, string format, ...);
 	}
 
 	public class VolumeMonitor : GLib.Object {

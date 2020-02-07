@@ -40,9 +40,18 @@ public abstract class Vala.DataType : CodeNode {
 	public bool nullable { get; set; }
 
 	/**
-	 * The referred data type.
+	 * The referred symbol.
 	 */
-	public weak TypeSymbol data_type { get; set; }
+	public weak Symbol? symbol { get; private set; }
+
+	/**
+	 * The referred type symbol.
+	 */
+	public weak TypeSymbol? type_symbol {
+		get {
+			return symbol as TypeSymbol;
+		}
+	}
 
 	/**
 	 * Specifies that the expression transfers a floating reference.
@@ -56,6 +65,10 @@ public abstract class Vala.DataType : CodeNode {
 
 	private List<DataType> type_argument_list;
 	private static List<DataType> _empty_type_list;
+
+	protected DataType.with_symbol (Symbol? symbol) {
+		this.symbol = symbol;
+	}
 
 	/**
 	 * Appends the specified type as generic type argument.
@@ -71,11 +84,11 @@ public abstract class Vala.DataType : CodeNode {
 	}
 
 	/**
-	 * Returns a copy of the list of generic type arguments.
+	 * Returns the list of generic type arguments.
 	 *
 	 * @return type argument list
 	 */
-	public List<DataType> get_type_arguments () {
+	public unowned List<DataType> get_type_arguments () {
 		if (type_argument_list != null) {
 			return type_argument_list;
 		}
@@ -117,13 +130,11 @@ public abstract class Vala.DataType : CodeNode {
 	}
 
 	public virtual string to_qualified_string (Scope? scope = null) {
-		// logic temporarily duplicated in DelegateType class
-
 		string s;
 
-		if (data_type != null) {
-			Symbol global_symbol = data_type;
-			while (global_symbol.parent_symbol.name != null) {
+		if (type_symbol != null) {
+			Symbol global_symbol = type_symbol;
+			while (global_symbol.parent_symbol != null && global_symbol.parent_symbol.name != null) {
 				global_symbol = global_symbol.parent_symbol;
 			}
 
@@ -135,9 +146,9 @@ public abstract class Vala.DataType : CodeNode {
 			}
 
 			if (sym != null && global_symbol != sym) {
-				s = "global::" + data_type.get_full_name ();;
+				s = "global::" + type_symbol.get_full_name ();;
 			} else {
-				s = data_type.get_full_name ();
+				s = type_symbol.get_full_name ();
 			}
 		} else {
 			s = "null";
@@ -189,7 +200,7 @@ public abstract class Vala.DataType : CodeNode {
 		if (type2.nullable != nullable) {
 			return false;
 		}
-		if (type2.data_type != data_type) {
+		if (type2.type_symbol != type_symbol) {
 			return false;
 		}
 		if (type2 is GenericType || this is GenericType) {
@@ -239,7 +250,7 @@ public abstract class Vala.DataType : CodeNode {
 			return true;
 		}
 
-		if (type2.data_type != data_type) {
+		if (type2.type_symbol != type_symbol) {
 			// FIXME: allow this type reference to refer to a
 			//        subtype of the type type2 is referring to
 			return false;
@@ -268,13 +279,13 @@ public abstract class Vala.DataType : CodeNode {
 			return false;
 		}
 
-		if (CodeContext.get ().profile == Profile.GOBJECT && target_type.data_type != null) {
-			if (target_type.data_type.is_subtype_of (CodeContext.get ().analyzer.gvalue_type.data_type)) {
+		if (CodeContext.get ().profile == Profile.GOBJECT && target_type.type_symbol != null) {
+			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvalue_type.type_symbol)) {
 				// allow implicit conversion to GValue
 				return true;
 			}
 
-			if (target_type.data_type.is_subtype_of (CodeContext.get ().analyzer.gvariant_type.data_type)) {
+			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvariant_type.type_symbol)) {
 				// allow implicit conversion to GVariant
 				return true;
 			}
@@ -283,8 +294,8 @@ public abstract class Vala.DataType : CodeNode {
 		if (target_type is PointerType) {
 			/* any reference or array type or pointer type can be cast to a generic pointer */
 			if (this is GenericType ||
-				(data_type != null && (
-					data_type.is_reference_type () ||
+				(type_symbol != null && (
+					type_symbol.is_reference_type () ||
 					this is DelegateType))) {
 				return true;
 			}
@@ -301,7 +312,7 @@ public abstract class Vala.DataType : CodeNode {
 			return false;
 		}
 
-		if (data_type is Enum && target_type.data_type is Struct && ((Struct) target_type.data_type).is_integer_type ()) {
+		if (type_symbol is Enum && target_type.type_symbol is Struct && ((Struct) target_type.type_symbol).is_integer_type ()) {
 			return true;
 		}
 
@@ -320,8 +331,8 @@ public abstract class Vala.DataType : CodeNode {
 			}
 		}
 
-		if (data_type != null && target_type.data_type != null && data_type.is_subtype_of (target_type.data_type)) {
-			var base_type = SemanticAnalyzer.get_instance_base_type_for_member(this, target_type.data_type, this);
+		if (type_symbol != null && target_type.type_symbol != null && type_symbol.is_subtype_of (target_type.type_symbol)) {
+			var base_type = SemanticAnalyzer.get_instance_base_type_for_member(this, target_type.type_symbol, this);
 			// check compatibility of generic type arguments
 			var base_type_args = base_type.get_type_arguments();
 			if (base_type_args.size == target_type_args.size) {
@@ -339,9 +350,9 @@ public abstract class Vala.DataType : CodeNode {
 			return true;
 		}
 
-		if (data_type is Struct && target_type.data_type is Struct) {
-			var expr_struct = (Struct) data_type;
-			var expect_struct = (Struct) target_type.data_type;
+		if (type_symbol is Struct && target_type.type_symbol is Struct) {
+			unowned Struct expr_struct = (Struct) type_symbol;
+			unowned Struct expect_struct = (Struct) target_type.type_symbol;
 
 			/* integer types may be implicitly cast to floating point types */
 			if (expr_struct.is_integer_type () && expect_struct.is_floating_type ()) {
@@ -353,6 +364,11 @@ public abstract class Vala.DataType : CodeNode {
 				if (expr_struct.rank <= expect_struct.rank) {
 					return true;
 				}
+			}
+
+			// Allow compatiblity of struct subtypes in both ways
+			if (expect_struct.is_subtype_of (expr_struct)) {
+				return true;
 			}
 		}
 
@@ -373,22 +389,22 @@ public abstract class Vala.DataType : CodeNode {
 	 *
 	 * @return return type
 	 */
-	public virtual DataType? get_return_type () {
+	public virtual unowned DataType? get_return_type () {
 		return null;
 	}
 
 	/**
-	 * Returns copy of the list of invocation parameters.
+	 * Returns the list of invocation parameters.
 	 *
 	 * @return parameter list
 	 */
-	public virtual List<Parameter>? get_parameters () {
+	public virtual unowned List<Parameter>? get_parameters () {
 		return null;
 	}
 
 	public virtual bool is_reference_type_or_type_parameter () {
-		return (data_type != null &&
-		        data_type.is_reference_type ()) ||
+		return (type_symbol != null &&
+		        type_symbol.is_reference_type ()) ||
 		       this is GenericType;
 	}
 
@@ -399,15 +415,15 @@ public abstract class Vala.DataType : CodeNode {
 				return false;
 			}
 		}
-		if (data_type != null) {
-			return data_type.is_accessible (sym);
+		if (type_symbol != null) {
+			return type_symbol.is_accessible (sym);
 		}
 		return true;
 	}
 
 	public virtual Symbol? get_member (string member_name) {
-		if (data_type != null) {
-			return SemanticAnalyzer.symbol_lookup_inherited (data_type, member_name);
+		if (type_symbol != null) {
+			return SemanticAnalyzer.symbol_lookup_inherited (type_symbol, member_name);
 		}
 		return null;
 	}
@@ -421,7 +437,7 @@ public abstract class Vala.DataType : CodeNode {
 	 * is a struct which is not a simple (fundamental) type.
 	 */
 	public virtual bool is_real_struct_type () {
-		var s = data_type as Struct;
+		unowned Struct? s = type_symbol as Struct;
 		if (s != null && !s.is_simple_type ()) {
 			return true;
 		}
@@ -433,7 +449,7 @@ public abstract class Vala.DataType : CodeNode {
 	}
 
 	public bool is_non_null_simple_type () {
-		unowned Struct s = data_type as Struct;
+		unowned Struct? s = type_symbol as Struct;
 		if (s != null && s.is_simple_type ()) {
 			return !nullable;
 		}
@@ -538,13 +554,13 @@ public abstract class Vala.DataType : CodeNode {
 			}
 
 			return string.nfill (array_type.rank, 'a') + element_type_signature;
-		} else if (data_type != null && data_type is Enum && data_type.get_attribute_bool ("DBus", "use_string_marshalling")) {
+		} else if (type_symbol is Enum && type_symbol.get_attribute_bool ("DBus", "use_string_marshalling")) {
 			return "s";
-		} else if (data_type != null) {
-			string sig = data_type.get_attribute_string ("CCode", "type_signature");
+		} else if (type_symbol != null) {
+			string sig = type_symbol.get_attribute_string ("CCode", "type_signature");
 
-			unowned Struct? st = data_type as Struct;
-			unowned Enum? en = data_type as Enum;
+			unowned Struct? st = type_symbol as Struct;
+			unowned Enum? en = type_symbol as Enum;
 			if (sig == null && st != null) {
 				var str = new StringBuilder ();
 				str.append_c ('(');
@@ -577,9 +593,9 @@ public abstract class Vala.DataType : CodeNode {
 			}
 
 			if (sig == null &&
-			    (data_type.get_full_name () == "GLib.UnixInputStream" ||
-			     data_type.get_full_name () == "GLib.UnixOutputStream" ||
-			     data_type.get_full_name () == "GLib.Socket")) {
+			    (type_symbol.get_full_name () == "GLib.UnixInputStream" ||
+			     type_symbol.get_full_name () == "GLib.UnixOutputStream" ||
+			     type_symbol.get_full_name () == "GLib.Socket")) {
 				return "h";
 			}
 

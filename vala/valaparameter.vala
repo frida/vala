@@ -167,6 +167,12 @@ public class Vala.Parameter : Variable {
 				initializer.target_type = variable_type.copy ();
 				initializer.check (context);
 			}
+
+			unowned ArrayType? variable_array_type = variable_type as ArrayType;
+			if (variable_array_type != null && variable_array_type.inline_allocated
+				&& !variable_array_type.fixed_length) {
+				Report.error (source_reference, "Inline allocated array as parameter requires to have fixed length");
+			}
 		}
 
 		if (initializer != null) {
@@ -186,6 +192,10 @@ public class Vala.Parameter : Variable {
 		}
 
 		if (!ellipsis) {
+			if (!external_package) {
+				context.analyzer.check_type (variable_type);
+			}
+
 			// check whether parameter type is at least as accessible as the method
 			if (!context.analyzer.is_type_accessible (this, variable_type)) {
 				error = true;
@@ -193,9 +203,9 @@ public class Vala.Parameter : Variable {
 			}
 		}
 
-		var m = parent_symbol as Method;
+		unowned Method? m = parent_symbol as Method;
 		if (m != null) {
-			Method base_method = m.base_method != null ? m.base_method : m.base_interface_method;
+			unowned Method? base_method = m.base_method != null ? m.base_method : m.base_interface_method;
 			if (base_method != null && base_method != m) {
 				int index = m.get_parameters ().index_of (this);
 				if (index >= 0) {

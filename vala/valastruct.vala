@@ -63,7 +63,7 @@ public class Vala.Struct : TypeSymbol {
 	public Struct? base_struct {
 		get {
 			if (_base_type != null) {
-				return _base_type.data_type as Struct;
+				return _base_type.type_symbol as Struct;
 			}
 			return null;
 		}
@@ -179,11 +179,11 @@ public class Vala.Struct : TypeSymbol {
 	}
 
 	/**
-	 * Returns a copy of the type parameter list.
+	 * Returns the type parameter list.
 	 *
 	 * @return list of type parameters
 	 */
-	public List<TypeParameter> get_type_parameters () {
+	public unowned List<TypeParameter> get_type_parameters () {
 		return type_parameters;
 	}
 
@@ -210,20 +210,20 @@ public class Vala.Struct : TypeSymbol {
 	}
 
 	/**
-	 * Returns a copy of the list of fields.
+	 * Returns the list of fields.
 	 *
 	 * @return list of fields
 	 */
-	public List<Field> get_fields () {
+	public unowned List<Field> get_fields () {
 		return fields;
 	}
 
 	/**
-	 * Returns a copy of the list of constants.
+	 * Returns the list of constants.
 	 *
 	 * @return list of constants
 	 */
-	public List<Constant> get_constants () {
+	public unowned List<Constant> get_constants () {
 		return constants;
 	}
 
@@ -234,7 +234,7 @@ public class Vala.Struct : TypeSymbol {
 	 */
 	public override void add_method (Method m) {
 		if (m.binding == MemberBinding.INSTANCE || m is CreationMethod) {
-			m.this_parameter = new Parameter ("this", SemanticAnalyzer.get_data_type_for_symbol (this));
+			m.this_parameter = new Parameter ("this", SemanticAnalyzer.get_this_type (m, this));
 			m.scope.add (m.this_parameter.name, m.this_parameter);
 		}
 		if (!(m.return_type is VoidType) && m.get_postconditions ().size > 0) {
@@ -261,11 +261,11 @@ public class Vala.Struct : TypeSymbol {
 	}
 
 	/**
-	 * Returns a copy of the list of methods.
+	 * Returns the list of methods.
 	 *
 	 * @return list of methods
 	 */
-	public List<Method> get_methods () {
+	public unowned List<Method> get_methods () {
 		return methods;
 	}
 
@@ -278,8 +278,10 @@ public class Vala.Struct : TypeSymbol {
 		properties.add (prop);
 		scope.add (prop.name, prop);
 
-		prop.this_parameter = new Parameter ("this", SemanticAnalyzer.get_data_type_for_symbol (this));
-		prop.scope.add (prop.this_parameter.name, prop.this_parameter);
+		if (prop.binding == MemberBinding.INSTANCE) {
+			prop.this_parameter = new Parameter ("this", SemanticAnalyzer.get_this_type (prop, this));
+			prop.scope.add (prop.this_parameter.name, prop.this_parameter);
+		}
 
 		if (prop.field != null) {
 			add_field (prop.field);
@@ -288,11 +290,11 @@ public class Vala.Struct : TypeSymbol {
 	}
 
 	/**
-	 * Returns a copy of the list of properties.
+	 * Returns the list of properties.
 	 *
 	 * @return list of properties
 	 */
-	public List<Property> get_properties () {
+	public unowned List<Property> get_properties () {
 		return properties;
 	}
 
@@ -332,7 +334,7 @@ public class Vala.Struct : TypeSymbol {
 	 * @return true if this is a boolean type, false otherwise
 	 */
 	public bool is_boolean_type () {
-		var st = base_struct;
+		unowned Struct? st = base_struct;
 		if (st != null && st.is_boolean_type ()) {
 			return true;
 		}
@@ -348,7 +350,7 @@ public class Vala.Struct : TypeSymbol {
 	 * @return true if this is an integer type, false otherwise
 	 */
 	public bool is_integer_type () {
-		var st = base_struct;
+		unowned Struct? st = base_struct;
 		if (st != null && st.is_integer_type ()) {
 			return true;
 		}
@@ -364,7 +366,7 @@ public class Vala.Struct : TypeSymbol {
 	 * @return true if this is a floating point type, false otherwise
 	 */
 	public bool is_floating_type () {
-		var st = base_struct;
+		unowned Struct? st = base_struct;
 		if (st != null && st.is_floating_type ()) {
 			return true;
 		}
@@ -375,7 +377,7 @@ public class Vala.Struct : TypeSymbol {
 	}
 
 	public bool is_decimal_floating_type () {
-		var st = base_struct;
+		unowned Struct? st = base_struct;
 		if (st != null && st.is_decimal_floating_type ()) {
 			return true;
 		}
@@ -403,7 +405,7 @@ public class Vala.Struct : TypeSymbol {
 	 * instances are passed by value.
 	 */
 	public bool is_simple_type () {
-		var st = base_struct;
+		unowned Struct? st = base_struct;
 		if (st != null && st.is_simple_type ()) {
 			return true;
 		}
@@ -434,7 +436,7 @@ public class Vala.Struct : TypeSymbol {
 		}
 
 		if (base_type != null) {
-			if (base_type.data_type != null && base_type.data_type.is_subtype_of (t)) {
+			if (base_type.type_symbol != null && base_type.type_symbol.is_subtype_of (t)) {
 				return true;
 			}
 		}
@@ -445,6 +447,10 @@ public class Vala.Struct : TypeSymbol {
 	public bool is_disposable () {
 		if (get_attribute_string ("CCode", "destroy_function") != null) {
 			return true;
+		}
+
+		if (base_struct != null) {
+			return base_struct.is_disposable ();
 		}
 
 		foreach (Field f in fields) {
@@ -458,15 +464,18 @@ public class Vala.Struct : TypeSymbol {
 		return false;
 	}
 
-	bool is_recursive_value_type (DataType type) {
-		var struct_type = type as StructValueType;
+	bool is_recursive_value_type (CodeContext context, DataType type) {
+		unowned StructValueType? struct_type = type as StructValueType;
 		if (struct_type != null && !struct_type.nullable) {
-			var st = (Struct) struct_type.type_symbol;
+			unowned Struct st = (Struct) struct_type.type_symbol;
 			if (st == this) {
 				return true;
 			}
+			if (!st.check (context)) {
+				return false;
+			}
 			foreach (Field f in st.fields) {
-				if (f.binding == MemberBinding.INSTANCE && is_recursive_value_type (f.variable_type)) {
+				if (f.binding == MemberBinding.INSTANCE && is_recursive_value_type (context, f.variable_type)) {
 					return true;
 				}
 			}
@@ -506,7 +515,7 @@ public class Vala.Struct : TypeSymbol {
 		foreach (Field f in fields) {
 			f.check (context);
 
-			if (f.binding == MemberBinding.INSTANCE && is_recursive_value_type (f.variable_type)) {
+			if (f.binding == MemberBinding.INSTANCE && is_recursive_value_type (context, f.variable_type)) {
 				error = true;
 				Report.error (f.source_reference, "Recursive value types are not allowed");
 				return false;

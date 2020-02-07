@@ -82,11 +82,11 @@ public class Vala.LambdaExpression : Expression {
 	}
 
 	/**
-	 * Returns copy of parameter list.
+	 * Returns the parameter list.
 	 *
 	 * @return parameter list
 	 */
-	public List<Parameter> get_parameters () {
+	public unowned List<Parameter> get_parameters () {
 		return parameters;
 	}
 
@@ -207,7 +207,7 @@ public class Vala.LambdaExpression : Expression {
 			var block = new Block (source_reference);
 			block.scope.parent_scope = method.scope;
 
-			if (method.return_type.data_type != null) {
+			if (method.return_type.type_symbol != null) {
 				block.add_statement (new ReturnStatement (expression_body, source_reference));
 			} else {
 				block.add_statement (new ExpressionStatement (expression_body, source_reference));
@@ -220,7 +220,7 @@ public class Vala.LambdaExpression : Expression {
 		method.body.owner = method.scope;
 
 		// support use of generics in closures
-		var m = context.analyzer.find_parent_method (context.analyzer.current_symbol);
+		unowned Method? m = SemanticAnalyzer.find_parent_method (context.analyzer.current_symbol);
 		if (m != null) {
 			foreach (var type_param in m.get_type_parameters ()) {
 				method.add_type_parameter (new TypeParameter (type_param.name, type_param.source_reference));

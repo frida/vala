@@ -91,6 +91,13 @@ void test_int () {
 	assert (s == "42");
 
 	unowned string unparsed;
+	s = "%im".printf (int.MIN);
+	int.try_parse (s, out i, out unparsed);
+	assert (i == int.MIN);
+	assert (unparsed == "m");
+	s = "%um".printf (uint.MAX);
+	assert (!int.try_parse (s, out i));
+
 	s = "%lim".printf (long.MIN);
 	long l;
 	long.try_parse (s, out l, out unparsed);
@@ -98,6 +105,14 @@ void test_int () {
 	assert (unparsed == "m");
 	s = "%lum".printf (ulong.MAX);
 	assert (!long.try_parse (s, out l));
+
+	s = "%um".printf (uint.MAX);
+	uint u;
+	uint.try_parse (s, out u, out unparsed);
+	assert (u == uint.MAX);
+	assert (unparsed == "m");
+	s = "%im".printf (int.MIN);
+	assert (!uint.try_parse (s, out u));
 
 	s = "%lum".printf (ulong.MAX);
 	ulong ul;
@@ -109,14 +124,14 @@ void test_int () {
 
 	int64 i64;
 	int64.try_parse ("-4711inch", out i64, out unparsed);
-	assert (i64 == -4711);
+	assert (i64 == -4711LL);
 	assert (unparsed == "inch");
 	int64.try_parse ("-31415km", out i64);
 	assert (i64 == -31415);
 
 	uint64 ui64;
 	uint64.try_parse ("4711yards", out ui64, out unparsed);
-	assert (ui64 == 4711);
+	assert (ui64 == 4711ULL);
 	assert (unparsed == "yards");
 	uint64.try_parse ("31415yards", out ui64);
 	assert (ui64 == 31415);

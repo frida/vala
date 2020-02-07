@@ -257,42 +257,10 @@ public static void test_erroromain_global (Api.ErrorDomain? err, Api.Package pkg
 	assert (errc2 == true);
 
 
-
-	Vala.List<Api.Node> methods = err.get_children_by_type (Api.NodeType.METHOD, false);
-	assert (methods.size == 1);
+	Vala.List<Api.Node> methods = err.get_children_by_type (Api.NodeType.STATIC_METHOD, false);
+	assert (methods.size == 2);
 
 	Api.Method method = methods.get (0) as Api.Method;
-	assert (method != null);
-
-	// (.Method check)
-	assert (method.get_cname () == "test_err_dom_global_method");
-	//assert (method.get_dbus_name () == null);
-	//assert (method.get_dbus_result_name () == null);
-	//assert (method.is_dbus_visible == false);
-	assert (method.base_method == null);
-	assert (method.is_yields == false);
-	assert (method.is_abstract == false);
-	assert (method.is_virtual == false);
-	assert (method.is_override == false);
-	assert (method.is_static == false);
-	assert (method.is_constructor == false);
-	assert (method.is_inline == false);
-	// (.Symbol check)
-	assert (method.is_deprecated == false);
-	assert (method.accessibility == Vala.SymbolAccessibility.PUBLIC);
-	// (.Node)
-	assert (method.get_full_name () == "TestErrDomGlobal.method");
-	assert (method.get_filename () == "api-test.data.vapi");
-	assert (method.name == "method");
-	assert (method.nspace == global_ns);
-	assert (method.package == pkg);
-
-
-
-	methods = err.get_children_by_type (Api.NodeType.STATIC_METHOD, false);
-	assert (methods.size == 1);
-
-	method = methods.get (0) as Api.Method;
 	assert (method != null);
 
 	// (.Method check)
@@ -641,7 +609,7 @@ public static void test_class_global (Api.Class? cl, Api.Package pkg, Api.Namesp
 
 
 			assert (property.setter.get_cname () == "test_class_global_set_property_3");
-			assert (property.setter.is_construct == true);
+			assert (property.setter.is_construct == false);
 			assert (property.setter.is_get == false);
 			assert (property.setter.is_set == true);
 			assert (property.setter.is_owned == false);
@@ -1053,7 +1021,7 @@ public static void test_interface_global (Api.Interface? iface, Api.Package pkg,
 
 
 			assert (property.setter.get_cname () == "test_interface_global_set_property_3");
-			assert (property.setter.is_construct == true);
+			assert (property.setter.is_construct == false);
 			assert (property.setter.is_get == false);
 			assert (property.setter.is_set == true);
 			assert (property.setter.is_owned == false);
@@ -1573,7 +1541,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 	bool func1 = false;
 	bool func2 = false;
 	bool func3 = false;
+	bool func3a = false;
 	bool func4 = false;
+	bool func4a = false;
 	bool func5 = false;
 	bool func6 = false;
 	bool func7 = false;
@@ -1626,9 +1596,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_2":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -1649,7 +1619,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1662,9 +1631,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_3":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == true);
@@ -1685,7 +1654,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1695,12 +1663,47 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			func3 = true;
 			break;
 
+		case "test_function_param_3a":
+			assert (params.size == 1);
+
+			Api.Parameter param = params.get (0) as Api.Parameter;
+			assert (param != null);
+			// (.Parameter)
+			assert (param.default_value == null);
+			assert (param.is_out == false);
+			assert (param.is_ref == true);
+			assert (param.has_default_value == false);
+			assert (param.parameter_type != null);
+			assert (param.ellipsis == false);
+			// (.Symbol check)
+			assert (param.is_deprecated == false);
+			assert (param.accessibility == Vala.SymbolAccessibility.PUBLIC);
+			// (.Node)
+			assert (param.get_full_name () == "ParamTest.test_function_param_3a.a");
+			assert (param.get_filename () == "api-test.data.vapi");
+			assert (param.nspace == ns);
+			assert (param.package == pkg);
+			assert (param.name == "a");
+			// param type:
+			assert (param.parameter_type.data_type != null);
+			assert (param.parameter_type.data_type is Api.Class);
+			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "string");
+			assert (param.parameter_type.get_type_arguments ().size == 0);
+			assert (param.parameter_type.is_owned == false);
+			assert (param.parameter_type.is_unowned == true);
+			assert (param.parameter_type.is_weak == false);
+			assert (param.parameter_type.is_dynamic == false);
+			assert (param.parameter_type.is_nullable == true);
+
+			func3a = true;
+			break;
+
 		case "test_function_param_4":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == true);
 			assert (param.is_ref == false);
@@ -1721,7 +1724,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1731,12 +1733,47 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			func4 = true;
 			break;
 
+		case "test_function_param_4a":
+			assert (params.size == 1);
+
+			Api.Parameter param = params.get (0) as Api.Parameter;
+			assert (param != null);
+			// (.Parameter)
+			assert (param.default_value == null);
+			assert (param.is_out == true);
+			assert (param.is_ref == false);
+			assert (param.has_default_value == false);
+			assert (param.parameter_type != null);
+			assert (param.ellipsis == false);
+			// (.Symbol check)
+			assert (param.is_deprecated == false);
+			assert (param.accessibility == Vala.SymbolAccessibility.PUBLIC);
+			// (.Node)
+			assert (param.get_full_name () == "ParamTest.test_function_param_4a.a");
+			assert (param.get_filename () == "api-test.data.vapi");
+			assert (param.nspace == ns);
+			assert (param.package == pkg);
+			assert (param.name == "a");
+			// param type:
+			assert (param.parameter_type.data_type != null);
+			assert (param.parameter_type.data_type is Api.Class);
+			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "string");
+			assert (param.parameter_type.get_type_arguments ().size == 0);
+			assert (param.parameter_type.is_owned == false);
+			assert (param.parameter_type.is_unowned == true);
+			assert (param.parameter_type.is_weak == false);
+			assert (param.parameter_type.is_dynamic == false);
+			assert (param.parameter_type.is_nullable == true);
+
+			func4a = true;
+			break;
+
 		case "test_function_param_5":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -1757,7 +1794,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Class);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "GLib.Object");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == true);
 			assert (param.parameter_type.is_owned == true);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1770,9 +1806,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_6":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -1793,7 +1829,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1806,9 +1841,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_7":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -1833,9 +1868,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_8":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value != null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -1856,7 +1891,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1869,9 +1903,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_9":
 			assert (params.size == 7);
 
-			Api.FormalParameter? param = params.get (0) as Api.FormalParameter;
+			Api.Parameter? param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -1892,7 +1926,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1901,9 +1934,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 
 
 
-			param = params.get (1) as Api.FormalParameter;
+			param = params.get (1) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == true);
@@ -1924,7 +1957,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1933,9 +1965,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 
 
 
-			param = params.get (2) as Api.FormalParameter;
+			param = params.get (2) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == true);
 			assert (param.is_ref == false);
@@ -1956,7 +1988,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1965,9 +1996,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 
 
 
-			param = params.get (3) as Api.FormalParameter;
+			param = params.get (3) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -1988,7 +2019,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Class);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "GLib.Object");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == true);
 			assert (param.parameter_type.is_owned == true);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -1997,9 +2027,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 
 
 
-			param = params.get (4) as Api.FormalParameter;
+			param = params.get (4) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2020,7 +2050,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -2029,9 +2058,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 
 
 
-			param = params.get (5) as Api.FormalParameter;
+			param = params.get (5) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value != null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2052,7 +2081,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (param.parameter_type.data_type is Api.Struct);
 			assert (((Api.Symbol) param.parameter_type.data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -2061,9 +2089,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 
 
 
-			param = params.get (6) as Api.FormalParameter;
+			param = params.get (6) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2088,9 +2116,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_10":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2113,7 +2141,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Pointer) param.parameter_type.data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Pointer) param.parameter_type.data_type).data_type).data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -2126,9 +2153,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_11":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2152,7 +2179,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Pointer) ((Api.Pointer) param.parameter_type.data_type).data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Pointer) ((Api.Pointer) param.parameter_type.data_type).data_type).data_type).data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -2165,9 +2191,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_12":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2191,7 +2217,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Array) param.parameter_type.data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Array) param.parameter_type.data_type).data_type).data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -2204,9 +2229,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_13":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2230,7 +2255,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Array) param.parameter_type.data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Array) param.parameter_type.data_type).data_type).data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -2243,9 +2267,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_param_14":
 			assert (params.size == 1);
 
-			Api.FormalParameter param = params.get (0) as Api.FormalParameter;
+			Api.Parameter param = params.get (0) as Api.Parameter;
 			assert (param != null);
-			// (.FormalParameter)
+			// (.Parameter)
 			assert (param.default_value == null);
 			assert (param.is_out == false);
 			assert (param.is_ref == false);
@@ -2271,7 +2295,6 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Array) ((Api.Array) param.parameter_type.data_type).data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Array) ((Api.Array) param.parameter_type.data_type).data_type).data_type).data_type).get_full_name () == "int");
 			assert (param.parameter_type.get_type_arguments ().size == 0);
-			assert (param.parameter_type.pass_ownership == false);
 			assert (param.parameter_type.is_owned == false);
 			assert (param.parameter_type.is_unowned == false);
 			assert (param.parameter_type.is_weak == false);
@@ -2289,7 +2312,9 @@ public static void param_test (Api.Namespace ns, Api.Package pkg) {
 	assert (func1 == true);
 	assert (func2 == true);
 	assert (func3 == true);
+	assert (func3a == true);
 	assert (func4 == true);
+	assert (func4a == true);
 	assert (func5 == true);
 	assert (func6 == true);
 	assert (func7 == true);
@@ -2379,7 +2404,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 		case "test_function_1":
 			assert (ret.data_type == null);
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);
@@ -2393,7 +2417,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (ret.data_type is Api.Struct);
 			assert (((Api.Struct) ret.data_type).get_full_name () == "int");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);
@@ -2407,7 +2430,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (ret.data_type is Api.Struct);
 			assert (((Api.Struct) ret.data_type).get_full_name () == "int");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);
@@ -2421,7 +2443,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (ret.data_type is Api.Class);
 			assert (((Api.Class) ret.data_type).get_full_name () == "string");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == true);
 			assert (ret.is_weak == false);
@@ -2437,7 +2458,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Pointer) ret.data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Pointer) ret.data_type).data_type).data_type).get_full_name () == "int");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);
@@ -2454,7 +2474,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Pointer) ((Api.Pointer) ret.data_type).data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Pointer) ((Api.Pointer) ret.data_type).data_type).data_type).data_type).get_full_name () == "int");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);
@@ -2470,7 +2489,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Array) ret.data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Array) ret.data_type).data_type).data_type).get_full_name () == "int");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);
@@ -2487,7 +2505,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Array) ret.data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Array) ret.data_type).data_type).data_type).get_full_name () == "int");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);
@@ -2506,7 +2523,6 @@ public static void return_test (Api.Namespace ns, Api.Package pkg) {
 			assert (((Api.TypeReference) ((Api.Array) ((Api.Array) ret.data_type).data_type).data_type).data_type is Api.Struct);
 			assert (((Api.Struct) ((Api.TypeReference) ((Api.Array) ((Api.Array) ret.data_type).data_type).data_type).data_type).get_full_name () == "int");
 			assert (ret.get_type_arguments ().size == 0);
-			assert (ret.pass_ownership == false);
 			assert (ret.is_owned == false);
 			assert (ret.is_unowned == false);
 			assert (ret.is_weak == false);

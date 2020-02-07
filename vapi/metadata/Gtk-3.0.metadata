@@ -40,12 +40,14 @@ AccelLabel
 // Bug #: Virtual methods without invokers
 Entry
   .get_frame_size.* out
+  .get_frame_size.entry out=false
   .get_text_area_size.* out
+  .get_text_area_size.entry out=false
 EntryBuffer
   .get_text#virtual_method name="get_text_internal"
   .get_text#virtual_method.n_bytes out default=null
 Range
-  .get_range_border.* out
+  .get_range_border.border_ out
   .get_range_size_request.minimum out
   .get_range_size_request.natural out
 RcStyle
@@ -57,7 +59,7 @@ Widget
   .adjust_size_allocation.*_size ref
   .adjust_size_allocation.allocated_pos ref
   .adjust_size_request.*_size ref
-  .compute_expand#virtual_method.* out
+  .compute_expand#virtual_method.*expand_p out
   .dispatch_child_properties_changed.pspecs array array_length_idx=0
 RecentChooser
   .get_recent_manager skip=false
@@ -413,7 +415,6 @@ NumerableIcon
   .new_with_style_context symbol_type="constructor"
 TreeModel
   .filter_new parent="Gtk.TreeModelFilter" name="new" symbol_type="constructor"
-  .sort_new_with_model parent="Gtk.TreeModelSort" name="new_with_model" symbol_type="constructor"
 
 // These aren't actually used publicly anywhere.
 TableChild skip
@@ -443,6 +444,10 @@ Widget
 
 // Keep properties non-abstract as before
 *#interface.*#property abstract=false
+
+// Property getter mismatch
+ColorChooser
+  .rgba#property abstract
 
 // Backwards compatibility
 AccelGroup
@@ -522,6 +527,7 @@ StyleProperties
   .register_property skip=false
   .register_property.parse_func nullable
 TextBuffer
+  .backspace.iter ref
   .delete.start ref
   .delete.end ref
   .delete_interactive.start_iter ref
@@ -611,6 +617,7 @@ IconInfo since="3.8"
 
 // Forward upstream
 ///////////////////
+_MountOperationHandler* skip
 Widget
   .drag_dest_set.targets array_length_idx=3
   .drag_source_set.targets array_length_idx=3

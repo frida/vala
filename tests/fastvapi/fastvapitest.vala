@@ -25,12 +25,27 @@ namespace FastVapi {
 
 		public int field;
 
+		public weak Test weak_field;
+
 		public string property { get; construct set; }
+
+		public weak Test weak_property { get; private set; }
 
 		public Test () {
 		}
 
 		public void method () {
 		}
+	}
+
+	public struct TestSubStruct : TestStruct {
+		public static int static_field_name;
+	}
+
+	public const int CONSTANT_TWO = CONSTANT;
+
+	public enum EnumTestTwo {
+		VALUE = 3,
+		VALUE_TWO = VALUE,
 	}
 }

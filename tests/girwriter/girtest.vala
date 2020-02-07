@@ -22,7 +22,8 @@ namespace GirTest {
 	}
 
 	[GIR (visible = false)]
-	public class SkippedStruct {
+	public struct SkippedStruct {
+		public int field_name;
 	}
 
 	public const int CONSTANT_NUMBER = 42;
@@ -78,8 +79,21 @@ namespace GirTest {
 
 	public delegate bool DelegateTest (void* a, void* b);
 
+	public delegate bool DelegateErrorTest () throws ErrorTest;
+
+	public delegate bool DelegateGenericsTest<G,T> (G g, T t);
+
 	[GIR (visible = false)]
 	public delegate void SkippedDelegate ();
+
+	public class TypeTest {
+		public string some_property { get; set; }
+	}
+
+	public class SubTypeTest : TypeTest {
+		public string[] array_field;
+		public DelegateTest delegate_field;
+	}
 
 	public class ObjectTest : Object {
 		private static ObjectTest global_instance = new ObjectTest ();
@@ -107,6 +121,9 @@ namespace GirTest {
 		public ObjectTest () {
 		}
 		public ObjectTest.with_int (int param) {
+			field = param;
+		}
+		public ObjectTest.may_fail (int param) throws ErrorTest {
 			field = param;
 		}
 		public ObjectTest.newv (int param, ...) {
@@ -222,6 +239,9 @@ namespace GirTest {
 		public async void coroutine_async () {
 		}
 
+		public virtual async void coroutine_virtual_async () {
+		}
+
 		public virtual async void coroutine_method_throw (int i1, out int o1) throws ErrorTest {
 			o1 = i1;
 		}
@@ -257,11 +277,33 @@ namespace GirTest {
 		public int property { get; construct set; }
 	}
 
+	[Compact]
+	public class CompactClass {
+		public string s;
+		public int i;
+	}
+
 	[GIR (visible = false)]
 	public class SkippedClass {
 	}
 
 	[Version (deprecated = true, deprecated_since = "0.1.2", since = "0.1.0")]
 	public class DeprecatedClassTest {
+	}
+
+	public class GenericsTest<G,T> {
+		public GenericsTest (owned DelegateTest cb) {
+		}
+
+		public GenericsTest.typed (owned DelegateGenericsTest<G,T> cb) {
+		}
+
+		public void method (T param) {
+		}
+	}
+
+	public class GenericsObjectTest<G,T> : Object {
+		public void method<K> (K[] param) {
+		}
 	}
 }

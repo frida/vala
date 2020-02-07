@@ -41,6 +41,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 
 	// inner types
 	private List<Class> classes = new ArrayList<Class> ();
+	private List<Interface> interfaces = new ArrayList<Interface> ();
 	private List<Struct> structs = new ArrayList<Struct> ();
 	private List<Enum> enums = new ArrayList<Enum> ();
 	private List<Delegate> delegates = new ArrayList<Delegate> ();
@@ -56,7 +57,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of members
 	 */
-	public List<Symbol> get_members () {
+	public unowned List<Symbol> get_members () {
 		return members;
 	}
 
@@ -65,7 +66,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of fields
 	 */
-	public List<Field> get_fields () {
+	public unowned List<Field> get_fields () {
 		return fields;
 	}
 
@@ -74,7 +75,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of methods
 	 */
-	public List<Method> get_methods () {
+	public unowned List<Method> get_methods () {
 		return methods;
 	}
 
@@ -83,7 +84,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of properties
 	 */
-	public List<Property> get_properties () {
+	public unowned List<Property> get_properties () {
 		return properties;
 	}
 
@@ -92,7 +93,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of signals
 	 */
-	public List<Signal> get_signals () {
+	public unowned List<Signal> get_signals () {
 		return signals;
 	}
 
@@ -152,8 +153,17 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of classes
 	 */
-	public List<Class> get_classes () {
+	public unowned List<Class> get_classes () {
 		return classes;
+	}
+
+	/**
+	 * Returns the list of interfaces.
+	 *
+	 * @return list of interfaces
+	 */
+	public unowned List<Interface> get_interfaces () {
+		return interfaces;
 	}
 
 	/**
@@ -161,7 +171,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of structs
 	 */
-	public List<Struct> get_structs () {
+	public unowned List<Struct> get_structs () {
 		return structs;
 	}
 
@@ -170,7 +180,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of enums
 	 */
-	public List<Enum> get_enums () {
+	public unowned List<Enum> get_enums () {
 		return enums;
 	}
 
@@ -179,7 +189,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of delegates
 	 */
-	public List<Delegate> get_delegates () {
+	public unowned List<Delegate> get_delegates () {
 		return delegates;
 	}
 
@@ -191,6 +201,16 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	public override void add_class (Class cl) {
 		classes.add (cl);
 		scope.add (cl.name, cl);
+	}
+
+	/**
+	 * Adds the specified interface as an inner interface.
+	 *
+	 * @param iface an interface
+	 */
+	public override void add_interface (Interface iface) {
+		interfaces.add (iface);
+		scope.add (iface.name, iface);
 	}
 
 	/**
@@ -238,7 +258,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	 *
 	 * @return list of constants
 	 */
-	public List<Constant> get_constants () {
+	public unowned List<Constant> get_constants () {
 		return constants;
 	}
 
@@ -253,11 +273,11 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 	}
 
 	/**
-	 * Returns a copy of the type parameter list.
+	 * Returns the type parameter list.
 	 *
 	 * @return list of type parameters
 	 */
-	public List<TypeParameter> get_type_parameters () {
+	public unowned List<TypeParameter> get_type_parameters () {
 		return type_parameters;
 	}
 
@@ -276,16 +296,6 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 		return -1;
 	}
 
-	public ObjectType get_this_type () {
-		var result = new ObjectType (this);
-		foreach (var type_parameter in get_type_parameters ()) {
-			var type_arg = new GenericType (type_parameter);
-			type_arg.value_owned = true;
-			result.add_type_argument (type_arg);
-		}
-		return result;
-	}
-
 	/**
 	 * Adds the specified method as a hidden member to this class,
 	 * primarily used for default signal handlers.
@@ -302,7 +312,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 			if (m.this_parameter != null) {
 				m.scope.remove (m.this_parameter.name);
 			}
-			m.this_parameter = new Parameter ("this", get_this_type ());
+			m.this_parameter = new Parameter ("this", SemanticAnalyzer.get_this_type (m, this));
 			m.scope.add (m.this_parameter.name, m.this_parameter);
 		}
 		if (!(m.return_type is VoidType) && m.get_postconditions ().size > 0) {
@@ -314,5 +324,55 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 		}
 
 		scope.add (null, m);
+	}
+
+	public override void accept_children (CodeVisitor visitor) {
+		foreach (TypeParameter p in get_type_parameters ()) {
+			p.accept (visitor);
+		}
+
+		/* process enums first to avoid order problems in C code */
+		foreach (Enum en in get_enums ()) {
+			en.accept (visitor);
+		}
+
+		foreach (Constant c in get_constants ()) {
+			c.accept (visitor);
+		}
+
+		if (CodeContext.get ().abi_stability) {
+			foreach (Symbol s in get_members ()) {
+				s.accept (visitor);
+			}
+		} else {
+			foreach (Field f in get_fields ()) {
+				f.accept (visitor);
+			}
+			foreach (Method m in get_methods ()) {
+				m.accept (visitor);
+			}
+			foreach (Property prop in get_properties ()) {
+				prop.accept (visitor);
+			}
+			foreach (Signal sig in get_signals ()) {
+				sig.accept (visitor);
+			}
+		}
+
+		foreach (Class cl in get_classes ()) {
+			cl.accept (visitor);
+		}
+
+		foreach (Interface iface in get_interfaces ()) {
+			iface.accept (visitor);
+		}
+
+		foreach (Struct st in get_structs ()) {
+			st.accept (visitor);
+		}
+
+		foreach (Delegate d in get_delegates ()) {
+			d.accept (visitor);
+		}
 	}
 }

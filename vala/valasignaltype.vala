@@ -26,26 +26,18 @@ using GLib;
  * The type of a signal referencea.
  */
 public class Vala.SignalType : CallableType {
-	public weak Signal signal_symbol { get; set; }
+	public weak Signal signal_symbol {
+		get {
+			return (Signal) symbol;
+		}
+	}
 
 	Method? connect_method;
 	Method? connect_after_method;
 	Method? disconnect_method;
 
 	public SignalType (Signal signal_symbol) {
-		this.signal_symbol = signal_symbol;
-	}
-
-	public override bool is_invokable () {
-		return true;
-	}
-
-	public override DataType? get_return_type () {
-		return signal_symbol.return_type;
-	}
-
-	public override List<Parameter>? get_parameters () {
-		return signal_symbol.get_parameters ();
+		base (signal_symbol);
 	}
 
 	public override DataType copy () {
@@ -77,7 +69,7 @@ public class Vala.SignalType : CallableType {
 		return result;
 	}
 
-	Method get_connect_method () {
+	unowned Method get_connect_method () {
 		if (connect_method == null) {
 			var ulong_type = new IntegerType ((Struct) CodeContext.get ().root.scope.lookup ("ulong"));
 			connect_method = new Method ("connect", ulong_type);
@@ -89,7 +81,7 @@ public class Vala.SignalType : CallableType {
 		return connect_method;
 	}
 
-	Method get_connect_after_method () {
+	unowned Method get_connect_after_method () {
 		if (connect_after_method == null) {
 			var ulong_type = new IntegerType ((Struct) CodeContext.get ().root.scope.lookup ("ulong"));
 			connect_after_method = new Method ("connect_after", ulong_type);
@@ -101,7 +93,7 @@ public class Vala.SignalType : CallableType {
 		return connect_after_method;
 	}
 
-	Method get_disconnect_method () {
+	unowned Method get_disconnect_method () {
 		if (disconnect_method == null) {
 			disconnect_method = new Method ("disconnect", new VoidType ());
 			disconnect_method.access = SymbolAccessibility.PUBLIC;

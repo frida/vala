@@ -92,7 +92,7 @@ public class Vala.ArrayCreationExpression : Expression {
 	/**
 	 * Get the sizes for all dimensions ascending from left to right.
 	 */
-	public List<Expression> get_sizes () {
+	public unowned List<Expression> get_sizes () {
 		return sizes;
 	}
 
@@ -165,6 +165,7 @@ public class Vala.ArrayCreationExpression : Expression {
 				builder.append_printf (", %s", size.to_string ());
 			}
 		}
+		builder.append_c (']');
 		if (initializer_list != null) {
 			builder.append (initializer_list.to_string ());
 		}

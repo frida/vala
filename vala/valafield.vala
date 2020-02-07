@@ -98,7 +98,16 @@ public class Vala.Field : Variable, Lockable {
 			return false;
 		}
 
+		if (variable_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
+			error = true;
+			Report.error (source_reference, "`%s' not supported as field type".printf (variable_type.type_symbol.get_full_name ()));
+			return false;
+		}
+
 		variable_type.check (context);
+		if (!external_package) {
+			context.analyzer.check_type (variable_type);
+		}
 
 		// check whether field type is at least as accessible as the field
 		if (!context.analyzer.is_type_accessible (this, variable_type)) {
@@ -114,8 +123,22 @@ public class Vala.Field : Variable, Lockable {
 			initializer = null;
 		}
 
+		if (variable_array_type != null && variable_array_type.inline_allocated
+		    && !variable_array_type.fixed_length) {
+			Report.error (source_reference, "Inline allocated array as field requires to have fixed length");
+		}
+
 		if (initializer != null) {
 			initializer.target_type = variable_type;
+
+			// Catch initializer list transformation:
+			bool is_initializer_list = false;
+			int initializer_size = -1;
+
+			if (initializer is InitializerList) {
+				initializer_size = ((InitializerList) initializer).size;
+				is_initializer_list = true;
+			}
 
 			if (!initializer.check (context)) {
 				error = true;
@@ -131,6 +154,18 @@ public class Vala.Field : Variable, Lockable {
 			if (!initializer.value_type.compatible (variable_type)) {
 				error = true;
 				Report.error (source_reference, "Cannot convert from `%s' to `%s'".printf (initializer.value_type.to_string (), variable_type.to_string ()));
+				return false;
+			}
+
+			if (variable_array_type != null && variable_array_type.inline_allocated && !variable_array_type.fixed_length && is_initializer_list) {
+				variable_array_type.length = new IntegerLiteral (initializer_size.to_string ());
+				variable_array_type.fixed_length = true;
+				variable_array_type.nullable = false;
+			}
+
+			if (variable_array_type != null && variable_array_type.inline_allocated && !(initializer.value_type is ArrayType)) {
+				error = true;
+				Report.error (source_reference, "only arrays are allowed as initializer for arrays with fixed length");
 				return false;
 			}
 

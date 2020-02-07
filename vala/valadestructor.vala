@@ -67,14 +67,17 @@ public class Vala.Destructor : Subroutine {
 
 		checked = true;
 
-		owner = context.analyzer.current_symbol.scope;
+		if (this_parameter != null) {
+			this_parameter.check (context);
+		}
+
 		context.analyzer.current_symbol = this;
 
 		if (body != null) {
 			body.check (context);
 		}
 
-		context.analyzer.current_symbol = context.analyzer.current_symbol.parent_symbol;
+		context.analyzer.current_symbol = parent_symbol;
 
 		return !error;
 	}

@@ -235,12 +235,14 @@ public class Vala.Genie.Scanner {
 							current++;
 							token_length_in_chars++;
 							int digit_length;
-							for (digit_length = 0; digit_length < 4 && current < end && current[0].isxdigit (); digit_length++) {
+							for (digit_length = 0; current < end && current[0].isxdigit (); digit_length++) {
 								current++;
 								token_length_in_chars++;
 							}
-							if (digit_length != 4) {
-								Report.error (get_source_reference (token_length_in_chars), "\\u requires four hex digits");
+							if (digit_length < 1) {
+								Report.error (get_source_reference (token_length_in_chars), "\\u used with no following hex digits");
+							} else if (digit_length < 4) {
+								Report.error (get_source_reference (token_length_in_chars), "incomplete universal character name");
 							}
 							break;
 						case 'x':
@@ -248,12 +250,17 @@ public class Vala.Genie.Scanner {
 							current++;
 							token_length_in_chars++;
 							int digit_length;
-							for (digit_length = 0; digit_length < 2 && current < end && current[0].isxdigit (); digit_length++) {
+							for (digit_length = 0; current < end && current[0].isxdigit ();) {
+								if (current[0] != '0') {
+									digit_length++;
+								}
 								current++;
 								token_length_in_chars++;
 							}
-							if (digit_length != 2) {
-								Report.error (get_source_reference (token_length_in_chars), "\\x requires two hex digits");
+							if (digit_length < 1) {
+								Report.error (get_source_reference (token_length_in_chars), "\\x used with no following hex digits");
+							} else if (digit_length > 2) {
+								Report.error (get_source_reference (token_length_in_chars), "hex escape sequence out of range");
 							}
 							break;
 						default:
@@ -433,7 +440,7 @@ public class Vala.Genie.Scanner {
 				}
 				break;
 			case 's':
-				if (matches (begin, "self")) return TokenType.THIS;
+				if (matches (begin, "self")) return TokenType.SELF;
 				break;
 			case 't':
 				if (matches (begin, "true")) return TokenType.TRUE;
@@ -673,9 +680,6 @@ public class Vala.Genie.Scanner {
 			case 'p':
 				if (matches (begin, "protected")) return TokenType.PROTECTED;
 				break;
-			case 'w':
-				if (matches (begin, "writeonly")) return TokenType.WRITEONLY;
-				break;
 			}
 			break;
 		case 10:
@@ -761,12 +765,14 @@ public class Vala.Genie.Scanner {
 							current++;
 							token_length_in_chars++;
 							int digit_length;
-							for (digit_length = 0; digit_length < 4 && current < end && current[0].isxdigit (); digit_length++) {
+							for (digit_length = 0; current < end && current[0].isxdigit (); digit_length++) {
 								current++;
 								token_length_in_chars++;
 							}
-							if (digit_length != 4) {
-								Report.error (get_source_reference (token_length_in_chars), "\\u requires four hex digits");
+							if (digit_length < 1) {
+								Report.error (get_source_reference (token_length_in_chars), "\\u used with no following hex digits");
+							} else if (digit_length < 4) {
+								Report.error (get_source_reference (token_length_in_chars), "incomplete universal character name");
 							}
 							break;
 						case 'x':
@@ -774,12 +780,17 @@ public class Vala.Genie.Scanner {
 							current++;
 							token_length_in_chars++;
 							int digit_length;
-							for (digit_length = 0; digit_length < 2 && current < end && current[0].isxdigit (); digit_length++) {
+							for (digit_length = 0; current < end && current[0].isxdigit ();) {
+								if (current[0] != '0') {
+									digit_length++;
+								}
 								current++;
 								token_length_in_chars++;
 							}
-							if (digit_length != 2) {
-								Report.error (get_source_reference (token_length_in_chars), "\\x requires two hex digits");
+							if (digit_length < 1) {
+								Report.error (get_source_reference (token_length_in_chars), "\\x used with no following hex digits");
+							} else if (digit_length > 2) {
+								Report.error (get_source_reference (token_length_in_chars), "hex escape sequence out of range");
 							}
 							break;
 						default:
@@ -1334,12 +1345,14 @@ public class Vala.Genie.Scanner {
 							current++;
 							token_length_in_chars++;
 							int digit_length;
-							for (digit_length = 0; digit_length < 4 && current < end && current[0].isxdigit (); digit_length++) {
+							for (digit_length = 0; current < end && current[0].isxdigit (); digit_length++) {
 								current++;
 								token_length_in_chars++;
 							}
-							if (digit_length != 4) {
-								Report.error (get_source_reference (token_length_in_chars), "\\u requires four hex digits");
+							if (digit_length < 1) {
+								Report.error (get_source_reference (token_length_in_chars), "\\u used with no following hex digits");
+							} else if (digit_length < 4) {
+								Report.error (get_source_reference (token_length_in_chars), "incomplete universal character name");
 							}
 							break;
 						case 'x':
@@ -1347,12 +1360,17 @@ public class Vala.Genie.Scanner {
 							current++;
 							token_length_in_chars++;
 							int digit_length;
-							for (digit_length = 0; digit_length < 2 && current < end && current[0].isxdigit (); digit_length++) {
+							for (digit_length = 0; current < end && current[0].isxdigit ();) {
+								if (current[0] != '0') {
+									digit_length++;
+								}
 								current++;
 								token_length_in_chars++;
 							}
-							if (digit_length != 2) {
-								Report.error (get_source_reference (token_length_in_chars), "\\x requires two hex digits");
+							if (digit_length < 1) {
+								Report.error (get_source_reference (token_length_in_chars), "\\x used with no following hex digits");
+							} else if (digit_length > 2) {
+								Report.error (get_source_reference (token_length_in_chars), "hex escape sequence out of range");
 							}
 							break;
 						default:

@@ -93,7 +93,7 @@ public class Vala.GObjectModule : GTypeModule {
 			cspec.add_argument (new CCodeConstant ("\"type\""));
 			cspec.add_argument (new CCodeConstant ("\"type\""));
 			cspec.add_argument (new CCodeIdentifier ("G_TYPE_NONE"));
-			cspec.add_argument (new CCodeConstant ("G_PARAM_STATIC_STRINGS | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY"));
+			cspec.add_argument (new CCodeConstant ("G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY"));
 			cinst.add_argument (cspec);
 			ccode.add_expression (cinst);
 			prop_enum.add_value (new CCodeEnumValue (enum_value));
@@ -109,7 +109,7 @@ public class Vala.GObjectModule : GTypeModule {
 			cspec.add_argument (func_name_constant);
 			cspec.add_argument (new CCodeConstant ("\"dup func\""));
 			cspec.add_argument (new CCodeConstant ("\"dup func\""));
-			cspec.add_argument (new CCodeConstant ("G_PARAM_STATIC_STRINGS | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY"));
+			cspec.add_argument (new CCodeConstant ("G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY"));
 			cinst.add_argument (cspec);
 			ccode.add_expression (cinst);
 			prop_enum.add_value (new CCodeEnumValue (enum_value));
@@ -125,7 +125,7 @@ public class Vala.GObjectModule : GTypeModule {
 			cspec.add_argument (func_name_constant);
 			cspec.add_argument (new CCodeConstant ("\"destroy func\""));
 			cspec.add_argument (new CCodeConstant ("\"destroy func\""));
-			cspec.add_argument (new CCodeConstant ("G_PARAM_STATIC_STRINGS | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY"));
+			cspec.add_argument (new CCodeConstant ("G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY"));
 			cinst.add_argument (cspec);
 			ccode.add_expression (cinst);
 			prop_enum.add_value (new CCodeEnumValue (enum_value));
@@ -134,8 +134,8 @@ public class Vala.GObjectModule : GTypeModule {
 		/* create properties */
 		var props = cl.get_properties ();
 		foreach (Property prop in props) {
-			if (!is_gobject_property (prop)) {
-				if (!has_valid_gobject_property_type (prop)) {
+			if (!context.analyzer.is_gobject_property (prop)) {
+				if (!context.analyzer.is_gobject_property_type (prop.property_type)) {
 					Report.warning (prop.source_reference, "Type `%s' can not be used for a GLib.Object property".printf (prop.property_type.to_qualified_string ()));
 				}
 				continue;
@@ -202,7 +202,7 @@ public class Vala.GObjectModule : GTypeModule {
 			if (prop.get_accessor == null || prop.is_abstract) {
 				continue;
 			}
-			if (!is_gobject_property (prop)) {
+			if (!context.analyzer.is_gobject_property (prop)) {
 				// don't register private properties
 				continue;
 			}
@@ -233,21 +233,26 @@ public class Vala.GObjectModule : GTypeModule {
 
 			ccode.add_case (new CCodeIdentifier ("%s_PROPERTY".printf (get_ccode_upper_case_name (prop))));
 			if (prop.property_type.is_real_struct_type ()) {
-				var st = prop.property_type.data_type as Struct;
-
 				ccode.open_block ();
-				ccode.add_declaration (get_ccode_name (st), new CCodeVariableDeclarator ("boxed"));
+				ccode.add_declaration (get_ccode_name (prop.property_type), new CCodeVariableDeclarator ("boxed"));
 
 				ccall = new CCodeFunctionCall (cfunc);
 				ccall.add_argument (cself);
-				var boxed_addr = new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("boxed"));
-				ccall.add_argument (boxed_addr);
-				ccode.add_expression (ccall);
+				if (prop.property_type.nullable) {
+					ccode.add_assignment (new CCodeIdentifier ("boxed"), ccall);
+				} else {
+					ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("boxed")));
+					ccode.add_expression (ccall);
+				}
 
 				var csetcall = new CCodeFunctionCall ();
 				csetcall.call = get_value_setter_function (prop.property_type);
 				csetcall.add_argument (new CCodeIdentifier ("value"));
-				csetcall.add_argument (boxed_addr);
+				if (prop.property_type.nullable) {
+					csetcall.add_argument (new CCodeIdentifier ("boxed"));
+				} else {
+					csetcall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("boxed")));
+				}
 				add_guarded_expression (prop, csetcall);
 
 				if (requires_destroy (prop.get_accessor.value_type)) {
@@ -258,7 +263,7 @@ public class Vala.GObjectModule : GTypeModule {
 				ccall = new CCodeFunctionCall (cfunc);
 				ccall.add_argument (cself);
 				var array_type = prop.property_type as ArrayType;
-				if (array_type != null && array_type.element_type.data_type == string_type.data_type) {
+				if (array_type != null && get_ccode_array_length (prop) && array_type.element_type.type_symbol == string_type.type_symbol) {
 					// G_TYPE_STRV
 					ccode.open_block ();
 					ccode.add_declaration ("int", new CCodeVariableDeclarator ("length"));
@@ -273,10 +278,47 @@ public class Vala.GObjectModule : GTypeModule {
 				csetcall.add_argument (new CCodeIdentifier ("value"));
 				csetcall.add_argument (ccall);
 				add_guarded_expression (prop, csetcall);
-				if (array_type != null && array_type.element_type.data_type == string_type.data_type) {
+				if (array_type != null && get_ccode_array_length (prop) && array_type.element_type.type_symbol == string_type.type_symbol) {
 					ccode.close ();
 				}
 			}
+			ccode.add_break ();
+		}
+
+		/* type, dup func, and destroy func properties for generic types */
+		foreach (TypeParameter type_param in cl.get_type_parameters ()) {
+			string func_name, enum_value;
+			CCodeMemberAccess cfield;
+			CCodeFunctionCall csetcall;
+
+			func_name = "%s_type".printf (type_param.name.ascii_down ());
+			enum_value = "%s_%s".printf (get_ccode_lower_case_name (cl, null), func_name).ascii_up ();
+			ccode.add_case (new CCodeIdentifier (enum_value));
+			cfield = new CCodeMemberAccess.pointer (new CCodeMemberAccess.pointer (new CCodeIdentifier ("self"), "priv"), func_name);
+			csetcall = new CCodeFunctionCall (new CCodeIdentifier ("g_value_set_gtype"));
+			csetcall.add_argument (new CCodeIdentifier ("value"));
+			csetcall.add_argument (cfield);
+			ccode.add_expression (csetcall);
+			ccode.add_break ();
+
+			func_name = "%s_dup_func".printf (type_param.name.ascii_down ());
+			enum_value = "%s_%s".printf (get_ccode_lower_case_name (cl, null), func_name).ascii_up ();
+			ccode.add_case (new CCodeIdentifier (enum_value));
+			cfield = new CCodeMemberAccess.pointer (new CCodeMemberAccess.pointer (new CCodeIdentifier ("self"), "priv"), func_name);
+			csetcall = new CCodeFunctionCall (new CCodeIdentifier ("g_value_set_pointer"));
+			csetcall.add_argument (new CCodeIdentifier ("value"));
+			csetcall.add_argument (cfield);
+			ccode.add_expression (csetcall);
+			ccode.add_break ();
+
+			func_name = "%s_destroy_func".printf (type_param.name.ascii_down ());
+			enum_value = "%s_%s".printf (get_ccode_lower_case_name (cl, null), func_name).ascii_up ();
+			ccode.add_case (new CCodeIdentifier (enum_value));
+			cfield = new CCodeMemberAccess.pointer (new CCodeMemberAccess.pointer (new CCodeIdentifier ("self"), "priv"), func_name);
+			csetcall = new CCodeFunctionCall (new CCodeIdentifier ("g_value_set_pointer"));
+			csetcall.add_argument (new CCodeIdentifier ("value"));
+			csetcall.add_argument (cfield);
+			ccode.add_expression (csetcall);
 			ccode.add_break ();
 		}
 		ccode.add_default ();
@@ -310,7 +352,7 @@ public class Vala.GObjectModule : GTypeModule {
 			if (prop.set_accessor == null || prop.is_abstract) {
 				continue;
 			}
-			if (!is_gobject_property (prop)) {
+			if (!context.analyzer.is_gobject_property (prop)) {
 				continue;
 			}
 
@@ -341,7 +383,7 @@ public class Vala.GObjectModule : GTypeModule {
 			ccode.add_case (new CCodeIdentifier ("%s_PROPERTY".printf (get_ccode_upper_case_name (prop))));
 			ccall = new CCodeFunctionCall (cfunc);
 			ccall.add_argument (cself);
-			if (prop.property_type is ArrayType && ((ArrayType)prop.property_type).element_type.data_type == string_type.data_type) {
+			if (prop.property_type is ArrayType && ((ArrayType)prop.property_type).element_type.type_symbol == string_type.type_symbol) {
 				ccode.open_block ();
 				ccode.add_declaration ("gpointer", new CCodeVariableDeclarator ("boxed"));
 
@@ -350,18 +392,20 @@ public class Vala.GObjectModule : GTypeModule {
 				ccode.add_assignment (new CCodeIdentifier ("boxed"), cgetcall);
 				ccall.add_argument (new CCodeIdentifier ("boxed"));
 
-				var cisnull = new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, new CCodeIdentifier ("boxed"), new CCodeConstant ("NULL"));
-				var cstrvlen = new CCodeFunctionCall (new CCodeIdentifier ("g_strv_length"));
-				cstrvlen.add_argument (new CCodeIdentifier ("boxed"));
-				var ccond = new CCodeConditionalExpression (cisnull, new CCodeConstant ("0"), cstrvlen);
+				if (get_ccode_array_length (prop)) {
+					var cisnull = new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, new CCodeIdentifier ("boxed"), new CCodeConstant ("NULL"));
+					var cstrvlen = new CCodeFunctionCall (new CCodeIdentifier ("g_strv_length"));
+					cstrvlen.add_argument (new CCodeIdentifier ("boxed"));
+					var ccond = new CCodeConditionalExpression (cisnull, new CCodeConstant ("0"), cstrvlen);
 
-				ccall.add_argument (ccond);
+					ccall.add_argument (ccond);
+				}
 				add_guarded_expression (prop, ccall);
 				ccode.close ();
 			} else {
 				var cgetcall = new CCodeFunctionCall ();
-				if (prop.property_type.data_type != null) {
-					cgetcall.call = new CCodeIdentifier (get_ccode_get_value_function (prop.property_type.data_type));
+				if (prop.property_type.type_symbol != null) {
+					cgetcall.call = new CCodeIdentifier (get_ccode_get_value_function (prop.property_type.type_symbol));
 				} else {
 					cgetcall.call = new CCodeIdentifier ("g_value_get_pointer");
 				}
@@ -609,8 +653,8 @@ public class Vala.GObjectModule : GTypeModule {
 	}
 
 	public override string get_dynamic_property_getter_cname (DynamicProperty prop) {
-		if (prop.dynamic_type.data_type == null
-		    || !prop.dynamic_type.data_type.is_subtype_of (gobject_type)) {
+		if (prop.dynamic_type.type_symbol == null
+		    || !prop.dynamic_type.type_symbol.is_subtype_of (gobject_type)) {
 			return base.get_dynamic_property_getter_cname (prop);
 		}
 
@@ -645,8 +689,8 @@ public class Vala.GObjectModule : GTypeModule {
 	}
 
 	public override string get_dynamic_property_setter_cname (DynamicProperty prop) {
-		if (prop.dynamic_type.data_type == null
-		    || !prop.dynamic_type.data_type.is_subtype_of (gobject_type)) {
+		if (prop.dynamic_type.type_symbol == null
+		    || !prop.dynamic_type.type_symbol.is_subtype_of (gobject_type)) {
 			return base.get_dynamic_property_setter_cname (prop);
 		}
 
@@ -681,8 +725,8 @@ public class Vala.GObjectModule : GTypeModule {
 	}
 
 	public override string get_dynamic_signal_connect_wrapper_name (DynamicSignal sig) {
-		if (sig.dynamic_type.data_type == null
-		    || !sig.dynamic_type.data_type.is_subtype_of (gobject_type)) {
+		if (sig.dynamic_type.type_symbol == null
+		    || !sig.dynamic_type.type_symbol.is_subtype_of (gobject_type)) {
 			return base.get_dynamic_signal_connect_wrapper_name (sig);
 		}
 
@@ -704,8 +748,8 @@ public class Vala.GObjectModule : GTypeModule {
 	}
 
 	public override string get_dynamic_signal_connect_after_wrapper_name (DynamicSignal sig) {
-		if (sig.dynamic_type.data_type == null
-		    || !sig.dynamic_type.data_type.is_subtype_of (gobject_type)) {
+		if (sig.dynamic_type.type_symbol == null
+		    || !sig.dynamic_type.type_symbol.is_subtype_of (gobject_type)) {
 			return base.get_dynamic_signal_connect_wrapper_name (sig);
 		}
 
@@ -759,69 +803,9 @@ public class Vala.GObjectModule : GTypeModule {
 	public override void visit_property (Property prop) {
 		base.visit_property (prop);
 
-		if (is_gobject_property (prop) && prop.parent_symbol is Class) {
+		if (context.analyzer.is_gobject_property (prop) && prop.parent_symbol is Class) {
 			prop_enum.add_value (new CCodeEnumValue ("%s_PROPERTY".printf (get_ccode_upper_case_name (prop))));
 		}
-	}
-
-	public override bool is_gobject_property (Property prop) {
-		var type_sym = prop.parent_symbol as ObjectTypeSymbol;
-		if (type_sym == null || !type_sym.is_subtype_of (gobject_type)) {
-			return false;
-		}
-
-		if (prop.binding != MemberBinding.INSTANCE) {
-			return false;
-		}
-
-		if (prop.access == SymbolAccessibility.PRIVATE) {
-			return false;
-		}
-
-		if (!has_valid_gobject_property_type (prop)) {
-			return false;
-		}
-
-		if (type_sym is Class && prop.base_interface_property != null &&
-		    !is_gobject_property (prop.base_interface_property)) {
-			return false;
-		}
-
-		if (!prop.name[0].isalpha ()) {
-			// GObject requires properties to start with a letter
-			return false;
-		}
-
-		if (type_sym is Interface && !prop.is_abstract && !prop.external && !prop.external_package) {
-			// GObject does not support non-abstract interface properties,
-			// however we assume external properties always are GObject properties
-			return false;
-		}
-
-		if (type_sym is Interface && type_sym.get_attribute ("DBus") != null) {
-			// GObject properties not currently supported in D-Bus interfaces
-			return false;
-		}
-
-		return true;
-	}
-
-	bool has_valid_gobject_property_type (Property prop) {
-		var st = prop.property_type.data_type as Struct;
-		if (st != null && (!get_ccode_has_type_id (st) || prop.property_type.nullable)) {
-			return false;
-		}
-
-		if (prop.property_type is ArrayType && ((ArrayType)prop.property_type).element_type.data_type != string_type.data_type) {
-			return false;
-		}
-
-		var d = prop.property_type as DelegateType;
-		if (d != null && d.delegate_symbol.has_target) {
-			return false;
-		}
-
-		return true;
 	}
 
 	public override void visit_method_call (MethodCall expr) {
@@ -858,7 +842,7 @@ public class Vala.GObjectModule : GTypeModule {
 						Report.error (arg.source_reference, "Property `%s' not found in `%s'".printf (named_argument.name, current_class.get_full_name ()));
 						break;
 					}
-					if (!is_gobject_property (prop)) {
+					if (!context.analyzer.is_gobject_property (prop)) {
 						Report.error (arg.source_reference, "Property `%s' not supported in Object (property: value) constructor chain up".printf (named_argument.name));
 						break;
 					}

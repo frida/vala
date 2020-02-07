@@ -89,7 +89,8 @@ public class Vala.GirParser : CodeVisitor {
 		FINISH_VFUNC_NAME,
 		NO_ACCESSOR_METHOD,
 		CNAME,
-		DELEGATE_TARGET;
+		DELEGATE_TARGET,
+		CTYPE;
 
 		public static ArgumentType? from_string (string name) {
 			var enum_class = (EnumClass) typeof(ArgumentType).class_ref ();
@@ -995,6 +996,9 @@ public class Vala.GirParser : CodeVisitor {
 						prop.set_accessor = new PropertyAccessor (false, (construct_only != "1") && (writable == "1"), (construct_only == "1") || (construct_ == "1"), prop.property_type.copy (), null, null);
 					}
 
+					// there is no information about the internal ownership so assume `owned` as default
+					prop.property_type.value_owned = true;
+
 					// find virtual/abstract accessors to handle abstract properties properly
 
 					Node getter = null;
@@ -1449,6 +1453,14 @@ public class Vala.GirParser : CodeVisitor {
 		return new SourceReference (this.current_source_file, begin, end);
 	}
 
+	SourceReference get_src (SourceLocation begin, SourceLocation? end = null) {
+		var e = this.end;
+		if (end != null) {
+			e = end;
+		}
+		return new SourceReference (this.current_source_file, begin, e);
+	}
+
 	const string GIR_VERSION = "1.2";
 
 	static void add_symbol_to_container (Symbol container, Symbol sym) {
@@ -1518,11 +1530,19 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (sym is ErrorDomain) {
 				ns.add_error_domain ((ErrorDomain) sym);
 			} else if (sym is Field) {
-				ns.add_field ((Field) sym);
+				unowned Field field = (Field) sym;
+				if (field.binding == MemberBinding.INSTANCE) {
+					field.binding = MemberBinding.STATIC;
+				}
+				ns.add_field (field);
 			} else if (sym is Interface) {
 				ns.add_interface ((Interface) sym);
 			} else if (sym is Method) {
-				ns.add_method ((Method) sym);
+				unowned Method method = (Method) sym;
+				if (method.binding == MemberBinding.INSTANCE) {
+					method.binding = MemberBinding.STATIC;
+				}
+				ns.add_method (method);
 			} else if (sym is Struct) {
 				ns.add_struct ((Struct) sym);
 			}
@@ -2169,6 +2189,8 @@ public class Vala.GirParser : CodeVisitor {
 				parse_bitfield ();
 			} else if (reader.name == "function") {
 				parse_method ("function");
+			} else if (reader.name == "function-macro") {
+				skip_element ();
 			} else if (reader.name == "callback") {
 				parse_callback ();
 			} else if (reader.name == "record") {
@@ -2280,6 +2302,8 @@ public class Vala.GirParser : CodeVisitor {
 				skip_element ();
 			} else if (reader_name == "source-position") {
 				skip_element ();
+			} else if (reader_name == "attribute") {
+				skip_element ();
 			} else {
 				break;
 			}
@@ -2308,6 +2332,8 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (reader_name == "doc-version" || reader_name == "doc-deprecated" || reader_name == "doc-stability") {
 				skip_element ();
 			} else if (reader_name == "source-position") {
+				skip_element ();
+			} else if (reader_name == "attribute") {
 				skip_element ();
 			} else {
 				break;
@@ -2340,7 +2366,6 @@ public class Vala.GirParser : CodeVisitor {
 		if (!error_domain)
 			set_type_id_ccode (sym);
 
-		sym.external = true;
 		sym.access = SymbolAccessibility.PUBLIC;
 
 		string common_prefix = null;
@@ -2366,6 +2391,8 @@ public class Vala.GirParser : CodeVisitor {
 					calculate_common_prefix (ref common_prefix, old_current.get_cname ());
 				}
 			} else if (reader.name == "function") {
+				skip_element ();
+			} else if (reader.name == "function-macro") {
 				skip_element ();
 			} else {
 				// error
@@ -2455,6 +2482,7 @@ public class Vala.GirParser : CodeVisitor {
 	}
 
 	Parameter parse_parameter (out int array_length_idx = null, out int closure_idx = null, out int destroy_idx = null, out string? scope = null, out Comment? comment = null, string? default_name = null) {
+		var begin = this.begin;
 		Parameter param;
 
 		array_length_idx = -1;
@@ -2472,6 +2500,9 @@ public class Vala.GirParser : CodeVisitor {
 		}
 		if (name == null) {
 			name = default_name;
+		} else if (name.contains ("-")) {
+			Report.warning (get_current_src (), "parameter name contains hyphen");
+			name = name.replace ("-", "_");
 		}
 		string direction = null;
 		if (metadata.has_argument (ArgumentType.OUT)) {
@@ -2513,7 +2544,7 @@ public class Vala.GirParser : CodeVisitor {
 		if (reader.name == "varargs") {
 			start_element ("varargs");
 			next ();
-			param = new Parameter.with_ellipsis (get_current_src ());
+			param = new Parameter.with_ellipsis (get_src (begin));
 			end_element ("varargs");
 		} else {
 			string ctype;
@@ -2534,7 +2565,7 @@ public class Vala.GirParser : CodeVisitor {
 				ctype = null;
 			}
 
-			param = new Parameter (name, type, get_current_src ());
+			param = new Parameter (name, type, get_src (begin));
 			if (ctype != null) {
 				param.set_attribute_string ("CCode", "type", ctype);
 			}
@@ -2618,7 +2649,11 @@ public class Vala.GirParser : CodeVisitor {
 			start_element ("type");
 		}
 
-		ctype = reader.get_attribute("c:type");
+		if (metadata.has_argument (ArgumentType.CTYPE)) {
+			ctype = metadata.get_string (ArgumentType.CTYPE);
+		} else {
+			ctype = reader.get_attribute("c:type");
+		}
 
 		next ();
 
@@ -2768,6 +2803,7 @@ public class Vala.GirParser : CodeVisitor {
 		push_node (element_get_name (), true);
 
 		Struct st;
+		bool require_copy_free = false;
 		if (current.new_symbol) {
 			st = new Struct (element_get_name (), current.source_reference);
 			current.symbol = st;
@@ -2776,8 +2812,8 @@ public class Vala.GirParser : CodeVisitor {
 		}
 
 		set_type_id_ccode (st);
+		require_copy_free = st.has_attribute_argument ("CCode", "type_id");
 
-		st.external = true;
 		st.access = SymbolAccessibility.PUBLIC;
 
 		var gtype_struct_for = reader.get_attribute ("glib:is-gtype-struct-for");
@@ -2813,6 +2849,8 @@ public class Vala.GirParser : CodeVisitor {
 				parse_method ("method");
 			} else if (reader.name == "function") {
 				skip_element ();
+			} else if (reader.name == "function-macro") {
+				skip_element ();
 			} else if (reader.name == "union") {
 				parse_union ();
 			} else {
@@ -2822,6 +2860,12 @@ public class Vala.GirParser : CodeVisitor {
 			}
 
 			pop_metadata ();
+		}
+
+		// Add default g_boxed_copy/free ccode-attributes
+		if (require_copy_free) {
+			st.set_attribute_string ("CCode", "copy_function", "g_boxed_copy");
+			st.set_attribute_string ("CCode", "free_function", "g_boxed_free");
 		}
 
 		pop_node ();
@@ -2849,7 +2893,6 @@ public class Vala.GirParser : CodeVisitor {
 		set_type_id_ccode (cl);
 
 		cl.access = SymbolAccessibility.PUBLIC;
-		cl.external = true;
 
 		next ();
 
@@ -2890,6 +2933,8 @@ public class Vala.GirParser : CodeVisitor {
 				parse_constructor ();
 			} else if (reader.name == "function") {
 				parse_method ("function");
+			} else if (reader.name == "function-macro") {
+				skip_element ();
 			} else if (reader.name == "method") {
 				parse_method ("method");
 			} else if (reader.name == "virtual-method") {
@@ -2926,8 +2971,6 @@ public class Vala.GirParser : CodeVisitor {
 		set_type_id_ccode (iface);
 
 		iface.access = SymbolAccessibility.PUBLIC;
-		iface.external = true;
-
 
 		next ();
 
@@ -2952,6 +2995,8 @@ public class Vala.GirParser : CodeVisitor {
 				parse_method ("virtual-method");
 			} else if (reader.name == "function") {
 				parse_method ("function");
+			} else if (reader.name == "function-macro") {
+				skip_element ();
 			} else if (reader.name == "method") {
 				parse_method ("method");
 			} else if (reader.name == "glib:signal") {
@@ -3031,7 +3076,6 @@ public class Vala.GirParser : CodeVisitor {
 		var prop = new Property (current.name, type, null, null, current.source_reference);
 		prop.comment = comment;
 		prop.access = SymbolAccessibility.PUBLIC;
-		prop.external = true;
 		prop.is_abstract = is_abstract;
 		if (no_array_length || array_null_terminated) {
 			prop.set_attribute_bool ("CCode", "array_length", !no_array_length);
@@ -3084,6 +3128,11 @@ public class Vala.GirParser : CodeVisitor {
 			symbol_type = metadata.get_string (ArgumentType.SYMBOL_TYPE);
 		} else {
 			symbol_type = element_name;
+		}
+
+		string? ctype = null;
+		if (metadata.has_argument (ArgumentType.CTYPE)) {
+			ctype = metadata.get_string (ArgumentType.CTYPE);
 		}
 
 		string name = current.name;
@@ -3146,7 +3195,6 @@ public class Vala.GirParser : CodeVisitor {
 
 		s.access = SymbolAccessibility.PUBLIC;
 		s.comment = comment;
-		s.external = true;
 
 		// Transform fixed-array properties of return-type into ccode-attribute
 		var array_type = return_type as ArrayType;
@@ -3244,6 +3292,10 @@ public class Vala.GirParser : CodeVisitor {
 		}
 		current.return_array_length_idx = return_array_length_idx;
 
+		if (ctype != null) {
+			s.set_attribute_string ("CCode", "type", ctype);
+		}
+
 		current.symbol = s;
 
 		if (metadata.has_argument (ArgumentType.FINISH_NAME)) {
@@ -3277,11 +3329,8 @@ public class Vala.GirParser : CodeVisitor {
 			while (current_token == MarkupTokenType.START_ELEMENT) {
 				current_parameter_idx++;
 
-				if (reader.name == "instance-parameter" &&
-				    !(symbol_type == "function" || symbol_type == "constructor")) {
-					skip_element ();
-					continue;
-				}
+				var is_instance_parameter = (reader.name == "instance-parameter"
+					&& !(symbol_type == "function" || symbol_type == "constructor"));
 
 				if (instance_idx > -2 && instance_idx == current_parameter_idx) {
 					skip_element ();
@@ -3299,6 +3348,23 @@ public class Vala.GirParser : CodeVisitor {
 				Comment? param_comment;
 				default_param_name = "arg%d".printf (parameters.size);
 				var param = parse_parameter (out array_length_idx, out closure_idx, out destroy_idx, out scope, out param_comment, default_param_name);
+
+				if (is_instance_parameter) {
+					unowned Method? m = s as Method;
+					if (m != null) {
+						if (param.direction == ParameterDirection.IN) {
+							if (param.variable_type.value_owned) {
+								m.set_attribute ("DestroysInstance", true);
+							}
+							pop_metadata ();
+							continue;
+						} else {
+							//TODO can more be done here?
+							m.binding = MemberBinding.STATIC;
+						}
+					}
+				}
+
 				if (array_length_idx != -1) {
 					if (instance_idx > -2 && instance_idx < array_length_idx) {
 						array_length_idx--;
@@ -3402,7 +3468,6 @@ public class Vala.GirParser : CodeVisitor {
 		require_copy_free = cl.has_attribute_argument ("CCode", "type_id");
 
 		cl.access = SymbolAccessibility.PUBLIC;
-		cl.external = true;
 
 		if (metadata.has_argument (ArgumentType.BASE_TYPE)) {
 			cl.add_base_type (parse_type_from_string (metadata.get_string (ArgumentType.BASE_TYPE), true, metadata.get_source_reference (ArgumentType.BASE_TYPE)));
@@ -3434,6 +3499,8 @@ public class Vala.GirParser : CodeVisitor {
 					unref_method = old_current;
 				}
 			} else if (reader.name == "function") {
+				skip_element ();
+			} else if (reader.name == "function-macro") {
 				skip_element ();
 			} else if (reader.name == "union") {
 				parse_union ();
@@ -3503,7 +3570,6 @@ public class Vala.GirParser : CodeVisitor {
 			st = (Struct) current.symbol;
 		}
 		st.access = SymbolAccessibility.PUBLIC;
-		st.external = true;
 
 		next ();
 
@@ -3522,6 +3588,8 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (reader.name == "method") {
 				parse_method ("method");
 			} else if (reader.name == "function") {
+				skip_element ();
+			} else if (reader.name == "function-macro") {
 				skip_element ();
 			} else if (reader.name == "record") {
 				parse_record ();
@@ -3555,7 +3623,6 @@ public class Vala.GirParser : CodeVisitor {
 		current.symbol = c;
 		c.access = SymbolAccessibility.PUBLIC;
 		c.comment = comment;
-		c.external = true;
 		if (no_array_length || array_null_terminated) {
 			c.set_attribute_bool ("CCode", "array_length", !no_array_length);
 		}
@@ -3661,7 +3728,7 @@ public class Vala.GirParser : CodeVisitor {
 				var unresolved_symbol = ((UnresolvedType) prereq).unresolved_symbol;
 				sym = resolve_symbol (iface_node.parent, unresolved_symbol);
 			} else {
-				sym = prereq.data_type;
+				sym = prereq.type_symbol;
 			}
 			if (sym is Class) {
 				has_instantiable_prereq = true;
@@ -3692,7 +3759,7 @@ public class Vala.GirParser : CodeVisitor {
 			simple_type = true;
 		} else {
 			base_type = alias.base_type;
-			type_sym = base_type.data_type;
+			type_sym = base_type.type_symbol;
 			if (type_sym != null) {
 				base_node = resolve_node (alias.parent, parse_symbol_from_string (type_sym.get_full_name (), alias.source_reference));
 			}
@@ -3710,7 +3777,6 @@ public class Vala.GirParser : CodeVisitor {
 				st.base_type = base_type;
 			}
 			st.comment = alias.comment;
-			st.external = true;
 			st.set_simple_type (simple_type);
 			alias.symbol = st;
 		} else if (type_sym is Class) {
@@ -3720,7 +3786,6 @@ public class Vala.GirParser : CodeVisitor {
 				cl.add_base_type (base_type);
 			}
 			cl.comment = alias.comment;
-			cl.external = true;
 			cl.is_compact = ((Class) type_sym).is_compact;
 			alias.symbol = cl;
 		} else if (type_sym is Interface) {
@@ -3731,7 +3796,6 @@ public class Vala.GirParser : CodeVisitor {
 				iface.add_prerequisite (base_type);
 			}
 			iface.comment = alias.comment;
-			iface.external = true;
 			alias.symbol = iface;
 		} else if (type_sym is Delegate) {
 			var orig = (Delegate) type_sym;
@@ -3756,8 +3820,6 @@ public class Vala.GirParser : CodeVisitor {
 			foreach (var attribute in orig.attributes) {
 				deleg.attributes.append (attribute);
 			}
-
-			deleg.external = true;
 
 			alias.symbol = deleg;
 		} else if (type_sym != null) {
@@ -3856,7 +3918,7 @@ public class Vala.GirParser : CodeVisitor {
 				if (type is UnresolvedType) {
 					st = resolve_symbol (node.parent, ((UnresolvedType) type).unresolved_symbol) as Struct;
 				} else if (type is ValueType) {
-					st = type.data_type as Struct;
+					st = type.type_symbol as Struct;
 				}
 				if (st != null && st.is_simple_type ()) {
 					type.nullable = false;
@@ -4144,8 +4206,6 @@ public class Vala.GirParser : CodeVisitor {
 			if (finish_method is CreationMethod) {
 				method = new CreationMethod (((CreationMethod) finish_method).class_name, null, m.source_reference);
 				method.access = m.access;
-				method.binding = m.binding;
-				method.external = true;
 				method.coroutine = true;
 				method.has_construct_function = finish_method.has_construct_function;
 

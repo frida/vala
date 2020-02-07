@@ -76,6 +76,8 @@ namespace Gst {
 			public Gst.ClockTime get_latency ();
 			[NoWrapper]
 			public virtual Gst.ClockTime get_next_time ();
+			[Version (since = "1.18")]
+			public virtual bool negotiate ();
 			[NoWrapper]
 			public virtual bool negotiated_src_caps (Gst.Caps caps);
 			[NoWrapper]
@@ -87,7 +89,11 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool sink_event (Gst.Base.AggregatorPad aggregator_pad, Gst.Event event);
 			[NoWrapper]
+			public virtual bool sink_event_pre_queue (Gst.Base.AggregatorPad aggregator_pad, Gst.Event event);
+			[NoWrapper]
 			public virtual bool sink_query (Gst.Base.AggregatorPad aggregator_pad, Gst.Query query);
+			[NoWrapper]
+			public virtual bool sink_query_pre_queue (Gst.Base.AggregatorPad aggregator_pad, Gst.Query query);
 			[NoWrapper]
 			public virtual bool src_activate (Gst.PadMode mode, bool active);
 			[NoWrapper]
@@ -98,6 +104,8 @@ namespace Gst {
 			public virtual bool start ();
 			[NoWrapper]
 			public virtual bool stop ();
+			[Version (since = "1.18")]
+			public void update_segment (Gst.Segment segment);
 			[NoWrapper]
 			public virtual Gst.FlowReturn update_src_caps (Gst.Caps caps, out Gst.Caps ret);
 			[NoAccessorMethod]
@@ -141,6 +149,7 @@ namespace Gst {
 			public uint size;
 			public BitReader ([CCode (array_length_type = "guint")] uint8[] data);
 			[CCode (cname = "gst_bit_reader_free")]
+			[DestroysInstance]
 			public void free ();
 			[CCode (cname = "gst_bit_reader_get_bits_uint16")]
 			public bool get_bits_uint16 (out uint16 val, uint nbits);
@@ -191,6 +200,7 @@ namespace Gst {
 			[CCode (cname = "gst_byte_reader_dup_string_utf8")]
 			public bool dup_string_utf8 ([CCode (array_length = false, array_null_terminated = true)] out string[] str);
 			[CCode (cname = "gst_byte_reader_free")]
+			[DestroysInstance]
 			public void free ();
 			[CCode (cname = "gst_byte_reader_get_data")]
 			public bool get_data ([CCode (array_length_cname = "size", array_length_pos = 0.5, array_length_type = "guint")] out unowned uint8[] val);
@@ -326,10 +336,13 @@ namespace Gst {
 			[CCode (cname = "gst_byte_writer_fill")]
 			public bool fill (uint8 value, uint size);
 			[CCode (cname = "gst_byte_writer_free")]
+			[DestroysInstance]
 			public void free ();
 			[CCode (cname = "gst_byte_writer_free_and_get_buffer")]
+			[DestroysInstance]
 			public Gst.Buffer free_and_get_buffer ();
 			[CCode (cname = "gst_byte_writer_free_and_get_data")]
+			[DestroysInstance]
 			public uint8 free_and_get_data ();
 			[CCode (cname = "gst_byte_writer_get_remaining")]
 			public uint get_remaining ();
@@ -593,6 +606,8 @@ namespace Gst {
 			[Version (since = "1.16")]
 			public Gst.ClockTime get_processing_deadline ();
 			public Gst.ClockTime get_render_delay ();
+			[Version (since = "1.18")]
+			public Gst.Structure get_stats ();
 			public bool get_sync ();
 			public uint64 get_throttle_time ();
 			[NoWrapper]
@@ -660,6 +675,8 @@ namespace Gst {
 			[NoAccessorMethod]
 			public bool qos { get; set; }
 			public uint64 render_delay { get; set; }
+			[Version (since = "1.18")]
+			public Gst.Structure stats { owned get; }
 			public bool sync { get; set; }
 			public uint64 throttle_time { get; set; }
 			public int64 ts_offset { get; set; }
@@ -699,7 +716,7 @@ namespace Gst {
 			public uint get_blocksize ();
 			public Gst.BufferPool get_buffer_pool ();
 			[NoWrapper]
-			public virtual Gst.Caps get_caps (Gst.Caps filter);
+			public virtual Gst.Caps get_caps (Gst.Caps? filter);
 			public bool get_do_timestamp ();
 			[NoWrapper]
 			public virtual bool get_size (uint64 size);
@@ -708,7 +725,7 @@ namespace Gst {
 			public bool is_async ();
 			[NoWrapper]
 			public virtual bool is_seekable ();
-			[NoWrapper]
+			[Version (since = "1.18")]
 			public virtual bool negotiate ();
 			public bool new_seamless_segment (int64 start, int64 stop, int64 time);
 			[NoWrapper]
@@ -820,16 +837,20 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstBitWriter", has_type_id = false)]
 		[GIR (name = "BitWriter")]
+		[Version (since = "1.16")]
 		public struct BitWriter {
 			public uint8 data;
 			public uint bit_size;
 			[CCode (cname = "gst_bit_writer_align_bytes")]
 			public bool align_bytes (uint8 trailing_bit);
 			[CCode (cname = "gst_bit_writer_free")]
+			[DestroysInstance]
 			public void free ();
 			[CCode (cname = "gst_bit_writer_free_and_get_buffer")]
+			[DestroysInstance]
 			public Gst.Buffer free_and_get_buffer ();
 			[CCode (array_length = false, cname = "gst_bit_writer_free_and_get_data")]
+			[DestroysInstance]
 			public uint8[] free_and_get_data ();
 			[CCode (cname = "gst_bit_writer_get_data")]
 			public uint8 get_data ();

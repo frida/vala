@@ -2,7 +2,7 @@
 
 [CCode (cprefix = "Graphene", gir_namespace = "Graphene", gir_version = "1.0", lower_case_cprefix = "graphene_")]
 namespace Graphene {
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_box_t", type_id = "graphene_box_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_box_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_box_get_type ()")]
 	[Version (since = "1.2")]
 	public struct Box {
 		public bool contains_box (Graphene.Box b);
@@ -34,10 +34,16 @@ namespace Graphene {
 		public Graphene.Box union (Graphene.Box b);
 		public static unowned Graphene.Box? zero ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_euler_t", type_id = "graphene_euler_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_euler_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_euler_get_type ()")]
 	[Version (since = "1.2")]
 	public struct Euler {
 		public bool equal (Graphene.Euler b);
+		[Version (since = "1.10")]
+		public float get_alpha ();
+		[Version (since = "1.10")]
+		public float get_beta ();
+		[Version (since = "1.10")]
+		public float get_gamma ();
 		public Graphene.EulerOrder get_order ();
 		public float get_x ();
 		public float get_y ();
@@ -46,13 +52,17 @@ namespace Graphene {
 		public unowned Graphene.Euler? init_from_euler (Graphene.Euler? src);
 		public unowned Graphene.Euler? init_from_matrix (Graphene.Matrix? m, Graphene.EulerOrder order);
 		public unowned Graphene.Euler? init_from_quaternion (Graphene.Quaternion? q, Graphene.EulerOrder order);
+		[Version (since = "1.10")]
+		public unowned Graphene.Euler? init_from_radians (float x, float y, float z, Graphene.EulerOrder order);
 		public unowned Graphene.Euler? init_from_vec3 (Graphene.Vec3? v, Graphene.EulerOrder order);
 		public unowned Graphene.Euler? init_with_order (float x, float y, float z, Graphene.EulerOrder order);
 		public Graphene.Euler reorder (Graphene.EulerOrder order);
 		public Graphene.Matrix to_matrix ();
+		[Version (since = "1.10")]
+		public Graphene.Quaternion to_quaternion ();
 		public Graphene.Vec3 to_vec3 ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_frustum_t", type_id = "graphene_frustum_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_frustum_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_frustum_get_type ()")]
 	[Version (since = "1.2")]
 	public struct Frustum {
 		public bool contains_point (Graphene.Point3D point);
@@ -65,8 +75,9 @@ namespace Graphene {
 		public bool intersects_box (Graphene.Box box);
 		public bool intersects_sphere (Graphene.Sphere sphere);
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_matrix_t", type_id = "graphene_matrix_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_matrix_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_matrix_get_type ()")]
 	public struct Matrix {
+		public bool decompose (out Graphene.Vec3 translate, out Graphene.Vec3 scale, out Graphene.Quaternion rotate, out Graphene.Vec3 shear, out Graphene.Vec4 perspective);
 		[Version (since = "1.0")]
 		public float determinant ();
 		[Version (since = "1.10")]
@@ -196,7 +207,7 @@ namespace Graphene {
 		[Version (since = "1.0")]
 		public bool untransform_point (Graphene.Point p, Graphene.Rect bounds, out Graphene.Point res);
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_plane_t", type_id = "graphene_plane_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_plane_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_plane_get_type ()")]
 	[Version (since = "1.2")]
 	public struct Plane {
 		public float distance (Graphene.Point3D point);
@@ -210,8 +221,10 @@ namespace Graphene {
 		public unowned Graphene.Plane? init_from_vec4 (Graphene.Vec4 src);
 		public Graphene.Plane negate ();
 		public Graphene.Plane normalize ();
+		[Version (since = "1.10")]
+		public Graphene.Plane transform (Graphene.Matrix matrix, Graphene.Matrix? normal_matrix);
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_point_t", type_id = "graphene_point_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_point_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_point_get_type ()")]
 	[Version (since = "1.0")]
 	public struct Point {
 		public float x;
@@ -228,7 +241,7 @@ namespace Graphene {
 		public Graphene.Vec2 to_vec2 ();
 		public static unowned Graphene.Point? zero ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_point3d_t", lower_case_csuffix = "point3d", type_id = "graphene_point3d_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_point3d_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", lower_case_csuffix = "point3d", type_id = "graphene_point3d_get_type ()")]
 	[Version (since = "1.0")]
 	public struct Point3D {
 		public float x;
@@ -252,7 +265,7 @@ namespace Graphene {
 		public Graphene.Vec3 to_vec3 ();
 		public static unowned Graphene.Point3D? zero ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_quad_t", type_id = "graphene_quad_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_quad_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_quad_get_type ()")]
 	[Version (since = "1.0")]
 	public struct Quad {
 		public Graphene.Rect bounds ();
@@ -263,9 +276,11 @@ namespace Graphene {
 		public unowned Graphene.Quad? init_from_points ([CCode (array_length = false)] Graphene.Point points[4]);
 		public unowned Graphene.Quad? init_from_rect (Graphene.Rect r);
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_quaternion_t", type_id = "graphene_quaternion_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_quaternion_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_quaternion_get_type ()")]
 	[Version (since = "1.0")]
 	public struct Quaternion {
+		[Version (since = "1.10")]
+		public Graphene.Quaternion add (Graphene.Quaternion b);
 		public float dot (Graphene.Quaternion b);
 		public bool equal (Graphene.Quaternion b);
 		public unowned Graphene.Quaternion? init (float x, float y, float z, float w);
@@ -279,7 +294,11 @@ namespace Graphene {
 		public unowned Graphene.Quaternion? init_from_vec4 (Graphene.Vec4 src);
 		public unowned Graphene.Quaternion? init_identity ();
 		public Graphene.Quaternion invert ();
+		[Version (since = "1.10")]
+		public Graphene.Quaternion multiply (Graphene.Quaternion b);
 		public Graphene.Quaternion normalize ();
+		[Version (since = "1.10")]
+		public Graphene.Quaternion scale (float factor);
 		public Graphene.Quaternion slerp (Graphene.Quaternion b, float factor);
 		public void to_angle_vec3 (out float angle, out Graphene.Vec3 axis);
 		[Version (since = "1.2")]
@@ -289,7 +308,7 @@ namespace Graphene {
 		public void to_radians (out float rad_x, out float rad_y, out float rad_z);
 		public Graphene.Vec4 to_vec4 ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_ray_t", type_id = "graphene_ray_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_ray_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_ray_get_type ()")]
 	[Version (since = "1.4")]
 	public struct Ray {
 		public bool equal (Graphene.Ray b);
@@ -302,8 +321,20 @@ namespace Graphene {
 		public unowned Graphene.Ray? init (Graphene.Point3D? origin, Graphene.Vec3? direction);
 		public unowned Graphene.Ray? init_from_ray (Graphene.Ray src);
 		public unowned Graphene.Ray? init_from_vec3 (Graphene.Vec3? origin, Graphene.Vec3? direction);
+		[Version (since = "1.10")]
+		public Graphene.RayIntersectionKind intersect_box (Graphene.Box b, out float t_out);
+		[Version (since = "1.10")]
+		public Graphene.RayIntersectionKind intersect_sphere (Graphene.Sphere s, out float t_out);
+		[Version (since = "1.10")]
+		public Graphene.RayIntersectionKind intersect_triangle (Graphene.Triangle t, out float t_out);
+		[Version (since = "1.10")]
+		public bool intersects_box (Graphene.Box b);
+		[Version (since = "1.10")]
+		public bool intersects_sphere (Graphene.Sphere s);
+		[Version (since = "1.10")]
+		public bool intersects_triangle (Graphene.Triangle t);
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_rect_t", type_id = "graphene_rect_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_rect_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_rect_get_type ()")]
 	[Version (since = "1.0")]
 	public struct Rect {
 		public Graphene.Point origin;
@@ -314,6 +345,8 @@ namespace Graphene {
 		public bool equal (Graphene.Rect b);
 		[Version (since = "1.4")]
 		public Graphene.Rect expand (Graphene.Point p);
+		[Version (since = "1.10")]
+		public float get_area ();
 		public Graphene.Point get_bottom_left ();
 		public Graphene.Point get_bottom_right ();
 		public Graphene.Point get_center ();
@@ -338,8 +371,10 @@ namespace Graphene {
 		public unowned Graphene.Rect? offset (float d_x, float d_y);
 		[Version (since = "1.4")]
 		public Graphene.Rect offset_r (float d_x, float d_y);
-		[Version (since = "1.4")]
+		[Version (deprecated = true, deprecated_since = "1.10", since = "1.4")]
 		public Graphene.Rect round ();
+		[Version (since = "1.10")]
+		public Graphene.Rect round_extents ();
 		[Version (deprecated = true, deprecated_since = "1.4", since = "1.0")]
 		public unowned Graphene.Rect? round_to_pixel ();
 		[Version (since = "1.10")]
@@ -354,7 +389,7 @@ namespace Graphene {
 	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_simd4x4f_t", has_type_id = false)]
 	public struct Simd4X4F {
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_size_t", type_id = "graphene_size_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_size_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_size_get_type ()")]
 	[Version (since = "1.0")]
 	public struct Size {
 		public float width;
@@ -366,7 +401,7 @@ namespace Graphene {
 		public Graphene.Size scale (float factor);
 		public static unowned Graphene.Size? zero ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_sphere_t", type_id = "graphene_sphere_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_sphere_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_sphere_get_type ()")]
 	[Version (since = "1.2")]
 	public struct Sphere {
 		public bool contains_point (Graphene.Point3D point);
@@ -381,7 +416,7 @@ namespace Graphene {
 		public bool is_empty ();
 		public Graphene.Sphere translate (Graphene.Point3D point);
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_triangle_t", type_id = "graphene_triangle_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_triangle_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_triangle_get_type ()")]
 	[Version (since = "1.2")]
 	public struct Triangle {
 		public bool contains_point (Graphene.Point3D p);
@@ -393,11 +428,15 @@ namespace Graphene {
 		public Graphene.Vec3 get_normal ();
 		public Graphene.Plane get_plane ();
 		public void get_points (out Graphene.Point3D a, out Graphene.Point3D b, out Graphene.Point3D c);
+		[Version (since = "1.10")]
+		public bool get_uv (Graphene.Point3D? p, Graphene.Vec2 uv_a, Graphene.Vec2 uv_b, Graphene.Vec2 uv_c, out Graphene.Vec2 res);
 		public void get_vertices (out Graphene.Vec3 a, out Graphene.Vec3 b, out Graphene.Vec3 c);
+		[Version (since = "1.10")]
+		public unowned Graphene.Triangle? init_from_float ([CCode (array_length = false)] float a[3], [CCode (array_length = false)] float b[3], [CCode (array_length = false)] float c[3]);
 		public unowned Graphene.Triangle? init_from_point3d (Graphene.Point3D? a, Graphene.Point3D? b, Graphene.Point3D? c);
 		public unowned Graphene.Triangle? init_from_vec3 (Graphene.Vec3? a, Graphene.Vec3? b, Graphene.Vec3? c);
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_vec2_t", type_id = "graphene_vec2_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_vec2_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_vec2_get_type ()")]
 	public struct Vec2 {
 		[Version (since = "1.0")]
 		public Graphene.Vec2 add (Graphene.Vec2 b);
@@ -417,6 +456,8 @@ namespace Graphene {
 		public unowned Graphene.Vec2? init_from_float ([CCode (array_length = false)] float src[2]);
 		[Version (since = "1.0")]
 		public unowned Graphene.Vec2? init_from_vec2 (Graphene.Vec2 src);
+		[Version (since = "1.10")]
+		public Graphene.Vec2 interpolate (Graphene.Vec2 v2, double factor);
 		[Version (since = "1.0")]
 		public float length ();
 		[Version (since = "1.0")]
@@ -446,7 +487,7 @@ namespace Graphene {
 		[Version (since = "1.0")]
 		public static unowned Graphene.Vec2? zero ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_vec3_t", type_id = "graphene_vec3_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_vec3_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_vec3_get_type ()")]
 	public struct Vec3 {
 		[Version (since = "1.0")]
 		public Graphene.Vec3 add (Graphene.Vec3 b);
@@ -480,6 +521,8 @@ namespace Graphene {
 		public unowned Graphene.Vec3? init_from_float ([CCode (array_length = false)] float src[3]);
 		[Version (since = "1.0")]
 		public unowned Graphene.Vec3? init_from_vec3 (Graphene.Vec3 src);
+		[Version (since = "1.10")]
+		public Graphene.Vec3 interpolate (Graphene.Vec3 v2, double factor);
 		[Version (since = "1.0")]
 		public float length ();
 		[Version (since = "1.0")]
@@ -511,7 +554,7 @@ namespace Graphene {
 		[Version (since = "1.0")]
 		public static unowned Graphene.Vec3? zero ();
 	}
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_vec4_t", type_id = "graphene_vec4_get_type ()")]
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_vec4_t", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "graphene_vec4_get_type ()")]
 	public struct Vec4 {
 		[Version (since = "1.0")]
 		public Graphene.Vec4 add (Graphene.Vec4 b);
@@ -543,6 +586,8 @@ namespace Graphene {
 		public unowned Graphene.Vec4? init_from_vec3 (Graphene.Vec3 src, float w);
 		[Version (since = "1.0")]
 		public unowned Graphene.Vec4? init_from_vec4 (Graphene.Vec4 src);
+		[Version (since = "1.10")]
+		public Graphene.Vec4 interpolate (Graphene.Vec4 v2, double factor);
 		[Version (since = "1.0")]
 		public float length ();
 		[Version (since = "1.0")]
@@ -585,7 +630,38 @@ namespace Graphene {
 		ZXY,
 		XZY,
 		YXZ,
-		ZYX
+		ZYX,
+		SXYZ,
+		SXYX,
+		SXZY,
+		SXZX,
+		SYZX,
+		SYZY,
+		SYXZ,
+		SYXY,
+		SZXY,
+		SZXZ,
+		SZYX,
+		SZYZ,
+		RZYX,
+		RXYX,
+		RYZX,
+		RXZX,
+		RXZY,
+		RYZY,
+		RZXY,
+		RYXY,
+		RYXZ,
+		RZXZ,
+		RXYZ,
+		RZYZ
+	}
+	[CCode (cheader_filename = "graphene-gobject.h", cname = "graphene_ray_intersection_kind_t", cprefix = "GRAPHENE_RAY_INTERSECTION_KIND_", has_type_id = false)]
+	[Version (since = "1.10")]
+	public enum RayIntersectionKind {
+		NONE,
+		ENTER,
+		LEAVE
 	}
 	[CCode (cheader_filename = "graphene-gobject.h", cname = "GRAPHENE_HAS_GCC")]
 	public const int HAS_GCC;
@@ -608,8 +684,4 @@ namespace Graphene {
 	[CCode (cheader_filename = "graphene-gobject.h", cname = "GRAPHENE_VEC4_LEN")]
 	[Version (since = "1.0")]
 	public const int VEC4_LEN;
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "false")]
-	public const int @false;
-	[CCode (cheader_filename = "graphene-gobject.h", cname = "true")]
-	public const int @true;
 }

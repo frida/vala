@@ -29,15 +29,18 @@ public class Vala.ObjectType : ReferenceType {
 	/**
 	 * The referred class or interface.
 	 */
-	public weak ObjectTypeSymbol type_symbol { get; set; }
+	public weak ObjectTypeSymbol object_type_symbol {
+		get {
+			return (ObjectTypeSymbol) symbol;
+		}
+	}
 
 	public ObjectType (ObjectTypeSymbol type_symbol) {
-		this.type_symbol = type_symbol;
-		data_type = type_symbol;
+		base (type_symbol);
 	}
 
 	public override DataType copy () {
-		var result = new ObjectType (type_symbol);
+		var result = new ObjectType (object_type_symbol);
 		result.source_reference = source_reference;
 		result.value_owned = value_owned;
 		result.nullable = nullable;
@@ -52,7 +55,7 @@ public class Vala.ObjectType : ReferenceType {
 	}
 
 	public override bool stricter (DataType target_type) {
-		var obj_target_type = target_type as ObjectType;
+		unowned ObjectType? obj_target_type = target_type as ObjectType;
 		if (obj_target_type == null) {
 			return false;
 		}
@@ -69,7 +72,7 @@ public class Vala.ObjectType : ReferenceType {
 	}
 
 	public override bool is_invokable () {
-		var cl = type_symbol as Class;
+		unowned Class? cl = type_symbol as Class;
 		if (cl != null && cl.default_construction_method != null) {
 			return true;
 		} else {
@@ -77,8 +80,8 @@ public class Vala.ObjectType : ReferenceType {
 		}
 	}
 
-	public override DataType? get_return_type () {
-		var cl = type_symbol as Class;
+	public override unowned DataType? get_return_type () {
+		unowned Class? cl = type_symbol as Class;
 		if (cl != null && cl.default_construction_method != null) {
 			return cl.default_construction_method.return_type;
 		} else {
@@ -86,8 +89,8 @@ public class Vala.ObjectType : ReferenceType {
 		}
 	}
 
-	public override List<Parameter>? get_parameters () {
-		var cl = type_symbol as Class;
+	public override unowned List<Parameter>? get_parameters () {
+		unowned Class? cl = type_symbol as Class;
 		if (cl != null && cl.default_construction_method != null) {
 			return cl.default_construction_method.get_parameters ();
 		} else {
@@ -101,10 +104,10 @@ public class Vala.ObjectType : ReferenceType {
 		}
 
 		int n_type_args = get_type_arguments ().size;
-		if (n_type_args > 0 && n_type_args < type_symbol.get_type_parameters ().size) {
+		if (n_type_args > 0 && n_type_args < object_type_symbol.get_type_parameters ().size) {
 			Report.error (source_reference, "too few type arguments");
 			return false;
-		} else if (n_type_args > 0 && n_type_args > type_symbol.get_type_parameters ().size) {
+		} else if (n_type_args > 0 && n_type_args > object_type_symbol.get_type_parameters ().size) {
 			Report.error (source_reference, "too many type arguments");
 			return false;
 		}

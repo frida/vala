@@ -85,11 +85,11 @@ public class Vala.ForStatement : CodeNode, Statement {
 	}
 
 	/**
-	 * Returns a copy of the list of initializers.
+	 * Returns the list of initializers.
 	 *
 	 * @return initializer list
 	 */
-	public List<Expression> get_initializer () {
+	public unowned List<Expression> get_initializer () {
 		return initializer;
 	}
 
@@ -104,11 +104,11 @@ public class Vala.ForStatement : CodeNode, Statement {
 	}
 
 	/**
-	 * Returns a copy of the iterator.
+	 * Returns the iterator.
 	 *
 	 * @return iterator
 	 */
-	public List<Expression> get_iterator () {
+	public unowned List<Expression> get_iterator () {
 		return iterator;
 	}
 
@@ -155,12 +155,12 @@ public class Vala.ForStatement : CodeNode, Statement {
 	}
 
 	bool always_true (Expression condition) {
-		var literal = condition as BooleanLiteral;
+		unowned BooleanLiteral? literal = condition as BooleanLiteral;
 		return (literal != null && literal.value);
 	}
 
 	bool always_false (Expression condition) {
-		var literal = condition as BooleanLiteral;
+		unowned BooleanLiteral? literal = condition as BooleanLiteral;
 		return (literal != null && !literal.value);
 	}
 
@@ -209,7 +209,7 @@ public class Vala.ForStatement : CodeNode, Statement {
 
 		block.add_statement (new Loop (body, source_reference));
 
-		var parent_block = (Block) parent_node;
+		unowned Block parent_block = (Block) parent_node;
 		parent_block.replace_statement (this, block);
 
 		if (!block.check (context)) {

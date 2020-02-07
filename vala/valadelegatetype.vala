@@ -26,71 +26,45 @@ using GLib;
  * The type of an instance of a delegate.
  */
 public class Vala.DelegateType : CallableType {
-	public weak Delegate delegate_symbol { get; set; }
+	public weak Delegate delegate_symbol {
+		get {
+			return (Delegate) symbol;
+		}
+	}
 
 	public bool is_called_once { get; set; }
 
+	DelegateTargetField? target_field;
+	DelegateDestroyField? destroy_field;
+
 	public DelegateType (Delegate delegate_symbol) {
-		this.delegate_symbol = delegate_symbol;
+		base (delegate_symbol);
 		this.is_called_once = (delegate_symbol.get_attribute_string ("CCode", "scope") == "async");
 	}
 
-	public override bool is_invokable () {
-		return true;
+	public override Symbol? get_member (string member_name) {
+		if (member_name == "target") {
+			return get_target_field ();
+		} else if (member_name == "destroy") {
+			return get_destroy_field ();
+		}
+		return null;
 	}
 
-	public override DataType? get_return_type () {
-		return delegate_symbol.return_type;
+	unowned DelegateTargetField get_target_field () {
+		if (target_field == null) {
+			target_field = new DelegateTargetField (source_reference);
+			target_field.access = SymbolAccessibility.PUBLIC;
+		}
+		return target_field;
 	}
 
-	public override List<Parameter>? get_parameters () {
-		return delegate_symbol.get_parameters ();
-	}
-
-	public override string to_qualified_string (Scope? scope) {
-		// logic temporarily duplicated from DataType class
-
-		Symbol global_symbol = delegate_symbol;
-		while (global_symbol.parent_symbol != null && global_symbol.parent_symbol.name != null) {
-			global_symbol = global_symbol.parent_symbol;
+	unowned DelegateDestroyField get_destroy_field () {
+		if (destroy_field == null) {
+			destroy_field = new DelegateDestroyField (source_reference);
+			destroy_field.access = SymbolAccessibility.PUBLIC;
 		}
-
-		Symbol sym = null;
-		Scope parent_scope = scope;
-		while (sym == null && parent_scope != null) {
-			sym = parent_scope.lookup (global_symbol.name);
-			parent_scope = parent_scope.parent_scope;
-		}
-
-		string s;
-
-		if (sym != null && global_symbol != sym) {
-			s = "global::" + delegate_symbol.get_full_name ();;
-		} else {
-			s = delegate_symbol.get_full_name ();
-		}
-
-		var type_args = get_type_arguments ();
-		if (type_args.size > 0) {
-			s += "<";
-			bool first = true;
-			foreach (DataType type_arg in type_args) {
-				if (!first) {
-					s += ",";
-				} else {
-					first = false;
-				}
-				if (type_arg.is_weak ()) {
-					s += "weak ";
-				}
-				s += type_arg.to_qualified_string (scope);
-			}
-			s += ">";
-		}
-		if (nullable) {
-			s += "?";
-		}
-		return s;
+		return destroy_field;
 	}
 
 	public override DataType copy () {
@@ -106,6 +80,10 @@ public class Vala.DelegateType : CallableType {
 		result.is_called_once = is_called_once;
 
 		return result;
+	}
+
+	public override bool equals (DataType type2) {
+		return compatible (type2);
 	}
 
 	public override bool is_accessible (Symbol sym) {
@@ -141,7 +119,7 @@ public class Vala.DelegateType : CallableType {
 	}
 
 	public override bool compatible (DataType target_type) {
-		var dt_target = target_type as DelegateType;
+		unowned DelegateType? dt_target = target_type as DelegateType;
 		if (dt_target == null) {
 			return false;
 		}
@@ -149,6 +127,10 @@ public class Vala.DelegateType : CallableType {
 		// trivial case
 		if (delegate_symbol == dt_target.delegate_symbol) {
 			return true;
+		}
+
+		if (delegate_symbol.has_target != dt_target.delegate_symbol.has_target) {
+			return false;
 		}
 
 		// target-delegate is allowed to ensure stricter return type (stronger postcondition)
@@ -171,9 +153,8 @@ public class Vala.DelegateType : CallableType {
 		}
 
 		foreach (Parameter param in dt_target.get_parameters ()) {
-			/* target-delegate is allowed to accept less arguments */
 			if (!params_it.next ()) {
-				break;
+				return false;
 			}
 
 			// target-delegate is allowed to accept arguments of looser types (weaker precondition)

@@ -148,7 +148,7 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_auth_get_type ()")]
 	public abstract class Auth : GLib.Object {
 		[CCode (has_construct_function = false)]
-		public Auth (GLib.Type type, Soup.Message msg, string auth_header);
+		protected Auth ();
 		public virtual void authenticate (string username, string password);
 		[Version (since = "2.54")]
 		public virtual bool can_authenticate ();
@@ -163,6 +163,7 @@ namespace Soup {
 		public void has_saved_password (string username, string password);
 		[Version (since = "2.42")]
 		public virtual bool is_ready (Soup.Message msg);
+		public static Soup.Auth? @new (GLib.Type type, Soup.Message msg, string auth_header);
 		public void save_password (string username, string password);
 		public virtual bool update (Soup.Message msg, GLib.HashTable<void*,void*> auth_header);
 		[NoAccessorMethod]
@@ -203,11 +204,11 @@ namespace Soup {
 		public void set_generic_auth_callback (owned Soup.AuthDomainGenericAuthCallback auth_callback);
 		public bool try_generic_auth_callback (Soup.Message msg, string username);
 		[NoAccessorMethod]
-		public Soup.AuthDomainFilter filter { owned get; set; }
+		public Soup.AuthDomainFilter filter { get; set; }
 		[NoAccessorMethod]
 		public void* filter_data { get; set; }
 		[NoAccessorMethod]
-		public Soup.AuthDomainGenericAuthCallback generic_auth_callback { owned get; set; }
+		public Soup.AuthDomainGenericAuthCallback generic_auth_callback { get; set; }
 		[NoAccessorMethod]
 		public void* generic_auth_data { get; set; }
 		[NoAccessorMethod]
@@ -220,7 +221,7 @@ namespace Soup {
 		public AuthDomainBasic (string optname1, ...);
 		public void set_auth_callback (owned Soup.AuthDomainBasicAuthCallback callback);
 		[NoAccessorMethod]
-		public Soup.AuthDomainBasicAuthCallback auth_callback { owned get; set; }
+		public Soup.AuthDomainBasicAuthCallback auth_callback { get; set; }
 		[NoAccessorMethod]
 		public void* auth_data { get; set; }
 	}
@@ -231,7 +232,7 @@ namespace Soup {
 		public static string encode_password (string username, string realm, string password);
 		public void set_auth_callback (owned Soup.AuthDomainDigestAuthCallback callback);
 		[NoAccessorMethod]
-		public Soup.AuthDomainDigestAuthCallback auth_callback { owned get; set; }
+		public Soup.AuthDomainDigestAuthCallback auth_callback { get; set; }
 		[NoAccessorMethod]
 		public void* auth_data { get; set; }
 	}
@@ -376,6 +377,8 @@ namespace Soup {
 		public unowned string get_name ();
 		[Version (since = "2.32")]
 		public unowned string get_path ();
+		[Version (since = "2.70")]
+		public Soup.SameSitePolicy get_same_site_policy ();
 		[Version (since = "2.32")]
 		public bool get_secure ();
 		[Version (since = "2.32")]
@@ -387,6 +390,8 @@ namespace Soup {
 		public void set_max_age (int max_age);
 		public void set_name (string name);
 		public void set_path (string path);
+		[Version (since = "2.70")]
+		public void set_same_site_policy (Soup.SameSitePolicy policy);
 		public void set_secure (bool secure);
 		public void set_value (string value);
 		public string to_cookie_header ();
@@ -399,6 +404,8 @@ namespace Soup {
 		public CookieJar ();
 		[Version (since = "2.26")]
 		public void add_cookie (owned Soup.Cookie cookie);
+		[Version (since = "2.68")]
+		public void add_cookie_full (owned Soup.Cookie cookie, Soup.URI? uri, Soup.URI? first_party);
 		[Version (since = "2.40")]
 		public void add_cookie_with_first_party (Soup.URI first_party, owned Soup.Cookie cookie);
 		[Version (since = "2.26")]
@@ -409,6 +416,8 @@ namespace Soup {
 		public Soup.CookieJarAcceptPolicy get_accept_policy ();
 		[Version (since = "2.40")]
 		public GLib.SList<Soup.Cookie> get_cookie_list (Soup.URI uri, bool for_http);
+		[Version (since = "2.70")]
+		public GLib.SList<Soup.Cookie> get_cookie_list_with_same_site_info (Soup.URI uri, Soup.URI? top_level, Soup.URI? site_for_cookies, bool for_http, bool is_safe_method, bool is_top_level_navigation);
 		[Version (since = "2.24")]
 		public string? get_cookies (Soup.URI uri, bool for_http);
 		[Version (since = "2.40")]
@@ -486,8 +495,61 @@ namespace Soup {
 		public bool is_past ();
 		public string to_string (Soup.DateFormat format);
 		public time_t to_time_t ();
-		[Version (since = "2.24")]
+		[Version (deprecated = true, since = "2.24")]
 		public GLib.TimeVal to_timeval ();
+	}
+	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_hsts_enforcer_get_type ()")]
+	public class HSTSEnforcer : GLib.Object, Soup.SessionFeature {
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.68")]
+		public HSTSEnforcer ();
+		[Version (since = "2.68")]
+		public GLib.List<string> get_domains (bool session_policies);
+		[Version (since = "2.68")]
+		public GLib.List<Soup.HSTSPolicy> get_policies (bool session_policies);
+		[Version (since = "2.68")]
+		public virtual bool has_valid_policy (string domain);
+		[Version (since = "2.68")]
+		public virtual bool is_persistent ();
+		[Version (since = "2.68")]
+		public void set_policy (Soup.HSTSPolicy policy);
+		[Version (since = "2.68")]
+		public void set_session_policy (string domain, bool include_subdomains);
+		public virtual signal void changed (Soup.HSTSPolicy old_policy, Soup.HSTSPolicy new_policy);
+		public virtual signal void hsts_enforced (Soup.Message message);
+	}
+	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_hsts_enforcer_db_get_type ()")]
+	public class HSTSEnforcerDB : Soup.HSTSEnforcer, Soup.SessionFeature {
+		[CCode (has_construct_function = false, type = "SoupHSTSEnforcer*")]
+		[Version (since = "2.68")]
+		public HSTSEnforcerDB (string filename);
+		[NoAccessorMethod]
+		public string filename { owned get; construct; }
+	}
+	[CCode (cheader_filename = "libsoup/soup.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "soup_hsts_policy_get_type ()")]
+	[Compact]
+	[Version (since = "2.68")]
+	public class HSTSPolicy {
+		public weak string domain;
+		public weak Soup.Date expires;
+		public bool include_subdomains;
+		public ulong max_age;
+		[CCode (has_construct_function = false)]
+		public HSTSPolicy (string domain, ulong max_age, bool include_subdomains);
+		public Soup.HSTSPolicy copy ();
+		public bool equal (Soup.HSTSPolicy policy2);
+		[DestroysInstance]
+		public void free ();
+		[CCode (has_construct_function = false)]
+		public HSTSPolicy.from_response (Soup.Message msg);
+		[CCode (has_construct_function = false)]
+		public HSTSPolicy.full (string domain, ulong max_age, Soup.Date expires, bool include_subdomains);
+		public unowned string get_domain ();
+		public bool includes_subdomains ();
+		public bool is_expired ();
+		public bool is_session_policy ();
+		[CCode (has_construct_function = false)]
+		public HSTSPolicy.session_policy (string domain, bool include_subdomains);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_logger_get_type ()")]
 	public class Logger : GLib.Object, Soup.SessionFeature {
@@ -525,8 +587,12 @@ namespace Soup {
 		public Soup.HTTPVersion get_http_version ();
 		[Version (since = "2.34")]
 		public bool get_https_status (out unowned GLib.TlsCertificate certificate, out GLib.TlsCertificateFlags errors);
+		[Version (since = "2.70")]
+		public bool get_is_top_level_navigation ();
 		[Version (since = "2.44")]
 		public Soup.MessagePriority get_priority ();
+		[Version (since = "2.70")]
+		public unowned Soup.URI get_site_for_cookies ();
 		[Version (since = "2.42")]
 		public unowned Soup.Request get_soup_request ();
 		public unowned Soup.URI get_uri ();
@@ -537,12 +603,16 @@ namespace Soup {
 		public void set_first_party (Soup.URI first_party);
 		public void set_flags (Soup.MessageFlags flags);
 		public void set_http_version (Soup.HTTPVersion version);
+		[Version (since = "2.70")]
+		public void set_is_top_level_navigation (bool is_top_level_navigation);
 		[Version (since = "2.44")]
 		public void set_priority (Soup.MessagePriority priority);
 		[Version (since = "2.38")]
 		public void set_redirect (uint status_code, string redirect_uri);
 		public void set_request (string? content_type, Soup.MemoryUse req_use, [CCode (array_length_cname = "req_length", array_length_pos = 3.1, array_length_type = "gsize")] uint8[] req_body);
 		public void set_response (string? content_type, Soup.MemoryUse resp_use, [CCode (array_length_cname = "resp_length", array_length_pos = 3.1, array_length_type = "gsize")] uint8[]? resp_body);
+		[Version (since = "2.70")]
+		public void set_site_for_cookies (Soup.URI? site_for_cookies);
 		public void set_status (uint status_code);
 		public void set_status_full (uint status_code, string reason_phrase);
 		public void set_uri (Soup.URI uri);
@@ -550,6 +620,8 @@ namespace Soup {
 		public Soup.URI first_party { get; set; }
 		public Soup.MessageFlags flags { get; set; }
 		public Soup.HTTPVersion http_version { get; set; }
+		[Version (since = "2.70")]
+		public bool is_top_level_navigation { get; set; }
 		[NoAccessorMethod]
 		public string method { owned get; set; }
 		public Soup.MessagePriority priority { get; set; }
@@ -557,6 +629,7 @@ namespace Soup {
 		public string reason_phrase { owned get; set; }
 		[NoAccessorMethod]
 		public bool server_side { get; construct; }
+		public Soup.URI site_for_cookies { get; set; }
 		[NoAccessorMethod]
 		public uint status_code { get; set; }
 		[NoAccessorMethod]
@@ -775,6 +848,8 @@ namespace Soup {
 		[Version (since = "2.50")]
 		public void add_early_handler (string? path, owned Soup.ServerCallback callback);
 		public void add_handler (string? path, owned Soup.ServerCallback callback);
+		[Version (since = "2.68")]
+		public void add_websocket_extension (GLib.Type extension_type);
 		public void add_websocket_handler (string? path, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols, owned Soup.ServerWebsocketCallback callback);
 		public void disconnect ();
 		[Version (deprecated = true)]
@@ -802,6 +877,8 @@ namespace Soup {
 		public void quit ();
 		public void remove_auth_domain (Soup.AuthDomain auth_domain);
 		public void remove_handler (string path);
+		[Version (since = "2.68")]
+		public void remove_websocket_extension (GLib.Type extension_type);
 		[Version (deprecated = true)]
 		public void run ();
 		[Version (deprecated = true)]
@@ -1113,6 +1190,8 @@ namespace Soup {
 		public ushort get_close_code ();
 		public unowned string get_close_data ();
 		public Soup.WebsocketConnectionType get_connection_type ();
+		[Version (since = "2.68")]
+		public unowned GLib.List<Soup.WebsocketExtension> get_extensions ();
 		public unowned GLib.IOStream get_io_stream ();
 		[Version (since = "2.58")]
 		public uint get_keepalive_interval ();
@@ -1122,13 +1201,20 @@ namespace Soup {
 		public unowned string? get_protocol ();
 		public Soup.WebsocketState get_state ();
 		public unowned Soup.URI get_uri ();
-		public void send_binary ([CCode (array_length_cname = "length", array_length_pos = 1.1, array_length_type = "gsize")] uint8[] data);
+		public void send_binary ([CCode (array_length_cname = "length", array_length_pos = 1.1, array_length_type = "gsize")] uint8[]? data);
+		[Version (since = "2.68")]
+		public void send_message (Soup.WebsocketDataType type, GLib.Bytes message);
 		public void send_text (string text);
 		[Version (since = "2.58")]
 		public void set_keepalive_interval (uint interval);
 		[Version (since = "2.56")]
 		public void set_max_incoming_payload_size (uint64 max_incoming_payload_size);
+		[CCode (has_construct_function = false)]
+		[Version (since = "2.68")]
+		public WebsocketConnection.with_extensions (GLib.IOStream stream, Soup.URI uri, Soup.WebsocketConnectionType type, string? origin, string? protocol, owned GLib.List<Soup.WebsocketExtension> extensions);
 		public Soup.WebsocketConnectionType connection_type { get; construct; }
+		[Version (since = "2.68")]
+		public void* extensions { get; construct; }
 		public GLib.IOStream io_stream { get; construct; }
 		[Version (since = "2.58")]
 		public uint keepalive_interval { get; set construct; }
@@ -1144,6 +1230,30 @@ namespace Soup {
 		public virtual signal void message (int type, GLib.Bytes message);
 		[Version (since = "2.60")]
 		public virtual signal void pong (GLib.Bytes message);
+	}
+	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_websocket_extension_get_type ()")]
+	public abstract class WebsocketExtension : GLib.Object {
+		[CCode (has_construct_function = false)]
+		protected WebsocketExtension ();
+		public virtual bool configure (Soup.WebsocketConnectionType connection_type, GLib.HashTable<void*,void*>? @params) throws GLib.Error;
+		[Version (since = "2.68")]
+		public virtual string? get_request_params ();
+		[Version (since = "2.68")]
+		public virtual string? get_response_params ();
+		[Version (since = "2.68")]
+		public virtual GLib.Bytes process_incoming_message (ref uint8 header, owned GLib.Bytes payload) throws GLib.Error;
+		[Version (since = "2.68")]
+		public virtual GLib.Bytes process_outgoing_message (ref uint8 header, owned GLib.Bytes payload) throws GLib.Error;
+	}
+	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_websocket_extension_deflate_get_type ()")]
+	public class WebsocketExtensionDeflate : Soup.WebsocketExtension {
+		[CCode (has_construct_function = false)]
+		protected WebsocketExtensionDeflate ();
+	}
+	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_websocket_extension_manager_get_type ()")]
+	public class WebsocketExtensionManager : GLib.Object, Soup.SessionFeature {
+		[CCode (has_construct_function = false)]
+		protected WebsocketExtensionManager ();
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
 	[Compact]
@@ -1191,7 +1301,7 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
 	public struct MessageHeadersIter {
 		public static void init (out Soup.MessageHeadersIter iter, Soup.MessageHeaders hdrs);
-		public bool next (out unowned string name, out unowned string value);
+		public static bool next (ref Soup.MessageHeadersIter iter, out unowned string name, out unowned string value);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
 	[Version (since = "2.26")]
@@ -1378,6 +1488,13 @@ namespace Soup {
 		NORMAL,
 		HIGH,
 		VERY_HIGH
+	}
+	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_SAME_SITE_POLICY_", type_id = "soup_same_site_policy_get_type ()")]
+	[Version (since = "2.70")]
+	public enum SameSitePolicy {
+		NONE,
+		LAX,
+		STRICT
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_SERVER_LISTEN_", type_id = "soup_server_listen_options_get_type ()")]
 	[Flags]
@@ -1655,6 +1772,10 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_FORM_MIME_TYPE_URLENCODED")]
 	[Version (since = "2.26")]
 	public const string FORM_MIME_TYPE_URLENCODED;
+	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_HSTS_ENFORCER_DB_FILENAME")]
+	public const string HSTS_ENFORCER_DB_FILENAME;
+	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_HSTS_POLICY_MAX_AGE_PAST")]
+	public const int HSTS_POLICY_MAX_AGE_PAST;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_LOGGER_LEVEL")]
 	[Version (since = "2.56")]
 	public const string LOGGER_LEVEL;
@@ -1671,6 +1792,8 @@ namespace Soup {
 	public const string MESSAGE_FLAGS;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_HTTP_VERSION")]
 	public const string MESSAGE_HTTP_VERSION;
+	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_IS_TOP_LEVEL_NAVIGATION")]
+	public const string MESSAGE_IS_TOP_LEVEL_NAVIGATION;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_METHOD")]
 	public const string MESSAGE_METHOD;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_PRIORITY")]
@@ -1694,6 +1817,8 @@ namespace Soup {
 	public const string MESSAGE_RESPONSE_HEADERS;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_SERVER_SIDE")]
 	public const string MESSAGE_SERVER_SIDE;
+	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_SITE_FOR_COOKIES")]
+	public const string MESSAGE_SITE_FOR_COOKIES;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_STATUS_CODE")]
 	public const string MESSAGE_STATUS_CODE;
 	[CCode (cheader_filename = "libsoup/soup.h", cname = "SOUP_MESSAGE_TLS_CERTIFICATE")]
@@ -1958,12 +2083,24 @@ namespace Soup {
 	[Version (since = "2.50")]
 	public static void websocket_client_prepare_handshake (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols);
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.68")]
+	public static void websocket_client_prepare_handshake_with_extensions (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols, GLib.GenericArray<GLib.TypeClass>? supported_extensions);
+	[CCode (cheader_filename = "libsoup/soup.h")]
 	[Version (since = "2.50")]
 	public static bool websocket_client_verify_handshake (Soup.Message msg) throws GLib.Error;
+	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.68")]
+	public static bool websocket_client_verify_handshake_with_extensions (Soup.Message msg, GLib.GenericArray<GLib.TypeClass>? supported_extensions, out GLib.List<Soup.WebsocketExtension> accepted_extensions) throws GLib.Error;
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	[Version (since = "2.50")]
 	public static bool websocket_server_check_handshake (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols) throws GLib.Error;
 	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.68")]
+	public static bool websocket_server_check_handshake_with_extensions (Soup.Message msg, string? origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols, GLib.GenericArray<GLib.TypeClass>? supported_extensions) throws GLib.Error;
+	[CCode (cheader_filename = "libsoup/soup.h")]
 	[Version (since = "2.50")]
 	public static bool websocket_server_process_handshake (Soup.Message msg, string? expected_origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols);
+	[CCode (cheader_filename = "libsoup/soup.h")]
+	[Version (since = "2.68")]
+	public static bool websocket_server_process_handshake_with_extensions (Soup.Message msg, string? expected_origin, [CCode (array_length = false, array_null_terminated = true)] string[]? protocols, GLib.GenericArray<GLib.TypeClass>? supported_extensions, out GLib.List<Soup.WebsocketExtension> accepted_extensions);
 }

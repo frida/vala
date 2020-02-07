@@ -223,7 +223,7 @@ public class Vala.GAsyncModule : GtkModule {
 		Parameter cancellable_param = null;
 
 		foreach (Parameter param in m.get_parameters ()) {
-			if (param.variable_type is ObjectType && param.variable_type.data_type.get_full_name () == "GLib.Cancellable") {
+			if (param.variable_type is ObjectType && param.variable_type.type_symbol.get_full_name () == "GLib.Cancellable") {
 				cancellable_param = param;
 				break;
 			}
@@ -316,10 +316,10 @@ public class Vala.GAsyncModule : GtkModule {
 		cfile.add_type_definition (structure);
 	}
 
-	public override void generate_method_declaration (Method m, CCodeFile decl_space) {
+	public override bool generate_method_declaration (Method m, CCodeFile decl_space) {
 		if (m.coroutine) {
 			if (add_symbol_declaration (decl_space, m, get_ccode_name (m))) {
-				return;
+				return false;
 			}
 
 			generate_type_declaration (new MethodType (m), decl_space);
@@ -388,8 +388,10 @@ public class Vala.GAsyncModule : GtkModule {
 
 				decl_space.add_function_declaration (function);
 			}
+
+			return true;
 		} else {
-			base.generate_method_declaration (m, decl_space);
+			return base.generate_method_declaration (m, decl_space);
 		}
 	}
 
@@ -531,7 +533,7 @@ public class Vala.GAsyncModule : GtkModule {
 			var type_sym = (TypeSymbol) m.parent_symbol;
 			if (type_sym is ObjectTypeSymbol) {
 				ccode.add_declaration (get_ccode_name (type_sym) + "*", new CCodeVariableDeclarator ("result"));
-				return_type = ((ObjectTypeSymbol) type_sym).get_this_type ();
+				return_type = SemanticAnalyzer.get_this_type (m, type_sym);
 			}
 		} else if (!(return_type is VoidType) && !return_type.is_real_non_null_struct_type ()) {
 			ccode.add_declaration (get_ccode_name (m.return_type), new CCodeVariableDeclarator ("result"));
@@ -558,7 +560,7 @@ public class Vala.GAsyncModule : GtkModule {
 		bool has_cancellable = false;
 
 		foreach (Parameter param in m.get_parameters ()) {
-			if (param.variable_type is ObjectType && param.variable_type.data_type.get_full_name () == "GLib.Cancellable") {
+			if (param.variable_type is ObjectType && param.variable_type.type_symbol.get_full_name () == "GLib.Cancellable") {
 				has_cancellable = true;
 				break;
 			}
@@ -669,11 +671,7 @@ public class Vala.GAsyncModule : GtkModule {
 			return;
 		}
 
-		var creturn_type = m.return_type;
-		if (m.return_type.is_real_non_null_struct_type ()) {
-			// structs are returned via out parameter
-			creturn_type = new VoidType ();
-		}
+		var creturn_type = get_callable_creturn_type (m);
 
 		// add vfunc field to the type struct
 		var vdeclarator = new CCodeFunctionDeclarator (get_ccode_vfunc_name (m));
@@ -724,7 +722,7 @@ public class Vala.GAsyncModule : GtkModule {
 		set_error.add_argument (error_expr);
 		ccode.add_expression (set_error);
 
-		append_local_free (current_symbol, false);
+		append_local_free (current_symbol);
 
 		// We already returned the error above, we must not return anything else here.
 		var unref = new CCodeFunctionCall (new CCodeIdentifier ("g_object_unref"));

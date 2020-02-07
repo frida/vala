@@ -75,6 +75,8 @@ class Vala.Compiler {
 	static bool gobject_tracing;
 	static bool disable_since_check;
 	static bool disable_warnings;
+	static bool keep_going;
+	static bool list_sources;
 	static string cc_command;
 	[CCode (array_length = false, array_null_terminated = true)]
 	static string[] cc_options;
@@ -93,6 +95,7 @@ class Vala.Compiler {
 	static bool disable_colored_output;
 	static Report.Colored colored_output = Report.Colored.AUTO;
 	static string dependencies;
+	static string depfile;
 
 	static string entry_point;
 
@@ -124,11 +127,13 @@ class Vala.Compiler {
 		{ "use-fast-vapi", 0, 0, OptionArg.STRING_ARRAY, ref fast_vapis, "Use --fast-vapi output during this compile", null },
 		{ "vapi-comments", 0, 0, OptionArg.NONE, ref vapi_comments, "Include comments in generated vapi", null },
 		{ "deps", 0, 0, OptionArg.STRING, ref dependencies, "Write make-style dependency information to this file", null },
+		{ "depfile", 0, 0, OptionArg.STRING, ref depfile, "Write make-style external dependency information for build systems to this file", null },
+		{ "list-sources", 0, 0, OptionArg.NONE, ref list_sources, "Output a list of all source and binding files which are used", null },
 		{ "symbols", 0, 0, OptionArg.FILENAME, ref symbols_filename, "Output symbols file", "FILE" },
 		{ "compile", 'c', 0, OptionArg.NONE, ref compile_only, "Compile but do not link", null },
 		{ "output", 'o', 0, OptionArg.FILENAME, ref output, "Place output in file FILE", "FILE" },
 		{ "debug", 'g', 0, OptionArg.NONE, ref debug, "Produce debug information", null },
-		{ "thread", 0, OptionFlags.OPTIONAL_ARG, OptionArg.CALLBACK, (void*) option_deprecated, "Enable multithreading support (DEPRECATED AND IGNORED)", null },
+		{ "thread", 0, OptionFlags.OPTIONAL_ARG | OptionFlags.NO_ARG, OptionArg.CALLBACK, (void*) option_deprecated, "Enable multithreading support (DEPRECATED AND IGNORED)", null },
 		{ "enable-mem-profiler", 0, 0, OptionArg.NONE, ref mem_profiler, "Enable GLib memory profiler", null },
 		{ "define", 'D', 0, OptionArg.STRING_ARRAY, ref defines, "Define SYMBOL", "SYMBOL..." },
 		{ "main", 0, 0, OptionArg.STRING, ref entry_point, "Use SYMBOL as entry point", "SYMBOL..." },
@@ -141,6 +146,7 @@ class Vala.Compiler {
 		{ "disable-warnings", 0, 0, OptionArg.NONE, ref disable_warnings, "Disable warnings", null },
 		{ "fatal-warnings", 0, 0, OptionArg.NONE, ref fatal_warnings, "Treat warnings as fatal", null },
 		{ "disable-since-check", 0, 0, OptionArg.NONE, ref disable_since_check, "Do not check whether used symbols exist in local packages", null },
+		{ "keep-going", 'k', 0, OptionArg.NONE, ref keep_going, "Continue as much as possible after an error", null },
 		{ "enable-experimental-non-null", 0, 0, OptionArg.NONE, ref experimental_non_null, "Enable experimental enhancements for non-null types", null },
 		{ "enable-gobject-tracing", 0, 0, OptionArg.NONE, ref gobject_tracing, "Enable GObject creation tracing", null },
 		{ "cc", 0, 0, OptionArg.STRING, ref cc_command, "Use COMMAND as C compiler command", "COMMAND" },
@@ -158,7 +164,7 @@ class Vala.Compiler {
 		{ "gresourcesdir", 0, 0, OptionArg.FILENAME_ARRAY, ref gresources_directories, "Look for resources in DIRECTORY", "DIRECTORY..." },
 		{ "enable-version-header", 0, 0, OptionArg.NONE, ref enable_version_header, "Write vala build version in generated files", null },
 		{ "disable-version-header", 0, 0, OptionArg.NONE, ref disable_version_header, "Do not write vala build version in generated files", null },
-		{ "run-args", 0, 0, OptionArg.STRING, ref run_args, "Arguments passed to directly compiled executeable", null },
+		{ "run-args", 0, 0, OptionArg.STRING, ref run_args, "Arguments passed to directly compiled executable", null },
 		{ "abi-stability", 0, 0, OptionArg.NONE, ref abi_stability, "Enable support for ABI stability", null },
 		{ OPTION_REMAINING, 0, 0, OptionArg.FILENAME_ARRAY, ref sources, null, "FILE..." },
 		{ null }
@@ -233,6 +239,7 @@ class Vala.Compiler {
 		context.experimental = experimental;
 		context.experimental_non_null = experimental_non_null;
 		context.gobject_tracing = gobject_tracing;
+		context.keep_going = keep_going;
 		context.report.enable_warnings = !disable_warnings;
 		context.report.set_verbose_errors (!quiet_mode);
 		context.verbose_mode = verbose_mode;
@@ -371,6 +378,18 @@ class Vala.Compiler {
 			return quit ();
 		}
 
+		if (list_sources) {
+			foreach (SourceFile file in context.get_source_files ()) {
+				print ("%s\n", file.filename);
+			}
+			if (!ccode_only) {
+				foreach (string filename in context.get_c_source_files ()) {
+					print ("%s\n", filename);
+				}
+			}
+			return 0;
+		}
+
 		var parser = new Parser ();
 		parser.parse (context);
 
@@ -506,6 +525,10 @@ class Vala.Compiler {
 
 		if (dependencies != null) {
 			context.write_dependencies (dependencies);
+		}
+
+		if (depfile != null) {
+			context.write_external_dependencies (depfile);
 		}
 
 		if (context.report.get_errors () > 0 || (fatal_warnings && context.report.get_warnings () > 0)) {

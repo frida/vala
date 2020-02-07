@@ -50,6 +50,9 @@ namespace Gst {
 			[Version (since = "1.16")]
 			public void set_source_info_enabled (bool enable);
 			[NoAccessorMethod]
+			[Version (since = "1.18")]
+			public int max_reorder { get; set; }
+			[NoAccessorMethod]
 			[Version (since = "1.16")]
 			public bool source_info { get; set; }
 			[NoAccessorMethod]
@@ -556,6 +559,7 @@ namespace Gst {
 			RTPFB_TYPE_TMMBR,
 			RTPFB_TYPE_TMMBN,
 			RTPFB_TYPE_RTCP_SR_REQ,
+			RTPFB_TYPE_TWCC,
 			PSFB_TYPE_PLI,
 			PSFB_TYPE_SLI,
 			PSFB_TYPE_RPSI,

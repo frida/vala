@@ -24,9 +24,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#ifndef YY_NO_UNISTD_H
 #include <unistd.h>
-#endif
 #include <ctype.h>
 #include <errno.h>
 #include <glib.h>
@@ -1715,6 +1713,9 @@ main (int argc, char **argv)
 	      /*ignore -pthread*/
 	      if (0==strcmp("-pthread", argv[i]))
 		break;
+	    case 'm':
+	      /*ignore -mfpmath=sse -msse -msse2*/
+	      break;
 	    default:
 	      gopt_argv[gopt_argc++] = argv[i];
 	      break;

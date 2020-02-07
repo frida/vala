@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip subdir-objects])
 AM_MAINTAINER_MODE([enable])
 
-API_VERSION=0.46
+API_VERSION=0.48
 PACKAGE_SUFFIX="-$API_VERSION"
 
 VALA_MAJOR_VERSION=`echo $PACKAGE_VERSION | cut -d. -f1 | sed s/[[a-zA-Z\-]].*//g`
@@ -33,6 +33,8 @@ program_transform_name="s,\$\$,${PACKAGE_SUFFIX},"
 
 AC_SUBST(pkgdatadir, [${datadir}/vala${PACKAGE_SUFFIX}])
 AC_SUBST(pkglibdir, [${libdir}/vala${PACKAGE_SUFFIX}])
+AC_SUBST(pkgdocdatadir, [${datadir}/valadoc${PACKAGE_SUFFIX}])
+AC_SUBST(pkgdoclibdir, [${libdir}/valadoc${PACKAGE_SUFFIX}])
 
 # Checks for programs.
 AC_PROG_CC
@@ -123,6 +125,7 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=uninitialized \
 -Werror=int-to-pointer-cast \
 -Werror=pointer-to-int-cast \
+-Werror=compare-distinct-pointer-types \
 -Wformat=2 \
 -Werror=format-security \
 -Werror=format-nonliteral \

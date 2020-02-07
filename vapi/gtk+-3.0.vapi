@@ -1593,10 +1593,10 @@ namespace Gtk {
 		public string cell_background { set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "cell_background_rgba")]
-		public Gdk.Color cell_background_gdk { get; set; }
+		public Gdk.Color cell_background_gdk { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.0")]
-		public Gdk.RGBA cell_background_rgba { get; set; }
+		public Gdk.RGBA cell_background_rgba { owned get; set; }
 		[NoAccessorMethod]
 		public bool cell_background_set { get; set; }
 		[NoAccessorMethod]
@@ -1764,10 +1764,10 @@ namespace Gtk {
 		public string background { set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "background_rgba")]
-		public Gdk.Color background_gdk { get; set; }
+		public Gdk.Color background_gdk { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.0")]
-		public Gdk.RGBA background_rgba { get; set; }
+		public Gdk.RGBA background_rgba { owned get; set; }
 		[NoAccessorMethod]
 		public bool background_set { get; set; }
 		[NoAccessorMethod]
@@ -1791,10 +1791,10 @@ namespace Gtk {
 		public string foreground { set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "foreground_rgba")]
-		public Gdk.Color foreground_gdk { get; set; }
+		public Gdk.Color foreground_gdk { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.0")]
-		public Gdk.RGBA foreground_rgba { get; set; }
+		public Gdk.RGBA foreground_rgba { owned get; set; }
 		[NoAccessorMethod]
 		public bool foreground_set { get; set; }
 		[NoAccessorMethod]
@@ -1925,10 +1925,10 @@ namespace Gtk {
 		public string background { set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "background_rgba")]
-		public Gdk.Color background_gdk { get; set; }
+		public Gdk.Color background_gdk { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.0")]
-		public Gdk.RGBA background_rgba { get; set; }
+		public Gdk.RGBA background_rgba { owned get; set; }
 		[NoAccessorMethod]
 		public bool background_set { get; set; }
 		[NoAccessorMethod]
@@ -2068,10 +2068,7 @@ namespace Gtk {
 		public uint alpha { get; set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "rgba", since = "2.4")]
-		public Gdk.Color color { get; set; }
-		[NoAccessorMethod]
-		[Version (since = "3.0")]
-		public Gdk.RGBA rgba { get; set; }
+		public Gdk.Color color { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.20")]
 		public bool show_editor { get; set; }
@@ -2134,7 +2131,7 @@ namespace Gtk {
 		public uint current_alpha { get; set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "current_rgba")]
-		public Gdk.Color current_color { get; set; }
+		public Gdk.Color current_color { owned get; set; }
 		[Version (since = "3.0")]
 		public Gdk.RGBA current_rgba { get; set; }
 		public bool has_opacity_control { get; set; }
@@ -3793,6 +3790,11 @@ namespace Gtk {
 		public string subtitle { get; set; }
 		public string title { get; set; }
 	}
+	[CCode (cheader_filename = "gtk/gtk.h,gtk/gtk-a11y.h", type_id = "gtk_header_bar_accessible_get_type ()")]
+	public class HeaderBarAccessible : Gtk.ContainerAccessible, Atk.Component {
+		[CCode (has_construct_function = false)]
+		protected HeaderBarAccessible ();
+	}
 	[CCode (cheader_filename = "gtk/gtk.h,gtk/gtkimmodule.h", type_id = "gtk_im_context_get_type ()")]
 	public abstract class IMContext : GLib.Object {
 		[CCode (has_construct_function = false)]
@@ -5348,7 +5350,7 @@ namespace Gtk {
 		[Version (since = "3.18")]
 		public bool get_overlay_pass_through (Gtk.Widget widget);
 		[Version (since = "3.18")]
-		public void reorder_overlay (Gtk.Widget child, int position);
+		public void reorder_overlay (Gtk.Widget child, int index_);
 		[Version (since = "3.18")]
 		public void set_overlay_pass_through (Gtk.Widget widget, bool pass_through);
 		public virtual signal bool get_child_position (Gtk.Widget widget, out Gdk.Rectangle allocation);
@@ -5687,7 +5689,7 @@ namespace Gtk {
 		public Gtk.PopoverConstraint constrain_to { get; set; }
 		public bool modal { get; set; }
 		[NoAccessorMethod]
-		public Gdk.Rectangle pointing_to { get; set; }
+		public Gdk.Rectangle pointing_to { owned get; set; }
 		public Gtk.PositionType position { get; set; }
 		public Gtk.Widget relative_to { get; set; }
 		[Version (deprecated = true, deprecated_since = "3.22", since = "3.16")]
@@ -6568,7 +6570,7 @@ namespace Gtk {
 		public unowned Gtk.Widget get_vscrollbar ();
 		[Version (since = "3.4")]
 		public void set_capture_button_press (bool capture_button_press);
-		public void set_hadjustment (Gtk.Adjustment hadjustment);
+		public void set_hadjustment (Gtk.Adjustment? hadjustment);
 		[Version (since = "3.4")]
 		public void set_kinetic_scrolling (bool kinetic_scrolling);
 		[Version (since = "3.22")]
@@ -6588,7 +6590,7 @@ namespace Gtk {
 		[Version (since = "3.22")]
 		public void set_propagate_natural_width (bool propagate);
 		public void set_shadow_type (Gtk.ShadowType type);
-		public void set_vadjustment (Gtk.Adjustment vadjustment);
+		public void set_vadjustment (Gtk.Adjustment? vadjustment);
 		[Version (since = "2.10")]
 		public void unset_placement ();
 		public Gtk.Adjustment hadjustment { get; set construct; }
@@ -6883,6 +6885,9 @@ namespace Gtk {
 		public int gtk_menu_popup_delay { get; set; }
 		[NoAccessorMethod]
 		public string gtk_modules { owned get; set; }
+		[NoAccessorMethod]
+		[Version (since = "3.24.9")]
+		public bool gtk_overlay_scrolling { get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.6")]
 		public bool gtk_primary_button_warps_slider { get; set; }
@@ -7846,7 +7851,7 @@ namespace Gtk {
 		public void add_selection_clipboard (Gtk.Clipboard clipboard);
 		public void apply_tag_by_name (string name, Gtk.TextIter start, Gtk.TextIter end);
 		[Version (since = "2.6")]
-		public bool backspace (Gtk.TextIter iter, bool interactive, bool default_editable);
+		public bool backspace (ref Gtk.TextIter iter, bool interactive, bool default_editable);
 		public void copy_clipboard (Gtk.Clipboard clipboard);
 		public unowned Gtk.TextChildAnchor create_child_anchor (Gtk.TextIter iter);
 		public unowned Gtk.TextMark create_mark (string? mark_name, Gtk.TextIter where, bool left_gravity);
@@ -8009,10 +8014,10 @@ namespace Gtk {
 		public bool background_full_height_set { get; set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "background_rgba")]
-		public Gdk.Color background_gdk { get; set; }
+		public Gdk.Color background_gdk { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.2")]
-		public Gdk.RGBA background_rgba { get; set; }
+		public Gdk.RGBA background_rgba { owned get; set; }
 		[NoAccessorMethod]
 		public bool background_set { get; set; }
 		[NoAccessorMethod]
@@ -8043,10 +8048,10 @@ namespace Gtk {
 		public string foreground { set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "foreground_rgba")]
-		public Gdk.Color foreground_gdk { get; set; }
+		public Gdk.Color foreground_gdk { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.2")]
-		public Gdk.RGBA foreground_rgba { get; set; }
+		public Gdk.RGBA foreground_rgba { owned get; set; }
 		[NoAccessorMethod]
 		public bool foreground_set { get; set; }
 		[NoAccessorMethod]
@@ -8082,10 +8087,10 @@ namespace Gtk {
 		public string paragraph_background { set; }
 		[NoAccessorMethod]
 		[Version (deprecated = true, deprecated_since = "3.4", replacement = "paragraph_background_rgba", since = "2.8")]
-		public Gdk.Color paragraph_background_gdk { get; set; }
+		public Gdk.Color paragraph_background_gdk { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.2")]
-		public Gdk.RGBA paragraph_background_rgba { get; set; }
+		public Gdk.RGBA paragraph_background_rgba { owned get; set; }
 		[NoAccessorMethod]
 		public bool paragraph_background_set { get; set; }
 		[NoAccessorMethod]
@@ -8126,7 +8131,7 @@ namespace Gtk {
 		public bool strikethrough { get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.16")]
-		public Gdk.RGBA strikethrough_rgba { get; set; }
+		public Gdk.RGBA strikethrough_rgba { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.16")]
 		public bool strikethrough_rgba_set { get; set; }
@@ -8144,7 +8149,7 @@ namespace Gtk {
 		public Pango.Underline underline { get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.16")]
-		public Gdk.RGBA underline_rgba { get; set; }
+		public Gdk.RGBA underline_rgba { owned get; set; }
 		[NoAccessorMethod]
 		[Version (since = "3.16")]
 		public bool underline_rgba_set { get; set; }
@@ -8651,7 +8656,7 @@ namespace Gtk {
 		public void set_style (Gtk.ToolbarStyle style);
 		public void unset_icon_size ();
 		public void unset_style ();
-		public Gtk.IconSize icon_size { get; set; }
+		public Gtk.IconSize icon_size { owned get; set; }
 		[NoAccessorMethod]
 		public bool icon_size_set { get; set; }
 		[NoAccessorMethod]
@@ -10384,7 +10389,8 @@ namespace Gtk {
 		public bool get_use_alpha ();
 		public abstract void set_rgba (Gdk.RGBA color);
 		public void set_use_alpha (bool use_alpha);
-		public Gdk.RGBA rgba { get; set; }
+		[ConcreteAccessor]
+		public abstract Gdk.RGBA rgba { get; set; }
 		public bool use_alpha { get; set; }
 		public virtual signal void color_activated (Gdk.RGBA color);
 	}
@@ -10876,7 +10882,7 @@ namespace Gtk {
 		public weak string string_data;
 		public GLib.Type arg_type;
 	}
-	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_border_get_type ()")]
+	[CCode (cheader_filename = "gtk/gtk.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gtk_border_get_type ()")]
 	public struct Border {
 		public int16 left;
 		public int16 right;
@@ -10945,7 +10951,7 @@ namespace Gtk {
 		public int minimum_size;
 		public int natural_size;
 	}
-	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_requisition_get_type ()")]
+	[CCode (cheader_filename = "gtk/gtk.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gtk_requisition_get_type ()")]
 	public struct Requisition {
 		public int width;
 		public int height;
@@ -10968,7 +10974,7 @@ namespace Gtk {
 		public Gtk.StockItem? copy ();
 		public void free ();
 	}
-	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_target_entry_get_type ()")]
+	[CCode (cheader_filename = "gtk/gtk.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gtk_target_entry_get_type ()")]
 	public struct TargetEntry {
 		public weak string target;
 		public uint flags;
@@ -10989,7 +10995,7 @@ namespace Gtk {
 		[CCode (array_length = false)]
 		public Gdk.RGBA rgba[2];
 	}
-	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_text_iter_get_type ()")]
+	[CCode (cheader_filename = "gtk/gtk.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gtk_text_iter_get_type ()")]
 	public struct TextIter {
 		[Version (since = "3.2")]
 		public void assign (Gtk.TextIter other);
@@ -11111,7 +11117,7 @@ namespace Gtk {
 		public weak Gtk.ActionCallback callback;
 		public bool is_active;
 	}
-	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_tree_iter_get_type ()")]
+	[CCode (cheader_filename = "gtk/gtk.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gtk_tree_iter_get_type ()")]
 	public struct TreeIter {
 		public int stamp;
 		public void* user_data;
@@ -11487,7 +11493,8 @@ namespace Gtk {
 		EMAIL,
 		NAME,
 		PASSWORD,
-		PIN
+		PIN,
+		TERMINAL
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", cprefix = "GTK_JUNCTION_", type_id = "gtk_junction_sides_get_type ()")]
 	[Flags]

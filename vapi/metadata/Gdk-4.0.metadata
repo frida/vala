@@ -1,6 +1,7 @@
 KEY_* name="KEY_(.+)" type="uint" parent="Gdk.Key"
 
 *.ref unowned
+*.unref destroys_instance=false
 
 Cursor	abstract=false
 Device
@@ -40,7 +41,6 @@ Device
 
 // vapigen actually generates the correctly, but in away that breaks BC
 Rectangle.union return_void
-Surface.get_frame_extents return_void
 
 DrawingContext skip
 

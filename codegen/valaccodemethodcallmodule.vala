@@ -46,14 +46,14 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			m = ((MethodType) itype).method_symbol;
 
 			if (!get_ccode_simple_generics (m)) {
-				check_type_arguments (ma);
+				context.analyzer.check_type_arguments (ma);
 			}
 
 			if (ma.inner != null && ma.inner.value_type is EnumValueType && ((EnumValueType) ma.inner.value_type).get_to_string_method() == m) {
 				// Enum.VALUE.to_string()
-				var en = (Enum) ma.inner.value_type.data_type;
+				unowned Enum en = (Enum) ma.inner.value_type.type_symbol;
 				ccall.call = new CCodeIdentifier (generate_enum_to_string_function (en));
-			} else if (context.profile == Profile.POSIX && ma.inner != null && ma.inner.value_type != null && ma.inner.value_type.data_type == string_type.data_type && ma.member_name == "printf") {
+			} else if (context.profile == Profile.POSIX && ma.inner != null && ma.inner.value_type != null && ma.inner.value_type.type_symbol == string_type.type_symbol && ma.member_name == "printf") {
 				ccall.call = new CCodeIdentifier (generate_string_printf_function ());
 			} else if (expr.is_constructv_chainup) {
 				ccall.call = new CCodeIdentifier (get_ccode_constructv_name ((CreationMethod) m));
@@ -95,19 +95,18 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			finish_call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_finish_name (m)));
 
 			if (ma.inner is BaseAccess) {
+				CCodeExpression? vcast = null;
 				if (m.base_method != null) {
-					var base_class = (Class) m.base_method.parent_symbol;
-					var vcast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_type_function (base_class)));
-					vcast.add_argument (new CCodeIdentifier ("%s_parent_class".printf (get_ccode_lower_case_name (current_class, null))));
-
+					unowned Class base_class = (Class) m.base_method.parent_symbol;
+					vcast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_type_function (base_class)));
+					((CCodeFunctionCall) vcast).add_argument (new CCodeIdentifier ("%s_parent_class".printf (get_ccode_lower_case_name (current_class))));
+				} else if (m.base_interface_method != null) {
+					unowned Interface base_iface = (Interface) m.base_interface_method.parent_symbol;
+					vcast = get_this_interface_cexpression (base_iface);
+				}
+				if (vcast != null) {
 					async_call.call = new CCodeMemberAccess.pointer (vcast, get_ccode_vfunc_name (m));
 					finish_call.call = new CCodeMemberAccess.pointer (vcast, get_ccode_finish_vfunc_name (m));
-				} else if (m.base_interface_method != null) {
-					var base_iface = (Interface) m.base_interface_method.parent_symbol;
-					string parent_iface_var = "%s_%s_parent_iface".printf (get_ccode_lower_case_name (current_class), get_ccode_lower_case_name (base_iface));
-
-					async_call.call = new CCodeMemberAccess.pointer (new CCodeIdentifier (parent_iface_var), get_ccode_vfunc_name (m));
-					finish_call.call = new CCodeMemberAccess.pointer (new CCodeIdentifier (parent_iface_var), get_ccode_finish_vfunc_name (m));
 				}
 			}
 
@@ -146,11 +145,11 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				if (current_class != m.parent_symbol) {
 					// chain up to base class
 					foreach (DataType base_type in current_class.get_base_types ()) {
-						if (base_type.data_type is Class) {
+						if (base_type.type_symbol is Class) {
 							List<TypeParameter> type_parameters = null;
 							if (get_ccode_real_name (m) == "g_object_new") {
 								// gobject-style chainup
-								type_parameters = ((Class) base_type.data_type).get_type_parameters ();
+								type_parameters = ((Class) base_type.type_symbol).get_type_parameters ();
 							}
 							add_generic_type_arguments (in_arg_map, base_type.get_type_arguments (), expr, true, type_parameters);
 							break;
@@ -194,7 +193,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		// the complete call expression, might include casts, comma expressions, and/or assignments
 		CCodeExpression ccall_expr = ccall;
 
-		if (m is ArrayResizeMethod) {
+		if (m is ArrayResizeMethod && context.profile != Profile.POSIX) {
 			var array_type = (ArrayType) ma.inner.value_type;
 			in_arg_map.set (get_param_pos (0), new CCodeIdentifier (get_ccode_name (array_type.element_type)));
 		} else if (m is ArrayMoveMethod) {
@@ -274,6 +273,10 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				// generic method
 				int type_param_index = 0;
 				foreach (var type_arg in ma.get_type_arguments ()) {
+					// real structs are passed by reference for simple generics
+					if (get_ccode_simple_generics (m) && type_arg.is_real_struct_type () && !type_arg.nullable && !(type_arg is PointerType)) {
+					    type_arg = new PointerType (type_arg);
+					}
 					in_arg_map.set (get_param_pos (get_ccode_generic_type_pos (m) + 0.01 * type_param_index), new CCodeIdentifier (get_ccode_name (type_arg)));
 					type_param_index++;
 				}
@@ -293,6 +296,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			csizeof.add_argument (new CCodeIdentifier (get_ccode_name (array_type.element_type)));
 			in_arg_map.set (get_param_pos (0.1), csizeof);
 		} else if (m is DynamicMethod) {
+			emit_context.push_symbol (m);
 			m.clear_parameters ();
 			int param_nr = 1;
 			foreach (Expression arg in expr.get_argument_list ()) {
@@ -317,6 +321,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				param.accept (this);
 			}
 			generate_dynamic_method_wrapper ((DynamicMethod) m);
+			emit_context.pop_symbol ();
 		} else if (m is CreationMethod && context.profile == Profile.GOBJECT && m.parent_symbol is Class) {
 			ccode.add_assignment (get_this_cexpression (), new CCodeCastExpression (ccall, get_ccode_name (current_class) + "*"));
 
@@ -471,6 +476,17 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 					set_cvalue (arg, get_variable_cexpression (temp_var.name));
 					arg.target_value.value_type = arg.value_type;
 
+					if (arg.value_type is DelegateType && ((DelegateType) arg.value_type).delegate_symbol.has_target) {
+						// Initialize target/destroy cvalues to allow assignment of delegates from varargs
+						unowned GLibValue arg_value = (GLibValue) arg.target_value;
+						if (arg_value.delegate_target_cvalue == null) {
+							arg_value.delegate_target_cvalue = new CCodeConstant ("NULL");
+						}
+						if (arg_value.delegate_target_destroy_notify_cvalue == null) {
+							arg_value.delegate_target_destroy_notify_cvalue = new CCodeConstant ("NULL");
+						}
+					}
+
 					cexpr = new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_cvalue (arg));
 				} else {
 					cexpr = handle_struct_argument (null, arg, cexpr);
@@ -479,6 +495,13 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 			arg_pos = get_param_pos (param != null ? get_ccode_pos (param) : i, ellipsis);
 			carg_map.set (arg_pos, cexpr);
+
+			if (m is ArrayResizeMethod && context.profile == Profile.POSIX) {
+				var csizeof = new CCodeIdentifier ("sizeof (%s)".printf (get_ccode_name (((ArrayType) ma.inner.value_type).element_type)));
+				carg_map.set (arg_pos, new CCodeBinaryExpression (CCodeBinaryOperator.MUL, csizeof, cexpr));
+			} else {
+				carg_map.set (arg_pos, cexpr);
+			}
 
 			if (arg is NamedArgument && ellipsis) {
 				var named_arg = (NamedArgument) arg;
@@ -758,6 +781,12 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			}
 		}
 
+		// real structs are passed by reference for simple generics
+		if (m != null && get_ccode_simple_generics (m) && m.return_type is GenericType
+		    && expr.value_type.is_real_struct_type () && !expr.value_type.nullable && !(expr.value_type is PointerType)) {
+		    ccall_expr = new CCodeUnaryExpression (CCodeUnaryOperator.POINTER_INDIRECTION, new CCodeParenthesizedExpression (ccall_expr));
+		}
+
 		if (m != null && get_ccode_type (m) != null && get_ccode_type (m) != get_ccode_name (m.return_type)) {
 			// Bug 699956: Implement cast for method return type if [CCode type=] annotation is specified
 			ccall_expr = new CCodeCastExpression (ccall_expr, get_ccode_name (m.return_type));
@@ -821,6 +850,19 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 					// TODO avoid code duplication
 					result_type = expr.value_type;
 				}
+				if (st != null && get_ccode_name (st) == "va_list" && ma.member_name == "arg") {
+					if (result_type is DelegateType && ((DelegateType) result_type).delegate_symbol.has_target) {
+						set_cvalue (expr, null);
+						// Initialize target/destroy cvalues to allow assignment of delegates from varargs
+						unowned GLibValue arg_value = (GLibValue) expr.target_value;
+						if (arg_value.delegate_target_cvalue == null) {
+							arg_value.delegate_target_cvalue = new CCodeConstant ("NULL");
+						}
+						if (arg_value.delegate_target_destroy_notify_cvalue == null) {
+							arg_value.delegate_target_destroy_notify_cvalue = new CCodeConstant ("NULL");
+						}
+					}
+				}
 			}
 
 			if (m != null && m.get_format_arg_index () >= 0) {
@@ -862,6 +904,11 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			if (requires_destroy (unary.inner.value_type)) {
 				// unref old value
 				ccode.add_expression (destroy_value (unary.inner.target_value));
+			}
+
+			// infer type of out-parameter from argument
+			if (ma.symbol_reference is DynamicMethod && unary.target_value.value_type == null) {
+				unary.target_value.value_type = unary.inner.value_type.copy ();
 			}
 
 			// assign new value
@@ -957,6 +1004,10 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		va_start.add_argument (new CCodeIdentifier ("format"));
 
 		ccode.add_expression (va_start);
+
+		if (context.profile == Profile.POSIX) {
+			cfile.add_include ("stdio.h");
+		}
 
 		var vsnprintf = new CCodeFunctionCall (new CCodeIdentifier ("vsnprintf"));
 		vsnprintf.add_argument (new CCodeConstant ("NULL"));

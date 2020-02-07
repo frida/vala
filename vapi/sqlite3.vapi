@@ -36,6 +36,8 @@ namespace Sqlite {
 			var ec = this._exec (sql, callback, out sqlite_errmsg);
 			if (&errmsg != null) {
 				errmsg = sqlite_errmsg;
+			} else {
+				errmsg = null;
 			}
 			Sqlite.Memory.free ((void*) sqlite_errmsg);
 			return ec;
@@ -65,6 +67,8 @@ namespace Sqlite {
 
 			if (&errmsg != null) {
 				errmsg = sqlite_errmsg;
+			} else {
+				errmsg = null;
 			}
 			Sqlite.Memory.free ((void*) sqlite_errmsg);
 			return ec;
@@ -397,6 +401,16 @@ namespace Sqlite {
 		public unowned string column_table_name (int col);
 		public unowned string column_origin_name (int col);
 		public unowned string sql ();
+		[CCode (cname = "vala_sqlite3_expanded_sql")]
+		public string? expanded_sql () {
+			string* sqlite = this._expanded_sql ();
+			string? sql = sqlite;
+			Sqlite.Memory.free ((void*) sqlite);
+			return sql;
+		}
+		[CCode (cname = "sqlite3_expanded_sql")]
+		private string? _expanded_sql ();
+		public unowned string normalised_sql ();
 	}
 
 	namespace Memory {

@@ -126,11 +126,29 @@ public class Vala.Parser : CodeVisitor {
 			return true;
 		}
 
-		throw new ParseError.SYNTAX ("expected %s", type.to_string ());
+		switch (type) {
+		case TokenType.CLOSE_BRACE:
+			prev ();
+			report_parse_error (new ParseError.SYNTAX ("following block delimiter %s missing", type.to_string ()));
+			return true;
+		case TokenType.CLOSE_BRACKET:
+		case TokenType.CLOSE_PARENS:
+		case TokenType.SEMICOLON:
+			prev ();
+			report_parse_error (new ParseError.SYNTAX ("following expression/statement delimiter %s missing", type.to_string ()));
+			return true;
+		default:
+			throw new ParseError.SYNTAX ("expected %s", type.to_string ());
+		}
 	}
 
 	inline SourceLocation get_location () {
 		return tokens[index].begin;
+	}
+
+	string get_location_string () {
+		var begin = get_location ();
+		return "__VALA_L%d_C%d__".printf (begin.line, begin.column);
 	}
 
 	string get_current_string () {
@@ -268,7 +286,17 @@ public class Vala.Parser : CodeVisitor {
 	}
 
 	string parse_identifier () throws ParseError {
-		skip_identifier ();
+		try {
+			skip_identifier ();
+		} catch (ParseError e) {
+			if (context.keep_going) {
+				report_parse_error (e);
+				prev ();
+				return get_location_string ();
+			} else {
+				throw e;
+			}
+		}
 		return get_last_string ();
 	}
 
@@ -562,12 +590,25 @@ public class Vala.Parser : CodeVisitor {
 	}
 
 	List<Expression> parse_argument_list () throws ParseError {
+		expect (TokenType.OPEN_PARENS);
 		var list = new ArrayList<Expression> ();
 		if (current () != TokenType.CLOSE_PARENS) {
 			do {
-				list.add (parse_argument ());
+				try {
+					list.add (parse_argument ());
+				} catch (ParseError e) {
+					if (current () == TokenType.CLOSE_PARENS) {
+						prev ();
+						report_parse_error (new ParseError.SYNTAX ("incomplete argument list"));
+					} else if (context.keep_going) {
+						report_parse_error (e);
+					} else {
+						throw e;
+					}
+				}
 			} while (accept (TokenType.COMMA));
 		}
+		expect (TokenType.CLOSE_PARENS);
 		return list;
 	}
 
@@ -716,8 +757,11 @@ public class Vala.Parser : CodeVisitor {
 				tuple.add_expression (expr);
 			}
 			return tuple;
+		} else {
+			var expr = expr_list.get (0);
+			expr.source_reference = get_src (begin);
+			return expr;
 		}
-		return expr_list.get (0);
 	}
 
 	Expression parse_template () throws ParseError {
@@ -770,16 +814,14 @@ public class Vala.Parser : CodeVisitor {
 	}
 
 	Expression parse_method_call (SourceLocation begin, Expression inner) throws ParseError {
-		expect (TokenType.OPEN_PARENS);
 		var arg_list = parse_argument_list ();
-		expect (TokenType.CLOSE_PARENS);
 		var src = get_src (begin);
 
 		var init_list = parse_object_initializer ();
 
 		if (init_list.size > 0 && inner is MemberAccess) {
 			// struct creation expression
-			var member = (MemberAccess) inner;
+			unowned MemberAccess member = (MemberAccess) inner;
 			member.creation_member = true;
 
 			var expr = new ObjectCreationExpression (member, src);
@@ -861,7 +903,7 @@ public class Vala.Parser : CodeVisitor {
 		}
 
 		var member = parse_member_name ();
-		if (accept (TokenType.OPEN_PARENS)) {
+		if (current () == TokenType.OPEN_PARENS) {
 			var expr = parse_object_creation_expression (begin, member);
 			return expr;
 		} else {
@@ -885,7 +927,6 @@ public class Vala.Parser : CodeVisitor {
 	Expression parse_object_creation_expression (SourceLocation begin, MemberAccess member) throws ParseError {
 		member.creation_member = true;
 		var arg_list = parse_argument_list ();
-		expect (TokenType.CLOSE_PARENS);
 		var src = get_src (begin);
 
 		var init_list = parse_object_initializer ();
@@ -1000,8 +1041,8 @@ public class Vala.Parser : CodeVisitor {
 
 		var expr = parse_expression ();
 
-		var call = expr as MethodCall;
-		var object_creation = expr as ObjectCreationExpression;
+		unowned MethodCall? call = expr as MethodCall;
+		unowned ObjectCreationExpression? object_creation = expr as ObjectCreationExpression;
 		if (call == null && object_creation == null) {
 			Report.error (expr.source_reference, "syntax error, expected method call");
 			throw new ParseError.SYNTAX ("expected method call");
@@ -1054,7 +1095,7 @@ public class Vala.Parser : CodeVisitor {
 		if (operator != UnaryOperator.NONE) {
 			next ();
 			var op = parse_unary_expression ();
-			var lit = op as IntegerLiteral;
+			unowned IntegerLiteral? lit = op as IntegerLiteral;
 			if (lit != null) {
 				if (operator == UnaryOperator.PLUS) {
 					return lit;
@@ -1708,8 +1749,16 @@ public class Vala.Parser : CodeVisitor {
 
 		var block = new Block (get_src (get_location ()));
 
-		var stmt = parse_embedded_statement_without_block (statement_name, accept_empty_body);
-		block.add_statement (stmt);
+		try {
+			var stmt = parse_embedded_statement_without_block (statement_name, accept_empty_body);
+			block.add_statement (stmt);
+		} catch (ParseError e) {
+			if (context.keep_going) {
+				report_parse_error (e);
+			} else {
+				throw e;
+			}
+		}
 		block.source_reference.end = get_last_src ().end;
 
 		return block;
@@ -1784,14 +1833,19 @@ public class Vala.Parser : CodeVisitor {
 	void parse_local_variable_declarations (Block block) throws ParseError {
 		var begin = get_location ();
 		DataType variable_type;
-		if (accept (TokenType.VAR)) {
-			variable_type = null;
+		if (accept (TokenType.UNOWNED) && accept (TokenType.VAR)) {
+			variable_type = new VarType (false);
 		} else {
-			variable_type = parse_type (true, true);
+			rollback (begin);
+			if (accept (TokenType.VAR)) {
+				variable_type = new VarType ();
+			} else {
+				variable_type = parse_type (true, true);
+			}
 		}
 		bool is_first = true;
 		do {
-			if (variable_type == null && accept (TokenType.OPEN_PARENS)) {
+			if (variable_type is VarType && variable_type.value_owned && accept (TokenType.OPEN_PARENS)) {
 				// tuple
 				begin = get_location ();
 
@@ -1852,7 +1906,7 @@ public class Vala.Parser : CodeVisitor {
 		var constant_type = parse_type (false, false);
 
 		// constant arrays don't own their element
-		var array_type = constant_type as ArrayType;
+		unowned ArrayType? array_type = constant_type as ArrayType;
 		if (array_type != null) {
 			array_type.element_type.value_owned = false;
 		}
@@ -1882,6 +1936,10 @@ public class Vala.Parser : CodeVisitor {
 
 		expect (TokenType.ASSIGN);
 		var initializer = parse_expression ();
+
+		if (type.value_owned) {
+			Report.error (src, "`owned' is not allowed on constants");
+		}
 
 		return new Constant (id, type, initializer, src);
 	}
@@ -2252,6 +2310,8 @@ public class Vala.Parser : CodeVisitor {
 		var begin = get_location ();
 
 		var method = new Method ("main", new VoidType (), get_src (begin));
+		method.access = SymbolAccessibility.PUBLIC;
+		method.binding = MemberBinding.STATIC;
 		method.body = new Block (get_src (begin));
 		parse_statements (method.body);
 		if (current () != TokenType.EOF) {
@@ -2576,8 +2636,8 @@ public class Vala.Parser : CodeVisitor {
 		if (ModifierFlags.ABSTRACT in flags) {
 			cl.is_abstract = true;
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			cl.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			cl.is_extern = true;
 		}
 		set_attributes (cl, attrs);
 		foreach (TypeParameter type_param in type_param_list) {
@@ -2623,15 +2683,15 @@ public class Vala.Parser : CodeVisitor {
 		type = parse_inline_array_type (type);
 
 		// constant arrays don't own their element
-		var array_type = type as ArrayType;
+		unowned ArrayType? array_type = type as ArrayType;
 		if (array_type != null) {
 			array_type.element_type.value_owned = false;
 		}
 
 		var c = new Constant (id, type, null, get_src (begin), comment);
 		c.access = access;
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			c.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			c.is_extern = true;
 		}
 		if (ModifierFlags.NEW in flags) {
 			c.hides = true;
@@ -2640,6 +2700,10 @@ public class Vala.Parser : CodeVisitor {
 
 		if (ModifierFlags.STATIC in flags) {
 			Report.warning (c.source_reference, "the modifier `static' is not applicable to constants");
+		}
+
+		if (type.value_owned) {
+			Report.error (c.source_reference, "`owned' is not allowed on constants");
 		}
 
 		if (accept (TokenType.ASSIGN)) {
@@ -2668,9 +2732,13 @@ public class Vala.Parser : CodeVisitor {
 			f.binding = MemberBinding.STATIC;
 		} else if (ModifierFlags.CLASS in flags) {
 			f.binding = MemberBinding.CLASS;
+		} else if (parent is Namespace) {
+			// default to static member binding in namespace
+			f.binding = MemberBinding.STATIC;
 		}
 
-		if (parent is Struct && f.access != SymbolAccessibility.PUBLIC && f.binding == MemberBinding.INSTANCE) {
+		if (!parent.external_package && parent is Struct
+		    && f.access != SymbolAccessibility.PUBLIC && f.binding == MemberBinding.INSTANCE) {
 			Report.warning (f.source_reference, "accessibility of struct fields can only be `public`");
 		}
 
@@ -2679,8 +2747,8 @@ public class Vala.Parser : CodeVisitor {
 		    || ModifierFlags.OVERRIDE in flags) {
 			Report.error (f.source_reference, "abstract, virtual, and override modifiers are not applicable to fields");
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			f.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			f.is_extern = true;
 		}
 		if (ModifierFlags.NEW in flags) {
 			f.hides = true;
@@ -2698,8 +2766,18 @@ public class Vala.Parser : CodeVisitor {
 		expect (TokenType.OPEN_BRACE);
 		var initializer = new InitializerList (get_src (begin));
 		while (current () != TokenType.CLOSE_BRACE) {
-			var init = parse_argument ();
-			initializer.append (init);
+			try {
+				initializer.append (parse_argument ());
+			} catch (ParseError e) {
+				if (current () == TokenType.CLOSE_BRACE) {
+					prev ();
+					report_parse_error (new ParseError.SYNTAX ("incomplete initializer"));
+				} else if (context.keep_going) {
+					report_parse_error (e);
+				} else {
+					throw e;
+				}
+			}
 
 			if (!accept (TokenType.COMMA)) {
 				break;
@@ -2732,6 +2810,9 @@ public class Vala.Parser : CodeVisitor {
 			method.binding = MemberBinding.STATIC;
 		} else if (ModifierFlags.CLASS in flags) {
 			method.binding = MemberBinding.CLASS;
+		} else if (parent is Namespace) {
+			// default to static member binding in namespace
+			method.binding = MemberBinding.STATIC;
 		}
 		if (ModifierFlags.ASYNC in flags) {
 			method.coroutine = true;
@@ -2767,7 +2848,7 @@ public class Vala.Parser : CodeVisitor {
 			method.is_inline = true;
 		}
 		if (ModifierFlags.EXTERN in flags) {
-			method.external = true;
+			method.is_extern = true;
 		}
 		expect (TokenType.OPEN_PARENS);
 		if (current () != TokenType.CLOSE_PARENS) {
@@ -2794,8 +2875,7 @@ public class Vala.Parser : CodeVisitor {
 		}
 		if (!accept (TokenType.SEMICOLON)) {
 			method.body = parse_block ();
-		} else if (scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			method.external = true;
+			method.external = false;
 		}
 
 		parent.add_method (method);
@@ -2832,8 +2912,8 @@ public class Vala.Parser : CodeVisitor {
 		if (ModifierFlags.ASYNC in flags) {
 			Report.error (prop.source_reference, "async properties are not supported yet");
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			prop.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			prop.is_extern = true;
 		}
 		if ((prop.is_abstract && prop.is_virtual)
 			|| (prop.is_abstract && prop.overrides)
@@ -3011,8 +3091,8 @@ public class Vala.Parser : CodeVisitor {
 		}
 		var st = new Struct (sym.name, get_src (begin), comment);
 		st.access = access;
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			st.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			st.is_extern = true;
 		}
 		set_attributes (st, attrs);
 		foreach (TypeParameter type_param in type_param_list) {
@@ -3054,8 +3134,8 @@ public class Vala.Parser : CodeVisitor {
 		}
 		var iface = new Interface (sym.name, get_src (begin), comment);
 		iface.access = access;
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			iface.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			iface.is_extern = true;
 		}
 		set_attributes (iface, attrs);
 		foreach (TypeParameter type_param in type_param_list) {
@@ -3089,8 +3169,8 @@ public class Vala.Parser : CodeVisitor {
 		var sym = parse_symbol_name ();
 		var en = new Enum (sym.name, get_src (begin), comment);
 		en.access = access;
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			en.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			en.is_extern = true;
 		}
 		set_attributes (en, attrs);
 
@@ -3156,8 +3236,8 @@ public class Vala.Parser : CodeVisitor {
 		var sym = parse_symbol_name ();
 		var ed = new ErrorDomain (sym.name, get_src (begin), comment);
 		ed.access = access;
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			ed.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			ed.is_extern = true;
 		}
 		set_attributes (ed, attrs);
 
@@ -3331,12 +3411,7 @@ public class Vala.Parser : CodeVisitor {
 		}
 		string id = parse_identifier ();
 
-		var array_type = parse_inline_array_type (type);
-		if (!(type is ArrayType) && (array_type is ArrayType) && !((ArrayType) array_type).fixed_length) {
-			throw new ParseError.SYNTAX ("invalid array parameter declaration");
-		} else {
-			type = array_type;
-		}
+		type = parse_inline_array_type (type);
 
 		var param = new Parameter (id, type, get_src (begin));
 		set_attributes (param, attrs);
@@ -3363,7 +3438,7 @@ public class Vala.Parser : CodeVisitor {
 			method = new CreationMethod (sym.inner.name, sym.name, get_src (begin), comment);
 		}
 		if (ModifierFlags.EXTERN in flags) {
-			method.external = true;
+			method.is_extern = true;
 		}
 		if (ModifierFlags.ABSTRACT in flags
 		    || ModifierFlags.VIRTUAL in flags
@@ -3400,8 +3475,7 @@ public class Vala.Parser : CodeVisitor {
 		set_attributes (method, attrs);
 		if (!accept (TokenType.SEMICOLON)) {
 			method.body = parse_block ();
-		} else if (scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			method.external = true;
+			method.external = false;
 		}
 
 		parent.add_method (method);
@@ -3428,8 +3502,8 @@ public class Vala.Parser : CodeVisitor {
 			}
 			d.has_target = false;
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			d.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			d.is_extern = true;
 		}
 		if (!d.get_attribute_bool ("CCode", "has_typedef", true)) {
 			if (!d.external) {

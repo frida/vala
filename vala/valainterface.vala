@@ -53,11 +53,11 @@ public class Vala.Interface : ObjectTypeSymbol {
 	}
 
 	/**
-	 * Returns a copy of the base type list.
+	 * Returns the base type list.
 	 *
 	 * @return list of base types
 	 */
-	public List<DataType> get_prerequisites () {
+	public unowned List<DataType> get_prerequisites () {
 		return prerequisites;
 	}
 
@@ -73,8 +73,8 @@ public class Vala.Interface : ObjectTypeSymbol {
 			m.error = true;
 			return;
 		}
-		if (m.binding == MemberBinding.INSTANCE) {
-			m.this_parameter = new Parameter ("this", get_this_type ());
+		if (m.binding != MemberBinding.STATIC) {
+			m.this_parameter = new Parameter ("this", SemanticAnalyzer.get_this_type (m, this));
 			m.scope.add (m.this_parameter.name, m.this_parameter);
 		}
 		if (!(m.return_type is VoidType) && m.get_postconditions ().size > 0) {
@@ -100,8 +100,10 @@ public class Vala.Interface : ObjectTypeSymbol {
 
 		base.add_property (prop);
 
-		prop.this_parameter = new Parameter ("this", new ObjectType (this));
-		prop.scope.add (prop.this_parameter.name, prop.this_parameter);
+		if (prop.binding != MemberBinding.STATIC) {
+			prop.this_parameter = new Parameter ("this", SemanticAnalyzer.get_this_type (prop, this));
+			prop.scope.add (prop.this_parameter.name, prop.this_parameter);
+		}
 	}
 
 	public virtual List<Symbol> get_virtuals () {
@@ -117,46 +119,8 @@ public class Vala.Interface : ObjectTypeSymbol {
 			type.accept (visitor);
 		}
 
-		foreach (TypeParameter p in get_type_parameters ()) {
-			p.accept (visitor);
-		}
-
-		/* process enums first to avoid order problems in C code */
-		foreach (Enum en in get_enums ()) {
-			en.accept (visitor);
-		}
-
-		foreach (Method m in get_methods ()) {
-			m.accept (visitor);
-		}
-
-		foreach (Field f in get_fields ()) {
-			f.accept (visitor);
-		}
-
-		foreach (Constant c in get_constants ()) {
-			c.accept (visitor);
-		}
-
-		foreach (Property prop in get_properties ()) {
-			prop.accept (visitor);
-		}
-
-		foreach (Signal sig in get_signals ()) {
-			sig.accept (visitor);
-		}
-
-		foreach (Class cl in get_classes ()) {
-			cl.accept (visitor);
-		}
-
-		foreach (Struct st in get_structs ()) {
-			st.accept (visitor);
-		}
-
-		foreach (Delegate d in get_delegates ()) {
-			d.accept (visitor);
-		}
+		// Invoke common implementation in ObjectTypeSymbol
+		base.accept_children (visitor);
 	}
 
 	public override bool is_reference_type () {
@@ -169,7 +133,7 @@ public class Vala.Interface : ObjectTypeSymbol {
 		}
 
 		foreach (DataType prerequisite in prerequisites) {
-			if (prerequisite.data_type != null && prerequisite.data_type.is_subtype_of (t)) {
+			if (prerequisite.type_symbol != null && prerequisite.type_symbol.is_subtype_of (t)) {
 				return true;
 			}
 		}
@@ -214,28 +178,21 @@ public class Vala.Interface : ObjectTypeSymbol {
 		/* check prerequisites */
 		Class prereq_class = null;
 		foreach (DataType prereq in get_prerequisites ()) {
-			TypeSymbol class_or_interface = prereq.data_type;
-			/* skip on previous errors */
-			if (class_or_interface == null) {
+			if (!(prereq is ObjectType)) {
 				error = true;
-				continue;
-			}
-
-			if (!(class_or_interface is ObjectTypeSymbol)) {
-				error = true;
-				Report.error (source_reference, "Prerequisite `%s' of interface `%s' is not a class or interface".printf (get_full_name (), class_or_interface.to_string ()));
+				Report.error (source_reference, "Prerequisite `%s' of interface `%s' is not a class or interface".printf (prereq.to_string (), get_full_name ()));
 				return false;
 			}
 
 			/* interfaces are not allowed to have multiple instantiable prerequisites */
-			if (class_or_interface is Class) {
+			if (prereq.type_symbol is Class) {
 				if (prereq_class != null) {
 					error = true;
-					Report.error (source_reference, "%s: Interfaces cannot have multiple instantiable prerequisites (`%s' and `%s')".printf (get_full_name (), class_or_interface.get_full_name (), prereq_class.get_full_name ()));
+					Report.error (source_reference, "%s: Interfaces cannot have multiple instantiable prerequisites (`%s' and `%s')".printf (get_full_name (), prereq.type_symbol.get_full_name (), prereq_class.get_full_name ()));
 					return false;
 				}
 
-				prereq_class = (Class) class_or_interface;
+				prereq_class = (Class) prereq.type_symbol;
 			}
 		}
 
@@ -306,6 +263,10 @@ public class Vala.Interface : ObjectTypeSymbol {
 
 		foreach (Class cl in get_classes ()) {
 			cl.check (context);
+		}
+
+		foreach (Interface iface in get_interfaces ()) {
+			iface.check (context);
 		}
 
 		foreach (Struct st in get_structs ()) {

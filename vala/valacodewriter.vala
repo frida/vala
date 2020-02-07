@@ -445,7 +445,7 @@ public class Vala.CodeWriter : CodeVisitor {
 			write_indent ();
 			write_identifier (ev.name);
 
-			if (type == CodeWriterType.FAST && ev.value != null) {
+			if (type == CodeWriterType.FAST && ev.value != null && ev.value.is_constant ()) {
 				write_string(" = ");
 				ev.value.accept (this);
 			}
@@ -557,7 +557,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		write_string (" ");
 		write_identifier (c.name);
 		write_type_suffix (c.type_reference);
-		if (type == CodeWriterType.FAST && c.value != null) {
+		if (type == CodeWriterType.FAST && c.value != null && c.value.is_constant ()) {
 			write_string(" = ");
 			c.value.accept (this);
 		}
@@ -837,6 +837,10 @@ public class Vala.CodeWriter : CodeVisitor {
 			write_string ("override ");
 		}
 
+		if (prop.property_type.is_weak ()) {
+			write_string ("weak ");
+		}
+
 		write_type (prop.property_type);
 
 		write_string (" ");
@@ -847,7 +851,7 @@ public class Vala.CodeWriter : CodeVisitor {
 
 			write_property_accessor_accessibility (prop.get_accessor);
 
-			if (prop.get_accessor.value_type.is_disposable ()) {
+			if (prop.get_accessor.value_type.value_owned) {
 				write_string (" owned");
 			}
 
@@ -1472,7 +1476,7 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	private void write_type_suffix (DataType type) {
-		var array_type = type as ArrayType;
+		unowned ArrayType? array_type = type as ArrayType;
 		if (array_type != null && array_type.fixed_length) {
 			write_string ("[");
 			array_type.length.accept (this);
@@ -1551,7 +1555,7 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	private void write_attributes (CodeNode node) {
-		var sym = node as Symbol;
+		unowned Symbol? sym = node as Symbol;
 
 		var need_cheaders = type != CodeWriterType.FAST && sym != null && !(sym is Namespace) && sym.parent_symbol is Namespace;
 
@@ -1630,7 +1634,11 @@ public class Vala.CodeWriter : CodeVisitor {
 			var source_reference = node.source_reference;
 			if (source_reference != null) {
 				write_indent ();
-				stream.puts ("[Source (filename = \"%s\", line = %i, column = %i)]".printf (source_reference.file.get_relative_filename (), source_reference.begin.line, source_reference.begin.column));
+				string filename = source_reference.file.filename;
+				if (filename.has_prefix (context.basedir)) {
+					filename = filename.substring (context.basedir.length + 1);
+				}
+				stream.puts ("[Source (filename = \"%s\", line = %i, column = %i)]".printf (filename, source_reference.begin.line, source_reference.begin.column));
 				write_newline ();
 			}
 		}

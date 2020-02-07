@@ -305,12 +305,12 @@ public class Vala.Genie.Parser : CodeVisitor {
 		case TokenType.REQUIRES:
 		case TokenType.RETURN:
 		case TokenType.SEALED:
+		case TokenType.SELF:
 		case TokenType.SET:
 		case TokenType.SIZEOF:
 		case TokenType.STATIC:
 		case TokenType.STRUCT:
 		case TokenType.SUPER:
-		case TokenType.THIS:
 		case TokenType.TO:
 		case TokenType.TRUE:
 		case TokenType.TRY:
@@ -714,7 +714,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 		case TokenType.OPEN_TEMPLATE:
 			expr = parse_template ();
 			break;
-		case TokenType.THIS:
+		case TokenType.SELF:
 			expr = parse_this_access ();
 			break;
 		case TokenType.SUPER:
@@ -993,7 +993,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 	Expression parse_this_access () throws ParseError {
 		var begin = get_location ();
-		expect (TokenType.THIS);
+		expect (TokenType.SELF);
 		return new MemberAccess (null, "this", get_src (begin));
 	}
 
@@ -1176,8 +1176,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 		var expr = parse_expression ();
 
-		var call = expr as MethodCall;
-		var object_creation = expr as ObjectCreationExpression;
+		unowned MethodCall? call = expr as MethodCall;
+		unowned ObjectCreationExpression? object_creation = expr as ObjectCreationExpression;
 		if (call == null && object_creation == null) {
 			Report.error (expr.source_reference, "syntax error, expected method call");
 			throw new ParseError.SYNTAX ("expected method call");
@@ -1267,7 +1267,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 					case TokenType.TEMPLATE_STRING_LITERAL:
 					case TokenType.VERBATIM_STRING_LITERAL:
 					case TokenType.NULL:
-					case TokenType.THIS:
+					case TokenType.SELF:
 					case TokenType.SUPER:
 					case TokenType.NEW:
 					case TokenType.SIZEOF:
@@ -1790,7 +1790,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 				case TokenType.OP_INC:
 				case TokenType.OP_DEC:
 				case TokenType.SUPER:
-				case TokenType.THIS:
+				case TokenType.SELF:
 				case TokenType.OPEN_PARENS:
 				case TokenType.STAR:
 				case TokenType.NEW:
@@ -1894,7 +1894,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 		case TokenType.OP_INC:
 		case TokenType.OP_DEC:
 		case TokenType.SUPER:
-		case TokenType.THIS:
+		case TokenType.SELF:
 		case TokenType.OPEN_PARENS:
 		case TokenType.STAR:
 		case TokenType.NEW:
@@ -2587,13 +2587,13 @@ public class Vala.Genie.Parser : CodeVisitor {
 		} else if (sym is Delegate) {
 			ns.add_delegate ((Delegate) sym);
 		} else if (sym is Method) {
-			var method = (Method) sym;
+			unowned Method method = (Method) sym;
 			if (method.binding == MemberBinding.INSTANCE) {
 				method.binding = MemberBinding.STATIC;
 			}
 			ns.add_method (method);
 		} else if (sym is Field) {
-			var field = (Field) sym;
+			unowned Field field = (Field) sym;
 			if (field.binding == MemberBinding.INSTANCE) {
 				field.binding = MemberBinding.STATIC;
 			}
@@ -2757,7 +2757,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 		expect_terminator ();
 
 		// constant arrays don't own their element
-		var array_type = type as ArrayType;
+		unowned ArrayType? array_type = type as ArrayType;
 		if (array_type != null) {
 			array_type.element_type.value_owned = false;
 		}
@@ -2765,8 +2765,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 		var c = new Constant (id, type, initializer, get_src (begin), comment);
 		c.access = get_default_accessibility (id);
 
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			c.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			c.is_extern = true;
 		}
 		if (ModifierFlags.NEW in flags) {
 			c.hides = true;
@@ -2808,8 +2808,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 		set_attributes (f, attrs);
 
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			f.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			f.is_extern = true;
 		}
 		if (ModifierFlags.NEW in flags) {
 			f.hides = true;
@@ -2989,7 +2989,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 			method.is_inline = true;
 		}
 		if (ModifierFlags.EXTERN in flags) {
-			method.external = true;
+			method.is_extern = true;
 		}
 
 		expect (TokenType.EOL);
@@ -3039,8 +3039,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 		if (accept_block ()) {
 			method.body = parse_block ();
-		} else if (scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			method.external = true;
+			method.external = false;
 		}
 		return method;
 	}
@@ -3089,8 +3088,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 		if (ModifierFlags.NEW in flags) {
 			prop.hides = true;
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			prop.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			prop.is_extern = true;
 		}
 
 		if (ModifierFlags.ASYNC in flags) {
@@ -3291,6 +3290,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 		expect (TokenType.EOL);
 
+		class_name = st.name;
+
 		parse_declarations (st);
 
 		Symbol result = st;
@@ -3345,8 +3346,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 		} else {
 			iface.access = get_default_accessibility (sym.name);
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			iface.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			iface.is_extern = true;
 		}
 		set_attributes (iface, attrs);
 		foreach (TypeParameter type_param in type_param_list) {
@@ -3415,8 +3416,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 		} else {
 			en.access = get_default_accessibility (sym.name);
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			en.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			en.is_extern = true;
 		}
 		set_attributes (en, attrs);
 
@@ -3700,12 +3701,10 @@ public class Vala.Genie.Parser : CodeVisitor {
 		}
 		method.access = SymbolAccessibility.PUBLIC;
 		set_attributes (method, attrs);
-		method.binding = MemberBinding.STATIC;
 
 		if (accept_block ()) {
 			method.body = parse_block ();
-		} else if (scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			method.external = true;
+			method.external = false;
 		}
 
 		return method;
@@ -3766,8 +3765,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 		if (ModifierFlags.STATIC in flags) {
 			d.has_target = false;
 		}
-		if (ModifierFlags.EXTERN in flags || scanner.source_file.file_type == SourceFileType.PACKAGE) {
-			d.external = true;
+		if (ModifierFlags.EXTERN in flags) {
+			d.is_extern = true;
 		}
 
 		set_attributes (d, attrs);

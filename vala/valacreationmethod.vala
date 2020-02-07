@@ -93,6 +93,10 @@ public class Vala.CreationMethod : Method {
 			return false;
 		}
 
+		if (this_parameter != null) {
+			this_parameter.check (context);
+		}
+
 		var old_source_file = context.analyzer.current_source_file;
 		var old_symbol = context.analyzer.current_symbol;
 
@@ -103,7 +107,9 @@ public class Vala.CreationMethod : Method {
 
 		int i = 0;
 		foreach (Parameter param in get_parameters()) {
-			param.check (context);
+			if (!param.check (context)) {
+				error = true;
+			}
 			if (i == 0 && param.ellipsis && body != null) {
 				error = true;
 				Report.error (param.source_reference, "Named parameter required before `...'");
@@ -128,7 +134,7 @@ public class Vala.CreationMethod : Method {
 		if (body != null) {
 			body.check (context);
 
-			var cl = parent_symbol as Class;
+			unowned Class? cl = parent_symbol as Class;
 
 			// ensure we chain up to base constructor
 			if (!chain_up && cl != null && cl.base_class != null) {
@@ -175,7 +181,7 @@ public class Vala.CreationMethod : Method {
 		}
 
 		// check that all errors that can be thrown in the method body are declared
-		if (body != null) {
+		if (body != null && !body.error) {
 			var body_errors = new ArrayList<DataType> ();
 			body.get_error_types (body_errors);
 			foreach (DataType body_error_type in body_errors) {

@@ -64,6 +64,8 @@ libvala_la_VALASOURCES = \
 	valadatatype.vala \
 	valadeclarationstatement.vala \
 	valadelegate.vala \
+	valadelegatedestroyfield.vala \
+	valadelegatetargetfield.vala \
 	valadelegatetype.vala \
 	valadeletestatement.vala \
 	valadestructor.vala \
@@ -88,6 +90,8 @@ libvala_la_VALASOURCES = \
 	valaforeachstatement.vala \
 	valaforstatement.vala \
 	valagirparser.vala \
+	valagenericdestroyfield.vala \
+	valagenericdupfield.vala \
 	valagenerictype.vala \
 	valagenieparser.vala \
 	valageniescanner.vala \
@@ -173,6 +177,7 @@ libvala_la_VALASOURCES = \
 	valausingdirective.vala \
 	valavaluetype.vala \
 	valavariable.vala \
+	valavartype.vala \
 	valaversion.vala \
 	valaversionattribute.vala \
 	valavoidtype.vala \

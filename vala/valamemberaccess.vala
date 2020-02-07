@@ -85,6 +85,7 @@ public class Vala.MemberAccess : Expression {
 	}
 
 	public MemberAccess.simple (string member_name, SourceReference? source_reference = null) {
+		this.inner = null;
 		this.member_name = member_name;
 		this.source_reference = source_reference;
 	}
@@ -107,11 +108,11 @@ public class Vala.MemberAccess : Expression {
 	}
 
 	/**
-	 * Returns a copy of the list of generic type arguments.
+	 * Returns the list of generic type arguments.
 	 *
 	 * @return type argument list
 	 */
-	public List<DataType> get_type_arguments () {
+	public unowned List<DataType> get_type_arguments () {
 		return type_argument_list;
 	}
 
@@ -170,7 +171,7 @@ public class Vala.MemberAccess : Expression {
 	}
 
 	public override bool is_constant () {
-		var method = symbol_reference as Method;
+		unowned Method? method = symbol_reference as Method;
 		if (symbol_reference is Constant) {
 			return true;
 		} else if (symbol_reference is ArrayLengthField && inner != null && inner.symbol_reference is Constant) {
@@ -185,7 +186,7 @@ public class Vala.MemberAccess : Expression {
 	}
 
 	public override bool is_non_null () {
-		var c = symbol_reference as Constant;
+		unowned Constant? c = symbol_reference as Constant;
 		if (c != null) {
 			return (c is EnumValue || !c.type_reference.nullable);
 		} else {
@@ -214,8 +215,8 @@ public class Vala.MemberAccess : Expression {
 			type_arg.check (context);
 		}
 
-		Symbol base_symbol = null;
-		Parameter this_parameter = null;
+		unowned Symbol? base_symbol = null;
+		unowned Parameter? this_parameter = null;
 		bool may_access_instance_members = false;
 		bool may_access_klass_members = false;
 
@@ -239,35 +240,35 @@ public class Vala.MemberAccess : Expression {
 			// to instance member is denied from within static lambda expressions
 			bool method_found = false;
 
-			var sym = context.analyzer.current_symbol;
+			unowned Symbol? sym = context.analyzer.current_symbol;
 			while (sym != null && symbol_reference == null) {
 				if (!method_found) {
 					if (sym is CreationMethod) {
-						var cm = (CreationMethod) sym;
+						unowned CreationMethod cm = (CreationMethod) sym;
 						this_parameter = cm.this_parameter;
 						may_access_instance_members = true;
 						may_access_klass_members = true;
 						method_found = true;
 					} else if (sym is Property) {
-						var prop = (Property) sym;
+						unowned Property prop = (Property) sym;
 						this_parameter = prop.this_parameter;
 						may_access_instance_members = (prop.binding == MemberBinding.INSTANCE);
 						may_access_klass_members = (prop.binding != MemberBinding.STATIC);
 						method_found = true;
 					} else if (sym is Constructor) {
-						var c = (Constructor) sym;
+						unowned Constructor c = (Constructor) sym;
 						this_parameter = c.this_parameter;
 						may_access_instance_members = (c.binding == MemberBinding.INSTANCE);
 						may_access_klass_members = true;
 						method_found = true;
 					} else if (sym is Destructor) {
-						var d = (Destructor) sym;
+						unowned Destructor d = (Destructor) sym;
 						this_parameter = d.this_parameter;
 						may_access_instance_members = (d.binding == MemberBinding.INSTANCE);
 						may_access_klass_members = true;
 						method_found = true;
 					} else if (sym is Method) {
-						var m = (Method) sym;
+						unowned Method m = (Method) sym;
 						this_parameter = m.this_parameter;
 						may_access_instance_members = (m.binding == MemberBinding.INSTANCE);
 						may_access_klass_members = (m.binding != MemberBinding.STATIC);
@@ -325,7 +326,7 @@ public class Vala.MemberAccess : Expression {
 			}
 
 			if (inner.value_type is PointerType) {
-				var pointer_type = inner.value_type as PointerType;
+				unowned PointerType? pointer_type = inner.value_type as PointerType;
 				if (pointer_type != null && pointer_type.base_type is ValueType) {
 					// transform foo->bar to (*foo).bar
 					inner = new PointerIndirection (inner, source_reference);
@@ -335,12 +336,16 @@ public class Vala.MemberAccess : Expression {
 			}
 
 			if (inner is MemberAccess) {
-				var ma = (MemberAccess) inner;
+				unowned MemberAccess ma = (MemberAccess) inner;
 				if (ma.prototype_access) {
 					error = true;
 					Report.error (source_reference, "Access to instance member `%s' denied".printf (inner.symbol_reference.get_full_name ()));
 					return false;
 				}
+			}
+
+			if (inner is CastExpression && ((CastExpression) inner).is_silent_cast) {
+				Report.warning (source_reference, "Access to possible `null'. Perform a check or use an unsafe cast.");
 			}
 
 			if (inner is MemberAccess || inner is BaseAccess) {
@@ -357,12 +362,17 @@ public class Vala.MemberAccess : Expression {
 				}
 			}
 
+			if (inner is MemberAccess && inner.symbol_reference is TypeParameter) {
+				inner.value_type = new GenericType ((TypeParameter) inner.symbol_reference);
+				inner.value_type.source_reference = source_reference;
+			}
+
 			if (symbol_reference == null && inner.value_type != null) {
 				if (pointer_member_access) {
 					symbol_reference = inner.value_type.get_pointer_member (member_name);
 				} else {
-					if (inner.value_type.data_type != null) {
-						base_symbol = inner.value_type.data_type;
+					if (inner.value_type.type_symbol != null) {
+						base_symbol = inner.value_type.type_symbol;
 					}
 					symbol_reference = inner.value_type.get_member (member_name);
 				}
@@ -378,7 +388,7 @@ public class Vala.MemberAccess : Expression {
 				// allow late bound members for dynamic types
 				var dynamic_object_type = (ObjectType) inner.value_type;
 				if (parent_node is MethodCall) {
-					var invoc = (MethodCall) parent_node;
+					unowned MethodCall invoc = (MethodCall) parent_node;
 					if (invoc.call == this) {
 						// dynamic method
 						DataType ret_type;
@@ -398,22 +408,23 @@ public class Vala.MemberAccess : Expression {
 						m.add_error_type (err);
 						m.access = SymbolAccessibility.PUBLIC;
 						m.add_parameter (new Parameter.with_ellipsis ());
+						m.this_parameter = new Parameter ("this", dynamic_object_type.copy ());
 						dynamic_object_type.type_symbol.scope.add (null, m);
 						symbol_reference = m;
 					}
 				} else if (parent_node is Assignment) {
-					var a = (Assignment) parent_node;
+					unowned Assignment a = (Assignment) parent_node;
 					if (a.left == this) {
 						// dynamic property assignment
 						var prop = new DynamicProperty (inner.value_type, member_name, source_reference);
 						prop.access = SymbolAccessibility.PUBLIC;
 						prop.set_accessor = new PropertyAccessor (false, true, false, null, null, prop.source_reference);
-						prop.owner = inner.value_type.data_type.scope;
+						prop.owner = inner.value_type.type_symbol.scope;
 						dynamic_object_type.type_symbol.scope.add (null, prop);
 						symbol_reference = prop;
 					}
 				} else if (parent_node is MemberAccess && inner is MemberAccess && parent_node.parent_node is MethodCall) {
-					var ma = (MemberAccess) parent_node;
+					unowned MemberAccess ma = (MemberAccess) parent_node;
 					if (ma.member_name == "connect" || ma.member_name == "connect_after") {
 						// dynamic signal
 						var s = new DynamicSignal (inner.value_type, member_name, new VoidType (), source_reference);
@@ -438,7 +449,7 @@ public class Vala.MemberAccess : Expression {
 					}
 					prop.access = SymbolAccessibility.PUBLIC;
 					prop.get_accessor = new PropertyAccessor (true, false, false, prop.property_type.copy (), null, prop.source_reference);
-					prop.owner = inner.value_type.data_type.scope;
+					prop.owner = inner.value_type.type_symbol.scope;
 					dynamic_object_type.type_symbol.scope.add (null, prop);
 					symbol_reference = prop;
 				}
@@ -447,11 +458,19 @@ public class Vala.MemberAccess : Expression {
 					may_access_klass_members = true;
 				}
 			}
+
+			if (symbol_reference is ArrayResizeMethod && inner.value_type is ArrayType) {
+				unowned ArrayType? value_array_type = inner.value_type as ArrayType;
+				if (value_array_type != null && value_array_type.inline_allocated) {
+					Report.error (source_reference, "`resize' is not supported for arrays with fixed length");
+					error = true;
+				}
+			}
 		}
 
 		// enum-type inference
-		if (inner == null && symbol_reference == null && target_type != null && target_type.data_type is Enum) {
-			var enum_type = (Enum) target_type.data_type;
+		if (inner == null && symbol_reference == null && target_type != null && target_type.type_symbol is Enum) {
+			unowned Enum enum_type = (Enum) target_type.type_symbol;
 			foreach (var val in enum_type.get_values ()) {
 				if (member_name == val.name) {
 					symbol_reference = val;
@@ -464,17 +483,28 @@ public class Vala.MemberAccess : Expression {
 			error = true;
 
 			string base_type_name = "(null)";
+			unowned Symbol? base_type = null;
 			if (inner != null && inner.value_type != null) {
 				base_type_name = inner.value_type.to_string ();
+				base_type = inner.value_type.type_symbol;
 			} else if (base_symbol != null) {
 				base_type_name = base_symbol.get_full_name ();
+				base_type = base_symbol;
 			}
 
-			Report.error (source_reference, "The name `%s' does not exist in the context of `%s'".printf (member_name, base_type_name));
+			string? base_type_package = "";
+			if (base_type != null && base_type.external_package) {
+				base_type_package = base_symbol.source_reference.file.package_name;
+				if (base_type_package != null) {
+					base_type_package = " (%s)".printf (base_type_package);
+				}
+			}
+
+			Report.error (source_reference, "The name `%s' does not exist in the context of `%s'%s".printf (member_name, base_type_name, base_type_package));
 			return false;
 		}
 
-		var member = symbol_reference;
+		unowned Symbol? member = symbol_reference;
 		var access = SymbolAccessibility.PUBLIC;
 		bool instance = false;
 		bool klass = false;
@@ -485,14 +515,14 @@ public class Vala.MemberAccess : Expression {
 		}
 
 		if (member is LocalVariable) {
-			var local = (LocalVariable) member;
-			var block = local.parent_symbol as Block;
-			if (block != null && context.analyzer.find_parent_method_or_property_accessor (block) != context.analyzer.current_method_or_property_accessor) {
+			unowned LocalVariable local = (LocalVariable) member;
+			unowned Block? block = local.parent_symbol as Block;
+			if (block != null && SemanticAnalyzer.find_parent_method_or_property_accessor (block) != context.analyzer.current_method_or_property_accessor) {
 				// mark all methods between current method and the captured
 				// block as closures (to support nested closures)
-				Symbol sym = context.analyzer.current_method_or_property_accessor;
+				unowned Symbol? sym = context.analyzer.current_method_or_property_accessor;
 				while (sym != block) {
-					var method = sym as Method;
+					unowned Method? method = sym as Method;
 					if (method != null) {
 						method.closure = true;
 						// consider captured variables as used
@@ -506,14 +536,14 @@ public class Vala.MemberAccess : Expression {
 				block.captured = true;
 			}
 		} else if (member is Parameter) {
-			var param = (Parameter) member;
-			var m = param.parent_symbol as Method;
+			unowned Parameter param = (Parameter) member;
+			unowned Method? m = param.parent_symbol as Method;
 			if (m != null && m != context.analyzer.current_method_or_property_accessor && param != m.this_parameter) {
 				// mark all methods between current method and the captured
 				// parameter as closures (to support nested closures)
-				Symbol sym = context.analyzer.current_method_or_property_accessor;
+				unowned Symbol? sym = context.analyzer.current_method_or_property_accessor;
 				while (sym != m) {
-					var method = sym as Method;
+					unowned Method? method = sym as Method;
 					if (method != null) {
 						method.closure = true;
 					}
@@ -528,13 +558,13 @@ public class Vala.MemberAccess : Expression {
 					Report.error (source_reference, "Cannot capture reference or output parameter `%s'".printf (param.get_full_name ()));
 				}
 			} else {
-				var acc = param.parent_symbol.parent_symbol as PropertyAccessor;
+				unowned PropertyAccessor? acc = param.parent_symbol.parent_symbol as PropertyAccessor;
 				if (acc != null && acc != context.analyzer.current_method_or_property_accessor && param != acc.prop.this_parameter) {
 					// mark all methods between current method and the captured
 					// parameter as closures (to support nested closures)
-					Symbol sym = context.analyzer.current_method_or_property_accessor;
+					unowned Symbol? sym = context.analyzer.current_method_or_property_accessor;
 					while (sym != m) {
-						var method = sym as Method;
+						unowned Method? method = sym as Method;
 						if (method != null) {
 							method.closure = true;
 						}
@@ -546,7 +576,7 @@ public class Vala.MemberAccess : Expression {
 				}
 			}
 		} else if (member is Field) {
-			var f = (Field) member;
+			unowned Field f = (Field) member;
 			access = f.access;
 			instance = (f.binding == MemberBinding.INSTANCE);
 			klass = (f.binding == MemberBinding.CLASS);
@@ -557,21 +587,21 @@ public class Vala.MemberAccess : Expression {
 				generics = true;
 			}
 		} else if (member is Constant) {
-			var c = (Constant) member;
+			unowned Constant c = (Constant) member;
 			access = c.access;
 
-			var block = c.parent_symbol as Block;
-			if (block != null && context.analyzer.find_parent_method_or_property_accessor (block) != context.analyzer.current_method_or_property_accessor) {
+			unowned Block? block = c.parent_symbol as Block;
+			if (block != null && SemanticAnalyzer.find_parent_method_or_property_accessor (block) != context.analyzer.current_method_or_property_accessor) {
 				error = true;
 				Report.error (source_reference, "internal error: accessing local constants of outer methods is not supported yet");
 				return false;
 			}
 		} else if (member is Method) {
-			var m = (Method) member;
+			unowned Method m = (Method) member;
 			if (m.is_async_callback) {
 				// ensure to use right callback method for virtual/abstract async methods
 				// and also for lambda expressions within async methods
-				var async_method = context.analyzer.current_async_method;
+				unowned Method? async_method = context.analyzer.current_async_method;
 
 				bool is_valid_access = false;
 				if (async_method != null) {
@@ -590,9 +620,9 @@ public class Vala.MemberAccess : Expression {
 				}
 
 				if (async_method != context.analyzer.current_method) {
-					Symbol sym = context.analyzer.current_method;
+					unowned Symbol? sym = context.analyzer.current_method;
 					while (sym != async_method) {
-						var method = sym as Method;
+						unowned Method? method = sym as Method;
 						if (method != null) {
 							method.closure = true;
 						}
@@ -640,18 +670,18 @@ public class Vala.MemberAccess : Expression {
 			// do not allow access to methods using generic type parameters
 			// if instance type does not specify type arguments
 			foreach (var param in m.get_parameters ()) {
-				var generic_type = param.variable_type as GenericType;
+				unowned GenericType? generic_type = param.variable_type as GenericType;
 				if (generic_type != null && generic_type.type_parameter.parent_symbol is TypeSymbol) {
 					generics = true;
 					break;
 				}
 			}
-			var generic_type = m.return_type as GenericType;
+			unowned GenericType? generic_type = m.return_type as GenericType;
 			if (generic_type != null && generic_type.type_parameter.parent_symbol is TypeSymbol) {
 				generics = true;
 			}
 		} else if (member is Property) {
-			var prop = (Property) member;
+			unowned Property prop = (Property) member;
 			if (!prop.check (context)) {
 				error = true;
 				return false;
@@ -708,11 +738,21 @@ public class Vala.MemberAccess : Expression {
 			member = symbol_reference;
 		}
 
-		member.used = true;
+		// recursive usage of itself doesn't count as used
+		unowned CodeNode? parent = this;
+		while (parent != member) {
+			parent = parent.parent_node;
+			if (parent == null || parent == member) {
+				break;
+			}
+		}
+		if (parent != member) {
+			member.used = true;
+		}
 		member.version.check (source_reference);
 
 		if (access == SymbolAccessibility.PROTECTED && member.parent_symbol is TypeSymbol) {
-			var target_type = (TypeSymbol) member.parent_symbol;
+			unowned TypeSymbol target_type = (TypeSymbol) member.parent_symbol;
 
 			bool in_subtype = false;
 			for (Symbol this_symbol = context.analyzer.current_symbol; this_symbol != null; this_symbol = this_symbol.parent_symbol) {
@@ -723,7 +763,7 @@ public class Vala.MemberAccess : Expression {
 					break;
 				}
 
-				var cl = this_symbol as Class;
+				unowned Class? cl = this_symbol as Class;
 				if (cl != null && cl.is_subtype_of (target_type)) {
 					in_subtype = true;
 					break;
@@ -736,7 +776,7 @@ public class Vala.MemberAccess : Expression {
 				return false;
 			}
 		} else if (access == SymbolAccessibility.PRIVATE) {
-			var target_type = member.parent_symbol;
+			unowned Symbol? target_type = member.parent_symbol;
 
 			bool in_target_type = false;
 			for (Symbol this_symbol = context.analyzer.current_symbol; this_symbol != null; this_symbol = this_symbol.parent_symbol) {
@@ -754,16 +794,16 @@ public class Vala.MemberAccess : Expression {
 		}
 
 		if (generics && inner != null) {
-			var instance_type = inner.value_type;
-			var pointer_type = inner.value_type as PointerType;
+			unowned DataType instance_type = inner.value_type;
+			unowned PointerType? pointer_type = inner.value_type as PointerType;
 			if (pointer_type != null) {
 				instance_type = pointer_type.base_type;
 			}
 
 			// instance type might be a subtype of the parent symbol of the member
 			// that subtype might not be generic, so do not report an error in that case
-			var object_type = instance_type as ObjectType;
-			if (object_type != null && object_type.type_symbol.has_type_parameters ()
+			unowned ObjectType? object_type = instance_type as ObjectType;
+			if (object_type != null && object_type.object_type_symbol.has_type_parameters ()
 			    && !instance_type.has_type_arguments ()) {
 				error = true;
 				Report.error (inner.source_reference, "missing generic type arguments");
@@ -816,8 +856,8 @@ public class Vala.MemberAccess : Expression {
 				Report.error (source_reference, "Access to instance member `%s' from nullable reference denied".printf (symbol_reference.get_full_name ()));
 			}
 
-			var m = symbol_reference as Method;
-			var inner_ma = inner as MemberAccess;
+			unowned Method? m = symbol_reference as Method;
+			unowned MemberAccess? inner_ma = inner as MemberAccess;
 			if (m != null && m.binding == MemberBinding.STATIC && m.parent_symbol is ObjectTypeSymbol &&
 			    inner != null && inner.value_type == null && inner_ma.type_argument_list.size > 0) {
 				// support static methods in generic classes
@@ -836,7 +876,7 @@ public class Vala.MemberAccess : Expression {
 			}
 
 			if (symbol_reference is Method) {
-				var method = (Method) symbol_reference;
+				unowned Method method = (Method) symbol_reference;
 				if (target_type != null) {
 					value_type.value_owned = target_type.value_owned;
 				}
@@ -844,14 +884,11 @@ public class Vala.MemberAccess : Expression {
 					inner.target_type = SemanticAnalyzer.get_data_type_for_symbol (method.parent_symbol);
 					inner.target_type.value_owned = method.this_parameter.variable_type.value_owned;
 				}
-			} else if (symbol_reference is Property) {
-				var prop = (Property) symbol_reference;
-				if (instance && prop.parent_symbol != null) {
-					inner.target_type = SemanticAnalyzer.get_data_type_for_symbol (prop.parent_symbol);
-				}
-			} else if ((symbol_reference is Field
-			            || symbol_reference is Signal)
-			           && instance && symbol_reference.parent_symbol != null) {
+			} else if (symbol_reference is Property
+			    && instance && symbol_reference.parent_symbol != null) {
+				inner.target_type = SemanticAnalyzer.get_data_type_for_symbol (symbol_reference.parent_symbol);
+			} else if ((symbol_reference is Field || symbol_reference is Signal)
+			    && instance && symbol_reference.parent_symbol != null) {
 				var parent_type = SemanticAnalyzer.get_data_type_for_symbol (symbol_reference.parent_symbol);
 				inner.target_type = parent_type.get_actual_type (inner.value_type, null, this);
 			}
@@ -891,9 +928,9 @@ public class Vala.MemberAccess : Expression {
 		}
 
 		var this_access = inner.symbol_reference is Parameter && inner.symbol_reference.name == "this";
-		var struct_or_array = (inner.value_type is StructValueType && !inner.value_type.nullable) || (CodeContext.get ().profile == Profile.GOBJECT && inner.value_type is ArrayType);
+		var struct_or_array = (inner.value_type is StructValueType && !inner.value_type.nullable) || inner.value_type is ArrayType;
 
-		var ma = inner as MemberAccess;
+		unowned MemberAccess? ma = inner as MemberAccess;
 		if (ma == null && struct_or_array && inner is PointerIndirection) {
 			// (*struct)->method()
 			ma = ((PointerIndirection) inner).inner as MemberAccess;
@@ -908,7 +945,8 @@ public class Vala.MemberAccess : Expression {
 		}
 
 		if (symbol_reference is Method && ((Method) symbol_reference).get_attribute ("DestroysInstance") != null) {
-			if (ma != null) {
+			unowned Class? cl = ((Method) symbol_reference).parent_symbol as Class;
+			if (cl != null && cl.is_compact && ma != null) {
 				ma.lvalue = true;
 				ma.check_lvalue_access ();
 			}
@@ -935,8 +973,8 @@ public class Vala.MemberAccess : Expression {
 		if (inner != null) {
 			inner.get_used_variables (collection);
 		}
-		var local = symbol_reference as LocalVariable;
-		var param = symbol_reference as Parameter;
+		unowned LocalVariable? local = symbol_reference as LocalVariable;
+		unowned Parameter? param = symbol_reference as Parameter;
 		if (local != null) {
 			collection.add (local);
 		} else if (param != null && param.direction == ParameterDirection.OUT) {

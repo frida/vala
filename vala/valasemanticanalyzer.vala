@@ -30,12 +30,12 @@ using GLib;
 public class Vala.SemanticAnalyzer : CodeVisitor {
 	CodeContext context;
 
-	public Symbol current_symbol { get; set; }
+	public Symbol? current_symbol { get; set; }
 	public SourceFile current_source_file { get; set; }
 
 	public TypeSymbol? current_type_symbol {
 		get {
-			var sym = current_symbol;
+			unowned Symbol? sym = current_symbol;
 			while (sym != null) {
 				if (sym is TypeSymbol) {
 					return (TypeSymbol) sym;
@@ -57,7 +57,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public Method? current_method {
 		get {
-			unowned Symbol sym = current_symbol;
+			unowned Symbol? sym = current_symbol;
 			while (sym is Block) {
 				sym = sym.parent_symbol;
 			}
@@ -67,9 +67,9 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public Method? current_async_method {
 		get {
-			unowned Symbol sym = current_symbol;
+			unowned Symbol? sym = current_symbol;
 			while (sym is Block || sym is Method) {
-				var m = sym as Method;
+				unowned Method? m = sym as Method;
 				if (m != null && m.coroutine) {
 					break;
 				}
@@ -82,7 +82,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public PropertyAccessor? current_property_accessor {
 		get {
-			unowned Symbol sym = current_symbol;
+			unowned Symbol? sym = current_symbol;
 			while (sym is Block) {
 				sym = sym.parent_symbol;
 			}
@@ -92,7 +92,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public Symbol? current_method_or_property_accessor {
 		get {
-			unowned Symbol sym = current_symbol;
+			unowned Symbol? sym = current_symbol;
 			while (sym is Block) {
 				sym = sym.parent_symbol;
 			}
@@ -108,12 +108,12 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public DataType? current_return_type {
 		get {
-			var m = current_method;
+			unowned Method? m = current_method;
 			if (m != null) {
 				return m.return_type;
 			}
 
-			var acc = current_property_accessor;
+			unowned PropertyAccessor? acc = current_property_accessor;
 			if (acc != null) {
 				if (acc.readable) {
 					return acc.value_type;
@@ -134,8 +134,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public DataType void_type = new VoidType ();
 	public DataType bool_type;
-	public DataType string_type;
-	public DataType regex_type;
+	public DataType char_type;
 	public DataType uchar_type;
 	public DataType short_type;
 	public DataType ushort_type;
@@ -143,11 +142,18 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	public DataType uint_type;
 	public DataType long_type;
 	public DataType ulong_type;
+	public DataType int8_type;
+	public DataType uint8_type;
+	public DataType int16_type;
+	public DataType uint16_type;
+	public DataType int32_type;
+	public DataType uint32_type;
 	public DataType size_t_type;
 	public DataType ssize_t_type;
-	public DataType int8_type;
 	public DataType unichar_type;
 	public DataType double_type;
+	public DataType string_type;
+	public DataType regex_type;
 	public DataType type_type;
 	public DataType va_list_type;
 	public Class object_type;
@@ -161,6 +167,11 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	public DataType list_type;
 	public DataType tuple_type;
 	public Class gsource_type;
+	public DataType delegate_target_type;
+	public DelegateType delegate_target_destroy_type;
+	public DelegateType generics_dup_func_type;
+
+	Delegate destroy_notify;
 
 	// keep replaced alive to make sure they remain valid
 	// for the whole execution of CodeNode.accept
@@ -180,19 +191,24 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		var root_symbol = context.root;
 
 		bool_type = new BooleanType ((Struct) root_symbol.scope.lookup ("bool"));
-		string_type = new ObjectType ((Class) root_symbol.scope.lookup ("string"));
-		int_type = new IntegerType ((Struct) root_symbol.scope.lookup ("int"));
-		uint_type = new IntegerType ((Struct) root_symbol.scope.lookup ("uint"));
-
+		char_type = new IntegerType ((Struct) root_symbol.scope.lookup ("char"));
 		uchar_type = new IntegerType ((Struct) root_symbol.scope.lookup ("uchar"));
-		int8_type = new IntegerType ((Struct) root_symbol.scope.lookup ("int8"));
 		short_type = new IntegerType ((Struct) root_symbol.scope.lookup ("short"));
 		ushort_type = new IntegerType ((Struct) root_symbol.scope.lookup ("ushort"));
+		int_type = new IntegerType ((Struct) root_symbol.scope.lookup ("int"));
+		uint_type = new IntegerType ((Struct) root_symbol.scope.lookup ("uint"));
 		long_type = new IntegerType ((Struct) root_symbol.scope.lookup ("long"));
 		ulong_type = new IntegerType ((Struct) root_symbol.scope.lookup ("ulong"));
+		int8_type = new IntegerType ((Struct) root_symbol.scope.lookup ("int8"));
+		uint8_type = new IntegerType ((Struct) root_symbol.scope.lookup ("uint8"));
+		int16_type = new IntegerType ((Struct) root_symbol.scope.lookup ("int16"));
+		uint16_type = new IntegerType ((Struct) root_symbol.scope.lookup ("uint16"));
+		int32_type = new IntegerType ((Struct) root_symbol.scope.lookup ("int32"));
+		uint32_type = new IntegerType ((Struct) root_symbol.scope.lookup ("uint32"));
 		size_t_type = new IntegerType ((Struct) root_symbol.scope.lookup ("size_t"));
 		ssize_t_type = new IntegerType ((Struct) root_symbol.scope.lookup ("ssize_t"));
 		double_type = new FloatingType ((Struct) root_symbol.scope.lookup ("double"));
+		string_type = new ObjectType ((Class) root_symbol.scope.lookup ("string"));
 		va_list_type = new StructValueType ((Struct) root_symbol.scope.lookup ("va_list"));
 
 		var unichar_struct = (Struct) root_symbol.scope.lookup ("unichar");
@@ -217,6 +233,19 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			regex_type = new ObjectType ((Class) root_symbol.scope.lookup ("GLib").scope.lookup ("Regex"));
 
 			gsource_type = (Class) glib_ns.scope.lookup ("Source");
+
+			delegate_target_type = new StructValueType ((Struct) glib_ns.scope.lookup ("pointer"));
+			destroy_notify = (Delegate) glib_ns.scope.lookup ("DestroyNotify");
+			delegate_target_destroy_type = new DelegateType (destroy_notify);
+
+			generics_dup_func_type = new DelegateType ((Delegate) glib_ns.scope.lookup ("BoxedCopyFunc"));
+		} else {
+			delegate_target_type = new PointerType (new VoidType ());
+			destroy_notify = new Delegate ("ValaDestroyNotify", new VoidType ());
+			destroy_notify.add_parameter (new Parameter ("data", new PointerType (new VoidType ())));
+			destroy_notify.has_target = false;
+			destroy_notify.owner = context.root.scope;
+			delegate_target_destroy_type = new DelegateType (destroy_notify);
 		}
 
 		current_symbol = root_symbol;
@@ -239,7 +268,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public DataType? get_value_type_for_symbol (Symbol sym, bool lvalue) {
 		if (sym is Field) {
-			var f = (Field) sym;
+			unowned Field f = (Field) sym;
 			var type = f.variable_type.copy ();
 			if (!lvalue) {
 				type.value_owned = false;
@@ -248,10 +277,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		} else if (sym is EnumValue) {
 			return new EnumValueType ((Enum) sym.parent_symbol);
 		} else if (sym is Constant) {
-			var c = (Constant) sym;
+			unowned Constant c = (Constant) sym;
 			return c.type_reference;
 		} else if (sym is Property) {
-			var prop = (Property) sym;
+			unowned Property prop = (Property) sym;
 			if (lvalue) {
 				if (prop.set_accessor != null && prop.set_accessor.value_type != null) {
 					return prop.set_accessor.value_type.copy ();
@@ -262,14 +291,14 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 				}
 			}
 		} else if (sym is Parameter) {
-			var p = (Parameter) sym;
+			unowned Parameter p = (Parameter) sym;
 			var type = p.variable_type.copy ();
 			if (!lvalue) {
 				type.value_owned = false;
 			}
 			return type;
 		} else if (sym is LocalVariable) {
-			var local = (LocalVariable) sym;
+			unowned LocalVariable local = (LocalVariable) sym;
 			var type = local.variable_type.copy ();
 			if (!lvalue) {
 				type.value_owned = false;
@@ -290,12 +319,12 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 
 		if (sym is Class) {
-			var cl = (Class) sym;
+			unowned Class cl = (Class) sym;
 			// first check interfaces without prerequisites
 			// (prerequisites can be assumed to be met already)
 			foreach (DataType base_type in cl.get_base_types ()) {
-				if (base_type.data_type is Interface) {
-					result = base_type.data_type.scope.lookup (name);
+				if (base_type.type_symbol is Interface) {
+					result = base_type.type_symbol.scope.lookup (name);
 					if (result != null) {
 						return result;
 					}
@@ -306,19 +335,19 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 				return symbol_lookup_inherited (cl.base_class, name);
 			}
 		} else if (sym is Struct) {
-			var st = (Struct) sym;
+			unowned Struct st = (Struct) sym;
 			if (st.base_type != null) {
-				result = symbol_lookup_inherited (st.base_type.data_type, name);
+				result = symbol_lookup_inherited (st.base_type.type_symbol, name);
 				if (result != null) {
 					return result;
 				}
 			}
 		} else if (sym is Interface) {
-			var iface = (Interface) sym;
+			unowned Interface iface = (Interface) sym;
 			// first check interface prerequisites recursively
 			foreach (DataType prerequisite in iface.get_prerequisites ()) {
-				if (prerequisite.data_type is Interface) {
-					result = symbol_lookup_inherited (prerequisite.data_type, name);
+				if (prerequisite.type_symbol is Interface) {
+					result = symbol_lookup_inherited (prerequisite.type_symbol, name);
 					if (result != null) {
 						return result;
 					}
@@ -326,8 +355,8 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			}
 			// then check class prerequisite recursively
 			foreach (DataType prerequisite in iface.get_prerequisites ()) {
-				if (prerequisite.data_type is Class) {
-					result = symbol_lookup_inherited (prerequisite.data_type, name);
+				if (prerequisite.type_symbol is Class) {
+					result = symbol_lookup_inherited (prerequisite.type_symbol, name);
 					if (result != null) {
 						return result;
 					}
@@ -339,11 +368,11 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public static DataType get_data_type_for_symbol (Symbol sym) {
-		DataType type = null;
+		DataType type;
 
 		List<TypeParameter> type_parameters = null;
 		if (sym is ObjectTypeSymbol) {
-			var cl = sym as Class;
+			unowned Class cl = sym as Class;
 			if (cl != null && cl.is_error_base) {
 				type = new ErrorType (null, null);
 			} else {
@@ -351,7 +380,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 				type_parameters = ((ObjectTypeSymbol) sym).get_type_parameters ();
 			}
 		} else if (sym is Struct) {
-			var st = (Struct) sym;
+			unowned Struct st = (Struct) sym;
 			if (st.is_boolean_type ()) {
 				type = new BooleanType (st);
 			} else if (st.is_integer_type ()) {
@@ -384,8 +413,8 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		return type;
 	}
 
-	public static Symbol? get_symbol_for_data_type (DataType type) {
-		Symbol? sym = null;
+	public static unowned Symbol? get_symbol_for_data_type (DataType type) {
+		unowned Symbol? sym = null;
 
 		if (type is ObjectType) {
 			sym = ((ObjectType) type).type_symbol;
@@ -404,6 +433,77 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 
 		return sym;
+	}
+
+	public bool is_gobject_property (Property prop) {
+		unowned ObjectTypeSymbol? type_sym = prop.parent_symbol as ObjectTypeSymbol;
+		if (type_sym == null || !type_sym.is_subtype_of (object_type)) {
+			return false;
+		}
+
+		if (prop.binding != MemberBinding.INSTANCE) {
+			return false;
+		}
+
+		if (prop.access == SymbolAccessibility.PRIVATE) {
+			return false;
+		}
+
+		if (!is_gobject_property_type (prop.property_type)) {
+			if (prop.property_type is ArrayType && (!prop.get_attribute_bool ("CCode", "array_length", true)
+			    && prop.get_attribute_bool ("CCode", "array_null_terminated", false))) {
+				// null-terminated arrays without length are allowed
+			} else if (prop.property_type is DelegateType && !prop.get_attribute_bool ("CCode", "delegate_target", true)) {
+				// delegates omitting their target are allowed
+			} else {
+				return false;
+			}
+		}
+
+		if (type_sym is Class && prop.base_interface_property != null &&
+		    !is_gobject_property (prop.base_interface_property)) {
+			return false;
+		}
+
+		if (!prop.name[0].isalpha ()) {
+			// GObject requires properties to start with a letter
+			return false;
+		}
+
+		if (type_sym is Interface && !prop.is_abstract && !prop.external && !prop.external_package) {
+			// GObject does not support non-abstract interface properties,
+			// however we assume external properties always are GObject properties
+			return false;
+		}
+
+		if (type_sym is Interface && type_sym.get_attribute ("DBus") != null) {
+			// GObject properties not currently supported in D-Bus interfaces
+			return false;
+		}
+
+		return true;
+	}
+
+	public bool is_gobject_property_type (DataType property_type) {
+		unowned Struct? st = property_type.type_symbol as Struct;
+		if (st != null) {
+			if (!st.is_simple_type () && st.get_attribute_bool ("CCode", "has_type_id", true)) {
+				// Allow GType-based struct types
+			} else if (property_type.nullable) {
+				return false;
+			}
+		}
+
+		if (property_type is ArrayType && ((ArrayType) property_type).element_type.type_symbol != string_type.type_symbol) {
+			return false;
+		}
+
+		unowned DelegateType? d = property_type as DelegateType;
+		if (d != null && d.delegate_symbol.has_target) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public bool check_arguments (Expression expr, DataType mtype, List<Parameter> params, List<Expression> args) {
@@ -439,7 +539,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			if (arg_it == null || !arg_it.next ()) {
 				if (param.initializer == null) {
 					expr.error = true;
-					var m = mtype as MethodType;
+					unowned MethodType? m = mtype as MethodType;
 					if (m != null) {
 						Report.error (expr.source_reference, "%d missing arguments for `%s'".printf (m.get_parameters ().size - args.size, m.to_prototype_string ()));
 					} else {
@@ -447,8 +547,8 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 					}
 					error = true;
 				} else {
-					var invocation_expr = expr as MethodCall;
-					var object_creation_expr = expr as ObjectCreationExpression;
+					unowned MethodCall? invocation_expr = expr as MethodCall;
+					unowned ObjectCreationExpression? object_creation_expr = expr as ObjectCreationExpression;
 					if (invocation_expr != null) {
 						invocation_expr.add_argument (param.initializer);
 					} else if (object_creation_expr != null) {
@@ -476,7 +576,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			error = true;
 		} else if (!ellipsis && arg_it != null && arg_it.next ()) {
 			expr.error = true;
-			var m = mtype as MethodType;
+			unowned MethodType? m = mtype as MethodType;
 			if (m != null) {
 				Report.error (expr.source_reference, "%d extra arguments for `%s'".printf (args.size - m.get_parameters ().size, m.to_prototype_string ()));
 			} else {
@@ -486,7 +586,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 
 		if (diag && prev_arg != null) {
-			var format_arg = prev_arg as StringLiteral;
+			unowned StringLiteral? format_arg = prev_arg as StringLiteral;
 			if (format_arg != null) {
 				format_arg.value = "\"%s:%d: %s".printf (Path.get_basename (expr.source_reference.file.filename), expr.source_reference.begin.line, format_arg.value.substring (1));
 			}
@@ -587,10 +687,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			}
 		}
 
-		var ma = arg as MemberAccess;
+		unowned MemberAccess? ma = arg as MemberAccess;
 		if (ma != null && ma.prototype_access) {
 			// allow prototype access if target type is delegate without target
-			var deleg_type = arg.target_type as DelegateType;
+			unowned DelegateType? deleg_type = arg.target_type as DelegateType;
 			if (deleg_type == null || deleg_type.delegate_symbol.has_target) {
 				Report.error (arg.source_reference, "Access to instance member `%s' denied".printf (arg.symbol_reference.get_full_name ()));
 				return false;
@@ -750,10 +850,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	private static DataType? get_instance_base_type (DataType instance_type, DataType base_type, CodeNode node_reference) {
 		// construct a new type reference for the base type with correctly linked type arguments
 		DataType instance_base_type;
-		if (base_type.data_type is ObjectTypeSymbol) {
-			instance_base_type = new ObjectType ((ObjectTypeSymbol) base_type.data_type);
-		} else if (base_type.data_type is Struct) {
-			instance_base_type = new StructValueType ((Struct) base_type.data_type);
+		if (base_type.type_symbol is ObjectTypeSymbol) {
+			instance_base_type = new ObjectType ((ObjectTypeSymbol) base_type.type_symbol);
+		} else if (base_type.type_symbol is Struct) {
+			instance_base_type = new StructValueType ((Struct) base_type.type_symbol);
 		} else {
 			assert_not_reached ();
 		}
@@ -769,25 +869,25 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		DataType instance_type = derived_instance_type;
 
 		while (instance_type is PointerType) {
-			var instance_pointer_type = (PointerType) instance_type;
+			unowned PointerType instance_pointer_type = (PointerType) instance_type;
 			instance_type = instance_pointer_type.base_type;
 		}
 
 		if (instance_type is DelegateType && ((DelegateType) instance_type).delegate_symbol == type_symbol) {
 			return instance_type;
-		} else if (instance_type.data_type == type_symbol) {
+		} else if (instance_type.type_symbol == type_symbol) {
 			return instance_type;
 		}
 
-		DataType instance_base_type = null;
+		DataType? instance_base_type = null;
 
 		// use same algorithm as symbol_lookup_inherited
-		if (instance_type.data_type is Class) {
-			var cl = (Class) instance_type.data_type;
+		if (instance_type.type_symbol is Class) {
+			unowned Class cl = (Class) instance_type.type_symbol;
 			// first check interfaces without prerequisites
 			// (prerequisites can be assumed to be met already)
 			foreach (DataType base_type in cl.get_base_types ()) {
-				if (base_type.data_type is Interface) {
+				if (base_type.type_symbol is Interface) {
 					instance_base_type = get_instance_base_type_for_member (get_instance_base_type (instance_type, base_type, node_reference), type_symbol, node_reference);
 					if (instance_base_type != null) {
 						return instance_base_type;
@@ -797,7 +897,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			// then check base class recursively
 			if (instance_base_type == null) {
 				foreach (DataType base_type in cl.get_base_types ()) {
-					if (base_type.data_type is Class) {
+					if (base_type.type_symbol is Class) {
 						instance_base_type = get_instance_base_type_for_member (get_instance_base_type (instance_type, base_type, node_reference), type_symbol, node_reference);
 						if (instance_base_type != null) {
 							return instance_base_type;
@@ -805,19 +905,19 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 					}
 				}
 			}
-		} else if (instance_type.data_type is Struct) {
-			var st = (Struct) instance_type.data_type;
+		} else if (instance_type.type_symbol is Struct) {
+			unowned Struct st = (Struct) instance_type.type_symbol;
 			if (st.base_type != null) {
 				instance_base_type = get_instance_base_type_for_member (get_instance_base_type (instance_type, st.base_type, node_reference), type_symbol, node_reference);
 				if (instance_base_type != null) {
 					return instance_base_type;
 				}
 			}
-		} else if (instance_type.data_type is Interface) {
-			var iface = (Interface) instance_type.data_type;
+		} else if (instance_type.type_symbol is Interface) {
+			unowned Interface iface = (Interface) instance_type.type_symbol;
 			// first check interface prerequisites recursively
 			foreach (DataType prerequisite in iface.get_prerequisites ()) {
-				if (prerequisite.data_type is Interface) {
+				if (prerequisite.type_symbol is Interface) {
 					instance_base_type = get_instance_base_type_for_member (get_instance_base_type (instance_type, prerequisite, node_reference), type_symbol, node_reference);
 					if (instance_base_type != null) {
 						return instance_base_type;
@@ -827,7 +927,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			if (instance_base_type == null) {
 				// then check class prerequisite recursively
 				foreach (DataType prerequisite in iface.get_prerequisites ()) {
-					if (prerequisite.data_type is Class) {
+					if (prerequisite.type_symbol is Class) {
 						instance_base_type = get_instance_base_type_for_member (get_instance_base_type (instance_type, prerequisite, node_reference), type_symbol, node_reference);
 						if (instance_base_type != null) {
 							return instance_base_type;
@@ -860,7 +960,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 				if (instance_type is DelegateType) {
 					param_index = ((DelegateType) instance_type).delegate_symbol.get_type_parameter_index (generic_type.type_parameter.name);
 				} else {
-					param_index = instance_type.data_type.get_type_parameter_index (generic_type.type_parameter.name);
+					param_index = instance_type.type_symbol.get_type_parameter_index (generic_type.type_parameter.name);
 				}
 				if (param_index == -1) {
 					if (node_reference != null) {
@@ -876,7 +976,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			}
 		} else {
 			// generic method
-			var m = (Method) generic_type.type_parameter.parent_symbol;
+			unowned Method m = (Method) generic_type.type_parameter.parent_symbol;
 
 			int param_index = m.get_type_parameter_index (generic_type.type_parameter.name);
 			if (param_index == -1) {
@@ -904,21 +1004,21 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public bool is_in_instance_method () {
-		var sym = current_symbol;
+		unowned Symbol? sym = current_symbol;
 		while (sym != null) {
 			if (sym is CreationMethod) {
 				return true;
 			} else if (sym is Method) {
-				var m = (Method) sym;
+				unowned Method m = (Method) sym;
 				return m.binding == MemberBinding.INSTANCE;
 			} else if (sym is Constructor) {
-				var c = (Constructor) sym;
+				unowned Constructor c = (Constructor) sym;
 				return c.binding == MemberBinding.INSTANCE;
 			} else if (sym is Destructor) {
-				var d = (Destructor) sym;
+				unowned Destructor d = (Destructor) sym;
 				return d.binding == MemberBinding.INSTANCE;
 			} else if (sym is Property) {
-				var p = (Property) sym;
+				unowned Property p = (Property) sym;
 				return p.binding == MemberBinding.INSTANCE;
 			}
 			sym = sym.parent_symbol;
@@ -944,10 +1044,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public void visit_member_initializer (MemberInitializer init, DataType type) {
-		init.symbol_reference = symbol_lookup_inherited (type.data_type, init.name);
+		init.symbol_reference = symbol_lookup_inherited (type.type_symbol, init.name);
 		if (!(init.symbol_reference is Field || init.symbol_reference is Property)) {
 			init.error = true;
-			Report.error (init.source_reference, "Invalid member `%s' in `%s'".printf (init.name, type.data_type.get_full_name ()));
+			Report.error (init.source_reference, "Invalid member `%s' in `%s'".printf (init.name, type.type_symbol.get_full_name ()));
 			return;
 		}
 		if (init.symbol_reference.access != SymbolAccessibility.PUBLIC) {
@@ -957,10 +1057,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 		DataType member_type = null;
 		if (init.symbol_reference is Field) {
-			var f = (Field) init.symbol_reference;
+			unowned Field f = (Field) init.symbol_reference;
 			member_type = f.variable_type;
 		} else if (init.symbol_reference is Property) {
-			var prop = (Property) init.symbol_reference;
+			unowned Property prop = (Property) init.symbol_reference;
 			member_type = prop.property_type;
 			if (prop.set_accessor == null || !prop.set_accessor.writable) {
 				init.error = true;
@@ -972,7 +1072,9 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		init.initializer.formal_target_type = member_type;
 		init.initializer.target_type = init.initializer.formal_target_type.get_actual_type (type, null, init);
 
-		init.check (context);
+		if (!init.check (context)) {
+			return;
+		}
 
 		if (init.initializer.value_type == null || !init.initializer.value_type.compatible (init.initializer.target_type)) {
 			init.error = true;
@@ -981,17 +1083,17 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 	}
 
-	Struct? get_arithmetic_struct (DataType type) {
-		var result = type.data_type as Struct;
+	unowned Struct? get_arithmetic_struct (DataType type) {
+		unowned Struct? result = type.type_symbol as Struct;
 		if (result == null && type is EnumValueType) {
-			return (Struct) int_type.data_type;
+			return (Struct) int_type.type_symbol;
 		}
 		return result;
 	}
 
-	public DataType? get_arithmetic_result_type (DataType left_type, DataType right_type) {
-		var left = get_arithmetic_struct (left_type);
-		var right = get_arithmetic_struct (right_type);
+	public unowned DataType? get_arithmetic_result_type (DataType left_type, DataType right_type) {
+		unowned Struct? left = get_arithmetic_struct (left_type);
+		unowned Struct? right = get_arithmetic_struct (right_type);
 
 		if (left == null || right == null) {
 			// at least one operand not struct
@@ -1021,8 +1123,8 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 	}
 
-	public Method? find_current_method () {
-		var sym = current_symbol;
+	public unowned Method? find_current_method () {
+		unowned Symbol? sym = current_symbol;
 		while (sym != null) {
 			if (sym is Method) {
 				return (Method) sym;
@@ -1032,14 +1134,14 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		return null;
 	}
 
-	public Method? find_parent_method (Symbol sym) {
+	public static unowned Method? find_parent_method (Symbol sym) {
 		while (sym is Block) {
 			sym = sym.parent_symbol;
 		}
 		return sym as Method;
 	}
 
-	public Symbol? find_parent_method_or_property_accessor (Symbol sym) {
+	public static unowned Symbol? find_parent_method_or_property_accessor (Symbol sym) {
 		while (sym is Block) {
 			sym = sym.parent_symbol;
 		}
@@ -1052,8 +1154,87 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 	}
 
+	public static unowned TypeSymbol? find_parent_type_symbol (Symbol sym) {
+		while (sym != null) {
+			if (sym is TypeSymbol) {
+				return (TypeSymbol) sym;
+			}
+			sym = sym.parent_symbol;
+		}
+		return null;
+	}
+
+	public static DataType? get_this_type (Symbol s, TypeSymbol? parent = null) {
+		unowned TypeSymbol? parent_type = parent ?? find_parent_type_symbol (s);
+		if (parent_type == null) {
+			Report.error (parent_type.source_reference, "internal: Unsupported symbol type");
+			return new InvalidType ();
+		}
+
+		MemberBinding binding;
+		if (s is Method) {
+			binding = ((Method) s).binding;
+		} else if (s is Constructor) {
+			binding = ((Constructor) s).binding;
+		} else if (s is Destructor) {
+			binding = ((Destructor) s).binding;
+		} else if (s is Property) {
+			binding = ((Property) s).binding;
+		} else {
+			Report.error (s.source_reference, "internal: Unsupported symbol type");
+			return new InvalidType ();
+		}
+
+		DataType? this_type = null;
+		List<TypeParameter>? type_parameters = null;
+		switch (binding) {
+		case MemberBinding.INSTANCE:
+			if (parent_type is Class) {
+				this_type = new ObjectType ((Class) parent_type);
+				type_parameters = ((Class) parent_type).get_type_parameters ();
+			} else if (parent_type is Interface) {
+				this_type = new ObjectType ((Interface) parent_type);
+				type_parameters = ((Interface) parent_type).get_type_parameters ();
+			} else if (parent_type is Struct) {
+				this_type = new StructValueType ((Struct) parent_type);
+				type_parameters = ((Struct) parent_type).get_type_parameters ();
+			} else if (parent_type is Enum) {
+				this_type = new EnumValueType ((Enum) parent_type);
+			} else {
+				Report.error (parent_type.source_reference, "internal: Unsupported symbol type");
+				this_type = new InvalidType ();
+			}
+			break;
+		case MemberBinding.CLASS:
+			if (parent_type is Class) {
+				this_type = new ClassType ((Class) parent_type);
+			} else if (parent_type is Interface) {
+				this_type = new InterfaceType ((Interface) parent_type);
+			} else {
+				Report.error (parent_type.source_reference, "internal: Unsupported symbol type");
+				this_type = new InvalidType ();
+			}
+			break;
+		case MemberBinding.STATIC:
+		default:
+			Report.error (s.source_reference, "internal: Does not support a parent instance");
+			this_type = new InvalidType ();
+			break;
+		}
+
+		if (type_parameters != null) {
+			foreach (var type_param in type_parameters) {
+				var type_arg = new GenericType (type_param);
+				type_arg.value_owned = true;
+				this_type.add_type_argument (type_arg);
+			}
+		}
+
+		return this_type;
+	}
+
 	public bool is_in_constructor () {
-		var sym = current_symbol;
+		unowned Symbol? sym = current_symbol;
 		while (sym != null) {
 			if (sym is Constructor) {
 				return true;
@@ -1064,7 +1245,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public bool is_in_destructor () {
-		var sym = current_symbol;
+		unowned Symbol? sym = current_symbol;
 		while (sym != null) {
 			if (sym is Destructor) {
 				return true;
@@ -1072,5 +1253,114 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			sym = sym.parent_symbol;
 		}
 		return false;
+	}
+
+	public bool is_reference_type_argument (DataType type_arg) {
+		if (type_arg is ErrorType || (type_arg.type_symbol != null && type_arg.type_symbol.is_reference_type ())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public bool is_nullable_value_type_argument (DataType type_arg) {
+		if (type_arg is ValueType && type_arg.nullable) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public bool is_signed_integer_type_argument (DataType type_arg) {
+		unowned Struct? st = type_arg.type_symbol as Struct;
+		if (type_arg is EnumValueType) {
+			return true;
+		} else if (type_arg.nullable) {
+			return false;
+		} else if (st == null) {
+			return false;
+		} else if (st.is_subtype_of (bool_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (char_type.type_symbol)) {
+			return true;
+		} else if (unichar_type != null && st.is_subtype_of (unichar_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (short_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (int_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (long_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (int8_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (int16_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (int32_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (type_type.type_symbol)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public bool is_unsigned_integer_type_argument (DataType type_arg) {
+		unowned Struct? st = type_arg.type_symbol as Struct;
+		if (st == null) {
+			return false;
+		} else if (type_arg.nullable) {
+			return false;
+		} else if (st.is_subtype_of (uchar_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (ushort_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (uint_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (ulong_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (uint8_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (uint16_type.type_symbol)) {
+			return true;
+		} else if (st.is_subtype_of (uint32_type.type_symbol)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public void check_type (DataType type) {
+		foreach (var type_arg in type.get_type_arguments ()) {
+			check_type (type_arg);
+			check_type_argument (type_arg);
+		}
+	}
+
+	public void check_type_arguments (MemberAccess access) {
+		foreach (var type_arg in access.get_type_arguments ()) {
+			check_type (type_arg);
+			check_type_argument (type_arg);
+		}
+	}
+
+	void check_type_argument (DataType type_arg) {
+		if (type_arg is GenericType
+		    || type_arg is PointerType
+		    || type_arg is VoidType
+		    || is_reference_type_argument (type_arg)
+		    || is_nullable_value_type_argument (type_arg)
+		    || is_signed_integer_type_argument (type_arg)
+		    || is_unsigned_integer_type_argument (type_arg)) {
+			// no error
+		} else if (type_arg is DelegateType) {
+			var delegate_type = (DelegateType) type_arg;
+			if (delegate_type.delegate_symbol.has_target) {
+				Report.error (type_arg.source_reference, "Delegates with target are not supported as generic type arguments");
+			}
+		} else if (type_arg is ArrayType) {
+			Report.error (type_arg.source_reference, "Arrays are not supported as generic type arguments");
+		} else {
+			Report.error (type_arg.source_reference, "`%s' is not a supported generic type argument, use `?' to box value types".printf (type_arg.to_string ()));
+		}
 	}
 }

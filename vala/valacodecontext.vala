@@ -174,6 +174,11 @@ public class Vala.CodeContext {
 	public bool use_fast_vapi { get; set; }
 
 	/**
+	 * Continue as much as possible after an error.
+	 */
+	public bool keep_going { get; set; }
+
+	/**
 	 * Include comments in generated vapi.
 	 */
 	public bool vapi_comments { get; set; }
@@ -280,20 +285,20 @@ public class Vala.CodeContext {
 	}
 
 	/**
-	 * Returns a copy of the list of source files.
+	 * Returns the list of source files.
 	 *
 	 * @return list of source files
 	 */
-	public List<SourceFile> get_source_files () {
+	public unowned List<SourceFile> get_source_files () {
 		return source_files;
 	}
 
 	/**
-	 * Returns a copy of the list of C source files.
+	 * Returns the list of C source files.
 	 *
 	 * @return list of C source files
 	 */
-	public List<string> get_c_source_files () {
+	public unowned List<string> get_c_source_files () {
 		return c_source_files;
 	}
 
@@ -332,11 +337,11 @@ public class Vala.CodeContext {
 	}
 
 	/**
-	 * Returns a copy of the list of used packages.
+	 * Returns the list of used packages.
 	 *
 	 * @return list of used packages
 	 */
-	public List<string> get_packages () {
+	public unowned List<string> get_packages () {
 		return packages;
 	}
 
@@ -509,12 +514,14 @@ public class Vala.CodeContext {
 	public void check () {
 		resolver.resolve (this);
 
-		if (report.get_errors () > 0) {
+		if (!keep_going && report.get_errors () > 0) {
 			return;
 		}
 
 		analyzer.analyze (this);
 
+		// Don't run the FlowAnalyzer if we have semantic errors, since
+		// the messages from FlowAnalyzer will usually be nonsensical.
 		if (report.get_errors () > 0) {
 			return;
 		}
@@ -565,8 +572,6 @@ public class Vala.CodeContext {
 		for (int i = 16; i <= target_glib_minor; i += 2) {
 			defines.add ("GLIB_2_%d".printf (i));
 		}
-
-		add_define ("VALA_OS_" + Config.VALA_HOST_OS.up ());
 	}
 
 	/**
@@ -610,8 +615,8 @@ public class Vala.CodeContext {
 			defines.add ("GLIB_2_%d".printf (i));
 		}
 
-		target_glib_major = glib_minor;
-		target_glib_minor = glib_major;
+		target_glib_major = glib_major;
+		target_glib_minor = glib_minor;
 	}
 
 	public string? get_vapi_path (string pkg) {
@@ -710,6 +715,29 @@ public class Vala.CodeContext {
 			}
 		}
 		stream.printf ("\n\n");
+	}
+
+	public void write_external_dependencies (string filename) {
+		var stream = FileStream.open (filename, "w");
+
+		if (stream == null) {
+			Report.error (null, "unable to open `%s' for writing".printf (filename));
+			return;
+		}
+
+		bool first = true;
+		foreach (var src in source_files) {
+			if (src.file_type != SourceFileType.SOURCE && src.used) {
+				if (first) {
+					first = false;
+					stream.printf ("%s: ", filename);
+				} else {
+					stream.puts (" \\\n\t");
+				}
+				stream.printf ("%s", src.filename);
+			}
+		}
+		stream.puts ("\n\n");
 	}
 
 	private static bool ends_with_dir_separator (string s) {

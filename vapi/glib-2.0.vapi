@@ -149,6 +149,27 @@ public struct int {
 
 	[CCode (cname = "atoi", cheader_filename = "stdlib.h")]
 	public static int parse (string str);
+
+	[CCode (cname = "strtol", cheader_filename = "stdlib.h")]
+	static long strtol (string nptr, out char* endptr, int _base);
+
+	public static bool try_parse (string str, out int result = null, out unowned string unparsed = null, uint _base = 0) {
+		char* endptr;
+		errno = 0;
+		long long_result = strtol (str, out endptr, (int) _base);
+		if (endptr == (char*) str + str.length) {
+			unparsed = "";
+		} else {
+			unparsed = (string) endptr;
+		}
+		if (int.MIN <= long_result <= int.MAX) {
+			result = (int) long_result;
+			return errno != ERANGE && errno != EINVAL && unparsed != endptr;
+		} else {
+			result = int.MAX;
+			return false;
+		}
+	}
 }
 
 [SimpleType]
@@ -185,6 +206,31 @@ public struct uint {
 	public static uint from_big_endian (uint val);
 	[CCode (cname = "GUINT_FROM_LE")]
 	public static uint from_little_endian (uint val);
+
+	[CCode (cname = "strtoul", cheader_filename = "stdlib.h")]
+	static ulong strtoul (string nptr, out char* endptr, int _base);
+
+	public static uint parse (string str, uint _base = 0) {
+		return (uint) strtoul (str, null, (int) _base);
+	}
+
+	public static bool try_parse (string str, out uint result = null, out unowned string unparsed = null, uint _base = 0) {
+		char* endptr;
+		errno = 0;
+		ulong ulong_result = strtoul (str, out endptr, (int) _base);
+		if (endptr == (char*) str + str.length) {
+			unparsed = "";
+		} else {
+			unparsed = (string) endptr;
+		}
+		if (uint.MIN <= ulong_result <= uint.MAX) {
+			result = (uint) ulong_result;
+			return errno != ERANGE && errno != EINVAL && unparsed != endptr;
+		} else {
+			result = uint.MAX;
+			return false;
+		}
+	}
 }
 
 [SimpleType]
@@ -264,18 +310,19 @@ public struct long {
 	public static long from_little_endian (long val);
 
 	[CCode (cname = "strtol", cheader_filename = "stdlib.h")]
-	static long strtol (string nptr, out char* endptr, uint _base);
+	static long strtol (string nptr, out char* endptr, int _base);
 
-	public static long parse (string str) {
-		return strtol (str, null, 0);
+	public static long parse (string str, uint _base = 0) {
+		return strtol (str, null, (int) _base);
 	}
 
-	public static bool try_parse (string str, out long result = null, out unowned string unparsed = null) {
+	public static bool try_parse (string str, out long result = null, out unowned string unparsed = null, uint _base = 0) {
 		char* endptr;
-		result = strtol (str, out endptr, 0);
+		errno = 0;
+		result = strtol (str, out endptr, (int) _base);
 		if (endptr == (char*) str + str.length) {
 			unparsed = "";
-			return true;
+			return errno != ERANGE && errno != EINVAL;
 		} else {
 			unparsed = (string) endptr;
 			return false;
@@ -314,18 +361,19 @@ public struct ulong {
 	public static ulong from_little_endian (ulong val);
 
 	[CCode (cname = "strtoul", cheader_filename = "stdlib.h")]
-	static ulong strtoul (string nptr, out char* endptr, uint _base);
+	static ulong strtoul (string nptr, out char* endptr, int _base);
 
-	public static ulong parse (string str) {
-		return strtoul (str, null, 0);
+	public static ulong parse (string str, uint _base = 0) {
+		return strtoul (str, null, (int) _base);
 	}
 
-	public static bool try_parse (string str, out ulong result = null, out unowned string unparsed = null) {
+	public static bool try_parse (string str, out ulong result = null, out unowned string unparsed = null, uint _base = 0) {
 		char* endptr;
-		result = strtoul (str, out endptr, 0);
+		errno = 0;
+		result = strtoul (str, out endptr, (int) _base);
 		if (endptr == (char*) str + str.length) {
 			unparsed = "";
-			return true;
+			return errno != ERANGE && errno != EINVAL;
 		} else {
 			unparsed = (string) endptr;
 			return false;
@@ -719,17 +767,18 @@ public struct int64 {
 	static int64 ascii_strtoll (string nptr, out char* endptr, uint _base);
 
 	[Version (since = "2.12")]
-	public static int64 parse (string str) {
-		return ascii_strtoll (str, null, 0);
+	public static int64 parse (string str, uint _base = 0) {
+		return ascii_strtoll (str, null, _base);
 	}
 
 	[Version (since = "2.12")]
-	public static bool try_parse (string str, out int64 result = null, out unowned string unparsed = null) {
+	public static bool try_parse (string str, out int64 result = null, out unowned string unparsed = null, uint _base = 0) {
 		char* endptr;
-		result = ascii_strtoll (str, out endptr, 0);
+		errno = 0;
+		result = ascii_strtoll (str, out endptr, _base);
 		if (endptr == (char*) str + str.length) {
 			unparsed = "";
-			return true;
+			return errno != ERANGE && errno != EINVAL;
 		} else {
 			unparsed = (string) endptr;
 			return false;
@@ -779,16 +828,17 @@ public struct uint64 {
 	[CCode (cname = "g_ascii_strtoull")]
 	static uint64 ascii_strtoull (string nptr, out char* endptr, uint _base);
 
-	public static uint64 parse (string str) {
-		return ascii_strtoull (str, null, 0);
+	public static uint64 parse (string str, uint _base = 0) {
+		return ascii_strtoull (str, null, _base);
 	}
 
-	public static bool try_parse (string str, out uint64 result = null, out unowned string unparsed = null) {
+	public static bool try_parse (string str, out uint64 result = null, out unowned string unparsed = null, uint _base = 0) {
 		char* endptr;
-		result = ascii_strtoull (str, out endptr, 0);
+		errno = 0;
+		result = ascii_strtoull (str, out endptr, _base);
 		if (endptr == (char*) str + str.length) {
 			unparsed = "";
-			return true;
+			return errno != ERANGE && errno != EINVAL;
 		} else {
 			unparsed = (string) endptr;
 			return false;
@@ -866,10 +916,11 @@ public struct float {
 
 	public static bool try_parse (string str, out float result = null, out unowned string unparsed = null) {
 		char* endptr;
+		errno = 0;
 		result = strtof (str, out endptr);
 		if (endptr == (char*) str + str.length) {
 			unparsed = "";
-			return true;
+			return errno != ERANGE;
 		} else {
 			unparsed = (string) endptr;
 			return false;
@@ -947,10 +998,11 @@ public struct double {
 
 	public static bool try_parse (string str, out double result = null, out unowned string unparsed = null) {
 		char* endptr;
+		errno = 0;
 		result = ascii_strtod (str, out endptr);
 		if (endptr == (char*) str + str.length) {
 			unparsed = "";
-			return true;
+			return errno != ERANGE;
 		} else {
 			unparsed = (string) endptr;
 			return false;
@@ -1465,8 +1517,10 @@ public class string {
 		GLib.Memory.copy (dest, this, start);
 		dest += start;
 
-		GLib.Memory.copy (dest, str, str_size);
-		dest += str_size;
+		if (str != null) {
+			GLib.Memory.copy (dest, str, str_size);
+			dest += str_size;
+		}
 
 		GLib.Memory.copy (dest, (char*) this + end, string_length - end);
 
@@ -1564,11 +1618,19 @@ public class string16 {
 	}
 }
 
+// Required for proper error checking in *.try_parse()
+[CCode (cheader_filename = "errno.h")]
+private int errno;
+[CCode (cheader_filename = "errno.h")]
+private const int ERANGE;
+[CCode (cheader_filename = "errno.h")]
+private const int EINVAL;
+
 [CCode (cprefix = "G", lower_case_cprefix = "g_", cheader_filename = "glib.h", gir_namespace = "GLib", gir_version = "2.0")]
 namespace GLib {
 	[PointerType]
 	[GIR (fullname = "gpointer")]
-	[CCode (cname = "gpointer", const_cname = "gconstpointer", cheader_filename = "glib.h")]
+	[CCode (cname = "gpointer", const_cname = "gconstpointer", cheader_filename = "glib.h", default_value = "NULL")]
 	public struct pointer {
 	}
 
@@ -1850,6 +1912,15 @@ namespace GLib {
 		public void invoke_full (int priority, owned SourceFunc function);
 	}
 
+	[Compact]
+	[Version (since = "2.64")]
+	[CCode (free_function = "g_main_context_pusher_free")]
+	public class MainContextPusher {
+		public MainContextPusher (MainContext context);
+		[DestroysInstance]
+		public void free ();
+	}
+
 	[CCode (has_target = false)]
 	public delegate int PollFunc (PollFD[] ufds, int timeout_);
 
@@ -1889,9 +1960,15 @@ namespace GLib {
 		[CCode (cname = "G_PID_FORMAT")]
 		[Version (since = "2.50")]
 		public const string FORMAT;
+
+		[CCode (cname = "g_strdup_printf", instance_pos = -1)]
+		public string to_string (string format = "%" + FORMAT);
 	}
 
 	public delegate void ChildWatchFunc (Pid pid, int status);
+	[Version (since = "2.64")]
+	[CCode (has_target = false)]
+	public delegate void SourceDisposeFunc (Source source);
 
 	[CCode (cname = "GSource")]
 	public class ChildWatchSource : Source {
@@ -1910,6 +1987,12 @@ namespace GLib {
 		public int fd;
 		public IOCondition events;
 		public IOCondition revents;
+
+		[CCode (cname = "G_POLLFD_FORMAT")]
+		public const string FORMAT;
+
+		[CCode (cname = "g_strdup_printf", instance_pos = -1)]
+		public string to_string (string format = "%" + FORMAT);
 	}
 
 	[Compact]
@@ -1936,6 +2019,8 @@ namespace GLib {
 		public unowned MainContext get_context ();
 		public void set_callback (owned SourceFunc func);
 		public void set_callback_indirect (void* callback_data, SourceCallbackFuncs callback_funcs);
+		[Version (since = "2.64")]
+		public void set_dispose_function (SourceDisposeFunc dispose);
 		[Version (since = "2.36")]
 		public void* add_unix_fd (int fd, IOCondition events);
 		[Version (since = "2.36")]
@@ -2058,8 +2143,6 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -2072,9 +2155,11 @@ namespace GLib {
 	}
 
 	[Version (since = "2.44")]
-	[CCode (destroy_function = "g_mutex_locker_free")]
-	public struct MutexLocker {
+	[Compact]
+	[CCode (free_function = "g_mutex_locker_free")]
+	public class MutexLocker {
 		public MutexLocker (Mutex mutex);
+		[DestroysInstance]
 		public void free ();
 	}
 
@@ -2082,15 +2167,17 @@ namespace GLib {
 	[CCode (destroy_function = "g_rec_mutex_clear")]
 	public struct RecMutex {
 		public RecMutex ();
-		public void lock ();
+		public void @lock ();
 		public bool trylock ();
 		public void unlock ();
 	}
 
 	[Version (since = "2.60")]
-	[CCode (destroy_function = "g_rec_mutex_locker_free")]
-	public struct RecMutexLocker {
+	[Compact]
+	[CCode (free_function = "g_rec_mutex_locker_free")]
+	public class RecMutexLocker {
 		public RecMutexLocker (RecMutex rec_mutex);
+		[DestroysInstance]
 		public void free ();
 	}
 
@@ -2104,6 +2191,24 @@ namespace GLib {
 		public void reader_lock ();
 		public bool reader_trylock ();
 		public void reader_unlock ();
+	}
+
+	[Version (since = "2.62")]
+	[Compact]
+	[CCode (free_function = "g_rw_lock_reader_locker_free")]
+	public class RWLockReaderLocker {
+		public RWLockReaderLocker (RWLock rw_lock);
+		[DestroysInstance]
+		public void free ();
+	}
+
+	[Version (since = "2.62")]
+	[Compact]
+	[CCode (free_function = "g_rw_lock_writer_locker_free")]
+	public class RWLockWriterLocker {
+		public RWLockWriterLocker (RWLock rw_lock);
+		[DestroysInstance]
+		public void free ();
 	}
 
 	[Version (deprecated_since = "2.32", replacement = "Mutex")]
@@ -2304,7 +2409,7 @@ namespace GLib {
 		public static void* copy (void* dest, void* src, size_t n);
 		[CCode (cname = "memset")]
 		public static void* set (void* dest, int src, size_t n);
-		[CCode (cname = "g_memmove")]
+		[CCode (cname = "memmove")]
 		public static void* move (void* dest, void* src, size_t n);
 		[CCode (cname = "g_memdup")]
 		public static void* dup (void* mem, uint n);
@@ -2577,6 +2682,10 @@ namespace GLib {
 	public void warning (string format, ...);
 	[Diagnostics]
 	[PrintfFormat]
+	[Version (since = "2.64")]
+	public void warning_once (string format, ...);
+	[Diagnostics]
+	[PrintfFormat]
 	public void critical (string format, ...);
 	[Diagnostics]
 	[PrintfFormat]
@@ -2663,6 +2772,8 @@ namespace GLib {
 	public static string convert_with_fallback (string str, ssize_t len, string to_codeset, string from_codeset, string? fallback = null, out size_t bytes_read = null, out size_t bytes_written = null) throws ConvertError;
 	public static string convert_with_iconv (string str, ssize_t len, IConv converter, out size_t bytes_read = null, out size_t bytes_written = null) throws ConvertError;
 	public static bool get_charset (out unowned string charset);
+	[Version (since = "2.62")]
+	public static bool get_console_charset ([CCode (array_length = false, array_null_terminated = true)] out unowned string[] charsets);
 	public static bool get_filename_charsets ([CCode (array_length = false, array_null_terminated = true)] out unowned string[] charsets);
 
 	[SimpleType]
@@ -2766,6 +2877,7 @@ namespace GLib {
 
 	/* Date and Time Functions */
 
+	[Version (deprecated_since = "2.62")]
 	[CCode (has_type_id = false)]
 	public struct TimeVal {
 		public long tv_sec;
@@ -2773,6 +2885,7 @@ namespace GLib {
 
 		[CCode (cname = "g_get_current_time")]
 		public TimeVal ();
+		[Version (deprecated_since = "2.62", replacement = "get_real_time")]
 		[CCode (cname = "g_get_current_time")]
 		public void get_current_time ();
 		public void add (long microseconds);
@@ -2866,7 +2979,7 @@ namespace GLib {
 		public void set_julian (uint julian_day);
 		[Version (since = "2.10")]
 		public void set_time_t (time_t timet);
-		[Version (since = "2.10")]
+		[Version (deprecated_since = "2.62", since = "2.10")]
 		public void set_time_val (TimeVal timeval);
 		public void set_parse (string str);
 		public void add_days (uint n_days);
@@ -2979,10 +3092,12 @@ namespace GLib {
 		public DateTime.now_local ();
 		public DateTime.now_utc ();
 		[Version (since = "2.56")]
-		public DateTime.from_iso8601 (string text, TimeZone default_tz);
+		public DateTime.from_iso8601 (string text, TimeZone? default_tz);
 		public DateTime.from_unix_local (int64 t);
 		public DateTime.from_unix_utc (int64 t);
+		[Version (deprecated_since = "2.62")]
 		public DateTime.from_timeval_local (TimeVal tv);
+		[Version (deprecated_since = "2.62")]
 		public DateTime.from_timeval_utc (TimeVal tv);
 		public DateTime (TimeZone tz, int year, int month, int day, int hour, int minute, double seconds);
 		public DateTime.local (int year, int month, int day, int hour, int minute, double seconds);
@@ -3016,6 +3131,7 @@ namespace GLib {
 		[Version (since = "2.58")]
 		public unowned TimeZone get_timezone ();
 		public int64 to_unix ();
+		[Version (deprecated_since = "2.62")]
 		public bool to_timeval (out TimeVal tv);
 		public TimeSpan get_utc_offset ();
 		public unowned string get_timezone_abbreviation ();
@@ -3024,6 +3140,8 @@ namespace GLib {
 		public DateTime to_local ();
 		public DateTime to_utc ();
 		public string format (string format);
+		[Version (since = "2.62")]
+		public string format_iso8601 ();
 		public string to_string () {
 			return this.format ("%FT%H:%M:%S%z");
 		}
@@ -3145,6 +3263,9 @@ namespace GLib {
 		public static unowned string get_host_name ();
 		[CCode (cname = "g_get_home_dir")]
 		public static unowned string get_home_dir ();
+		[Version (since = "2.64")]
+		[CCode (cname = "g_get_os_info")]
+		public static string? get_os_info (string key_name);
 		[CCode (cname = "g_get_tmp_dir")]
 		public static unowned string get_tmp_dir ();
 		[CCode (cname = "g_get_current_dir")]
@@ -3195,6 +3316,22 @@ namespace GLib {
 		public static bool is_ip_address (string hostname);
 		public static string to_ascii (string hostname);
 		public static string to_unicode (string hostname);
+	}
+
+	[Version (since = "2.64")]
+	[CCode (lower_case_cprefix = "G_OS_INFO_KEY_")]
+	namespace OsInfoKey {
+		public const string NAME;
+		public const string PRETTY_NAME;
+		public const string VERSION;
+		public const string VERSION_CODENAME;
+		public const string VERSION_ID;
+		public const string ID;
+		public const string HOME_URL;
+		public const string DOCUMENTATION_URL;
+		public const string SUPPORT_URL;
+		public const string BUG_REPORT_URL;
+		public const string PRIVACY_POLICY_URL;
 	}
 
 	namespace Path {
@@ -3438,6 +3575,8 @@ namespace GLib {
 		[Version (since = "2.4")]
 		public void @continue ();
 		public double elapsed (out ulong microseconds = null);
+		[Version (since = "2.62")]
+		public bool is_active ();
 		public void reset ();
 	}
 
@@ -3674,11 +3813,7 @@ namespace GLib {
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h")]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h")]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -3699,6 +3834,9 @@ namespace GLib {
 		public static string read_link (string filename) throws FileError;
 		public static int error_from_errno (int err_no);
 
+		[Version (since = "2.64")]
+		[CCode (cname = "g_fsync")]
+		public static int fsync (int fd);
 		[CCode (cname = "g_mkstemp")]
 		public static int mkstemp (string tmpl);
 		[Version (since = "2.6")]
@@ -3719,11 +3857,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
@@ -3731,7 +3865,7 @@ namespace GLib {
 		public static bool close_checked (int fd) throws FileError;
 	}
 
-	[CCode (cname = "struct stat", cheader_filename = "sys/stat.h,glib/gstdio.h")]
+	[CCode (cname = "GStatBuf", cheader_filename = "glib/gstdio.h")]
 	public struct Stat {
 		public time_t st_atime;
 		public time_t st_mtime;
@@ -3775,6 +3909,8 @@ namespace GLib {
 	[CCode (ref_function = "g_mapped_file_ref", unref_function = "g_mapped_file_unref")]
 	public class MappedFile {
 		public MappedFile (string filename, bool writable) throws FileError;
+		[Version (since = "2.32")]
+		public MappedFile.from_fd (int fd, bool writable) throws FileError;
 		public size_t get_length ();
 		public unowned char* get_contents ();
 		[Version (since = "2.34")]
@@ -4140,14 +4276,15 @@ namespace GLib {
 		public void* get_user_data ();
 	}
 
+	[CCode (has_typedef = false)]
 	public delegate void MarkupParserStartElementFunc (MarkupParseContext context, string element_name, [CCode (array_length = false, array_null_terminated = true)] string[] attribute_names, [CCode (array_length = false, array_null_terminated = true)] string[] attribute_values) throws MarkupError;
-
+	[CCode (has_typedef = false)]
 	public delegate void MarkupParserEndElementFunc (MarkupParseContext context, string element_name) throws MarkupError;
-
+	[CCode (has_typedef = false)]
 	public delegate void MarkupParserTextFunc (MarkupParseContext context, string text, size_t text_len) throws MarkupError;
-
+	[CCode (has_typedef = false)]
 	public delegate void MarkupParserPassthroughFunc (MarkupParseContext context, string passthrough_text, size_t text_len) throws MarkupError;
-
+	[CCode (has_typedef = false)]
 	public delegate void MarkupParserErrorFunc (MarkupParseContext context, Error error);
 
 	public struct MarkupParser {
@@ -4435,6 +4572,8 @@ namespace GLib {
 		public static void bug_base (string uri_pattern);
 		[Version (since = "2.16")]
 		public static void bug (string bug_uri_snippet);
+		[Version (since = "2.62")]
+		public static void summary (string summary);
 		[Version (since = "2.16")]
 		public static void timer_start ();
 		[Version (since = "2.16")]
@@ -4541,6 +4680,9 @@ namespace GLib {
 		public void insert (owned G data, int position);
 		[ReturnsModifiedPointer ()]
 		public void insert_before (List<G> sibling, owned G data);
+		[ReturnsModifiedPointer ()]
+		[Version (since = "2.62")]
+		public void insert_before_link (List<G> sibling, owned List<G> link_);
 		[ReturnsModifiedPointer ()]
 		public void insert_sorted (owned G data, CompareFunc<G> compare_func);
 		[ReturnsModifiedPointer ()]
@@ -4654,7 +4796,7 @@ namespace GLib {
 
 	[Version (since = "2.16")]
 	[CCode (cname = "((GCompareFunc) g_strcmp0)")]
-	public static GLib.CompareFunc<string> strcmp;
+	public static GLib.CompareFunc<string?> strcmp;
 
 	public delegate G CopyFunc<G> (G src);
 
@@ -4714,8 +4856,12 @@ namespace GLib {
 		public void unlink (List<G> link);
 		[Version (since = "2.4")]
 		public void insert_before (List<G> sibling, owned G data);
+		[Version (since = "2.62")]
+		public void insert_before_link (List<G> sibling, owned List<G> link_);
 		[Version (since = "2.4")]
 		public void insert_after (List<G> sibling, owned G data);
+		[Version (since = "2.62")]
+		public void insert_after_link (List<G> sibling, owned List<G> link_);
 		[Version (since = "2.4")]
 		public void insert_sorted (owned G data, CompareDataFunc<G> func);
 	}
@@ -4946,6 +5092,9 @@ namespace GLib {
 	public static GLib.HashFunc<string> str_hash;
 	[CCode (cname = "g_str_equal")]
 	public static GLib.EqualFunc<string> str_equal;
+	[Version (since = "2.60")]
+	[CCode (cname = "((GEqualFunc) g_strv_equal)")]
+	public static GLib.EqualFunc<string[]> strv_equal;
 	[CCode (cname = "g_free")]
 	public static GLib.DestroyNotify g_free;
 	[CCode (cname = "g_list_free")]
@@ -5060,6 +5209,12 @@ namespace GLib {
 		[CCode (cname = "g_ptr_array_new_full", simple_generics = true)]
 		public GenericArray (uint reserved_size = 0);
 		public void add (owned G data);
+		[Version (since = "2.62")]
+		public GenericArray<G> copy (CopyFunc<G> func);
+		[Version (since = "2.62")]
+		public void extend (GenericArray<G> array, CopyFunc<G> func);
+		[Version (since = "2.62")]
+		public void extend_and_steal (owned GenericArray<G> array);
 		[Version (since = "2.54")]
 		public bool find (G needle, out uint index = null);
 		[Version (since = "2.54")]
@@ -5092,6 +5247,9 @@ namespace GLib {
 				return compare_func ((G**) (*a), (G**) (*b));
 			});
 		}
+		[Version (since = "2.64")]
+		[CCode (array_length_type = "gsize")]
+		public G[] steal ();
 		[Version (since = "2.58")]
 		public G steal_index (uint index);
 		[Version (since = "2.58")]
@@ -5173,6 +5331,9 @@ namespace GLib {
 		public void sort (CompareFunc<int8> compare_func);
 		public void sort_with_data (CompareDataFunc<int8> compare_func);
 		public void set_size (uint length);
+		[Version (since = "2.64")]
+		[CCode (array_length_type = "gsize")]
+		public uint8[] steal ();
 
 		public uint len;
 		[CCode (array_length_cname = "len", array_length_type = "guint")]
@@ -5304,6 +5465,10 @@ namespace GLib {
 		public Array.sized (bool zero_terminated = true, bool clear = true, ulong element_size = sizeof (G), uint reserved_size = 0);
 		public void append_val (owned G value);
 		public void append_vals (void* data, uint len);
+		[Version (since = "2.62")]
+		public bool binary_search (G target, CompareFunc<G> compare_func, out uint match_index);
+		[Version (since = "2.62")]
+		public Array<unowned G> copy ();
 		public void prepend_val (owned G value);
 		public void prepend_vals (void* data, uint len);
 		public void insert_val (uint index, owned G value);
@@ -5345,6 +5510,9 @@ namespace GLib {
 		public void set_size (uint length);
 		[Version (since = "2.32")]
 		public void set_clear_func (GLib.DestroyNotify clear_func);
+		[Version (since = "2.64")]
+		[CCode (array_length_type = "gsize")]
+		public G[] steal ();
 	}
 
 	/* GTree */
@@ -5401,6 +5569,8 @@ namespace GLib {
 	[Version (since = "2.18")]
 	[CCode (cname = "NC_", cheader_filename = "glib.h,glib/gi18n-lib.h")]
 	public static unowned string NC_ (string context, [FormatArg] string str);
+	[CCode (cname = "gettext", cheader_filename = "glib/gi18n-lib.h")]
+	public static unowned string gettext ([FormatArg] string str);
 	[CCode (cname = "ngettext", cheader_filename = "glib.h,glib/gi18n-lib.h")]
 	public static unowned string ngettext (string msgid, [FormatArg] string msgid_plural, ulong n);
 	[Version (since = "2.18")]
@@ -5507,6 +5677,9 @@ namespace GLib {
 		public const uint @2_54;
 		public const uint @2_56;
 		public const uint @2_58;
+		public const uint @2_60;
+		public const uint @2_62;
+		public const uint @2_64;
 
 		[CCode (cname = "glib_binary_age")]
 		public const uint binary_age;
@@ -5813,7 +5986,9 @@ namespace GLib {
 		UNEXPECTED_TOKEN,
 		UNKNOWN_KEYWORD,
 		UNTERMINATED_STRING_CONSTANT,
-		VALUE_EXPECTED;
+		VALUE_EXPECTED,
+		[Version (since = "2.64")]
+		RECURSION;
 		public static GLib.Quark quark ();
 	}
 
@@ -5902,6 +6077,11 @@ namespace GLib {
 			public SignalSource (int signum);
 		}
 
+#if UNIX
+		[Version (since = "2.64")]
+		[CCode (cheader_filename = "glib-unix.h")]
+		public static Posix.Passwd get_passwd_entry (string user_name) throws GLib.Error;
+#endif
 		[Version (since = "2.30")]
 		[CCode (cheader_filename = "glib-unix.h")]
 		public static bool open_pipe ([CCode (array_length = false, array_null_terminated = false)] int[] fds, int flags) throws GLib.Error;
@@ -6081,7 +6261,13 @@ namespace GLib {
 		MAKASAR,                /* Maka */
 		MEDEFAIDRIN,            /* Medf */
 		OLD_SOGDIAN,            /* Sogo */
-		SOGDIAN;                /* Sogd */
+		SOGDIAN,                /* Sogd */
+
+		/* Unicode 12.0 additions */
+		ELYMAIC,                /* Elym */
+		NANDINAGARI,            /* Nand */
+		NYIAKENG_PUACHUE_HMONG, /* Rohg */
+		WANCHO;                 /* Wcho */
 
 		[CCode (cname = "g_unicode_script_to_iso15924")]
 		public uint32 to_iso15924 ();
@@ -6181,11 +6367,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }

@@ -93,7 +93,7 @@ public class Vala.Delegate : TypeSymbol, Callable {
 		scope.add (p.name, p);
 	}
 
-	public List<TypeParameter> get_type_parameters () {
+	public unowned List<TypeParameter> get_type_parameters () {
 		return type_parameters;
 	}
 
@@ -123,11 +123,11 @@ public class Vala.Delegate : TypeSymbol, Callable {
 	}
 
 	/**
-	 * Return copy of parameter list.
+	 * Return the parameter list.
 	 *
 	 * @return parameter list
 	 */
-	public List<Parameter> get_parameters () {
+	public unowned List<Parameter> get_parameters () {
 		return parameters;
 	}
 
@@ -165,25 +165,31 @@ public class Vala.Delegate : TypeSymbol, Callable {
 
 		bool first = true;
 		foreach (Parameter param in parameters) {
+			DataType method_param_type;
 			/* use first callback parameter as instance parameter if
 			 * an instance method is being compared to a static
 			 * callback
 			 */
 			if (first && m.binding == MemberBinding.INSTANCE && !has_target) {
 				first = false;
-				continue;
-			}
-
-			/* method is allowed to accept less arguments */
-			if (!method_params_it.next ()) {
-				break;
+				method_param_type = SemanticAnalyzer.get_data_type_for_symbol (m.parent_symbol);
+			} else {
+				/* method is allowed to accept less arguments */
+				if (!method_params_it.next ()) {
+					break;
+				}
+				method_param_type = method_params_it.get ().variable_type;
 			}
 
 			// method is allowed to accept arguments of looser types (weaker precondition)
-			var method_param = method_params_it.get ();
-			if (!param.variable_type.get_actual_type (dt, null, this).stricter (method_param.variable_type)) {
+			if (!param.variable_type.get_actual_type (dt, null, this).stricter (method_param_type)) {
 				return false;
 			}
+		}
+
+		// delegate without target for instance method or closure
+		if (first && m.binding == MemberBinding.INSTANCE && !has_target) {
+			return false;
 		}
 
 		/* method may not expect more arguments */
@@ -305,8 +311,16 @@ public class Vala.Delegate : TypeSymbol, Callable {
 
 		return_type.check (context);
 
+		if (return_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
+			error = true;
+			Report.error (source_reference, "`%s' not supported as return type".printf (return_type.type_symbol.get_full_name ()));
+			return false;
+		}
+
 		foreach (Parameter param in parameters) {
-			param.check (context);
+			if (!param.check (context)) {
+				error = true;
+			}
 		}
 
 		if (error_types != null) {
