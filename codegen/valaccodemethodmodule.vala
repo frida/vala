@@ -69,7 +69,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		} else if (get_ccode_array_length (m) && m.return_type is ArrayType) {
 			// return array length if appropriate
 			var array_type = (ArrayType) m.return_type;
-			var length_ctype = (get_ccode_array_length_type (m) ?? get_ccode_array_length_type (array_type)) + "*";
+			var length_ctype = get_ccode_array_length_type (m) + "*";
 
 			for (int dim = 1; dim <= array_type.rank; dim++) {
 				var cparam = new CCodeParameter (get_array_length_cname ("result", dim), length_ctype);
@@ -78,7 +78,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 					carg_map.set (get_param_pos (get_ccode_array_length_pos (m) + 0.01 * dim), get_cexpression (cparam.name));
 				}
 			}
-		} else if (m.return_type is DelegateType) {
+		} else if (get_ccode_delegate_target (m) && m.return_type is DelegateType) {
 			// return delegate target if appropriate
 			var deleg_type = (DelegateType) m.return_type;
 			if (deleg_type.delegate_symbol.has_target) {
@@ -567,7 +567,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 							var array_type = (ArrayType) param.variable_type;
 
 							if (!array_type.fixed_length) {
-								var length_ctype = get_ccode_array_length_type (array_type);
+								var length_ctype = get_ccode_array_length_type (param);
 								for (int dim = 1; dim <= array_type.rank; dim++) {
 									vardecl = new CCodeVariableDeclarator.zero (get_array_length_cname ("_vala_%s".printf (get_ccode_name (param)), dim), new CCodeConstant ("0"));
 									ccode.add_declaration (length_ctype, vardecl);
@@ -732,6 +732,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			 * have a body, e.g. Vala.Parser.parse_file () */
 			if (m.body != null) {
 				if (current_method_inner_error) {
+					cfile.add_include ("glib.h");
 					/* always separate error parameter and inner_error local variable
 					 * as error may be set to NULL but we're always interested in inner errors
 					 */
@@ -828,8 +829,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 					ccode.add_expression (mem_profiler_init_call);
 				}
 			}
-
-			ccode.add_statement (new CCodeExpressionStatement (new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
 
 			var main_call = new CCodeFunctionCall (new CCodeIdentifier (function.name));
 			if (m.get_parameters ().size == 1) {
@@ -1153,6 +1152,8 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 	}
 
 	private void create_precondition_statement (Method m, DataType ret_type, Expression precondition) {
+		is_in_method_precondition = true;
+
 		var ccheck = new CCodeFunctionCall ();
 
 		precondition.emit (this);
@@ -1192,6 +1193,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		ccode.add_expression (ccheck);
 
 		current_method_return = true;
+		is_in_method_precondition = false;
 	}
 
 	public override void visit_creation_method (CreationMethod m) {

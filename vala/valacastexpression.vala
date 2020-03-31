@@ -32,7 +32,7 @@ public class Vala.CastExpression : Expression {
 		get {
 			return _inner;
 		}
-		set {
+		private set {
 			_inner = value;
 			_inner.parent_node = this;
 		}
@@ -43,7 +43,7 @@ public class Vala.CastExpression : Expression {
 	 */
 	public DataType type_reference {
 		get { return _data_type; }
-		set {
+		private set {
 			_data_type = value;
 			_data_type.parent_node = this;
 		}
@@ -185,6 +185,7 @@ public class Vala.CastExpression : Expression {
 			// GVariant unboxing returns owned value
 			value_type.value_owned = true;
 			if (value_type.get_type_signature () == null) {
+				error = true;
 				Report.error (source_reference, "Casting of `GLib.Variant' to `%s' is not supported".printf (value_type.to_qualified_string ()));
 			}
 		}

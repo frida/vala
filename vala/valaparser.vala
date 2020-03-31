@@ -1012,6 +1012,9 @@ public class Vala.Parser : CodeVisitor {
 			foreach (Expression size in size_specifier_list) {
 				expr.append_size (size);
 			}
+		} else if (initializer == null) {
+			Report.warning (src, "possibly missing array size");
+			throw new ParseError.SYNTAX ("expected array initializer list");
 		}
 		return expr;
 	}
@@ -2635,6 +2638,9 @@ public class Vala.Parser : CodeVisitor {
 		cl.access = access;
 		if (ModifierFlags.ABSTRACT in flags) {
 			cl.is_abstract = true;
+		}
+		if (ModifierFlags.SEALED in flags) {
+			cl.is_sealed = true;
 		}
 		if (ModifierFlags.EXTERN in flags) {
 			cl.is_extern = true;

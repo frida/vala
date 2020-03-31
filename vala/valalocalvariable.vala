@@ -100,9 +100,9 @@ public class Vala.LocalVariable : Variable {
 			if (variable_type is VoidType) {
 				error = true;
 				Report.error (source_reference, "'void' not supported as variable type");
-				return false;
+			} else if (!variable_type.check (context)) {
+				error = true;
 			}
-			variable_type.check (context);
 			if (!external_package) {
 				context.analyzer.check_type (variable_type);
 			}
@@ -112,7 +112,7 @@ public class Vala.LocalVariable : Variable {
 		bool is_initializer_list = false;
 		int initializer_size = -1;
 
-		if (initializer != null) {
+		if (initializer != null && !error) {
 			initializer.target_type = variable_type;
 
 			if (initializer is InitializerList) {
@@ -122,8 +122,14 @@ public class Vala.LocalVariable : Variable {
 
 			if (!initializer.check (context)) {
 				error = true;
-				return false;
 			}
+		}
+
+		// local variables are defined even on errors
+		context.analyzer.current_symbol.scope.add (name, this);
+
+		if (error) {
+			return false;
 		}
 
 		if (variable_type is VarType) {
@@ -155,14 +161,15 @@ public class Vala.LocalVariable : Variable {
 		}
 
 		unowned ArrayType? variable_array_type = variable_type as ArrayType;
-		if (variable_array_type != null && variable_array_type.fixed_length
+		if (variable_array_type != null && variable_array_type.inline_allocated
 		    && initializer is ArrayCreationExpression && ((ArrayCreationExpression) initializer).initializer_list == null) {
-			Report.warning (source_reference, "Arrays with fixed length don't require an explicit instantiation");
+			Report.warning (source_reference, "Inline allocated arrays don't require an explicit instantiation");
 			initializer = null;
 		}
 
 		if (variable_array_type != null && variable_array_type.inline_allocated
 		    && variable_array_type.length == null && !(initializer is ArrayCreationExpression)) {
+			error = true;
 			Report.error (source_reference, "Inline allocated array requires either a given length or an initializer");
 		}
 
@@ -218,8 +225,6 @@ public class Vala.LocalVariable : Variable {
 				}
 			}
 		}
-
-		context.analyzer.current_symbol.scope.add (name, this);
 
 		// current_symbol is a Method if this is the `result'
 		// variable used for postconditions

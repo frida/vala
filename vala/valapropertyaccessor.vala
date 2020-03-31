@@ -170,6 +170,7 @@ public class Vala.PropertyAccessor : Subroutine {
 					if (source_reference == null || source_reference.file == null) {
 						// Hopefully good as is
 					} else if (!value_type.value_owned && source_reference.file.file_type == SourceFileType.SOURCE) {
+						error = true;
 						Report.error (source_reference, "unowned return value for getter of property `%s' not supported without accessor".printf (prop.get_full_name ()));
 					}
 				} else if (value_type.value_owned && (source_reference == null || source_reference.file == null)) {
@@ -237,7 +238,9 @@ public class Vala.PropertyAccessor : Subroutine {
 			}
 
 			body.check (context);
+		}
 
+		if (body != null && !body.error) {
 			var error_types = new ArrayList<DataType> ();
 			body.get_error_types (error_types);
 			foreach (DataType body_error_type in error_types) {

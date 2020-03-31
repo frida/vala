@@ -146,9 +146,6 @@ Gesture
 Grid
   .attach*.width default=1
   .attach*.height default=1
-Icon
-  .download_colored_texture.*_color default=null
-  .snapshot_with_colors.*_color default=null
 Notebook
   .append_page.tab_label default=null
   .prepend_page.tab_label default=null
@@ -163,8 +160,6 @@ TextTag
   .new.name default=null
 TextMark
   .new.left_gravity default=false
-Window
-  .new.type default=Gtk.WindowType.TOPLEVEL
 
 // Ownership of out arguments
 CellRenderer
@@ -254,8 +249,6 @@ EntryBuffer
   .emit_inserted_text.chars type="uint8[]" array_length_idx=2
   .insert_text.chars type="uint8[]" array_length_idx=2
   .set_text.chars type="uint8[]" array_length_idx=1
-InfoBar
-  .get_content_area type="unowned Gtk.Container"
 ListStore
   .append return_void
   .move_after.iter ref
@@ -264,9 +257,6 @@ ListStore
   .remove.iter ref
 PaperSize
   .free destroys_instance
-SelectionData
-  .free destroys_instance
-  .get_data skip=false
 Snapshot
   .free_to_node destroys_instance
   .free_to_paintable destroys_instance
@@ -283,6 +273,8 @@ TextBuffer
   .insert*.iter ref
   .insert_text.pos ref
   .insert_text#signal.location ref
+TextIter
+  .order.second ref
 TextView
   .backward*.iter ref
   .forward*.iter ref
@@ -307,8 +299,6 @@ TreeView
 Widget
   .drag_*#method parent="Gtk" symbol_type="function"
   .get_allocation return_void
-  .grab_add parent="Gtk" symbol_type="function"
-  .grab_remove parent="Gtk" symbol_type="function"
   .size_allocate#method name="size_allocate_emit"
 TreeModel
   .get_value return_void

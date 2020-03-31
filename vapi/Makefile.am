@@ -13,6 +13,7 @@ vapidir = $(pkgdatadir)/vapi
 dist_vapi_DATA = \
 	alsa.vapi \
 	alsa.deps \
+	atk.deps \
 	atk.vapi \
 	atspi-2.vapi \
 	atspi-2.deps \
@@ -21,6 +22,8 @@ dist_vapi_DATA = \
 	avahi-gobject.vapi \
 	bzlib.vapi \
 	cairo.vapi \
+	cairo-gobject.deps \
+	cairo-gobject.vapi \
 	cairo-xcb.deps \
 	cairo-xcb.vapi \
 	ccss-1.vapi \
@@ -68,11 +71,13 @@ dist_vapi_DATA = \
 	gdl-3.0.vapi \
 	gedit-2.20.vapi \
 	gedit-2.20.deps \
+	gio-2.0.deps \
 	gio-2.0.vapi \
 	gio-unix-2.0.deps \
 	gio-unix-2.0.vapi \
 	gio-windows-2.0.deps \
 	gio-windows-2.0.vapi \
+	gmodule-2.0.deps \
 	gmodule-2.0.vapi \
 	gnet-2.0.deps \
 	gnet-2.0.vapi \
@@ -82,7 +87,9 @@ dist_vapi_DATA = \
 	gnome-desktop-3.0.vapi \
 	gnome-vfs-2.0.vapi \
 	gnutls.vapi \
+	gobject-2.0.deps \
 	gobject-2.0.vapi \
+	gobject-introspection-1.0.deps \
 	gobject-introspection-1.0.vapi \
 	goocanvas.deps \
 	goocanvas.vapi \
@@ -93,6 +100,7 @@ dist_vapi_DATA = \
 	graphene-gobject-1.0.deps \
 	graphene-gobject-1.0.vapi \
 	gsl.vapi \
+	gstreamer-1.0.deps \
 	gstreamer-1.0.vapi \
 	gstreamer-allocators-1.0.vapi \
 	gstreamer-allocators-1.0.deps \
@@ -154,6 +162,8 @@ dist_vapi_DATA = \
 	gudev-1.0.vapi \
 	hal.deps \
 	hal.vapi \
+	harfbuzz-gobject.deps \
+	harfbuzz-gobject.vapi \
 	hildon-1.deps \
 	hildon-1.vapi \
 	hildon-fm-2.deps \
@@ -363,6 +373,7 @@ GIR_BINDINGS = \
 	gtk+-3.0 \
 	gtk4 \
 	gudev-1.0 \
+	harfbuzz-gobject \
 	javascriptcoregtk-4.0 \
 	json-glib-1.0 \
 	libgeoclue-2.0 \
@@ -595,6 +606,9 @@ gtksourceview-2.0:
 gudev-1.0:
 	$(GENVAPI) --library $(srcdir)/gudev-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GUdev-1.0-custom.vala $(GIRDIR)/GUdev-1.0.gir
 
+harfbuzz-gobject:
+	$(GENVAPI) --library $(srcdir)/harfbuzz-gobject --metadatadir $(METADATADIR) $(GIRDIR)/HarfBuzz-0.0.gir
+
 hildon-1:
 	$(GENVAPI) --library $(srcdir)/hildon-1 $(PACKAGESDIR)/hildon-1/hildon-1-custom.vala $(PACKAGESDIR)/hildon-1/hildon-1.gi
 
@@ -665,7 +679,7 @@ packagekit-glib2:
 	$(GENVAPI) --library $(srcdir)/packagekit-glib2 --metadatadir $(METADATADIR) --pkg gio-2.0 $(GIRDIR)/PackageKitGlib-1.0.gir
 
 pango:
-	$(GENVAPI) --library $(srcdir)/pango --metadatadir $(METADATADIR) $(METADATADIR)/Pango-1.0-custom.vala $(GIRDIR)/Pango-1.0.gir
+	$(GENVAPI) --library $(srcdir)/pango --pkg cairo --pkg harfbuzz-gobject --metadatadir $(METADATADIR) $(METADATADIR)/Pango-1.0-custom.vala $(GIRDIR)/Pango-1.0.gir
 
 pangocairo:
 	$(GENVAPI) --library $(srcdir)/pangocairo --metadatadir $(METADATADIR) $(GIRDIR)/PangoCairo-1.0.gir

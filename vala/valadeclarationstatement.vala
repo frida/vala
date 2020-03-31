@@ -32,7 +32,7 @@ public class Vala.DeclarationStatement : CodeNode, Statement {
 		get {
 			return _declaration;
 		}
-		set {
+		private set {
 			_declaration = value;
 			if (_declaration != null) {
 				_declaration.parent_node = this;
@@ -79,7 +79,11 @@ public class Vala.DeclarationStatement : CodeNode, Statement {
 
 		checked = true;
 
-		declaration.check (context);
+		if (!declaration.check (context)) {
+			// ignore inner error
+			error = true;
+			return false;
+		}
 
 		return !error;
 	}

@@ -374,7 +374,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 					if (unary == null || unary.operator != UnaryOperator.OUT) {
 						if (get_ccode_array_length (param) && param.variable_type is ArrayType && !((ArrayType) param.variable_type).fixed_length) {
 							var array_type = (ArrayType) param.variable_type;
-							var length_ctype = get_ccode_array_length_type (param) ?? get_ccode_array_length_type (array_type);
+							var length_ctype = get_ccode_array_length_type (param);
 							if (unary != null && unary.operator == UnaryOperator.REF) {
 								length_ctype = "%s*".printf (length_ctype);
 							}
@@ -382,7 +382,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 								var array_length_expr = new CCodeCastExpression (get_array_length_cexpression (arg, dim), length_ctype);
 								carg_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), array_length_expr);
 							}
-						} else if (param.variable_type is DelegateType) {
+						} else if (get_ccode_delegate_target (param) && param.variable_type is DelegateType) {
 							var deleg_type = (DelegateType) param.variable_type;
 							if (deleg_type.delegate_symbol.has_target) {
 								CCodeExpression delegate_target_destroy_notify;
@@ -435,14 +435,14 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 						if (get_ccode_array_length (param) && param.variable_type is ArrayType && !((ArrayType) param.variable_type).fixed_length) {
 							var array_type = (ArrayType) param.variable_type;
-							var length_ctype = get_ccode_array_length_type (param) ?? get_ccode_array_length_type (array_type);
+							var length_ctype = get_ccode_array_length_type (param);
 							for (int dim = 1; dim <= array_type.rank; dim++) {
 								var temp_array_length = get_temp_variable (new CType (length_ctype, "0"), true, null, true);
 								emit_temp_var (temp_array_length);
 								append_array_length (arg, get_variable_cexpression (temp_array_length.name));
 								carg_map.set (get_param_pos (get_ccode_array_length_pos (param) + 0.01 * dim), new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, get_array_lengths (arg).get (dim - 1)));
 							}
-						} else if (param.variable_type is DelegateType) {
+						} else if (get_ccode_delegate_target (param) && param.variable_type is DelegateType) {
 							var deleg_type = (DelegateType) param.variable_type;
 							if (deleg_type.delegate_symbol.has_target) {
 								temp_var = get_temp_variable (new PointerType (new VoidType ()), true, null, true);
@@ -541,7 +541,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 					append_array_length (expr, len_call);
 				} else if (get_ccode_array_length (m)) {
-					var length_ctype = get_ccode_array_length_type (m) ?? get_ccode_array_length_type (array_type);
+					var length_ctype = get_ccode_array_length_type (m);
 					var temp_var = get_temp_variable (new CType (length_ctype, "0"), true, null, true);
 					var temp_ref = get_variable_cexpression (temp_var.name);
 
@@ -558,7 +558,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			}
 		} else if (m != null && m.return_type is DelegateType && async_call != ccall) {
 			var deleg_type = (DelegateType) m.return_type;
-			if (deleg_type.delegate_symbol.has_target) {
+			if (get_ccode_delegate_target (m) && deleg_type.delegate_symbol.has_target) {
 				var temp_var = get_temp_variable (new PointerType (new VoidType ()), true, null, true);
 				var temp_ref = get_variable_cexpression (temp_var.name);
 
@@ -582,6 +582,9 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				}
 			} else {
 				set_delegate_target (expr, new CCodeConstant ("NULL"));
+				if (deleg_type.delegate_symbol.has_target) {
+					set_delegate_target_destroy_notify (expr, new CCodeConstant ("NULL"));
+				}
 			}
 		}
 
@@ -605,7 +608,8 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 					append_array_length (expr, len_call);
 				} else if (get_ccode_array_length (deleg)) {
-					var temp_var = get_temp_variable (array_type.length_type, true, null, true);
+					var length_ctype = get_ccode_array_length_type (deleg);
+					var temp_var = get_temp_variable (new CType (length_ctype, "0"), true, null, true);
 					var temp_ref = get_variable_cexpression (temp_var.name);
 
 					emit_temp_var (temp_var);
@@ -617,7 +621,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 					append_array_length (expr, new CCodeConstant ("-1"));
 				}
 			}
-		} else if (deleg != null && deleg.return_type is DelegateType) {
+		} else if (deleg != null && deleg.return_type is DelegateType && get_ccode_delegate_target (deleg)) {
 			var deleg_type = (DelegateType) deleg.return_type;
 			if (deleg_type.delegate_symbol.has_target) {
 				var temp_var = get_temp_variable (new PointerType (new VoidType ()), true, null, true);
@@ -670,14 +674,10 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			}
 		}
 
-		if (itype is DelegateType) {
-			var deleg_type = (DelegateType) itype;
-			var d = deleg_type.delegate_symbol;
-			if (d.has_target) {
-				CCodeExpression delegate_target_destroy_notify;
-				in_arg_map.set (get_param_pos (get_ccode_instance_pos (d)), get_delegate_target_cexpression (expr.call, out delegate_target_destroy_notify));
-				out_arg_map.set (get_param_pos (get_ccode_instance_pos (d)), get_delegate_target_cexpression (expr.call, out delegate_target_destroy_notify));
-			}
+		if (deleg != null && deleg.has_target) {
+			CCodeExpression delegate_target_destroy_notify;
+			in_arg_map.set (get_param_pos (get_ccode_instance_pos (deleg)), get_delegate_target_cexpression (expr.call, out delegate_target_destroy_notify));
+			out_arg_map.set (get_param_pos (get_ccode_instance_pos (deleg)), get_delegate_target_cexpression (expr.call, out delegate_target_destroy_notify));
 		}
 
 		// structs are returned via out parameter
@@ -897,6 +897,20 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			}
 
 			var unary = arg as UnaryExpression;
+
+			// update possible stale _*_size_ variable
+			if (unary != null && unary.operator == UnaryOperator.REF) {
+				if (get_ccode_array_length (param) && param.variable_type is ArrayType
+				    && !((ArrayType) param.variable_type).fixed_length && ((ArrayType) param.variable_type).rank == 1) {
+					unowned Symbol? array_var = unary.inner.symbol_reference;
+					unowned LocalVariable? array_local = array_var as LocalVariable;
+					if (array_var != null && array_var.is_internal_symbol ()
+					    && ((array_local != null && !array_local.captured) || array_var is Field)) {
+						ccode.add_assignment (get_array_size_cvalue (unary.inner.target_value), get_array_length_cvalue (unary.inner.target_value, 1));
+					}
+				}
+			}
+
 			if (unary == null || unary.operator != UnaryOperator.OUT) {
 				continue;
 			}

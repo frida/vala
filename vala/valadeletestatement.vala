@@ -29,7 +29,7 @@ public class Vala.DeleteStatement : CodeNode, Statement {
 	 */
 	public Expression expression {
 		get { return _expression; }
-		set {
+		private set {
 			_expression = value;
 			_expression.parent_node = this;
 		}
@@ -65,6 +65,7 @@ public class Vala.DeleteStatement : CodeNode, Statement {
 
 		if (!expression.check (context)) {
 			// if there was an error in the inner expression, skip this check
+			error = true;
 			return false;
 		}
 

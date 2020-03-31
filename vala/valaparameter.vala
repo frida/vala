@@ -171,22 +171,27 @@ public class Vala.Parameter : Variable {
 			unowned ArrayType? variable_array_type = variable_type as ArrayType;
 			if (variable_array_type != null && variable_array_type.inline_allocated
 				&& !variable_array_type.fixed_length) {
+				error = true;
 				Report.error (source_reference, "Inline allocated array as parameter requires to have fixed length");
 			}
 		}
 
-		if (initializer != null) {
+		if (initializer != null && !initializer.error) {
 			if (initializer is NullLiteral
 			    && !variable_type.nullable
 			    && direction != ParameterDirection.OUT) {
 				Report.warning (source_reference, "`null' incompatible with parameter type `%s'".printf (variable_type.to_string ()));
 			} else if (!(initializer is NullLiteral) && direction == ParameterDirection.OUT) {
+				error = true;
 				Report.error (source_reference, "only `null' is allowed as default value for out parameters");
 			} else if (direction == ParameterDirection.IN && !initializer.value_type.compatible (variable_type)) {
+				error = true;
 				Report.error (initializer.source_reference, "Cannot convert from `%s' to `%s'".printf (initializer.value_type.to_string (), variable_type.to_string ()));
 			} else if (direction == ParameterDirection.REF) {
+				error = true;
 				Report.error (source_reference, "default value not allowed for ref parameter");
 			} else if (!initializer.is_accessible (this)) {
+				error = true;
 				Report.error (initializer.source_reference, "default value is less accessible than method `%s'".printf (parent_symbol.get_full_name ()));
 			}
 		}
@@ -205,8 +210,13 @@ public class Vala.Parameter : Variable {
 
 		unowned Method? m = parent_symbol as Method;
 		if (m != null) {
-			unowned Method? base_method = m.base_method != null ? m.base_method : m.base_interface_method;
-			if (base_method != null && base_method != m) {
+			unowned Method? base_method = null;
+			if (m.base_method != null && m.base_method != m) {
+				base_method = m.base_method;
+			} else if (m.base_interface_method != null && m.base_interface_method != m) {
+				base_method = m.base_interface_method;
+			}
+			if (base_method != null) {
 				int index = m.get_parameters ().index_of (this);
 				if (index >= 0) {
 					base_parameter = base_method.get_parameters ().get (index);

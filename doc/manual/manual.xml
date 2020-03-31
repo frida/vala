@@ -1085,14 +1085,25 @@
 
 <section>
 <title>Contract programming</title>
-<para>TODO: requires, ensures. </para>
-<para>requires ( ... ) Denotes things that must be true to start execution. </para>
-<para>ensures ( ... ) Denotes things that must be true to end execution. </para>
-</section>
-
-<section>
-<title>Examples</title>
-<para>TODO: write examples. </para>
+<para>Vala supports basic <ulink url="http://en.wikipedia.org/wiki/Contract_programming">contract programming</ulink> features.  A method may have preconditions (<code>requires</code>) and postconditions (<code>ensures</code>) that must be fulfilled at the beginning or the end of a method respectively: </para><programlisting format="linespecific" language="highlight" linenumbering="numbered" startinglinenumber="1"><token><![CDATA[double]]></token><![CDATA[ ]]><methodname><![CDATA[method_name]]></methodname><![CDATA[ (]]><token><![CDATA[int]]></token><![CDATA[ ]]><methodname><![CDATA[x]]></methodname><![CDATA[, ]]><token><![CDATA[double]]></token><![CDATA[ ]]><methodname><![CDATA[d]]></methodname><![CDATA[)]]>
+<![CDATA[                ]]><token><![CDATA[requires]]></token><![CDATA[ (]]><methodname><![CDATA[x]]></methodname><![CDATA[ > 0 && ]]><methodname><![CDATA[x]]></methodname><![CDATA[ < 10)]]>
+<![CDATA[                ]]><token><![CDATA[requires]]></token><![CDATA[ (]]><methodname><![CDATA[d]]></methodname><![CDATA[ >= 0.0 && ]]><methodname><![CDATA[d]]></methodname><![CDATA[ <= 1.0)]]>
+<![CDATA[                ]]><token><![CDATA[ensures]]></token><![CDATA[ (]]><methodname><![CDATA[result]]></methodname><![CDATA[ >= 0.0 && ]]><methodname><![CDATA[result]]></methodname><![CDATA[ <= 10.0) {]]>
+<![CDATA[        ]]><token><![CDATA[return]]></token><![CDATA[ ]]><methodname><![CDATA[d]]></methodname><![CDATA[ * ]]><methodname><![CDATA[x]]></methodname><![CDATA[;]]>
+<![CDATA[}]]>
+</programlisting>
+<para><code>result</code> is a special variable representing the return value.  </para>
+<para>For example, if you call <code>method_name</code> with arguments <code>5</code> and <code>3.0</code>, it will output a CRITICAL message and return 0.  </para><programlisting format="linespecific" language="highlight" linenumbering="numbered" startinglinenumber="1"><token><![CDATA[void]]></token><![CDATA[ ]]><methodname><![CDATA[main]]></methodname><![CDATA[ () {]]>
+<![CDATA[        ]]><methodname><![CDATA[stdout]]></methodname><![CDATA[.]]><methodname><![CDATA[printf]]></methodname><![CDATA[ (]]><phrase><![CDATA["]]></phrase><phrase><![CDATA[%i]]></phrase><![CDATA[
+]]><phrase><![CDATA["]]></phrase><![CDATA[, ]]><methodname><![CDATA[method_name]]></methodname><![CDATA[ (5, 3.0));]]>
+<![CDATA[}]]>
+</programlisting>
+<para>Output: </para><screen><![CDATA[CRITICAL **: 03:29:00.588: method_name: assertion 'd >= 0.0 && d <= 1.0' failed
+0]]></screen>
+<para>Vala allows you to manage the safety of issued messages at 6 levels: ERROR, CRITICAL, INFO, DEBUG, WARNING, MESSAGE. For example, the following code will cause a runtime error. </para><programlisting format="linespecific" language="highlight" linenumbering="numbered" startinglinenumber="1"><methodname><![CDATA[Log]]></methodname><![CDATA[.]]><methodname><![CDATA[set_always_fatal]]></methodname><![CDATA[ (]]><methodname><![CDATA[LogLevelFlags]]></methodname><![CDATA[.]]><methodname><![CDATA[LEVEL_CRITICAL]]></methodname><![CDATA[ | ]]><methodname><![CDATA[LogLevelFlags]]></methodname><![CDATA[.]]><methodname><![CDATA[LEVEL_WARNING]]></methodname><![CDATA[);]]>
+<methodname><![CDATA[stdout]]></methodname><![CDATA[.]]><methodname><![CDATA[printf]]></methodname><![CDATA[ (]]><phrase><![CDATA["]]></phrase><phrase><![CDATA[%i]]></phrase><![CDATA[
+]]><phrase><![CDATA["]]></phrase><![CDATA[, ]]><methodname><![CDATA[method_name]]></methodname><![CDATA[ (5, 3.0));]]>
+</programlisting>
 </section>
 </section>
 <para>Back to <ulink url="https://wiki.gnome.org/Projects/Vala/Manual/Export/Projects/Vala/Manual#">Vala Reference Manual</ulink> </para>
@@ -2256,8 +2267,7 @@
 <para>Give extra information to Vala that isn't included in code.  Mostly used internally in Vala. </para></listitem></itemizedlist>
 <para>Most of these attributes are only useful within bindings. Some, however, are useful in normal code: </para><itemizedlist><listitem>
 <para><code>[DBus]</code>, <code>[Description]</code>, <code>[Version]</code>, <code>[Signal]</code>, <code>[ModuleInit]</code> (if you're writing a module). </para></listitem><listitem>
-<para><code>CCode</code>'s <code>instance_pos</code> (if you're using <code>Gtk.Builder</code>'s signal auto-connection functionality). </para></listitem><listitem>
-<para><code>[ThreadLocal]</code> (if you're using the Dova profile). </para></listitem></itemizedlist>
+<para><code>CCode</code>'s <code>instance_pos</code> (if you're using <code>Gtk.Builder</code>'s signal auto-connection functionality). </para></listitem></itemizedlist>
 
 <section>
 <title>Applying attributes</title>
@@ -2279,7 +2289,8 @@
 <para> <emphasis role="strong">Description (optional)</emphasis></para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
 <para>array_length</para></entry><entry colsep="1" rowsep="1">
 <para>delegate, field, property, method, parameter</para></entry><entry colsep="1" rowsep="1">
-<para>bool</para></entry><entry colsep="1" rowsep="1"/></row><row rowsep="1"><entry colsep="1" rowsep="1">
+<para>bool</para></entry><entry colsep="1" rowsep="1"/></row><row rowsep="1"><entry colsep="1" nameend="col_3" namest="col_0" rowsep="1">
+<para> If the array length is unknown, setting array_length = false in the CCode attribute will cause Vala to set the array's .length property to -1 and not pass the length when used as a parameter.</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
 <para>array_length_cname</para></entry><entry colsep="1" rowsep="1">
 <para>field</para></entry><entry colsep="1" rowsep="1">
 <para>string</para></entry><entry colsep="1" rowsep="1"/></row><row rowsep="1"><entry colsep="1" rowsep="1">
@@ -2671,7 +2682,6 @@
 <para>ErrorBase</para></entry><entry colsep="1" rowsep="1">
 <para>class</para></entry><entry colsep="1" rowsep="1">
 <para>Only use by GLib.Error at the moment</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
-<para>Experimental</para></entry><entry colsep="1" rowsep="1"/></row><row rowsep="1"><entry colsep="1" rowsep="1">
 <para>Flags</para></entry><entry colsep="1" rowsep="1">
 <para>enum</para></entry><entry colsep="1" rowsep="1">
 <para>Marks the enum values to be flags</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
@@ -2687,9 +2697,6 @@
 <para>Marks the associated type as dynamic, and marks the method as a <ulink url="https://valadoc.org/gobject-2.0/GLib.TypeModule">TypeModule</ulink> init function. See <ulink url="https://wiki.gnome.org/Projects/Vala/TypeModuleSample">TypeModule example</ulink></para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
 <para>NoAccessorMethod</para></entry><entry colsep="1" rowsep="1">
 <para>property</para></entry><entry colsep="1" rowsep="1"/></row><row rowsep="1"><entry colsep="1" rowsep="1">
-<para>NoArrayLength</para></entry><entry colsep="1" rowsep="1">
-<para>method</para></entry><entry colsep="1" rowsep="1">
-<para>Deprecated, use <code>[CCode (array_length = false)]</code> instead</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
 <para>NoReturn</para></entry><entry colsep="1" rowsep="1">
 <para>method</para></entry><entry colsep="1" rowsep="1">
 <para>Once the method is called, it will never return</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
@@ -2710,9 +2717,9 @@
 <para>ScanfFormat</para></entry><entry colsep="1" rowsep="1">
 <para>method</para></entry><entry colsep="1" rowsep="1">
 <para>See also PrintFormat attribute</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
-<para>ThreadLocal</para></entry><entry colsep="1" rowsep="1">
-<para>field</para></entry><entry colsep="1" rowsep="1">
-<para>Thread local fields. Dova profile only</para></entry></row></tbody></tgroup></informaltable>
+<para>SingleInstance</para></entry><entry colsep="1" rowsep="1">
+<para>class</para></entry><entry colsep="1" rowsep="1">
+<para>Makes the class a thread-safe singleton</para></entry></row></tbody></tgroup></informaltable>
 </section>
 
 <section>
@@ -2726,7 +2733,10 @@
 <para> [Version (deprecated = true, deprecated_since = &quot;&quot;, replacement = &quot;&quot;)]</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
 <para>Experimental </para></entry><entry colsep="1" rowsep="1">
 <para>0.31.1 </para></entry><entry colsep="1" rowsep="1">
-<para>[Version (experimental = true, experimental_until = &quot;&quot;)]</para></entry></row></tbody></tgroup></informaltable>
+<para>[Version (experimental = true, experimental_until = &quot;&quot;)]</para></entry></row><row rowsep="1"><entry colsep="1" rowsep="1">
+<para>NoArrayLength</para></entry><entry colsep="1" rowsep="1">
+<para>0.7.10</para></entry><entry colsep="1" rowsep="1">
+<para>[CCode (array_length = false)]</para></entry></row></tbody></tgroup></informaltable>
 </section>
 
 <section>

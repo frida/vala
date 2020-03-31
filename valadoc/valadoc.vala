@@ -55,7 +55,7 @@ public class ValaDoc : Object {
 	private static string[] defines;
 	private static bool experimental;
 	private static bool experimental_non_null = false;
-	private static string profile;
+	private static Vala.Profile profile;
 	[CCode (array_length = false, array_null_terminated = true)]
 	private static string[] import_packages;
 	[CCode (array_length = false, array_null_terminated = true)]
@@ -79,7 +79,7 @@ public class ValaDoc : Object {
 
 		{ "basedir", 'b', 0, OptionArg.FILENAME, ref basedir, "Base source directory", "DIRECTORY" },
 		{ "define", 'D', 0, OptionArg.STRING_ARRAY, ref defines, "Define SYMBOL", "SYMBOL..." },
-		{ "profile", 0, 0, OptionArg.STRING, ref profile, "Use the given profile instead of the default", "PROFILE" },
+		{ "profile", 0, OptionFlags.OPTIONAL_ARG, OptionArg.CALLBACK, (void*) option_parse_profile, "Use the given profile instead of the default, options are 'gobject' or 'posix'", "PROFILE" },
 
 		{ "enable-experimental", 0, 0, OptionArg.NONE, ref experimental, "Enable experimental features", null },
 		{ "enable-experimental-non-null", 0, 0, OptionArg.NONE, ref experimental_non_null, "Enable experimental enhancements for non-null types", null },
@@ -123,6 +123,17 @@ public class ValaDoc : Object {
 		{ null }
 	};
 
+	static bool option_parse_profile (string option_name, string? val, void* data) throws OptionError {
+		switch (val) {
+			case null:
+			case "gobject-2.0":
+			case "gobject": profile = Vala.Profile.GOBJECT; break;
+			case "posix": profile = Vala.Profile.POSIX; break;
+			default: throw new OptionError.FAILED ("Invalid --profile argument '%s'", val);
+		}
+		return true;
+	}
+
 	static bool option_deprecated (string option_name, string? val, void* data) throws OptionError {
 		stdout.printf ("Command-line option `%s` is deprecated and will be ignored\n", option_name);
 		return true;
@@ -131,9 +142,11 @@ public class ValaDoc : Object {
 	private static int quit (ErrorReporter reporter) {
 		if (reporter.errors == 0 && (!fatal_warnings || reporter.warnings == 0)) {
 			stdout.printf ("Succeeded - %d warning(s)\n", reporter.warnings);
+			Vala.CodeContext.pop ();
 			return 0;
 		} else {
 			stdout.printf ("Failed: %d error(s), %d warning(s)\n", reporter.errors, reporter.warnings);
+			Vala.CodeContext.pop ();
 			return 1;
 		}
 	}
@@ -231,6 +244,8 @@ public class ValaDoc : Object {
 
 		settings.alternative_resource_dirs = alternative_resource_dirs;
 
+		var context = new Vala.CodeContext ();
+		Vala.CodeContext.push (context);
 
 		// load plugins:
 		Doclet? doclet = null;

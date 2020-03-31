@@ -32,7 +32,7 @@ public class Vala.ThrowStatement : CodeNode, Statement {
 		get {
 			return _error_expression;
 		}
-		set {
+		private set {
 			_error_expression = value;
 			if (_error_expression != null) {
 				_error_expression.parent_node = this;
@@ -73,6 +73,9 @@ public class Vala.ThrowStatement : CodeNode, Statement {
 	}
 
 	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		if (error) {
+			return;
+		}
 		if (source_reference == null) {
 			source_reference = this.source_reference;
 		}

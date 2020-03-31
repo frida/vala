@@ -62,6 +62,7 @@ public class Vala.GirParser : CodeVisitor {
 		VFUNC_NAME,
 		VIRTUAL,
 		ABSTRACT,
+		SEALED,
 		SCOPE,
 		STRUCT,
 		THROWS,
@@ -947,6 +948,9 @@ public class Vala.GirParser : CodeVisitor {
 									}
 									node.merged = true;
 								}
+							} else if (m.is_class_member ()) {
+								Report.warning (symbol.source_reference, "Class method `%s' conflicts with method of the same name".printf (get_full_name ()));
+								node.merged = true;
 							}
 						}
 					}
@@ -1305,7 +1309,6 @@ public class Vala.GirParser : CodeVisitor {
 	MarkupReader reader;
 
 	CodeContext context;
-	Namespace glib_ns;
 
 	SourceFile current_source_file;
 	Node root;
@@ -1327,6 +1330,7 @@ public class Vala.GirParser : CodeVisitor {
 	HashMap<UnresolvedSymbol,Symbol> unresolved_symbols_map = new HashMap<UnresolvedSymbol,Symbol> (unresolved_symbol_hash, unresolved_symbol_equal);
 	ArrayList<UnresolvedSymbol> unresolved_gir_symbols = new ArrayList<UnresolvedSymbol> ();
 	HashMap<UnresolvedType,Node> unresolved_type_arguments = new HashMap<UnresolvedType,Node> ();
+	ArrayList<Interface> ifaces_needing_object_prereq = new ArrayList<Interface> ();
 
 	/**
 	 * Parses all .gir source files in the specified code
@@ -1336,7 +1340,6 @@ public class Vala.GirParser : CodeVisitor {
 	 */
 	public void parse (CodeContext context) {
 		this.context = context;
-		glib_ns = context.root.scope.lookup ("GLib") as Namespace;
 
 		root = new Node (null);
 		root.symbol = context.root;
@@ -1352,6 +1355,16 @@ public class Vala.GirParser : CodeVisitor {
 		resolve_type_arguments ();
 
 		root.process (this);
+
+		/* Temporarily workaround G-I bug not adding GLib.Object prerequisite:
+		   ensure we have at least one instantiable prerequisite */
+		var glib_ns = context.root.scope.lookup ("GLib") as Namespace;
+		if (glib_ns != null) {
+			var object_type = (Class) glib_ns.scope.lookup ("Object");
+			foreach (var iface in ifaces_needing_object_prereq) {
+				iface.add_prerequisite (new ObjectType (object_type));
+			}
+		}
 
 		foreach (var metadata in metadata_roots) {
 			report_unused_metadata (metadata);
@@ -1857,6 +1870,8 @@ public class Vala.GirParser : CodeVisitor {
 	}
 
 	string? element_get_name (string? gir_name = null) {
+		unowned string tag = reader.name;
+
 		var name = gir_name;
 		if (name == null) {
 			name = reader.get_attribute ("name");
@@ -1880,7 +1895,9 @@ public class Vala.GirParser : CodeVisitor {
 					name = pattern;
 				}
 			}
-		} else {
+		} else if (tag == "enumeration") {
+			// FIXME Stripping "Enum"-suffix is required for error-domains
+			// Applied to all enumerations to preserve backwards compatibility
 			if (name != null && name.has_suffix ("Enum")) {
 				name = name.substring (0, name.length - "Enum".length);
 			}
@@ -2881,6 +2898,7 @@ public class Vala.GirParser : CodeVisitor {
 		if (current.new_symbol) {
 			cl = new Class (current.name, current.source_reference);
 			cl.is_abstract = metadata.get_bool (ArgumentType.ABSTRACT, reader.get_attribute ("abstract") == "1");
+			cl.is_sealed = metadata.get_bool (ArgumentType.SEALED, false);
 
 			if (parent != null) {
 				cl.add_base_type (parse_type_from_gir_name (parent));
@@ -3737,7 +3755,7 @@ public class Vala.GirParser : CodeVisitor {
 		}
 
 		if (!has_instantiable_prereq) {
-			iface.add_prerequisite (new ObjectType ((ObjectTypeSymbol) glib_ns.scope.lookup ("Object")));
+			ifaces_needing_object_prereq.add (iface);
 		}
 	}
 
@@ -4110,6 +4128,7 @@ public class Vala.GirParser : CodeVisitor {
 					ns.remove_member (node);
 					node.name = new_name;
 					node.parameters.remove_at (0);
+					node.return_array_length_idx--;
 					method.name = new_name;
 					method.binding = MemberBinding.INSTANCE;
 					parent.add_member (node);

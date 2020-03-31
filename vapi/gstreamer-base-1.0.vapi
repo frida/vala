@@ -89,7 +89,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool sink_event (Gst.Base.AggregatorPad aggregator_pad, Gst.Event event);
 			[NoWrapper]
-			public virtual bool sink_event_pre_queue (Gst.Base.AggregatorPad aggregator_pad, Gst.Event event);
+			public virtual Gst.FlowReturn sink_event_pre_queue (Gst.Base.AggregatorPad aggregator_pad, Gst.Event event);
 			[NoWrapper]
 			public virtual bool sink_query (Gst.Base.AggregatorPad aggregator_pad, Gst.Query query);
 			[NoWrapper]
@@ -799,6 +799,8 @@ namespace Gst {
 			public virtual bool propose_allocation (Gst.Query decide_query, Gst.Query query);
 			[NoWrapper]
 			public virtual bool query (Gst.PadDirection direction, Gst.Query query);
+			[Version (since = "1.18")]
+			public bool reconfigure ();
 			public void reconfigure_sink ();
 			public void reconfigure_src ();
 			[NoWrapper]

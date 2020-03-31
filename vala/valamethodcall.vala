@@ -466,6 +466,7 @@ public class Vala.MethodCall : Expression {
 			if (format_literal != null) {
 				string format = format_literal.eval ();
 				if (!context.analyzer.check_print_format (format, arg_it, source_reference)) {
+					error = true;
 					return false;
 				}
 			}
@@ -473,7 +474,10 @@ public class Vala.MethodCall : Expression {
 
 		bool force_lambda_method_closure = false;
 		foreach (Expression arg in argument_list) {
-			arg.check (context);
+			if (!arg.check (context)) {
+				error = true;
+				continue;
+			}
 
 			if (arg is LambdaExpression && ((LambdaExpression) arg).method.closure) {
 				force_lambda_method_closure = true;
@@ -481,7 +485,7 @@ public class Vala.MethodCall : Expression {
 		}
 		// force all lambda arguments using the same closure scope
 		// TODO https://gitlab.gnome.org/GNOME/vala/issues/59
-		if (force_lambda_method_closure) {
+		if (!error && force_lambda_method_closure) {
 			foreach (Expression arg in argument_list) {
 				unowned LambdaExpression? lambda = arg as LambdaExpression;
 				if (lambda != null && lambda.method.binding != MemberBinding.STATIC) {
@@ -652,6 +656,7 @@ public class Vala.MethodCall : Expression {
 				// simple statements, no side effects after method call
 			} else if (!(context.analyzer.current_symbol is Block)) {
 				// can't handle errors in field initializers
+				error = true;
 				Report.error (source_reference, "Field initializers must not throw errors");
 			} else {
 				// store parent_node as we need to replace the expression in the old parent node later on

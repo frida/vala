@@ -31,7 +31,6 @@ VALAC=$topbuilddir/compiler/valac$EXEEXT
 VALAFLAGS="$VALAFLAGS \
 	--vapidir $vapidir \
 	--disable-warnings \
-	--main main \
 	--save-temps \
 	--cc $CC \
 	-X -g \
@@ -116,7 +115,7 @@ function sourceend() {
 		if [ $INVALIDCODE -eq 1 ]; then
 			PACKAGEFLAGS=$([ -z "$PACKAGES" ] || echo $PACKAGES | xargs -n 1 echo -n " --pkg")
 			echo '' > prepare
-			echo "$VALAC $VALAFLAGS $PACKAGEFLAGS -C $SOURCEFILE" > check
+			echo "G_DEBUG=fatal-warnings $VALAC $VALAFLAGS $PACKAGEFLAGS -C $SOURCEFILE" > check
 			echo "RET=\$?" >> check
 			echo "if [ \$RET -ne 1 ]; then exit 1; fi" >> check
 			echo "exit 0" >> check
@@ -152,7 +151,7 @@ all=0
 fail=0
 EOF
 
-PACKAGES=gio-2.0
+PACKAGES=$([ -z "$PACKAGES" ] && echo "gio-2.0" || echo $PACKAGES)
 for testfile in "$@"; do
 	rm -f prepare check
 	echo 'set -e' >> prepare

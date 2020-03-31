@@ -599,16 +599,6 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		}
 	}
 
-	bool always_true (Expression condition) {
-		unowned BooleanLiteral? literal = condition as BooleanLiteral;
-		return (literal != null && literal.value);
-	}
-
-	bool always_false (Expression condition) {
-		unowned BooleanLiteral? literal = condition as BooleanLiteral;
-		return (literal != null && !literal.value);
-	}
-
 	public override void visit_if_statement (IfStatement stmt) {
 		if (unreachable (stmt)) {
 			return;
@@ -621,7 +611,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 
 		// true block
 		var last_block = current_block;
-		if (always_false (stmt.condition)) {
+		if (stmt.condition.is_always_false ()) {
 			mark_unreachable ();
 		} else {
 			current_block = new BasicBlock ();
@@ -632,7 +622,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 
 		// false block
 		var last_true_block = current_block;
-		if (always_true (stmt.condition)) {
+		if (stmt.condition.is_always_true ()) {
 			mark_unreachable ();
 		} else {
 			current_block = new BasicBlock ();
@@ -987,7 +977,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			var error_block = new BasicBlock ();
 			all_basic_blocks.add (error_block);
 
-			if (catch_clause.error_type != null) {
+			if (catch_clause.error_type != null && !catch_clause.error) {
 				if (context.profile == Profile.GOBJECT) {
 					unowned ErrorType error_type = (ErrorType) catch_clause.error_type;
 					jump_stack.add (new JumpTarget.error_target (error_block, catch_clause, catch_clause.error_type.type_symbol as ErrorDomain, error_type.error_code, null));

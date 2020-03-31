@@ -356,7 +356,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 			var array_type = prop.property_type as ArrayType;
 			if (array_type != null && get_ccode_array_length (prop)) {
-				var length_ctype = get_ccode_array_length_type (array_type) + "*";
+				var length_ctype = get_ccode_array_length_type (prop) + "*";
 				for (int dim = 1; dim <= array_type.rank; dim++) {
 					vdeclarator.add_parameter (new CCodeParameter (get_array_length_cname ("result", dim), length_ctype));
 				}
@@ -387,12 +387,15 @@ public class Vala.GTypeModule : GErrorModule {
 
 			var array_type = prop.property_type as ArrayType;
 			if (array_type != null && get_ccode_array_length (prop)) {
-				var length_ctype = get_ccode_array_length_type (array_type);
+				var length_ctype = get_ccode_array_length_type (prop);
 				for (int dim = 1; dim <= array_type.rank; dim++) {
 					vdeclarator.add_parameter (new CCodeParameter (get_array_length_cname ("value", dim), length_ctype));
 				}
 			} else if ((prop.property_type is DelegateType) && get_ccode_delegate_target (prop) && ((DelegateType) prop.property_type).delegate_symbol.has_target) {
 				vdeclarator.add_parameter (new CCodeParameter (get_delegate_target_cname ("value"), "gpointer"));
+				if (prop.set_accessor.value_type.value_owned) {
+					vdeclarator.add_parameter (new CCodeParameter (get_delegate_target_destroy_notify_cname ("value"), get_ccode_name (delegate_target_destroy_type)));
+				}
 			}
 
 			var vdecl = new CCodeDeclaration ("void");
@@ -2367,6 +2370,9 @@ public class Vala.GTypeModule : GErrorModule {
 			ccheck.add_argument (cnonnull);
 		}
 
+		// g_return_* needs glib.h
+		cfile.add_include ("glib.h");
+
 		var cm = method_node as CreationMethod;
 		if (cm != null && cm.parent_symbol is ObjectTypeSymbol) {
 			ccheck.call = new CCodeIdentifier ("g_return_val_if_fail");
@@ -2388,5 +2394,41 @@ public class Vala.GTypeModule : GErrorModule {
 		}
 
 		ccode.add_expression (ccheck);
+	}
+
+	public override void visit_cast_expression (CastExpression expr) {
+		unowned ObjectTypeSymbol? type_symbol = expr.type_reference.type_symbol as ObjectTypeSymbol;
+
+		if (type_symbol == null || (type_symbol is Class && ((Class) type_symbol).is_compact)) {
+			base.visit_cast_expression (expr);
+			return;
+		}
+
+		generate_type_declaration (expr.type_reference, cfile);
+
+		// checked cast for strict subtypes of GTypeInstance
+		if (expr.is_silent_cast) {
+			TargetValue to_cast = expr.inner.target_value;
+			CCodeExpression cexpr;
+			if (!get_lvalue (to_cast)) {
+				to_cast = store_temp_value (to_cast, expr);
+			}
+			cexpr = get_cvalue_ (to_cast);
+			var ccheck = create_type_check (cexpr, expr.type_reference);
+			var ccast = new CCodeCastExpression (cexpr, get_ccode_name (expr.type_reference));
+			var cnull = new CCodeConstant ("NULL");
+			var cast_value = new GLibValue (expr.value_type, new CCodeConditionalExpression (ccheck, ccast, cnull));
+			if (requires_destroy (expr.inner.value_type)) {
+				var casted = store_temp_value (cast_value, expr);
+				ccode.open_if (new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, get_cvalue_ (casted), new CCodeConstant ("NULL")));
+				ccode.add_expression (destroy_value (to_cast));
+				ccode.close ();
+				expr.target_value = ((GLibValue) casted).copy ();
+			} else {
+				expr.target_value = cast_value;
+			}
+		} else {
+			set_cvalue (expr, generate_instance_cast (get_cvalue (expr.inner), expr.type_reference.type_symbol));
+		}
 	}
 }

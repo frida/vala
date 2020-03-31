@@ -32,7 +32,7 @@ public class Vala.Assignment : Expression {
 	 */
 	public Expression left {
 		get { return _left; }
-		set {
+		private set {
 			_left = value;
 			_left.parent_node = this;
 		}
@@ -41,14 +41,14 @@ public class Vala.Assignment : Expression {
 	/**
 	 * Assignment operator.
 	 */
-	public AssignmentOperator operator { get; set; }
+	public AssignmentOperator operator { get; private set; }
 
 	/**
 	 * Right hand side of the assignment.
 	 */
 	public Expression right {
 		get { return _right; }
-		set {
+		private set {
 			_right = value;
 			_right.parent_node = this;
 		}
@@ -283,9 +283,11 @@ public class Vala.Assignment : Expression {
 				           && context.analyzer.find_current_method () is CreationMethod) {
 					if (ma.inner.symbol_reference != context.analyzer.find_current_method ().this_parameter) {
 						// trying to set construct-only property in creation method for foreign instance
+						error = true;
 						Report.error (ma.source_reference, "Property `%s' is read-only".printf (prop.get_full_name ()));
 						return false;
 					} else {
+						error = true;
 						Report.error (ma.source_reference, "Cannot assign to construct-only properties, use Object (property: value) constructor chain up");
 						return false;
 					}
@@ -314,9 +316,9 @@ public class Vala.Assignment : Expression {
 			} else if (ma.symbol_reference is Variable) {
 				unowned Variable variable = (Variable) ma.symbol_reference;
 				unowned ArrayType? variable_array_type = variable.variable_type as ArrayType;
-				if (variable_array_type != null && variable_array_type.fixed_length
+				if (variable_array_type != null && variable_array_type.inline_allocated
 				    && right is ArrayCreationExpression && ((ArrayCreationExpression) right).initializer_list == null) {
-					Report.warning (source_reference, "Arrays with fixed length don't require an explicit instantiation");
+					Report.warning (source_reference, "Inline allocated arrays don't require an explicit instantiation");
 					((Block) parent_node.parent_node).replace_statement ((Statement) parent_node, new EmptyStatement (source_reference));
 					return true;
 				}
@@ -425,6 +427,8 @@ public class Vala.Assignment : Expression {
 		if (binary != null && binary.left.value_type is ArrayType) {
 			if (binary.operator == BinaryOperator.PLUS) {
 				if (left.symbol_reference == binary.left.symbol_reference) {
+					// Allow direct access to array variable
+					binary.left.lvalue = true;
 					return true;
 				}
 			}

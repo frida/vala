@@ -33,18 +33,18 @@ public class Vala.LambdaExpression : Expression {
 	 * The expression body of this lambda expression. Only one of
 	 * expression_body or statement_body may be set.
 	 */
-	public Expression expression_body { get; set; }
+	public Expression expression_body { get; private set; }
 
 	/**
 	 * The statement body of this lambda expression. Only one of
 	 * expression_body or statement_body may be set.
 	 */
-	public Block statement_body { get; set; }
+	public Block statement_body { get; private set; }
 
 	/**
 	 * The generated method.
 	 */
-	public Method method { get; set; }
+	public Method method { get; private set; }
 
 	private List<Parameter> parameters = new ArrayList<Parameter> ();
 
@@ -137,6 +137,14 @@ public class Vala.LambdaExpression : Expression {
 		method.used = true;
 		method.version.check (source_reference);
 
+		if (return_type is ArrayType) {
+			method.copy_attribute_bool (cb, "CCode", "array_length");
+			method.copy_attribute_bool (cb, "CCode", "array_null_terminated");
+			method.copy_attribute_string (cb, "CCode", "array_length_type");
+		} else if (return_type is DelegateType) {
+			method.copy_attribute_bool (cb, "CCode", "delegate_target");
+		}
+
 		if (!cb.has_target || !context.analyzer.is_in_instance_method ()) {
 			method.binding = MemberBinding.STATIC;
 		} else {
@@ -187,6 +195,7 @@ public class Vala.LambdaExpression : Expression {
 			}
 
 			lambda_param.variable_type = cb_param.variable_type.get_actual_type (target_type, null, this);
+			lambda_param.base_parameter = cb_param;
 			method.add_parameter (lambda_param);
 		}
 
@@ -249,7 +258,7 @@ public class Vala.LambdaExpression : Expression {
 
 	public override void get_used_variables (Collection<Variable> collection) {
 		// require captured variables to be initialized
-		if (method.closure) {
+		if (method != null && method.closure) {
 			method.get_captured_variables ((Collection<LocalVariable>) collection);
 		}
 	}

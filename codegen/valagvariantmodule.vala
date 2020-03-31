@@ -20,7 +20,7 @@
  * 	Jürg Billeter <j@bitron.ch>
  */
 
-public class Vala.GVariantModule : GAsyncModule {
+public class Vala.GVariantModule : GValueModule {
 	struct BasicTypeInfo {
 		public unowned string signature;
 		public unowned string type_name;
@@ -576,6 +576,7 @@ public class Vala.GVariantModule : GAsyncModule {
 
 		if (result == null) {
 			Report.error (type.source_reference, "GVariant deserialization of type `%s' is not supported".printf (type.to_string ()));
+			return new CCodeInvalidExpression ();
 		}
 
 		return result;
@@ -868,6 +869,7 @@ public class Vala.GVariantModule : GAsyncModule {
 
 		if (result == null) {
 			Report.error (type.source_reference, "GVariant serialization of type `%s' is not supported".printf (type.to_string ()));
+			return new CCodeInvalidExpression ();
 		}
 
 		return result;
