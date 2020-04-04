@@ -24,6 +24,7 @@ TESTS = \
 	basic-types/integers.vala \
 	basic-types/escape-chars.vala \
 	basic-types/floats.vala \
+	basic-types/boolean.vala \
 	basic-types/custom-types.vala \
 	basic-types/default-gtype.vala \
 	basic-types/strings.vala \
@@ -186,10 +187,12 @@ TESTS = \
 	control-flow/assigned-local-variable.vala \
 	control-flow/break.vala \
 	control-flow/break-invalid.test \
+	control-flow/coalesce-as-argument.vala \
 	control-flow/coalesce-execution-order.vala \
 	control-flow/coalesce-reference-transfer.vala \
 	control-flow/coalesce-right-value.vala \
 	control-flow/coalesce-short-circuit.vala \
+	control-flow/conditional-as-argument.vala \
 	control-flow/continue-invalid.test \
 	control-flow/double-catch.test \
 	control-flow/expressions-conditional.vala \
@@ -197,6 +200,7 @@ TESTS = \
 	control-flow/for.vala \
 	control-flow/for-switch-continue.vala \
 	control-flow/foreach.vala \
+	control-flow/local-clash-with-implicit-this.vala \
 	control-flow/missing-break.test \
 	control-flow/missing-return.test \
 	control-flow/nested-conditional.vala \
@@ -250,6 +254,7 @@ TESTS = \
 	enums/flags.vala \
 	enums/from-0-literal.vala \
 	enums/no_gtype_to_string.vala \
+	enums/switch.vala \
 	enums/bug666035.vala \
 	enums/bug666035-1.test \
 	enums/bug666035-2.test \
@@ -378,6 +383,7 @@ TESTS = \
 	objects/interface-property-override.vala \
 	objects/interface-virtual-override.vala \
 	objects/member-initializer-base-properties.vala \
+	objects/member-initializer-property-owned-setter.vala \
 	objects/methods.vala \
 	objects/paramspec.vala \
 	objects/plugin-module-init.vala \
@@ -537,6 +543,7 @@ TESTS = \
 	asynchronous/bug792660.vala \
 	asynchronous/bug792942.vala \
 	asynchronous/bug793158.vala \
+	asynchronous/captured-fixed-array.vala \
 	asynchronous/catch-error-scope.vala \
 	asynchronous/catch-in-finally.vala \
 	asynchronous/creation-missing-yield.test \
