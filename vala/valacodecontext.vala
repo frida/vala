@@ -91,8 +91,6 @@ public class Vala.CodeContext {
 	 */
 	public string? internal_header_filename { get; set; }
 
-	public bool use_header { get; set; }
-
 	/**
 	 * Base directory used for header_filename in the VAPIs.
 	 */
@@ -578,8 +576,6 @@ public class Vala.CodeContext {
 		for (int i = 16; i <= target_glib_minor; i += 2) {
 			defines.add ("GLIB_2_%d".printf (i));
 		}
-
-		add_define ("VALA_OS_" + Config.VALA_HOST_OS.up ());
 	}
 
 	/**
