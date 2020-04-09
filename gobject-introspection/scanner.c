@@ -1699,6 +1699,10 @@ main (int argc, char **argv)
       { NULL }
     };
 
+#ifdef GLIB_DYNAMIC_UNLOADING
+  glib_init ();
+#endif
+
   gopt_argc = 1;
   gopt_argv = (char**)g_malloc (argc * sizeof (char*));
   gopt_argv[0] = argv[0];
