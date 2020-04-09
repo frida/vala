@@ -1699,6 +1699,8 @@ main (int argc, char **argv)
       { NULL }
     };
 
+  glib_init ();
+
   gopt_argc = 1;
   gopt_argv = (char**)g_malloc (argc * sizeof (char*));
   gopt_argv[0] = argv[0];
