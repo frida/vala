@@ -576,8 +576,6 @@ public class Vala.CodeContext {
 		for (int i = 16; i <= target_glib_minor; i += 2) {
 			defines.add ("GLIB_2_%d".printf (i));
 		}
-
-		add_define ("VALA_OS_" + Config.VALA_HOST_OS.up ());
 	}
 
 	/**
@@ -881,11 +879,13 @@ public class Vala.CodeContext {
 
 		try {
 			Process.spawn_command_line_sync (pc, out output, null, out exit_status);
-			if (exit_status != 0) {
+			if (exit_status == 0) {
 				output = output[0:-1];
 				if (output == "") {
 					output = null;
 				}
+			} else {
+				output = null;
 			}
 		} catch (SpawnError e) {
 			output = null;

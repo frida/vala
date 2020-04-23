@@ -1502,7 +1502,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			return is_pure_ccode_expression (cma.inner);
 		} else if (cexpr is CCodeElementAccess) {
 			var cea = (CCodeElementAccess) cexpr;
-			return is_pure_ccode_expression (cea.container) && is_pure_ccode_expression (cea.index);
+			return is_pure_ccode_expression (cea.container) && is_pure_ccode_expression (cea.indices[0]);
 		} else if (cexpr is CCodeCastExpression) {
 			var ccast = (CCodeCastExpression) cexpr;
 			return is_pure_ccode_expression (ccast.inner);
@@ -1757,6 +1757,12 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 			push_function (function);
 
+			if (acc.value_type.is_non_null_simple_type () && default_value_for_type (acc.value_type, false) == null) {
+				var vardecl = new CCodeVariableDeclarator ("result", default_value_for_type (acc.value_type, true));
+				vardecl.init0 = true;
+				ccode.add_declaration (get_ccode_name (acc.value_type), vardecl);
+			}
+
 			if (prop.binding == MemberBinding.INSTANCE) {
 				if (!acc.readable || returns_real_struct) {
 					create_property_type_check_statement (prop, false, t, true, "self");
@@ -1769,13 +1775,19 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			if (prop.parent_symbol is Interface) {
 				var iface = (Interface) prop.parent_symbol;
 
-				vcast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_interface_get_function (iface)));
-				((CCodeFunctionCall) vcast).add_argument (new CCodeIdentifier ("self"));
+				vcast = new CCodeIdentifier ("_iface_");
+				var vcastcall = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_interface_get_function (iface)));
+				((CCodeFunctionCall) vcastcall).add_argument (new CCodeIdentifier ("self"));
+				ccode.add_declaration ("%s*".printf (get_ccode_type_name (iface)), new CCodeVariableDeclarator ("_iface_"));
+				ccode.add_assignment (vcast, vcastcall);
 			} else {
 				var cl = (Class) prop.parent_symbol;
 				if (!cl.is_compact) {
-					vcast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_get_function (cl)));
-					((CCodeFunctionCall) vcast).add_argument (new CCodeIdentifier ("self"));
+					vcast = new CCodeIdentifier ("_klass_");
+					var vcastcall = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_get_function (cl)));
+					((CCodeFunctionCall) vcastcall).add_argument (new CCodeIdentifier ("self"));
+					ccode.add_declaration ("%sClass*".printf (get_ccode_name (cl)), new CCodeVariableDeclarator ("_klass_"));
+					ccode.add_assignment (vcast, vcastcall);
 				} else {
 					vcast = new CCodeIdentifier ("self");
 				}
@@ -1784,6 +1796,10 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			if (acc.readable) {
 				var vcall = new CCodeFunctionCall (new CCodeMemberAccess.pointer (vcast, "get_%s".printf (prop.name)));
 				vcall.add_argument (new CCodeIdentifier ("self"));
+
+				// check if vfunc pointer is properly set
+				ccode.open_if (vcall.call);
+
 				if (returns_real_struct) {
 					vcall.add_argument (new CCodeIdentifier ("result"));
 					ccode.add_expression (vcall);
@@ -1801,10 +1817,20 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 					ccode.add_return (vcall);
 				}
+				ccode.close ();
+
+				if (acc.value_type.is_non_null_simple_type () && default_value_for_type (acc.value_type, false) == null) {
+					ccode.add_return (new CCodeIdentifier ("result"));
+				} else if (!(acc.value_type is VoidType)) {
+					ccode.add_return (default_value_for_type (acc.value_type, false, true));
+				}
 			} else {
 				var vcall = new CCodeFunctionCall (new CCodeMemberAccess.pointer (vcast, "set_%s".printf (prop.name)));
 				vcall.add_argument (new CCodeIdentifier ("self"));
 				vcall.add_argument (new CCodeIdentifier ("value"));
+
+				// check if vfunc pointer is properly set
+				ccode.open_if (vcall.call);
 
 				if (acc.value_type is ArrayType && get_ccode_array_length (prop)) {
 					var array_type = (ArrayType) acc.value_type;
@@ -1821,6 +1847,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				}
 
 				ccode.add_expression (vcall);
+				ccode.close ();
 			}
 
 			pop_function ();
@@ -5482,14 +5509,23 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			break;
 		case BinaryOperator.IN:
 			if (expr.right.value_type is ArrayType) {
-				var array_type = (ArrayType) expr.right.value_type;
-				var node = new CCodeFunctionCall (new CCodeIdentifier (generate_array_contains_wrapper (array_type)));
-				node.add_argument (cright);
-				node.add_argument (get_array_length_cexpression (expr.right));
-				if (array_type.element_type is StructValueType) {
-					node.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, cleft));
+				unowned ArrayType array_type = (ArrayType) expr.right.value_type;
+				unowned DataType element_type = array_type.element_type;
+				var ccall = new CCodeFunctionCall (new CCodeIdentifier (generate_array_contains_wrapper (array_type)));
+				CCodeExpression node = ccall;
+
+				ccall.add_argument (cright);
+				ccall.add_argument (get_array_length_cexpression (expr.right));
+				if (element_type is StructValueType) {
+					ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, cleft));
+				} else if (element_type is ValueType && !element_type.nullable
+					&& expr.left.value_type is ValueType && expr.left.value_type.nullable) {
+					// null check
+					var cnull = new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, cleft, new CCodeConstant ("NULL"));
+					ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.POINTER_INDIRECTION, cleft));
+					node = new CCodeParenthesizedExpression (new CCodeConditionalExpression (cnull, new CCodeConstant ("FALSE"), ccall));
 				} else {
-					node.add_argument (cleft);
+					ccall.add_argument (cleft);
 				}
 				set_cvalue (expr, node);
 			} else {
@@ -6095,14 +6131,20 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 	}
 
 	public void store_property (Property prop, Expression? instance, TargetValue value) {
-		if (instance is BaseAccess) {
+		unowned Property base_prop = prop;
+		if (prop.base_property != null) {
+			base_prop = prop.base_property;
+		} else if (prop.base_interface_property != null) {
+			base_prop = prop.base_interface_property;
+		}
+		if (instance is BaseAccess && (base_prop.is_abstract || base_prop.is_virtual)) {
 			CCodeExpression? vcast = null;
-			if (prop.base_property != null) {
-				unowned Class base_class = (Class) prop.base_property.parent_symbol;
+			if (base_prop.parent_symbol is Class) {
+				unowned Class base_class = (Class) base_prop.parent_symbol;
 				vcast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_type_function (base_class)));
 				((CCodeFunctionCall) vcast).add_argument (new CCodeIdentifier ("%s_parent_class".printf (get_ccode_lower_case_name (current_class))));
-			} else if (prop.base_interface_property != null) {
-				unowned Interface base_iface = (Interface) prop.base_interface_property.parent_symbol;
+			} else if (base_prop.parent_symbol is Interface) {
+				unowned Interface base_iface = (Interface) base_prop.parent_symbol;
 				vcast = get_this_interface_cexpression (base_iface);
 			}
 			if (vcast != null) {
@@ -6115,25 +6157,20 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				ccall.add_argument (cexpr);
 
 				ccode.add_expression (ccall);
+			} else {
+				Report.error (instance.source_reference, "internal: Invalid assignment to `%s'".printf (base_prop.get_full_name ()));
 			}
 			return;
 		}
 
 		var set_func = "g_object_set";
 
-		var base_property = prop;
 		if (!get_ccode_no_accessor_method (prop)) {
-			if (prop.base_property != null) {
-				base_property = prop.base_property;
-			} else if (prop.base_interface_property != null) {
-				base_property = prop.base_interface_property;
-			}
-
 			if (prop is DynamicProperty) {
 				set_func = get_dynamic_property_setter_cname ((DynamicProperty) prop);
 			} else {
-				generate_property_accessor_declaration (base_property.set_accessor, cfile);
-				set_func = get_ccode_name (base_property.set_accessor);
+				generate_property_accessor_declaration (base_prop.set_accessor, cfile);
+				set_func = get_ccode_name (base_prop.set_accessor);
 
 				if (!prop.external && prop.external_package) {
 					// internal VAPI properties
@@ -6186,7 +6223,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			var delegate_type = (DelegateType) prop.property_type;
 			if (get_ccode_delegate_target (prop) && delegate_type.delegate_symbol.has_target) {
 				ccall.add_argument (get_delegate_target_cvalue (value));
-				if (base_property.set_accessor.value_type.value_owned) {
+				if (base_prop.set_accessor.value_type.value_owned) {
 					ccall.add_argument (get_delegate_target_destroy_notify_cvalue (value));
 				}
 			}

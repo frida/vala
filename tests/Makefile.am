@@ -76,6 +76,7 @@ TESTS = \
 	constants/glog.vala \
 	arrays/cast-silent-invalid.test \
 	arrays/class-field-length-cname.vala \
+	arrays/constant-element-access.vala \
 	arrays/expression-bracket.test \
 	arrays/fixed-length-init0-not-allowed.vala \
 	arrays/field-global-length-cname.vala \
@@ -88,6 +89,7 @@ TESTS = \
 	arrays/inline-local-variable.test \
 	arrays/inline-parameter.test \
 	arrays/inline-struct-field.test \
+	arrays/in-operator-with-boxed-needle.vala \
 	arrays/length-inline-assignment.vala \
 	arrays/length-type-include.vala \
 	arrays/struct-field-length-cname.vala \
@@ -392,6 +394,7 @@ TESTS = \
 	objects/properties.vala \
 	objects/property-array.vala \
 	objects/property-array-length.vala \
+	objects/property-base-access.vala \
 	objects/property-notify.vala \
 	objects/property-ownership.vala \
 	objects/property-read-only-auto.vala \
@@ -413,7 +416,11 @@ TESTS = \
 	objects/signals-enum-marshal.vala \
 	objects/signals-delegate.vala \
 	objects/signals-delegate-parameter.vala \
+	objects/signals-dymanic-invalid-handler.test \
+	objects/signals-fundamental-return.vala \
+	objects/signals-gobject-return.vala \
 	objects/signals-lambda-delegate.vala \
+	objects/signals-struct-return.vala \
 	objects/singleton.vala \
 	objects/test-025.vala \
 	objects/test-026.vala \
@@ -893,6 +900,7 @@ TESTS = \
 	semantic/signal-detail-invalid.test \
 	semantic/signal-detail-non-string.test \
 	semantic/struct-derived.test \
+	semantic/signal-disconnect-empty-invalid.test \
 	semantic/signal-disconnect-invalid.test \
 	semantic/signal-return-valist.test \
 	semantic/struct-field-initializer.test \
@@ -935,6 +943,14 @@ POSIX_TESTS = \
 	structs/struct_only.vala \
 	delegates/delegate_only.vala \
 	enums/enum_only.vala \
+	$(NULL)
+
+VERSION_CHECK_TESTS = \
+	version/since-constant.test \
+	version/since-field.test \
+	version/since-local-variable.test \
+	version/since-method.test \
+	version/since-parameter.test \
 	$(NULL)
 
 GENIE_TESTS = \
@@ -1015,14 +1031,19 @@ if HAVE_LINUX
 endif
 	@EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' \
 		VALAFLAGS="--enable-experimental-non-null" $(srcdir)/testrunner.sh $(NON_NULL_TESTS)
+	@export PKG_CONFIG_PATH=$(abs_srcdir)/version; EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' \
+		TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' $(srcdir)/testrunner.sh $(VERSION_CHECK_TESTS)
 	@EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' \
 		$(srcdir)/testrunner.sh $(GENIE_TESTS)
 
 EXTRA_DIST = \
 	testrunner.sh \
+	version/glib-2.0.pc \
 	$(TESTS) \
 	$(NON_NULL_TESTS) \
 	$(LINUX_TESTS) \
+	$(POSIX_TESTS) \
+	$(VERSION_CHECK_TESTS) \
 	$(GENIE_TESTS) \
 	$(NULL)
 

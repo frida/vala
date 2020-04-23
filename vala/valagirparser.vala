@@ -2674,11 +2674,6 @@ public class Vala.GirParser : CodeVisitor {
 
 		next ();
 
-		if (type_name == "GLib.PtrArray"
-		    && current_token == MarkupTokenType.START_ELEMENT) {
-			type_name = "GLib.GenericArray";
-		}
-
 		if (type_name == null) {
 			type_name = ctype;
 		}
@@ -2789,14 +2784,10 @@ public class Vala.GirParser : CodeVisitor {
 				type_name = "intptr";
 			} else if (type_name == "GType") {
 				type_name = "GLib.Type";
-			} else if (type_name == "GLib.String") {
-				type_name = "GLib.StringBuilder";
 			} else if (type_name == "GObject.Class") {
 				type_name = "GLib.ObjectClass";
 			} else if (type_name == "gunichar") {
 				type_name = "unichar";
-			} else if (type_name == "GLib.Data") {
-				type_name = "GLib.Datalist";
 			} else if (type_name == "Atk.ImplementorIface") {
 				type_name = "Atk.Implementor";
 			} else {
@@ -3134,6 +3125,7 @@ public class Vala.GirParser : CodeVisitor {
 		public int destroy_idx;
 		public bool keep;
 		public bool is_async;
+		public bool is_async_result;
 		public bool is_error;
 	}
 
@@ -3280,7 +3272,6 @@ public class Vala.GirParser : CodeVisitor {
 						((Delegate) s).add_error_type (error_type);
 					}
 				}
-				throws_string = "1";
 			} else if (throws_string == "1") {
 				if (s is Method) {
 					((Method) s).add_error_type (new ErrorType (null, null));
@@ -3415,42 +3406,12 @@ public class Vala.GirParser : CodeVisitor {
 				}
 
 				var info = new ParameterInfo (param, array_length_idx, closure_idx, destroy_idx, scope == "async");
-				unowned UnresolvedType? unresolved_type = param.variable_type as UnresolvedType;
-
-				if (s is Method && scope == "async") {
-					if (unresolved_type != null && unresolved_type.unresolved_symbol.name == "AsyncReadyCallback") {
-						// GAsync-style method
-						((Method) s).coroutine = true;
-						info.keep = false;
-					}
-				}
-
-				if (s is Delegate && throws_string != "1" && param.direction == ParameterDirection.OUT) {
-					if (unresolved_type != null && unresolved_type.unresolved_symbol.to_string () == "GLib.Error") {
-						((Delegate) s).add_error_type (new ErrorType (null, null));
-						info.is_error = true;
-						info.keep = false;
-					}
-				}
-
 				parameters.add (info);
 				pop_metadata ();
 			}
 			end_element ("parameters");
 		}
 		current.parameters = parameters;
-
-		for (int param_n = parameters.size - 1 ; param_n >= 0 ; param_n--) {
-			ParameterInfo pi = parameters[param_n];
-			if (!pi.param.ellipsis && pi.param.initializer == null) {
-				string type_string = pi.param.variable_type.to_string ();
-				if (type_string == "Gio.Cancellable?") {
-					pi.param.initializer = new Vala.NullLiteral ();
-				} else {
-					break;
-				}
-			}
-		}
 
 		pop_node ();
 		end_element (element_name);
@@ -3927,10 +3888,11 @@ public class Vala.GirParser : CodeVisitor {
 			}
 		}
 
-		// Do not mark out-parameters as nullable if they are simple-types,
-		// since it would result in a boxed-type in vala
 		foreach (ParameterInfo info in parameters) {
-			var type = info.param.variable_type;
+			unowned DataType type = info.param.variable_type;
+
+			// Do not mark out-parameters as nullable if they are simple-types,
+			// since it would result in a boxed-type in vala
 			if (info.param.direction == ParameterDirection.OUT && type.nullable) {
 				Struct? st = null;
 				if (type is UnresolvedType) {
@@ -3940,6 +3902,53 @@ public class Vala.GirParser : CodeVisitor {
 				}
 				if (st != null && st.is_simple_type ()) {
 					type.nullable = false;
+				}
+			}
+
+			// Check and mark GAsync-style methods
+			if (s is Method) {
+				string? type_name = null;
+				unowned UnresolvedType? unresolved_type = type as UnresolvedType;
+				if (unresolved_type != null) {
+					type_name = unresolved_type.unresolved_symbol.name;
+				} else if (type != null) {
+					type_name = type.to_string ();
+				}
+				if (info.is_async) {
+					if ((unresolved_type != null && type_name == "AsyncReadyCallback")
+					    || type_name == "GLib.AsyncReadyCallback" || type_name == "Gio.AsyncReadyCallback"
+					    || type_name == "GLib.AsyncReadyCallback?" || type_name == "Gio.AsyncReadyCallback?") {
+						((Method) s).coroutine = true;
+						info.keep = false;
+					}
+				}
+				if ((unresolved_type != null && type_name == "AsyncResult")
+				    || type_name == "GLib.AsyncResult" || type_name == "Gio.AsyncResult"
+				    || type_name == "GLib.AsyncResult?" || type_name == "Gio.AsyncResult?") {
+					info.is_async_result = true;
+				}
+			}
+
+			// More thorough check for delegates throwing an error
+			if (info.param.direction == ParameterDirection.OUT && s is Delegate && !s.tree_can_fail) {
+				unowned UnresolvedType? unresolved_type = type as UnresolvedType;
+				if (unresolved_type != null && unresolved_type.unresolved_symbol.to_string () == "GLib.Error") {
+					((Delegate) s).add_error_type (new ErrorType (null, null));
+					info.is_error = true;
+					info.keep = false;
+				}
+			}
+		}
+
+		// Add null-literal as default-value for trailing GLib.Cancellable parameters
+		for (int param_n = parameters.size - 1 ; param_n >= 0 ; param_n--) {
+			ParameterInfo info = parameters[param_n];
+			if (!info.param.ellipsis && info.param.initializer == null) {
+				string type_string = info.param.variable_type.to_string ();
+				if (type_string == "GLib.Cancellable?" || type_string == "Gio.Cancellable?") {
+					info.param.initializer = new Vala.NullLiteral ();
+				} else {
+					break;
 				}
 			}
 		}
@@ -3991,12 +4000,9 @@ public class Vala.GirParser : CodeVisitor {
 			if (first_out < 0 && info.param.direction == ParameterDirection.OUT) {
 				first_out = i;
 			}
-			if (s is Method && first_out >= 0 && info.param.variable_type != null) {
-				var type_name = info.param.variable_type.to_string ();
-				if (type_name == "GLib.AsyncResult" || type_name == "Gio.AsyncResult") {
-					var shift = ((Method) s).binding == MemberBinding.INSTANCE ? 1.1 : 0.1;
-					s.set_attribute_double ("CCode", "async_result_pos", i + shift);
-				}
+			if (first_out >= 0 && info.is_async_result && s is Method) {
+				var shift = ((Method) s).binding == MemberBinding.INSTANCE ? 1.1 : 0.1;
+				s.set_attribute_double ("CCode", "async_result_pos", i + shift);
 			}
 			if (s is Delegate && info.is_error) {
 				if (!s.has_attribute_argument ("CCode", "instance_pos")) {

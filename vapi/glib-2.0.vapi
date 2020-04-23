@@ -1963,8 +1963,10 @@ namespace GLib {
 		[Version (since = "2.50")]
 		public const string FORMAT;
 
+#if GLIB_2_50
 		[CCode (cname = "g_strdup_printf", instance_pos = -1)]
 		public string to_string (string format = "%" + FORMAT);
+#endif
 	}
 
 	public delegate void ChildWatchFunc (Pid pid, int status);
@@ -2147,8 +2149,6 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -2809,7 +2809,8 @@ namespace GLib {
 		public static string display_name (string filename);
 		[Version (since = "2.6")]
 		public static string display_basename (string filename);
-		[Version (cname = "g_canonicalize_filename", since = "2.58")]
+		[Version (since = "2.58")]
+		[CCode (cname = "g_canonicalize_filename")]
 		public static string canonicalize (string filename, string? relative_to = null);
 	}
 
@@ -3831,11 +3832,7 @@ namespace GLib {
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h", has_type_id = false)]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h", has_type_id = false)]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -3879,11 +3876,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
@@ -5455,6 +5448,7 @@ namespace GLib {
 	/* Keyed Data Lists */
 
 	[CCode (cname = "GData*", has_type_id = false)]
+	[GIR (name = "Data")]
 	public struct Datalist<G> {
 		public Datalist ();
 		public void clear ();
@@ -6300,7 +6294,13 @@ namespace GLib {
 		ELYMAIC,                /* Elym */
 		NANDINAGARI,            /* Nand */
 		NYIAKENG_PUACHUE_HMONG, /* Rohg */
-		WANCHO;                 /* Wcho */
+		WANCHO,                 /* Wcho */
+
+		/* Unicode 13.0 additions */
+		CHORASMIAN,             /* Chrs */
+		DIVES_AKURU,            /* Diak */
+		KHITAN_SMALL_SCRIPT,    /* Kits */
+		YEZIDI;                 /* Yezi */
 
 		[CCode (cname = "g_unicode_script_to_iso15924")]
 		public uint32 to_iso15924 ();
@@ -6400,11 +6400,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }
