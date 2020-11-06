@@ -84,7 +84,7 @@ namespace Vala {
 			} else if (sym is Signal) {
 				return get_ccode_attribute (sym).name.replace ("-", "_");
 			} else if (sym is ErrorCode) {
-				return get_ccode_name (sym).down ();
+				return get_ccode_name (sym).ascii_down ();
 			} else {
 				return "%s%s%s".printf (get_ccode_lower_case_prefix (sym.parent_symbol), infix, get_ccode_lower_case_suffix (sym));
 			}
@@ -220,8 +220,9 @@ namespace Vala {
 		return get_ccode_free_function (sym) == "g_boxed_free";
 	}
 
-	public static bool get_ccode_finish_instance (CodeNode node) {
-		return get_ccode_attribute (node).finish_instance;
+	public static bool get_ccode_finish_instance (Method m) {
+		assert (m.coroutine);
+		return get_ccode_attribute (m).finish_instance;
 	}
 
 	public static string get_ccode_type_id (CodeNode node) {
@@ -415,14 +416,17 @@ namespace Vala {
 	}
 
 	public static string get_ccode_finish_name (Method m) {
+		assert (m.coroutine);
 		return get_ccode_attribute(m).finish_name;
 	}
 
 	public static string get_ccode_finish_vfunc_name (Method m) {
+		assert (m.coroutine);
 		return get_ccode_attribute(m).finish_vfunc_name;
 	}
 
 	public static string get_ccode_finish_real_name (Method m) {
+		assert (m.coroutine);
 		return get_ccode_attribute(m).finish_real_name;
 	}
 

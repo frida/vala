@@ -348,7 +348,7 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 	}
 
 	private bool add_package (Vala.CodeContext context, string pkg) {
-		// ignore multiple occurences of the same package
+		// ignore multiple occurrences of the same package
 		if (context.has_package (pkg)) {
 			return true;
 		}
@@ -365,7 +365,7 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 
 		var package_path = context.get_vapi_path (pkg) ?? context.get_gir_path (pkg);
 		if (package_path == null) {
-			Vala.Report.error (null, "Package `%s' not found in specified Vala API directories or GObject-Introspection GIR directories".printf (pkg));
+			Vala.Report.error (null, "Package `%s' not found in specified Vala API directories or GObject-Introspection GIR directories", pkg);
 			return false;
 		}
 
@@ -390,12 +390,12 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 					dep = dep.strip ();
 					if (dep != "") {
 						if (!add_package (context, dep)) {
-							Vala.Report.error (null, "%s, dependency of %s, not found in specified Vala API directories".printf (dep, pkg_name));
+							Vala.Report.error (null, "`%s', dependency of `%s', not found in specified Vala API directories", dep, pkg_name);
 						}
 					}
 				}
 			} catch (FileError e) {
-				Vala.Report.error (null, "Unable to read dependency file: %s".printf (e.message));
+				Vala.Report.error (null, "Unable to read dependency file: %s", e.message);
 			}
 		}
 	}
@@ -409,7 +409,7 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 	private void add_depencies (Vala.CodeContext context, string[] packages) {
 		foreach (string package in packages) {
 			if (!add_package (context, package)) {
-				Vala.Report.error (null, "Package `%s' not found in specified Vala API directories or GObject-Introspection GIR directories".printf (package));
+				Vala.Report.error (null, "Package `%s' not found in specified Vala API directories or GObject-Introspection GIR directories", package);
 			}
 		}
 	}
@@ -435,7 +435,12 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 
 					register_source_file (source_package, source_file);
 
-					if (context.profile == Vala.Profile.GOBJECT) {
+					if (context.profile == Vala.Profile.POSIX) {
+						// import the Posix namespace by default (namespace of backend-specific standard library)
+						var ns_ref = new Vala.UsingDirective (new Vala.UnresolvedSymbol (null, "Posix", null));
+						source_file.add_using_directive (ns_ref);
+						context.root.add_using_directive (ns_ref);
+					} else if (context.profile == Vala.Profile.GOBJECT) {
 						// import the GLib namespace by default (namespace of backend-specific standard library)
 						var ns_ref = new Vala.UsingDirective (new Vala.UnresolvedSymbol (null, "GLib", null));
 						source_file.add_using_directive (ns_ref);
@@ -460,10 +465,10 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 					context.add_c_source_file (rpath);
 					tree.add_external_c_files (rpath);
 				} else {
-					Vala.Report.error (null, "%s is not a supported source file type. Only .vala, .vapi, .gs, and .c files are supported.".printf (source));
+					Vala.Report.error (null, "%s is not a supported source file type. Only .vala, .vapi, .gs, and .c files are supported.", source);
 				}
 			} else {
-				Vala.Report.error (null, "%s not found".printf (source));
+				Vala.Report.error (null, "%s not found", source);
 			}
 		}
 	}
@@ -473,7 +478,7 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 		context.experimental = settings.experimental;
 		context.experimental_non_null = settings.experimental || settings.experimental_non_null;
 		context.vapi_directories = settings.vapi_directories;
-		context.report.enable_warnings = settings.verbose;
+		context.verbose_mode = settings.verbose;
 		context.metadata_directories = settings.metadata_directories;
 		context.gir_directories = settings.gir_directories;
 
@@ -489,7 +494,7 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 			context.directory = context.basedir;
 		}
 
-		context.set_target_profile (settings.profile, true);
+		context.set_target_profile (settings.profile, false);
 
 		if (settings.target_glib != null) {
 			context.set_target_glib_version (settings.target_glib);
@@ -499,6 +504,19 @@ public class Valadoc.TreeBuilder : Vala.CodeVisitor {
 			foreach (string define in settings.defines) {
 				context.add_define (define);
 			}
+		}
+
+		// FIXME Let CodeContext.set_target_profile() do this and correctly
+		// handle default-packages as given source
+		switch (context.profile) {
+		default:
+		case Vala.Profile.GOBJECT:
+			add_package (context, "glib-2.0");
+			add_package (context, "gobject-2.0");
+			break;
+		case Vala.Profile.POSIX:
+			add_package (context, "posix");
+			break;
 		}
 
 		// add user defined files:

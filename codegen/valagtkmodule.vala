@@ -30,6 +30,8 @@ public class Vala.GtkModule : GSignalModule {
 	/* GResource name to real file name mapping */
 	private HashMap<string, string> gresource_to_file_map = null;
 	/* GtkBuilder xml handler to Vala signal mapping */
+	private HashMap<string, Property> current_handler_to_property_map = new HashMap<string, Property>(str_hash, str_equal);
+	/* GtkBuilder xml handler to Vala signal mapping */
 	private HashMap<string, Signal> current_handler_to_signal_map = new HashMap<string, Signal>(str_hash, str_equal);
 	/* GtkBuilder xml child to Vala class mapping */
 	private HashMap<string, Class> current_child_to_class_map = new HashMap<string, Class>(str_hash, str_equal);
@@ -94,7 +96,7 @@ public class Vala.GtkModule : GSignalModule {
 		gresource_to_file_map = new HashMap<string, string>(str_hash, str_equal);
 		foreach (var gresource in context.gresources) {
 			if (!FileUtils.test (gresource, FileTest.EXISTS)) {
-				Report.error (null, "GResources file `%s' does not exist".printf (gresource));
+				Report.error (null, "GResources file `%s' does not exist", gresource);
 				continue;
 			}
 
@@ -137,7 +139,7 @@ public class Vala.GtkModule : GSignalModule {
 		var ui_file = gresource_to_file_map.get (ui_resource);
 		if (ui_file == null || !FileUtils.test (ui_file, FileTest.EXISTS)) {
 			node.error = true;
-			Report.error (node.source_reference, "UI resource not found: `%s'. Please make sure to specify the proper GResources xml files with --gresources and alternative search locations with --gresourcesdir.".printf (ui_resource));
+			Report.error (node.source_reference, "UI resource not found: `%s'. Please make sure to specify the proper GResources xml files with --gresources and alternative search locations with --gresourcesdir.", ui_resource);
 			return;
 		}
 		current_handler_to_signal_map = new HashMap<string, Signal>(str_hash, str_equal);
@@ -145,6 +147,7 @@ public class Vala.GtkModule : GSignalModule {
 
 		MarkupReader reader = new MarkupReader (ui_file);
 		Class current_class = null;
+		Property? current_property = null;
 
 		bool template_tag_found = false;
 		MarkupTokenType current_token = reader.read_token (null, null);
@@ -165,7 +168,7 @@ public class Vala.GtkModule : GSignalModule {
 				if (current_class == null) {
 					var class_name = reader.get_attribute ("class");
 					if (class_name == null) {
-						Report.error (node.source_reference, "Invalid %s in ui file `%s'".printf (current_name, ui_file));
+						Report.error (node.source_reference, "Invalid %s in ui file `%s'", current_name, ui_file);
 						current_token = reader.read_token (null, null);
 						continue;
 					}
@@ -184,7 +187,7 @@ public class Vala.GtkModule : GSignalModule {
 
 				if (current_class != null) {
 					if (signal_name == null || handler_name == null) {
-						Report.error (node.source_reference, "Invalid signal in ui file `%s'".printf (ui_file));
+						Report.error (node.source_reference, "Invalid signal in ui file `%s'", ui_file);
 						current_token = reader.read_token (null, null);
 						continue;
 					}
@@ -199,12 +202,41 @@ public class Vala.GtkModule : GSignalModule {
 						current_handler_to_signal_map.set (handler_name, sig);
 					}
 				}
+			} else if (current_class != null && current_token == MarkupTokenType.START_ELEMENT && current_name == "binding") {
+				var property_name = reader.get_attribute ("name");
+				if (property_name == null) {
+					Report.error (node.source_reference, "Invalid binding in ui file `%s'", ui_file);
+					current_token = reader.read_token (null, null);
+					continue;
+				}
+
+				property_name = property_name.replace ("-", "_");
+				current_property = SemanticAnalyzer.symbol_lookup_inherited (current_class, property_name) as Property;
+				if (current_property == null) {
+					Report.error (node.source_reference, "Unknown property `%s:%s' for binding in ui file `%s'", current_class.get_full_name (), property_name, ui_file);
+					current_token = reader.read_token (null, null);
+					continue;
+				}
+			} else if (current_class != null && current_token == MarkupTokenType.START_ELEMENT && current_name == "closure") {
+				var handler_name = reader.get_attribute ("function");
+
+				if (current_property != null) {
+					if (handler_name == null) {
+						Report.error (node.source_reference, "Invalid closure in ui file `%s'", ui_file);
+						current_token = reader.read_token (null, null);
+						continue;
+					}
+
+					//TODO Retrieve signature declaration? c-type to vala-type?
+					current_handler_to_property_map.set (handler_name, current_property);
+					current_property = null;
+				}
 			}
 			current_token = reader.read_token (null, null);
 		}
 
 		if (!template_tag_found) {
-			Report.error (node.source_reference, "ui resource `%s' does not describe a valid composite template".printf (ui_resource));
+			Report.error (node.source_reference, "ui resource `%s' does not describe a valid composite template", ui_resource);
 		}
 	}
 
@@ -281,14 +313,14 @@ public class Vala.GtkModule : GSignalModule {
 		var gtk_name = f.get_attribute_string ("GtkChild", "name", f.name);
 		var child_class = current_child_to_class_map.get (gtk_name);
 		if (child_class == null) {
-			Report.error (f.source_reference, "could not find child `%s'".printf (gtk_name));
+			Report.error (f.source_reference, "could not find child `%s'", gtk_name);
 			return;
 		}
 
 		/* We allow Gtk child to have stricter type than class field */
 		unowned Class? field_class = f.variable_type.type_symbol as Class;
 		if (field_class == null || !child_class.is_subtype_of (field_class)) {
-			Report.error (f.source_reference, "cannot convert from Gtk child type `%s' to `%s'".printf (child_class.get_full_name(), field_class.get_full_name()));
+			Report.error (f.source_reference, "cannot convert from Gtk child type `%s' to `%s'", child_class.get_full_name(), field_class.get_full_name());
 			return;
 		}
 
@@ -337,8 +369,9 @@ public class Vala.GtkModule : GSignalModule {
 		/* Handler name as defined in the gtkbuilder xml */
 		var handler_name = m.get_attribute_string ("GtkCallback", "name", m.name);
 		var sig = current_handler_to_signal_map.get (handler_name);
-		if (sig == null) {
-			Report.error (m.source_reference, "could not find signal for handler `%s'".printf (handler_name));
+		var prop = current_handler_to_property_map.get (handler_name);
+		if (sig == null && prop == null) {
+			Report.error (m.source_reference, "could not find signal or property for handler `%s'", handler_name);
 			return;
 		}
 
@@ -350,7 +383,7 @@ public class Vala.GtkModule : GSignalModule {
 			var signal_type = new SignalType (sig);
 			var delegate_type = signal_type.get_handler_type ();
 			if (!method_type.compatible (delegate_type)) {
-				Report.error (m.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'".printf (method_type.to_string (), delegate_type.to_string (), delegate_type.to_prototype_string (m.name)));
+				Report.error (m.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'", method_type.to_string (), delegate_type.to_string (), delegate_type.to_prototype_string (m.name));
 			} else {
 				var wrapper = generate_delegate_wrapper (m, signal_type.get_handler_type (), m);
 
@@ -360,6 +393,15 @@ public class Vala.GtkModule : GSignalModule {
 				call.add_argument (new CCodeIdentifier ("G_CALLBACK(%s)".printf (wrapper)));
 				ccode.add_expression (call);
 			}
+		}
+		if (prop != null) {
+			prop.check (context);
+			//TODO Perform signature check
+			var call = new CCodeFunctionCall (new CCodeIdentifier ("gtk_widget_class_bind_template_callback_full"));
+			call.add_argument (new CCodeIdentifier ("GTK_WIDGET_CLASS (klass)"));
+			call.add_argument (new CCodeConstant ("\"%s\"".printf (handler_name)));
+			call.add_argument (new CCodeIdentifier ("G_CALLBACK(%s)".printf (get_ccode_name (m))));
+			ccode.add_expression (call);
 		}
 
 		pop_context ();

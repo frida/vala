@@ -1,5 +1,5 @@
 AC_PREREQ([2.65])
-AC_INIT([vala], m4_esyscmd([build-aux/git-version-gen .tarball-version]),
+AC_INIT([vala], m4_esyscmd([build-aux/git-version-gen --prefix '' .tarball-version]),
 	[https://gitlab.gnome.org/GNOME/vala/issues],
 	[vala],
 	[https://wiki.gnome.org/Projects/Vala])
@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip subdir-objects])
 AM_MAINTAINER_MODE([enable])
 
-API_VERSION=0.50
+API_VERSION=0.52
 PACKAGE_SUFFIX="-$API_VERSION"
 
 VALA_MAJOR_VERSION=`echo $PACKAGE_VERSION | cut -d. -f1 | sed s/[[a-zA-Z\-]].*//g`
@@ -118,14 +118,17 @@ AC_SUBST(COVERAGE_LIBS)
 # Check supported compiler flags used in testrunner.sh
 TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=implicit \
+-Werror=implicit-fallthrough \
 -Werror=pointer-arith \
 -Werror=redundant-decls \
+-Werror=return-local-addr \
 -Werror=return-type \
 -Werror=sequence-point \
 -Werror=uninitialized \
 -Werror=int-to-pointer-cast \
 -Werror=pointer-to-int-cast \
 -Werror=compare-distinct-pointer-types \
+-Werror=empty-body \
 -Wformat=2 \
 -Werror=format-security \
 -Werror=format-nonliteral \
@@ -134,8 +137,12 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=duplicated-cond \
 -Werror=declaration-after-statement \
 -Werror=maybe-uninitialized \
+-Werror=missing-braces \
+-Werror=missing-declarations \
 -Werror=missing-prototypes \
 -Werror=strict-prototypes \
+-Werror=tautological-pointer-compare \
+-Werror=address \
 -Werror=array-bounds \
 -Werror=enum-conversion"
 
@@ -204,6 +211,9 @@ if test x$enable_valadoc = xyes; then
 fi
 AM_CONDITIONAL(HAVE_CGRAPH, test "$have_cgraph" = "yes")
 AM_CONDITIONAL(ENABLE_VALADOC, test x$enable_valadoc = xyes)
+
+AC_PATH_PROG([G_IR_COMPILER], [g-ir-compiler], :)
+AM_CONDITIONAL(HAVE_G_IR_COMPILER, test "$G_IR_COMPILER" != :)
 
 AC_PATH_PROG([XSLTPROC], [xsltproc], :)
 AM_CONDITIONAL(HAVE_XSLTPROC, test "$XSLTPROC" != :)

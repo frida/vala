@@ -58,6 +58,11 @@ public class Vala.MemberAccess : Expression {
 	public bool prototype_access { get; set; }
 
 	/**
+	 * Requires indirect access due to possible side-effects of parent expression.
+	 */
+	public bool tainted_access { get; set; }
+
+	/**
 	 * Specifies whether the member is used for object creation.
 	 */
 	public bool creation_member { get; set; }
@@ -69,6 +74,7 @@ public class Vala.MemberAccess : Expression {
 
 	private Expression? _inner;
 	private List<DataType> type_argument_list = new ArrayList<DataType> ();
+	bool is_with_variable_access;
 
 	/**
 	 * Creates a new member access expression.
@@ -220,6 +226,8 @@ public class Vala.MemberAccess : Expression {
 		bool may_access_instance_members = false;
 		bool may_access_klass_members = false;
 
+		var visited_types = new ArrayList<DataType> ();
+
 		symbol_reference = null;
 
 		if (qualified) {
@@ -278,6 +286,24 @@ public class Vala.MemberAccess : Expression {
 
 				symbol_reference = SemanticAnalyzer.symbol_lookup_inherited (sym, member_name);
 
+				if (!is_with_variable_access && symbol_reference == null && sym is WithStatement) {
+					unowned WithStatement w = (WithStatement) sym;
+
+					var variable_type = w.with_variable.variable_type;
+					if (variable_type is PointerType) {
+						variable_type = ((PointerType) variable_type).base_type;
+					}
+					visited_types.add (variable_type);
+
+					symbol_reference = variable_type.get_member (member_name);
+					if (symbol_reference != null) {
+						inner = new MemberAccess (null, w.with_variable.name, source_reference);
+						((MemberAccess) inner).is_with_variable_access = true;
+						inner.check (context);
+						may_access_instance_members = true;
+					}
+				}
+
 				if (symbol_reference == null && sym is TypeSymbol && may_access_instance_members) {
 					// used for generated to_string methods in enums
 					symbol_reference = this_parameter.variable_type.get_member (member_name);
@@ -315,9 +341,21 @@ public class Vala.MemberAccess : Expression {
 					if (local_sym != null) {
 						if (symbol_reference != null && symbol_reference != local_sym) {
 							error = true;
-							Report.error (source_reference, "`%s' is an ambiguous reference between `%s' and `%s'".printf (member_name, symbol_reference.get_full_name (), local_sym.get_full_name ()));
+							Report.error (source_reference, "`%s' is an ambiguous reference between `%s' and `%s'", member_name, symbol_reference.get_full_name (), local_sym.get_full_name ());
 							return false;
 						}
+
+						// Transform to fully qualified member access
+						unowned Symbol? inner_sym = local_sym.parent_symbol;
+						unowned MemberAccess? inner_ma = this;
+						while (inner_sym != null && inner_sym.name != null) {
+							inner_ma.inner = new MemberAccess (null, inner_sym.name, source_reference);
+							inner_ma = (MemberAccess) inner_ma.inner;
+							inner_sym = inner_sym.parent_symbol;
+						}
+						inner_ma.qualified = true;
+						inner.check (context);
+
 						symbol_reference = local_sym;
 					}
 				}
@@ -343,7 +381,7 @@ public class Vala.MemberAccess : Expression {
 				unowned MemberAccess ma = (MemberAccess) inner;
 				if (ma.prototype_access) {
 					error = true;
-					Report.error (source_reference, "Access to instance member `%s' denied".printf (inner.symbol_reference.get_full_name ()));
+					Report.error (source_reference, "Access to instance member `%s' denied", inner.symbol_reference.get_full_name ());
 					return false;
 				}
 			}
@@ -439,7 +477,7 @@ public class Vala.MemberAccess : Expression {
 							unowned MemberAccess? arg = s.handler as MemberAccess;
 							if (arg == null || !arg.check (context) || !(arg.symbol_reference is Method)) {
 								error = true;
-								Report.error (s.handler.source_reference, "Invalid handler for `%s'".printf (s.get_full_name ()));
+								Report.error (s.handler.source_reference, "Invalid handler for `%s'", s.get_full_name ());
 							}
 						}
 						s.access = SymbolAccessibility.PUBLIC;
@@ -468,10 +506,14 @@ public class Vala.MemberAccess : Expression {
 				}
 			}
 
-			if (symbol_reference is ArrayResizeMethod && inner.value_type is ArrayType) {
-				unowned ArrayType? value_array_type = inner.value_type as ArrayType;
-				if (value_array_type != null && value_array_type.inline_allocated) {
+			if (symbol_reference is ArrayResizeMethod && inner.symbol_reference is Variable) {
+				// require the real type with its original value_owned attritubte
+				var inner_type = context.analyzer.get_value_type_for_symbol (inner.symbol_reference, true) as ArrayType;
+				if (inner_type != null && inner_type.inline_allocated) {
 					Report.error (source_reference, "`resize' is not supported for arrays with fixed length");
+					error = true;
+				} else if (inner_type != null && !inner_type.value_owned) {
+					Report.error (source_reference, "`resize' is not allowed for unowned array references");
 					error = true;
 				}
 			}
@@ -509,12 +551,40 @@ public class Vala.MemberAccess : Expression {
 				}
 			}
 
-			Report.error (source_reference, "The name `%s' does not exist in the context of `%s'%s".printf (member_name, base_type_name, base_type_package));
+			string visited_types_string = "";
+			foreach (var type in visited_types) {
+				visited_types_string += " or `%s'".printf (type.to_string ());
+			}
+
+			Report.error (source_reference, "The name `%s' does not exist in the context of `%s'%s%s", member_name, base_type_name, base_type_package, visited_types_string);
+			value_type = new InvalidType ();
 			return false;
 		} else if (symbol_reference.error) {
 			//ignore previous error
 			error = true;
 			return false;
+		}
+
+		if (symbol_reference is Signal) {
+			unowned Signal sig = (Signal) symbol_reference;
+			unowned CodeNode? ma = this;
+			while (ma.parent_node is MemberAccess) {
+				ma = ma.parent_node;
+			}
+			unowned CodeNode? parent = ma.parent_node;
+			if (parent != null && !(parent is ElementAccess) && !(((MemberAccess) ma).inner is BaseAccess)
+			    && (!(parent is MethodCall) || ((MethodCall) parent).get_argument_list ().contains (this))) {
+				if (sig.get_attribute ("HasEmitter") != null) {
+					if (!sig.check (context)) {
+						return false;
+					}
+					symbol_reference = sig.emitter;
+				} else {
+					error = true;
+					Report.error (source_reference, "Signal `%s' requires emitter in this context", symbol_reference.get_full_name ());
+					return false;
+				}
+			}
 		}
 
 		unowned Symbol? member = symbol_reference;
@@ -568,7 +638,7 @@ public class Vala.MemberAccess : Expression {
 
 				if (param.direction != ParameterDirection.IN) {
 					error = true;
-					Report.error (source_reference, "Cannot capture reference or output parameter `%s'".printf (param.get_full_name ()));
+					Report.error (source_reference, "Cannot capture reference or output parameter `%s'", param.get_full_name ());
 				}
 			} else {
 				unowned PropertyAccessor? acc = param.parent_symbol.parent_symbol as PropertyAccessor;
@@ -628,7 +698,7 @@ public class Vala.MemberAccess : Expression {
 				}
 				if (!is_valid_access) {
 					error = true;
-					Report.error (source_reference, "Access to async callback `%s' not allowed in this context".printf (m.get_full_name ()));
+					Report.error (source_reference, "Access to async callback `%s' not allowed in this context", m.get_full_name ());
 					return false;
 				}
 
@@ -714,7 +784,7 @@ public class Vala.MemberAccess : Expression {
 			if (lvalue) {
 				if (prop.set_accessor == null) {
 					error = true;
-					Report.error (source_reference, "Property `%s' is read-only".printf (prop.get_full_name ()));
+					Report.error (source_reference, "Property `%s' is read-only", prop.get_full_name ());
 					return false;
 				}
 				if (prop.access == SymbolAccessibility.PUBLIC) {
@@ -726,7 +796,7 @@ public class Vala.MemberAccess : Expression {
 			} else {
 				if (prop.get_accessor == null) {
 					error = true;
-					Report.error (source_reference, "Property `%s' is write-only".printf (prop.get_full_name ()));
+					Report.error (source_reference, "Property `%s' is write-only", prop.get_full_name ());
 					return false;
 				}
 				if (prop.access == SymbolAccessibility.PUBLIC) {
@@ -762,7 +832,7 @@ public class Vala.MemberAccess : Expression {
 		if (parent != member) {
 			member.used = true;
 		}
-		member.version.check (source_reference);
+		member.version.check (context, source_reference);
 
 		if (access == SymbolAccessibility.PROTECTED && member.parent_symbol is TypeSymbol) {
 			unowned TypeSymbol target_type = (TypeSymbol) member.parent_symbol;
@@ -785,7 +855,7 @@ public class Vala.MemberAccess : Expression {
 
 			if (!in_subtype) {
 				error = true;
-				Report.error (source_reference, "Access to protected member `%s' denied".printf (member.get_full_name ()));
+				Report.error (source_reference, "Access to protected member `%s' denied", member.get_full_name ());
 				return false;
 			}
 		} else if (access == SymbolAccessibility.PRIVATE) {
@@ -801,7 +871,7 @@ public class Vala.MemberAccess : Expression {
 
 			if (!in_target_type) {
 				error = true;
-				Report.error (source_reference, "Access to private member `%s' denied".printf (member.get_full_name ()));
+				Report.error (source_reference, "Access to private member `%s' denied", member.get_full_name ());
 				return false;
 			}
 		}
@@ -860,14 +930,24 @@ public class Vala.MemberAccess : Expression {
 				if (inner.symbol_reference is Method) {
 					// do not warn when calling .begin or .end on static async method
 				} else {
-					Report.warning (source_reference, "Access to static member `%s' with an instance reference".printf (symbol_reference.get_full_name ()));
+					Report.warning (source_reference, "Access to static member `%s' with an instance reference", symbol_reference.get_full_name ());
+
+					// Transform to static member access
+					unowned Symbol? inner_sym = symbol_reference.parent_symbol;
+					unowned MemberAccess? inner_ma = this;
+					while (inner_sym != null && inner_sym.name != null) {
+						inner_ma.inner = new MemberAccess (null, inner_sym.name, source_reference);
+						inner_ma = (MemberAccess) inner_ma.inner;
+						inner_sym = inner_sym.parent_symbol;
+					}
+					inner.check (context);
 				}
 			}
 
 			if (context.experimental_non_null && instance && inner.value_type.nullable &&
 			    !(inner.value_type is PointerType) && !(inner.value_type is GenericType) &&
 				!(inner.value_type is ArrayType)) {
-				Report.error (source_reference, "Access to instance member `%s' from nullable reference denied".printf (symbol_reference.get_full_name ()));
+				Report.error (source_reference, "Access to instance member `%s' from nullable reference denied", symbol_reference.get_full_name ());
 			}
 
 			unowned Method? m = symbol_reference as Method;
@@ -910,6 +990,11 @@ public class Vala.MemberAccess : Expression {
 
 		if (value_type != null) {
 			value_type.check (context);
+		}
+
+		// Provide some extra information for the code generator
+		if (!tainted_access) {
+			tainted_access = is_tainted ();
 		}
 
 		return !error;
@@ -994,5 +1079,37 @@ public class Vala.MemberAccess : Expression {
 		} else if (param != null && param.direction == ParameterDirection.OUT) {
 			collection.add (param);
 		}
+	}
+
+	bool is_tainted () {
+		unowned CodeNode node = this;
+		if (node.parent_node is MemberAccess) {
+			return false;
+		}
+
+		while (node.parent_node is Expression) {
+			node = node.parent_node;
+			if (node is Assignment || node is MethodCall || node is ObjectCreationExpression) {
+				break;
+			}
+		}
+
+		bool found = false;
+		var traverse = new TraverseVisitor ((n) => {
+			if (n is PostfixExpression) {
+				found = true;
+				return TraverseStatus.STOP;
+			} else if (n is UnaryExpression) {
+				unowned UnaryExpression e = (UnaryExpression) n;
+				if (e.operator == UnaryOperator.INCREMENT || e.operator == UnaryOperator.DECREMENT) {
+					found = true;
+					return TraverseStatus.STOP;
+				}
+			}
+			return TraverseStatus.CONTINUE;
+		});
+		node.accept (traverse);
+
+		return found;
 	}
 }

@@ -33,6 +33,19 @@ void test_string () {
 	assert (t.length == 2);
 	assert (t[0] == 'l');
 	assert (t[1] == 'l');
+
+	t = s[-2:];
+	assert (t.length == 2);
+	assert (t[0] == 'l');
+	assert (t[1] == 'o');
+
+	t = s[:2];
+	assert (t.length == 2);
+	assert (t[0] == 'h');
+	assert (t[1] == 'e');
+
+	t = s[:];
+	assert (t == s);
 }
 
 void test_string_joinv () {
@@ -70,6 +83,9 @@ void test_string_slice () {
 
 	r = s.slice (-7, -5);
 	assert (r == "my");
+
+	r = s.slice (0, 0);
+	assert (r == "");
 }
 
 void test_string_splice () {
@@ -88,6 +104,12 @@ void test_string_splice () {
 	assert (s == "hellowholewideworld");
 
 	s = s.splice (-14, -5);
+	assert (s == "helloworld");
+
+	s = "hello".splice (0, 0);
+	assert (s == "hello");
+
+	s = "world".splice (0, 0, "hello");
 	assert (s == "helloworld");
 }
 

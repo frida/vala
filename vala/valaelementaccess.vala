@@ -25,7 +25,9 @@
 using GLib;
 
 /**
- * Represents an array access expression e.g. "a[1,2]".
+ * Represents an array access expression.
+ *
+ * {{{ foo[1,2] }}}
  */
 public class Vala.ElementAccess : Expression {
 	/**
@@ -57,7 +59,7 @@ public class Vala.ElementAccess : Expression {
 		return indices;
 	}
 
-	public ElementAccess (Expression container, SourceReference source_reference) {
+	public ElementAccess (Expression container, SourceReference? source_reference = null) {
 		this.source_reference = source_reference;
 		this.container = container;
 	}
@@ -196,10 +198,10 @@ public class Vala.ElementAccess : Expression {
 
 			if (array_type.rank < get_indices ().size) {
 				error = true;
-				Report.error (source_reference, "%d extra indices for element access".printf (get_indices ().size - array_type.rank));
+				Report.error (source_reference, "%d extra indices for element access", get_indices ().size - array_type.rank);
 			} else if (array_type.rank > get_indices ().size) {
 				error = true;
-				Report.error (source_reference, "%d missing indices for element access".printf (array_type.rank - get_indices ().size));
+				Report.error (source_reference, "%d missing indices for element access", array_type.rank - get_indices ().size);
 			}
 		} else if (pointer_type != null && !pointer_type.base_type.is_reference_type_or_type_parameter ()) {
 			value_type = pointer_type.base_type.copy ();
@@ -230,7 +232,7 @@ public class Vala.ElementAccess : Expression {
 			}
 
 			error = true;
-			Report.error (source_reference, "The expression `%s' does not denote an array".printf (container.value_type.to_string ()));
+			Report.error (source_reference, "The expression `%s' does not denote an array", container.value_type.to_string ());
 			return false;
 		}
 

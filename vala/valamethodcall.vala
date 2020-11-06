@@ -31,7 +31,7 @@ public class Vala.MethodCall : Expression {
 	 */
 	public Expression call {
 		get { return _call; }
-		set {
+		private set {
 			_call = value;
 			_call.parent_node = this;
 		}
@@ -192,7 +192,7 @@ public class Vala.MethodCall : Expression {
 			unowned MemberAccess ma = (MemberAccess) call;
 			if (ma.prototype_access) {
 				error = true;
-				Report.error (source_reference, "Access to instance member `%s' denied".printf (call.symbol_reference.get_full_name ()));
+				Report.error (source_reference, "Access to instance member `%s' denied", call.symbol_reference.get_full_name ());
 				return false;
 			}
 
@@ -274,18 +274,18 @@ public class Vala.MethodCall : Expression {
 				base_cm = cl.default_construction_method;
 				if (base_cm == null) {
 					error = true;
-					Report.error (source_reference, "chain up to `%s' not supported".printf (cl.get_full_name ()));
+					Report.error (source_reference, "chain up to `%s' not supported", cl.get_full_name ());
 					return false;
 				} else if (!base_cm.has_construct_function) {
 					error = true;
-					Report.error (source_reference, "chain up to `%s' not supported".printf (base_cm.get_full_name ()));
+					Report.error (source_reference, "chain up to `%s' not supported", base_cm.get_full_name ());
 					return false;
 				}
 			} else if (call.symbol_reference is CreationMethod && call.symbol_reference.parent_symbol is Class) {
 				base_cm = (CreationMethod) call.symbol_reference;
 				if (!base_cm.has_construct_function) {
 					error = true;
-					Report.error (source_reference, "chain up to `%s' not supported".printf (base_cm.get_full_name ()));
+					Report.error (source_reference, "chain up to `%s' not supported", base_cm.get_full_name ());
 					return false;
 				}
 			} else if (gobject_chainup) {
@@ -368,7 +368,7 @@ public class Vala.MethodCall : Expression {
 					}
 				} else if (ma.member_name == "begin" || ma.member_name == "end") {
 					error = true;
-					Report.error (ma.source_reference, "use of `%s' not allowed in yield statement".printf (ma.member_name));
+					Report.error (ma.source_reference, "use of `%s' not allowed in yield statement", ma.member_name);
 				}
 			}
 
@@ -510,24 +510,30 @@ public class Vala.MethodCall : Expression {
 		formal_value_type = ret_type.copy ();
 		value_type = formal_value_type.get_actual_type (target_object_type, method_type_args, this);
 
+		if (is_yield_expression) {
+			if (!(mtype is MethodType) || !((MethodType) mtype).method_symbol.coroutine) {
+				error = true;
+				Report.error (source_reference, "yield expression requires async method");
+			}
+			if (context.analyzer.current_method == null || !context.analyzer.current_method.coroutine) {
+				error = true;
+				Report.error (source_reference, "yield expression not available outside async method");
+			}
+		}
+
 		if (mtype is MethodType) {
 			unowned Method m = ((MethodType) mtype).method_symbol;
-			if (is_yield_expression) {
-				if (!m.coroutine) {
-					error = true;
-					Report.error (source_reference, "yield expression requires async method");
-				}
-				if (context.analyzer.current_method == null || !context.analyzer.current_method.coroutine) {
-					error = true;
-					Report.error (source_reference, "yield expression not available outside async method");
-				}
-			}
-
 			if (m.returns_floating_reference) {
 				value_type.floating_reference = true;
 			}
 			if (m.returns_modified_pointer) {
-				((MemberAccess) call).inner.lvalue = true;
+				unowned Expression inner = ((MemberAccess) call).inner;
+				inner.lvalue = true;
+				unowned Property? prop = inner.symbol_reference as Property;
+				if (prop != null && (prop.set_accessor == null || !prop.set_accessor.writable)) {
+					error = true;
+					Report.error (inner.source_reference, "Property `%s' is read-only", prop.get_full_name ());
+				}
 			}
 			// avoid passing possible null to ref_sink_function without checking
 			if (tree_can_fail && !value_type.nullable && value_type.floating_reference && ret_type is ObjectType) {
@@ -591,7 +597,7 @@ public class Vala.MethodCall : Expression {
 
 						if (type_arg == null) {
 							error = true;
-							Report.error (ma.source_reference, "cannot infer generic type argument for type parameter `%s'".printf (type_param.get_full_name ()));
+							Report.error (ma.source_reference, "cannot infer generic type argument for type parameter `%s'", type_param.get_full_name ());
 							return false;
 						}
 
@@ -664,6 +670,11 @@ public class Vala.MethodCall : Expression {
 				var local = new LocalVariable (value_type.copy (), get_temp_name (), null, source_reference);
 				var decl = new DeclarationStatement (local, source_reference);
 
+				// don't carry floating reference any further if the target-type is unknown
+				if (target_type == null) {
+					local.variable_type.floating_reference = false;
+				}
+
 				insert_statement (context.analyzer.insert_block, decl);
 
 				var temp_access = SemanticAnalyzer.create_temp_access (local, target_type);
@@ -735,7 +746,6 @@ public class Vala.MethodCall : Expression {
 
 	public override string to_string () {
 		var b = new StringBuilder ();
-		b.append_c ('(');
 		if (is_yield_expression) {
 			b.append ("yield ");
 		}
@@ -750,7 +760,7 @@ public class Vala.MethodCall : Expression {
 			b.append (expr.to_string ());
 			first = false;
 		}
-		b.append ("))");
+		b.append_c (')');
 
 		return b.str;
 	}

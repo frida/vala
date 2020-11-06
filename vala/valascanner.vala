@@ -386,7 +386,14 @@ public class Vala.Scanner {
 				if (matches (begin, "void")) return TokenType.VOID;
 				break;
 			case 'w':
-				if (matches (begin, "weak")) return TokenType.WEAK;
+				switch (begin[1]) {
+				case 'e':
+					if (matches (begin, "weak")) return TokenType.WEAK;
+					break;
+				case 'i':
+					if (matches (begin, "with")) return TokenType.WITH;
+					break;
+				}
 				break;
 			}
 			break;
@@ -1245,7 +1252,7 @@ public class Vala.Scanner {
 				if (current < end) {
 					current++;
 				} else {
-					Report.error (get_source_reference (token_length_in_chars), "syntax error, expected %c".printf (begin[0]));
+					Report.error (get_source_reference (token_length_in_chars), "syntax error, expected %c", begin[0]);
 				}
 				break;
 			default:

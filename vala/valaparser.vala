@@ -49,18 +49,19 @@ public class Vala.Parser : CodeVisitor {
 		public SourceLocation end;
 	}
 
+	[Flags]
 	enum ModifierFlags {
-		NONE,
-		ABSTRACT = 1 << 0,
-		CLASS = 1 << 1,
-		EXTERN = 1 << 2,
-		INLINE = 1 << 3,
-		NEW = 1 << 4,
-		OVERRIDE = 1 << 5,
-		STATIC = 1 << 6,
-		VIRTUAL = 1 << 7,
-		ASYNC = 1 << 8,
-		SEALED = 1 << 9
+		NONE = 0,
+		ABSTRACT,
+		CLASS,
+		EXTERN,
+		INLINE,
+		NEW,
+		OVERRIDE,
+		STATIC,
+		VIRTUAL,
+		ASYNC,
+		SEALED
 	}
 
 	public Parser () {
@@ -103,8 +104,23 @@ public class Vala.Parser : CodeVisitor {
 		assert (size <= BUFFER_SIZE);
 	}
 
+	inline void safe_prev () {
+		switch (previous ()) {
+		case TokenType.DOT:
+		case TokenType.DOUBLE_COLON:
+			break;
+		default:
+			prev ();
+			break;
+		}
+	}
+
 	inline TokenType current () {
 		return tokens[index].type;
+	}
+
+	inline TokenType previous () {
+		return tokens[(index - 1 + BUFFER_SIZE) % BUFFER_SIZE].type;
 	}
 
 	inline bool accept (TokenType type) {
@@ -118,7 +134,7 @@ public class Vala.Parser : CodeVisitor {
 	void report_parse_error (ParseError e) {
 		var begin = get_location ();
 		next ();
-		Report.error (get_src (begin), "syntax error, " + e.message);
+		Report.error (get_src (begin), "syntax error, %s", e.message);
 	}
 
 	inline bool expect (TokenType type) throws ParseError {
@@ -128,13 +144,13 @@ public class Vala.Parser : CodeVisitor {
 
 		switch (type) {
 		case TokenType.CLOSE_BRACE:
-			prev ();
+			safe_prev ();
 			report_parse_error (new ParseError.SYNTAX ("following block delimiter %s missing", type.to_string ()));
 			return true;
 		case TokenType.CLOSE_BRACKET:
 		case TokenType.CLOSE_PARENS:
 		case TokenType.SEMICOLON:
-			prev ();
+			safe_prev ();
 			report_parse_error (new ParseError.SYNTAX ("following expression/statement delimiter %s missing", type.to_string ()));
 			return true;
 		default:
@@ -265,6 +281,7 @@ public class Vala.Parser : CodeVisitor {
 		case TokenType.VOLATILE:
 		case TokenType.WEAK:
 		case TokenType.WHILE:
+		case TokenType.WITH:
 		case TokenType.YIELD:
 			next ();
 			return;
@@ -843,12 +860,25 @@ public class Vala.Parser : CodeVisitor {
 	}
 
 	Expression parse_element_access (SourceLocation begin, Expression inner) throws ParseError {
-		expect (TokenType.OPEN_BRACKET);
-		var index_list = parse_expression_list ();
 		Expression? stop = null;
+		List<Expression> index_list;
+
+		expect (TokenType.OPEN_BRACKET);
+		if (current () == TokenType.COLON) {
+			// slice expression
+			index_list = new ArrayList<Expression> ();
+			index_list.add (new IntegerLiteral ("0", get_src (begin)));
+		} else {
+			index_list = parse_expression_list ();
+		}
+
 		if (index_list.size == 1 && accept (TokenType.COLON)) {
 			// slice expression
-			stop = parse_expression ();
+			if (current () == TokenType.CLOSE_BRACKET) {
+				stop = new MemberAccess (inner, "length", get_src (begin));
+			} else {
+				stop = parse_expression ();
+			}
 		}
 		expect (TokenType.CLOSE_BRACKET);
 
@@ -1554,6 +1584,81 @@ public class Vala.Parser : CodeVisitor {
 		return expr;
 	}
 
+	Statement? parse_statement (TokenType type) throws ParseError {
+		Statement? stmt = null;
+		var begin = get_location ();
+		try {
+			switch (type) {
+			case TokenType.IF:
+				stmt = parse_if_statement ();
+				break;
+			case TokenType.SWITCH:
+				stmt = parse_switch_statement ();
+				break;
+			case TokenType.WHILE:
+				stmt = parse_while_statement ();
+				break;
+			case TokenType.DO:
+				stmt = parse_do_statement ();
+				break;
+			case TokenType.FOR:
+				stmt = parse_for_statement ();
+				break;
+			case TokenType.FOREACH:
+				stmt = parse_foreach_statement ();
+				break;
+			case TokenType.BREAK:
+				stmt = parse_break_statement ();
+				break;
+			case TokenType.CONTINUE:
+				stmt = parse_continue_statement ();
+				break;
+			case TokenType.RETURN:
+				stmt = parse_return_statement ();
+				break;
+			case TokenType.YIELD:
+				stmt = parse_yield_statement ();
+				break;
+			case TokenType.THROW:
+				stmt = parse_throw_statement ();
+				break;
+			case TokenType.TRY:
+				stmt = parse_try_statement ();
+				break;
+			case TokenType.LOCK:
+				stmt = parse_lock_statement ();
+				break;
+			case TokenType.UNLOCK:
+				stmt = parse_unlock_statement ();
+				break;
+			case TokenType.DELETE:
+				stmt = parse_delete_statement ();
+				break;
+			case TokenType.WITH:
+				stmt = parse_with_statement ();
+				break;
+			default:
+				assert_not_reached ();
+			}
+		} catch (ParseError e) {
+			var e_begin = get_location ();
+			string token = ((EnumClass) typeof (TokenType).class_ref ()).get_value (type).value_nick;
+			try {
+				rollback (begin);
+				stmt = parse_expression_statement ();
+				Report.warning (get_src (begin), "`%s' is a syntax keyword, replace with `@%s'", token, token);
+			} catch (ParseError e2) {
+				var e2_begin = get_location ();
+				rollback (e_begin);
+				next ();
+				Report.error (get_src (e_begin), "Possible `%s-statement' syntax error, %s", token, e.message);
+				rollback (e2_begin);
+				throw e2;
+			}
+		}
+		return stmt;
+	}
+
 	void parse_statements (Block block) throws ParseError {
 		while (current () != TokenType.CLOSE_BRACE
 		       && current () != TokenType.CASE
@@ -1572,49 +1677,22 @@ public class Vala.Parser : CodeVisitor {
 					stmt = parse_empty_statement ();
 					break;
 				case TokenType.IF:
-					stmt = parse_if_statement ();
-					break;
 				case TokenType.SWITCH:
-					stmt = parse_switch_statement ();
-					break;
 				case TokenType.WHILE:
-					stmt = parse_while_statement ();
-					break;
 				case TokenType.DO:
-					stmt = parse_do_statement ();
-					break;
 				case TokenType.FOR:
-					stmt = parse_for_statement ();
-					break;
 				case TokenType.FOREACH:
-					stmt = parse_foreach_statement ();
-					break;
 				case TokenType.BREAK:
-					stmt = parse_break_statement ();
-					break;
 				case TokenType.CONTINUE:
-					stmt = parse_continue_statement ();
-					break;
 				case TokenType.RETURN:
-					stmt = parse_return_statement ();
-					break;
 				case TokenType.YIELD:
-					stmt = parse_yield_statement ();
-					break;
 				case TokenType.THROW:
-					stmt = parse_throw_statement ();
-					break;
 				case TokenType.TRY:
-					stmt = parse_try_statement ();
-					break;
 				case TokenType.LOCK:
-					stmt = parse_lock_statement ();
-					break;
 				case TokenType.UNLOCK:
-					stmt = parse_unlock_statement ();
-					break;
 				case TokenType.DELETE:
-					stmt = parse_delete_statement ();
+				case TokenType.WITH:
+					stmt = parse_statement (current ());
 					break;
 				case TokenType.VAR:
 					is_decl = true;
@@ -1668,9 +1746,7 @@ public class Vala.Parser : CodeVisitor {
 		try {
 			skip_type ();
 		} catch (ParseError e) {
-			prev ();
-			var token = current ();
-			next ();
+			var token = previous ();
 			if (token == TokenType.DOT || token == TokenType.DOUBLE_COLON) {
 				rollback (begin);
 				return true;
@@ -1787,24 +1863,26 @@ public class Vala.Parser : CodeVisitor {
 		switch (current ()) {
 		case TokenType.SEMICOLON:
 			if (!accept_empty_body) {
-				Report.warning (get_current_src (), "%s-statement without body".printf (statement_name));
+				Report.warning (get_current_src (), "%s-statement without body", statement_name);
 			}
 			return parse_empty_statement ();
-		case TokenType.IF:        return parse_if_statement ();
-		case TokenType.SWITCH:    return parse_switch_statement ();
-		case TokenType.WHILE:     return parse_while_statement ();
-		case TokenType.DO:        return parse_do_statement ();
-		case TokenType.FOR:       return parse_for_statement ();
-		case TokenType.FOREACH:   return parse_foreach_statement ();
-		case TokenType.BREAK:     return parse_break_statement ();
-		case TokenType.CONTINUE:  return parse_continue_statement ();
-		case TokenType.RETURN:    return parse_return_statement ();
-		case TokenType.YIELD:     return parse_yield_statement ();
-		case TokenType.THROW:     return parse_throw_statement ();
-		case TokenType.TRY:       return parse_try_statement ();
-		case TokenType.LOCK:      return parse_lock_statement ();
-		case TokenType.UNLOCK:    return parse_unlock_statement ();
-		case TokenType.DELETE:    return parse_delete_statement ();
+		case TokenType.IF:
+		case TokenType.SWITCH:
+		case TokenType.WHILE:
+		case TokenType.DO:
+		case TokenType.FOR:
+		case TokenType.FOREACH:
+		case TokenType.BREAK:
+		case TokenType.CONTINUE:
+		case TokenType.RETURN:
+		case TokenType.YIELD:
+		case TokenType.THROW:
+		case TokenType.TRY:
+		case TokenType.LOCK:
+		case TokenType.UNLOCK:
+		case TokenType.DELETE:
+		case TokenType.WITH:
+			return parse_statement (current ());
 		case TokenType.VAR:
 		case TokenType.CONST:
 			throw new ParseError.SYNTAX ("embedded statement cannot be declaration ");
@@ -1905,7 +1983,7 @@ public class Vala.Parser : CodeVisitor {
 		expect (TokenType.SEMICOLON);
 	}
 
-	LocalVariable parse_local_variable (DataType? variable_type) throws ParseError {
+	LocalVariable parse_local_variable (DataType? variable_type, bool expect_initializer = false) throws ParseError {
 		var begin = get_location ();
 		string id = parse_identifier ();
 		var type = parse_inline_array_type (variable_type);
@@ -1914,6 +1992,10 @@ public class Vala.Parser : CodeVisitor {
 		Expression initializer = null;
 		if (accept (TokenType.ASSIGN)) {
 			initializer = parse_expression ();
+		} else if (expect_initializer) {
+			report_parse_error (new ParseError.SYNTAX ("expected initializer"));
+			prev ();
+			initializer = new InvalidExpression ();
 		}
 		return new LocalVariable (type, id, initializer, src);
 	}
@@ -2261,6 +2343,43 @@ public class Vala.Parser : CodeVisitor {
 		return new DeleteStatement (expr, src);
 	}
 
+	Statement? parse_with_statement () throws ParseError {
+		var begin = get_location ();
+		expect (TokenType.WITH);
+		expect (TokenType.OPEN_PARENS);
+		var expr_or_decl = get_location ();
+
+		LocalVariable? local = null;
+
+		// Try "with (expr)"
+		Expression expr = parse_expression ();
+		if (!accept (TokenType.CLOSE_PARENS)) {
+			// Try "with (var identifier = expr)"
+			rollback (expr_or_decl);
+			DataType variable_type;
+			if (accept (TokenType.UNOWNED) && accept (TokenType.VAR)) {
+				variable_type = new VarType (false);
+			} else {
+				rollback (expr_or_decl);
+				if (accept (TokenType.VAR)) {
+					variable_type = new VarType ();
+				} else {
+					variable_type = parse_type (true, true);
+				}
+			}
+			local = parse_local_variable (variable_type, true);
+			expr = local.initializer;
+			expect (TokenType.CLOSE_PARENS);
+		}
+
+		var src = get_src (begin);
+		if (!context.experimental) {
+			Report.warning (src, "`with' statements are experimental");
+		}
+		var body = parse_embedded_statement ("with", false);
+		return new WithStatement (local, expr, body, src);
+	}
+
 	string parse_attribute_value () throws ParseError {
 		switch (current ()) {
 		case TokenType.NULL:
@@ -2317,7 +2436,7 @@ public class Vala.Parser : CodeVisitor {
 		if (attributes != null) {
 			foreach (Attribute attr in (List<Attribute>) attributes) {
 				if (node.get_attribute (attr.name) != null) {
-					Report.error (attr.source_reference, "duplicate attribute `%s'".printf (attr.name));
+					Report.error (attr.source_reference, "duplicate attribute `%s'", attr.name);
 				}
 				node.attributes.append (attr);
 			}
@@ -2574,6 +2693,7 @@ public class Vala.Parser : CodeVisitor {
 			case TokenType.UNLOCK:
 			case TokenType.VAR:
 			case TokenType.WHILE:
+			case TokenType.WITH:
 			case TokenType.YIELD:
 				return RecoveryState.STATEMENT_BEGIN;
 			default:

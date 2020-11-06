@@ -57,7 +57,7 @@ public class Vala.MarkupReader {
 			line = 1;
 			column = 1;
 		} catch (FileError e) {
-			Report.error (null, "Unable to map file `%s': %s".printf (filename, e.message));
+			Report.error (null, "Unable to map file `%s': %s", filename, e.message);
 		}
 	}
 
@@ -172,10 +172,12 @@ public class Vala.MarkupReader {
 				space ();
 				while (current < end && current[0] != '>' && current[0] != '/') {
 					string attr_name = read_name ();
+					space ();
 					if (current >= end || current[0] != '=') {
 						// error
 					}
 					current++;
+					space ();
 					if (current >= end || current[0] != '"' || current[0] != '\'') {
 						// error
 					}

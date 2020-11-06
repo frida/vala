@@ -24,9 +24,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#ifndef YY_NO_UNISTD_H
 #include <unistd.h>
-#endif
 #include <ctype.h>
 #include <errno.h>
 #include <glib.h>
@@ -777,13 +775,14 @@ g_igenerator_process_struct_typedef (GIGenerator * igenerator, CSymbol * sym)
 	       member_l = member_l->next)
 	    {
 	      CSymbol *member = member_l->data;
+	      GIdlNodeField *gifield;
 	      /* ignore private / reserved members */
 	      if (member->ident[0] == '_'
 		  || g_str_has_prefix (member->ident, "priv"))
 		{
 		  continue;
 		}
-	      GIdlNodeField *gifield =
+	      gifield =
 		(GIdlNodeField *) g_idl_node_new (G_IDL_NODE_FIELD);
 	      node->members = g_list_append (node->members, gifield);
 	      gifield->node.name = member->ident;
@@ -945,8 +944,9 @@ g_igenerator_process_union_typedef (GIGenerator * igenerator, CSymbol * sym)
   
   if (union_type->child_list == NULL)
     {
+      CSymbol *union_symbol;
       g_assert (union_type->name != NULL);
-      CSymbol *union_symbol =
+      union_symbol =
 	g_hash_table_lookup (igenerator->struct_or_union_or_enum_table,
 			     union_type->name);
       if (union_symbol != NULL)
@@ -962,9 +962,10 @@ g_igenerator_process_union_typedef (GIGenerator * igenerator, CSymbol * sym)
   type = g_hash_table_lookup (igenerator->type_map, sym->ident);
   if (type != NULL)
     {
-      g_assert (type->type == G_IDL_NODE_BOXED);
-      GIdlNodeBoxed *node = (GIdlNodeBoxed *) type;
+      GIdlNodeBoxed *node;
       GList *member_l;
+      g_assert (type->type == G_IDL_NODE_BOXED);
+      node = (GIdlNodeBoxed *) type;
       for (member_l = union_type->child_list; member_l != NULL;
 	   member_l = member_l->next)
 	{
@@ -1251,7 +1252,7 @@ g_igenerator_is_typedef (GIGenerator * igenerator, const char *name)
   return b;
 }
 
-void
+static void
 g_igenerator_generate (GIGenerator * igenerator,
 		       const gchar * filename,
 		       GList *libraries)
@@ -1332,12 +1333,12 @@ g_igenerator_parse_macros (GIGenerator * igenerator)
 {
   GError *error = NULL;
   char *tmp_name = NULL;
+  GList *l;
   FILE *fmacros =
     fdopen (g_file_open_tmp ("gen-introspect-XXXXXX.h", &tmp_name, &error),
 	    "w+");
   g_unlink (tmp_name);
 
-  GList *l;
   for (l = igenerator->filenames; l != NULL; l = l->next)
     {
       FILE *f = fopen (l->data, "r");
@@ -1695,8 +1696,6 @@ main (int argc, char **argv)
 	"Other gidls to include", "IDL" },
       { NULL }
     };
-
-  glib_init ();
 
   gopt_argc = 1;
   gopt_argv = (char**)g_malloc (argc * sizeof (char*));

@@ -63,14 +63,14 @@ public class Vala.GObjectModule : GTypeModule {
 		if (cl.constructor != null) {
 			var ccast = new CCodeFunctionCall (new CCodeIdentifier ("G_OBJECT_CLASS"));
 			ccast.add_argument (new CCodeIdentifier ("klass"));
-			ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "constructor"), new CCodeIdentifier ("%s_constructor".printf (get_ccode_lower_case_name (cl, null))));
+			ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "constructor"), new CCodeIdentifier ("%sconstructor".printf (get_ccode_lower_case_prefix (cl))));
 		}
 
 		/* set finalize function */
 		if (cl.get_fields ().size > 0 || cl.destructor != null) {
 			var ccast = new CCodeFunctionCall (new CCodeIdentifier ("G_OBJECT_CLASS"));
 			ccast.add_argument (new CCodeIdentifier ("klass"));
-			ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "finalize"), new CCodeIdentifier ("%s_finalize".printf (get_ccode_lower_case_name (cl, null))));
+			ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "finalize"), new CCodeIdentifier ("%sfinalize".printf (get_ccode_lower_case_prefix (cl))));
 		}
 
 		/* create type, dup_func, and destroy_func properties for generic types */
@@ -79,7 +79,7 @@ public class Vala.GObjectModule : GTypeModule {
 			CCodeConstant func_name_constant;
 			CCodeFunctionCall cinst, cspec;
 
-			var name_prefix = type_param.name.down ();
+			var name_prefix = type_param.name.ascii_down ();
 			var canonical_prefix = name_prefix.replace ("_", "-");
 
 			func_name = "%s_type".printf (name_prefix);
@@ -136,7 +136,7 @@ public class Vala.GObjectModule : GTypeModule {
 		foreach (Property prop in props) {
 			if (!context.analyzer.is_gobject_property (prop)) {
 				if (!context.analyzer.is_gobject_property_type (prop.property_type)) {
-					Report.warning (prop.source_reference, "Type `%s' can not be used for a GLib.Object property".printf (prop.property_type.to_qualified_string ()));
+					Report.warning (prop.source_reference, "Type `%s' can not be used for a GLib.Object property", prop.property_type.to_qualified_string ());
 				}
 				continue;
 			}
@@ -484,7 +484,7 @@ public class Vala.GObjectModule : GTypeModule {
 
 			push_context (new EmitContext (c));
 
-			var function = new CCodeFunction ("%s_constructor".printf (get_ccode_lower_case_name (cl, null)), "GObject *");
+			var function = new CCodeFunction ("%sconstructor".printf (get_ccode_lower_case_prefix (cl)), "GObject *");
 			function.modifiers = CCodeModifiers.STATIC;
 
 			function.add_parameter (new CCodeParameter ("type", "GType"));
@@ -839,15 +839,15 @@ public class Vala.GObjectModule : GTypeModule {
 					}
 					var prop = SemanticAnalyzer.symbol_lookup_inherited (current_class, named_argument.name) as Property;
 					if (prop == null) {
-						Report.error (arg.source_reference, "Property `%s' not found in `%s'".printf (named_argument.name, current_class.get_full_name ()));
+						Report.error (arg.source_reference, "Property `%s' not found in `%s'", named_argument.name, current_class.get_full_name ());
 						break;
 					}
 					if (!context.analyzer.is_gobject_property (prop)) {
-						Report.error (arg.source_reference, "Property `%s' not supported in Object (property: value) constructor chain up".printf (named_argument.name));
+						Report.error (arg.source_reference, "Property `%s' not supported in Object (property: value) constructor chain up", named_argument.name);
 						break;
 					}
 					if (!arg.value_type.compatible (prop.property_type)) {
-						Report.error (arg.source_reference, "Cannot convert from `%s' to `%s'".printf (arg.value_type.to_string (), prop.property_type.to_string ()));
+						Report.error (arg.source_reference, "Cannot convert from `%s' to `%s'", arg.value_type.to_string (), prop.property_type.to_string ());
 						break;
 					}
 				}

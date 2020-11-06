@@ -84,6 +84,8 @@ namespace Pango {
 		public AttrList ();
 		public void change (owned Pango.Attribute attr);
 		public Pango.AttrList? copy ();
+		[Version (since = "1.46")]
+		public bool equal (Pango.AttrList other_list);
 		[Version (since = "1.2")]
 		public Pango.AttrList? filter (Pango.AttrFilterFunc func);
 		[Version (since = "1.44")]
@@ -311,7 +313,7 @@ namespace Pango {
 		[CCode (has_construct_function = false)]
 		protected FontFamily ();
 		[Version (since = "1.46")]
-		public virtual unowned Pango.FontFace? get_face (string name);
+		public virtual unowned Pango.FontFace? get_face (string? name);
 		public virtual unowned string get_name ();
 		[Version (since = "1.4")]
 		public virtual bool is_monospace ();
@@ -434,6 +436,8 @@ namespace Pango {
 		public static unowned Pango.Language? from_string (string? language);
 		[Version (since = "1.16")]
 		public static unowned Pango.Language get_default ();
+		[Version (since = "1.48")]
+		public static unowned Pango.Language? get_preferred ();
 		public unowned string get_sample_string ();
 		[CCode (array_length_pos = 0.1)]
 		[Version (since = "1.22")]
@@ -450,7 +454,7 @@ namespace Pango {
 		public void context_changed ();
 		public Pango.Layout copy ();
 		public Pango.Alignment get_alignment ();
-		public unowned Pango.AttrList get_attributes ();
+		public unowned Pango.AttrList? get_attributes ();
 		[Version (since = "1.4")]
 		public bool get_auto_dir ();
 		[Version (since = "1.22")]
@@ -675,6 +679,8 @@ namespace Pango {
 		public Pango.Color? copy ();
 		public void free ();
 		public bool parse (string spec);
+		[Version (since = "1.46")]
+		public bool parse_with_alpha (out uint16 alpha, string spec);
 		[Version (since = "1.16")]
 		public string to_string ();
 	}
@@ -1206,10 +1212,10 @@ namespace Pango {
 	[Version (since = "1.6")]
 	public static Pango.Attribute attr_letter_spacing_new (int letter_spacing);
 	[CCode (cheader_filename = "pango/pango.h")]
-	[Version (since = "1.45")]
+	[Version (since = "1.46")]
 	public static Pango.Attribute attr_overline_color_new (uint16 red, uint16 green, uint16 blue);
 	[CCode (cheader_filename = "pango/pango.h")]
-	[Version (since = "1.45")]
+	[Version (since = "1.46")]
 	public static Pango.Attribute attr_overline_new (Pango.Overline overline);
 	[CCode (cheader_filename = "pango/pango.h")]
 	public static Pango.Attribute attr_rise_new (int rise);

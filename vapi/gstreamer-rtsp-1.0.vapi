@@ -6,6 +6,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_rtsp_auth_credential_get_type ()")]
 		[Compact]
 		[GIR (name = "RTSPAuthCredential")]
+		[Version (since = "1.12")]
 		public class AuthCredential {
 			public weak string authorization;
 			public weak Gst.RTSP.AuthParam @params;
@@ -14,6 +15,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/rtsp/rtsp.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_rtsp_auth_param_get_type ()")]
 		[Compact]
 		[GIR (name = "RTSPAuthParam")]
+		[Version (since = "1.12")]
 		public class AuthParam {
 			public weak string name;
 			public weak string value;
@@ -211,6 +213,7 @@ namespace Gst {
 			public void free ();
 			public Gst.RTSP.Result get_port (out uint16 port);
 			public string get_request_uri ();
+			[Version (since = "1.18")]
 			public string get_request_uri_with_control (string control_path);
 			public Gst.RTSP.Result set_port (uint16 port);
 		}

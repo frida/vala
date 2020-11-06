@@ -162,7 +162,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 	void report_parse_error (ParseError e) {
 		var begin = get_location ();
 		next ();
-		Report.error (get_src (begin), "syntax error, " + e.message);
+		Report.error (get_src (begin), "syntax error, %s", e.message);
 	}
 
 	inline bool expect (TokenType type) throws ParseError {
@@ -963,12 +963,25 @@ public class Vala.Genie.Parser : CodeVisitor {
 	}
 
 	Expression parse_element_access (SourceLocation begin, Expression inner) throws ParseError {
-		expect (TokenType.OPEN_BRACKET);
-		var index_list = parse_expression_list ();
 		Expression? stop = null;
+		List<Expression> index_list;
+
+		expect (TokenType.OPEN_BRACKET);
+		if (current () == TokenType.COLON) {
+			// slice expression
+			index_list = new ArrayList<Expression> ();
+			index_list.add (new IntegerLiteral ("0", get_src (begin)));
+		} else {
+			index_list = parse_expression_list ();
+		}
+
 		if (index_list.size == 1 && accept (TokenType.COLON)) {
 			// slice expression
-			stop = parse_expression ();
+			if (current () == TokenType.CLOSE_BRACKET) {
+				stop = new MemberAccess (inner, "length", get_src (begin));
+			} else {
+				stop = parse_expression ();
+			}
 		}
 		expect (TokenType.CLOSE_BRACKET);
 
@@ -1949,7 +1962,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 	}
 
 	void parse_local_variable_declarations (Block block) throws ParseError {
-		var id_list = new ArrayList<string> ();
+		var id_list = new ArrayList<string> (str_equal);
 		id_list.add (parse_identifier ());
 		// Allow multiple declarations
 		while (accept (TokenType.COMMA)) {
@@ -2389,7 +2402,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 		if (attributes != null) {
 			foreach (Attribute attr in (List<Attribute>) attributes) {
 				if (node.get_attribute (attr.name) != null) {
-					Report.error (attr.source_reference, "duplicate attribute `%s'".printf (attr.name));
+					Report.error (attr.source_reference, "duplicate attribute `%s'", attr.name);
 				}
 				node.attributes.append (attr);
 			}

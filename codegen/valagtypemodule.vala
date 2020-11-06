@@ -271,7 +271,11 @@ public class Vala.GTypeModule : GErrorModule {
 				} else if (s is Signal) {
 					var sig = (Signal) s;
 					if (sig.default_handler != null) {
-						generate_virtual_method_declaration (sig.default_handler, decl_space, type_struct);
+						if (sig.is_virtual) {
+							generate_virtual_method_declaration (sig.default_handler, decl_space, type_struct);
+						} else {
+							generate_method_declaration (sig.default_handler, cfile);
+						}
 					}
 				} else if (s is Property) {
 					var prop = (Property) s;
@@ -291,7 +295,11 @@ public class Vala.GTypeModule : GErrorModule {
 
 			foreach (Signal sig in cl.get_signals ()) {
 				if (sig.default_handler != null) {
-					generate_virtual_method_declaration (sig.default_handler, decl_space, type_struct);
+					if (sig.is_virtual) {
+						generate_virtual_method_declaration (sig.default_handler, decl_space, type_struct);
+					} else {
+						generate_method_declaration (sig.default_handler, cfile);
+					}
 				}
 			}
 
@@ -482,13 +490,13 @@ public class Vala.GTypeModule : GErrorModule {
 			foreach (TypeParameter type_param in cl.get_type_parameters ()) {
 				string func_name;
 
-				func_name = "%s_type".printf (type_param.name.down ());
+				func_name = "%s_type".printf (type_param.name.ascii_down ());
 				instance_priv_struct.add_field ("GType", func_name);
 
-				func_name = "%s_dup_func".printf (type_param.name.down ());
+				func_name = "%s_dup_func".printf (type_param.name.ascii_down ());
 				instance_priv_struct.add_field ("GBoxedCopyFunc", func_name);
 
-				func_name = "%s_destroy_func".printf (type_param.name.down ());
+				func_name = "%s_destroy_func".printf (type_param.name.ascii_down ());
 				instance_priv_struct.add_field ("GDestroyNotify", func_name);
 			}
 		}
@@ -587,7 +595,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		if (get_ccode_name (cl).length < 3) {
 			cl.error = true;
-			Report.error (cl.source_reference, "Class name `%s' is too short".printf (get_ccode_name (cl)));
+			Report.error (cl.source_reference, "Class name `%s' is too short", get_ccode_name (cl));
 			return;
 		}
 
@@ -1264,6 +1272,8 @@ public class Vala.GTypeModule : GErrorModule {
 
 			// there is currently no default handler for abstract async methods
 			if (!m.is_abstract || !m.coroutine) {
+				generate_method_declaration (m.base_method, cfile);
+
 				CCodeExpression cfunc = new CCodeIdentifier (get_ccode_real_name (m));
 				cfunc = cast_method_pointer (m.base_method, cfunc, base_type, (m.coroutine ? 1 : 3));
 				var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%sClass *".printf (get_ccode_name (base_type)));
@@ -1279,9 +1289,11 @@ public class Vala.GTypeModule : GErrorModule {
 
 		/* connect default signal handlers */
 		foreach (Signal sig in cl.get_signals ()) {
-			if (sig.default_handler == null) {
+			if (sig.default_handler == null || !sig.is_virtual) {
 				continue;
 			}
+			generate_method_declaration (sig.default_handler, cfile);
+
 			var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%sClass *".printf (get_ccode_name (cl)));
 			ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, get_ccode_vfunc_name (sig.default_handler)), new CCodeIdentifier (get_ccode_real_name (sig.default_handler)));
 		}
@@ -1298,10 +1310,14 @@ public class Vala.GTypeModule : GErrorModule {
 
 			if (!get_ccode_no_accessor_method (prop.base_property) && !get_ccode_concrete_accessor (prop.base_property)) {
 				if (prop.get_accessor != null) {
+					generate_property_accessor_declaration (prop.base_property.get_accessor, cfile);
+
 					string cname = get_ccode_real_name (prop.get_accessor);
 					ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "get_%s".printf (prop.name)), new CCodeIdentifier (cname));
 				}
 				if (prop.set_accessor != null) {
+					generate_property_accessor_declaration (prop.base_property.set_accessor, cfile);
+
 					string cname = get_ccode_real_name (prop.set_accessor);
 					ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "set_%s".printf (prop.name)), new CCodeIdentifier (cname));
 				}
@@ -1380,6 +1396,8 @@ public class Vala.GTypeModule : GErrorModule {
 				continue;
 			}
 
+			generate_method_declaration (m.base_interface_method, cfile);
+
 			var ciface = new CCodeIdentifier ("iface");
 			CCodeExpression cfunc;
 			if (m.is_abstract || m.is_virtual) {
@@ -1406,17 +1424,17 @@ public class Vala.GTypeModule : GErrorModule {
 				GenericType p_type = new GenericType (p);
 				DataType p_data_type = p_type.get_actual_type (SemanticAnalyzer.get_data_type_for_symbol (cl), null, cl);
 
-				add_generic_accessor_function ("get_%s_type".printf (p.name.down ()),
+				add_generic_accessor_function ("get_%s_type".printf (p.name.ascii_down ()),
 				                               "GType",
 				                               get_type_id_expression (p_data_type),
 				                               p, cl, iface);
 
-				add_generic_accessor_function ("get_%s_dup_func".printf (p.name.down ()),
+				add_generic_accessor_function ("get_%s_dup_func".printf (p.name.ascii_down ()),
 				                               "GBoxedCopyFunc",
 				                               get_dup_func_expression (p_data_type, null),
 				                               p, cl, iface);
 
-				add_generic_accessor_function ("get_%s_destroy_func".printf (p.name.down ()),
+				add_generic_accessor_function ("get_%s_destroy_func".printf (p.name.ascii_down ()),
 				                               "GDestroyNotify",
 				                               get_destroy_func_expression (p_data_type),
 				                               p, cl, iface);
@@ -1453,6 +1471,8 @@ public class Vala.GTypeModule : GErrorModule {
 
 			if (!get_ccode_no_accessor_method (prop.base_interface_property) && !get_ccode_concrete_accessor (prop.base_interface_property)) {
 				if (prop.get_accessor != null) {
+					generate_property_accessor_declaration (prop.base_interface_property.get_accessor, cfile);
+
 					string cname = get_ccode_real_name (prop.get_accessor);
 					if (prop.is_abstract || prop.is_virtual) {
 						cname = get_ccode_name (prop.get_accessor);
@@ -1465,6 +1485,8 @@ public class Vala.GTypeModule : GErrorModule {
 					ccode.add_assignment (new CCodeMemberAccess.pointer (ciface, "get_%s".printf (prop.name)), cfunc);
 				}
 				if (prop.set_accessor != null) {
+					generate_property_accessor_declaration (prop.base_interface_property.set_accessor, cfile);
+
 					string cname = get_ccode_real_name (prop.set_accessor);
 					if (prop.is_abstract || prop.is_virtual) {
 						cname = get_ccode_name (prop.set_accessor);
@@ -1615,6 +1637,8 @@ public class Vala.GTypeModule : GErrorModule {
 
 				// there is currently no default handler for abstract async methods
 				if (!m.is_abstract || !m.coroutine) {
+					generate_method_declaration (m.base_method, cfile);
+
 					CCodeExpression cfunc = new CCodeIdentifier (get_ccode_real_name (m));
 					cfunc = cast_method_pointer (m.base_method, cfunc, base_type, (m.coroutine ? 1 : 3));
 					var ccast = new CCodeCastExpression (new CCodeIdentifier ("self"), "%s *".printf (get_ccode_name (base_type)));
@@ -1639,10 +1663,14 @@ public class Vala.GTypeModule : GErrorModule {
 
 				if (!get_ccode_no_accessor_method (prop.base_property) && !get_ccode_concrete_accessor (prop.base_property)) {
 					if (prop.get_accessor != null) {
+						generate_property_accessor_declaration (prop.base_property.get_accessor, cfile);
+
 						string cname = get_ccode_real_name (prop.get_accessor);
 						ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "get_%s".printf (prop.name)), new CCodeIdentifier (cname));
 					}
 					if (prop.set_accessor != null) {
+						generate_property_accessor_declaration (prop.base_property.set_accessor, cfile);
+
 						string cname = get_ccode_real_name (prop.set_accessor);
 						ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, "set_%s".printf (prop.name)), new CCodeIdentifier (cname));
 					}
@@ -1727,7 +1755,7 @@ public class Vala.GTypeModule : GErrorModule {
 				fundamental_class = fundamental_class.base_class;
 			}
 
-			var func = new CCodeFunction ("%s_finalize".printf (get_ccode_lower_case_name (cl, null)));
+			var func = new CCodeFunction ("%sfinalize".printf (get_ccode_lower_case_prefix (cl)));
 			func.add_parameter (new CCodeParameter ("obj", "%s *".printf (get_ccode_name (fundamental_class))));
 			func.modifiers = CCodeModifiers.STATIC;
 
@@ -1832,20 +1860,22 @@ public class Vala.GTypeModule : GErrorModule {
 		cspec.add_argument (new CCodeConstant ("\"%s\"".printf (prop.nick)));
 		cspec.add_argument (new CCodeConstant ("\"%s\"".printf (prop.blurb)));
 
-
-		if (prop.property_type.type_symbol is Class || prop.property_type.type_symbol is Interface) {
-			string param_spec_name = get_ccode_param_spec_function (prop.property_type.type_symbol);
+		unowned TypeSymbol? type_symbol = prop.property_type.type_symbol;
+		if (type_symbol is Class || type_symbol is Interface) {
+			string param_spec_name = get_ccode_param_spec_function (type_symbol);
 			cspec.call = new CCodeIdentifier (param_spec_name);
 			if (param_spec_name == "g_param_spec_string") {
 				cspec.add_argument (new CCodeConstant ("NULL"));
 			} else if (param_spec_name == "g_param_spec_variant") {
 				cspec.add_argument (new CCodeConstant ("G_VARIANT_TYPE_ANY"));
 				cspec.add_argument (new CCodeConstant ("NULL"));
-			} else if (get_ccode_type_id (prop.property_type.type_symbol) != "G_TYPE_POINTER") {
-				cspec.add_argument (new CCodeIdentifier (get_ccode_type_id (prop.property_type.type_symbol)));
+			} else if (param_spec_name == "gtk_param_spec_expression") {
+				// No additional parameter required
+			} else if (get_ccode_type_id (type_symbol) != "G_TYPE_POINTER") {
+				cspec.add_argument (new CCodeIdentifier (get_ccode_type_id (type_symbol)));
 			}
-		} else if (prop.property_type.type_symbol is Enum) {
-			unowned Enum e = (Enum) prop.property_type.type_symbol;
+		} else if (type_symbol is Enum) {
+			unowned Enum e = (Enum) type_symbol;
 			if (get_ccode_has_type_id (e)) {
 				if (e.is_flags) {
 					cspec.call = new CCodeIdentifier ("g_param_spec_flags");
@@ -1868,10 +1898,10 @@ public class Vala.GTypeModule : GErrorModule {
 			if (prop.initializer != null) {
 				cspec.add_argument ((CCodeExpression) get_ccodenode (prop.initializer));
 			} else {
-				cspec.add_argument (new CCodeConstant (get_ccode_default_value (prop.property_type.type_symbol)));
+				cspec.add_argument (new CCodeConstant (get_ccode_default_value (type_symbol)));
 			}
-		} else if (prop.property_type.type_symbol is Struct) {
-			unowned Struct st = (Struct) prop.property_type.type_symbol;
+		} else if (type_symbol is Struct) {
+			unowned Struct st = (Struct) type_symbol;
 			var type_id = get_ccode_type_id (st);
 			if (type_id == "G_TYPE_INT") {
 				cspec.call = new CCodeIdentifier ("g_param_spec_int");
@@ -2058,7 +2088,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		if (iface.get_attribute ("GenericAccessors") != null) {
 			foreach (TypeParameter p in iface.get_type_parameters ()) {
-				string method_name = "get_%s_type".printf (p.name.down ());
+				string method_name = "get_%s_type".printf (p.name.ascii_down ());
 				var vdeclarator = new CCodeFunctionDeclarator (method_name);
 				var this_type = SemanticAnalyzer.get_data_type_for_symbol (iface);
 				vdeclarator.add_parameter (new CCodeParameter ("self", get_ccode_name (this_type)));
@@ -2067,7 +2097,7 @@ public class Vala.GTypeModule : GErrorModule {
 				vdecl.add_declarator (vdeclarator);
 				type_struct.add_declaration (vdecl);
 
-				method_name = "get_%s_dup_func".printf (p.name.down ());
+				method_name = "get_%s_dup_func".printf (p.name.ascii_down ());
 				vdeclarator = new CCodeFunctionDeclarator (method_name);
 				this_type = SemanticAnalyzer.get_data_type_for_symbol (iface);
 				vdeclarator.add_parameter (new CCodeParameter ("self", get_ccode_name (this_type)));
@@ -2076,7 +2106,7 @@ public class Vala.GTypeModule : GErrorModule {
 				vdecl.add_declarator (vdeclarator);
 				type_struct.add_declaration (vdecl);
 
-				method_name = "get_%s_destroy_func".printf (p.name.down ());
+				method_name = "get_%s_destroy_func".printf (p.name.ascii_down ());
 				vdeclarator = new CCodeFunctionDeclarator (method_name);
 				this_type = SemanticAnalyzer.get_data_type_for_symbol (iface);
 				vdeclarator.add_parameter (new CCodeParameter ("self", get_ccode_name (this_type)));
@@ -2096,7 +2126,11 @@ public class Vala.GTypeModule : GErrorModule {
 				generate_struct_method_declaration (iface, m, instance_struct, type_struct, decl_space, ref has_struct_member);
 			} else if ((sig = sym as Signal) != null) {
 				if (sig.default_handler != null) {
-					generate_virtual_method_declaration (sig.default_handler, decl_space, type_struct);
+					if (sig.is_virtual) {
+						generate_virtual_method_declaration (sig.default_handler, decl_space, type_struct);
+					} else {
+						generate_method_declaration (sig.default_handler, cfile);
+					}
 				}
 			} else if ((prop = sym as Property) != null) {
 				generate_struct_property_declaration (iface, prop, instance_struct, type_struct, decl_space, ref has_struct_member);
@@ -2120,7 +2154,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		if (get_ccode_name (iface).length < 3) {
 			iface.error = true;
-			Report.error (iface.source_reference, "Interface name `%s' is too short".printf (get_ccode_name (iface)));
+			Report.error (iface.source_reference, "Interface name `%s' is too short", get_ccode_name (iface));
 			return;
 		}
 
@@ -2200,7 +2234,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		/* connect default signal handlers */
 		foreach (Signal sig in iface.get_signals ()) {
-			if (sig.default_handler == null) {
+			if (sig.default_handler == null || !sig.is_virtual) {
 				continue;
 			}
 			var cname = get_ccode_real_name (sig.default_handler);
@@ -2376,7 +2410,7 @@ public class Vala.GTypeModule : GErrorModule {
 		cfile.add_include ("glib.h");
 
 		var cm = method_node as CreationMethod;
-		if (cm != null && cm.parent_symbol is ObjectTypeSymbol) {
+		if (cm != null && !cm.coroutine && cm.parent_symbol is ObjectTypeSymbol) {
 			ccheck.call = new CCodeIdentifier ("g_return_val_if_fail");
 			ccheck.add_argument (new CCodeConstant ("NULL"));
 		} else if (ret_type is VoidType) {

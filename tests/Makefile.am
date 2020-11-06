@@ -18,12 +18,31 @@ BUILT_SOURCES = \
 noinst_PROGRAMS = \
 	$(NULL)
 
-TESTS_ENVIRONMENT = EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' $(srcdir)/testrunner.sh
+TEST_EXTENSIONS = .vala .gs .test
+
+TEST_RUNNER = $(abs_top_srcdir)/build-aux/testrunner.sh
+VALA_LOG_COMPILER = $(TEST_RUNNER)
+GS_LOG_COMPILER = $(TEST_RUNNER)
+TEST_LOG_COMPILER = $(TEST_RUNNER)
+
+AM_TESTS_ENVIRONMENT = \
+	export EXEEXT=$(EXEEXT); \
+	export CFLAGS='$(CFLAGS)'; \
+	export CPPFLAGS='$(CPPFLAGS)'; \
+	export LDFLAGS='$(LDFLAGS)'; \
+	export TEST_CFLAGS='$(TEST_CFLAGS)'; \
+	export abs_top_srcdir='$(abs_top_srcdir)'; \
+	export abs_top_builddir='$(abs_top_builddir)'; \
+	export abs_srcdir='$(abs_srcdir)'; \
+	export abs_builddir='$(abs_builddir)'; \
+	export CC='$(CC)';
 
 TESTS = \
 	basic-types/integers.vala \
+	basic-types/integers-boxed-cast.vala \
 	basic-types/escape-chars.vala \
 	basic-types/floats.vala \
+	basic-types/floats-boxed-cast.vala \
 	basic-types/boolean.vala \
 	basic-types/custom-types.vala \
 	basic-types/default-gtype.vala \
@@ -33,6 +52,7 @@ TESTS = \
 	basic-types/arrays-fixed-assignment.vala \
 	basic-types/array-uint8-uchar-compat.vala \
 	basic-types/pointers.vala \
+	basic-types/pointers-arithmetic.vala \
 	basic-types/sizeof.vala \
 	basic-types/garray.vala \
 	basic-types/glists.vala \
@@ -73,10 +93,13 @@ TESTS = \
 	basic-types/bug777697.test \
 	basic-types/bug787152.vala \
 	basic-types/bug788775.vala \
+	constants/array-type-invalid.test \
 	constants/glog.vala \
+	namespace/unique.vala \
 	arrays/cast-silent-invalid.test \
 	arrays/class-field-length-cname.vala \
 	arrays/constant-element-access.vala \
+	arrays/empty-length-0.vala \
 	arrays/expression-bracket.test \
 	arrays/fixed-length-init0-not-allowed.vala \
 	arrays/field-global-length-cname.vala \
@@ -88,13 +111,21 @@ TESTS = \
 	arrays/inline-local-instantiation.test \
 	arrays/inline-local-variable.test \
 	arrays/inline-parameter.test \
+	arrays/inline-struct.vala \
 	arrays/inline-struct-field.test \
 	arrays/in-operator-with-boxed-needle.vala \
 	arrays/length-inline-assignment.vala \
 	arrays/length-type-include.vala \
 	arrays/struct-field-length-cname.vala \
 	arrays/struct-field-initializer.vala \
+	arrays/struct-namespaced-initializer.vala \
 	arrays/incompatible-integer-elements.test \
+	arrays/resize.vala \
+	arrays/resize-local-size.vala \
+	arrays/resize-local-size-captured.vala \
+	arrays/resize-unowned-invalid.test \
+	arrays/resize-unowned-invalid-2.test \
+	arrays/resize-unowned-invalid-3.test \
 	arrays/slice-invalid-start.test \
 	arrays/slice-invalid-stop.test \
 	arrays/slice-no-array.test \
@@ -125,7 +156,9 @@ TESTS = \
 	methods/contains.vala \
 	methods/extern.vala \
 	methods/iterator.vala \
+	methods/parameter-fixed-array-initializer.vala \
 	methods/parameter-ref-array-resize.vala \
+	methods/parameter-ref-array-resize-captured.vala \
 	methods/prepostconditions.vala \
 	methods/prepostconditions-captured.vala \
 	methods/postconditions.vala \
@@ -173,9 +206,11 @@ TESTS = \
 	methods/bug791215.vala \
 	methods/bug791283.vala \
 	methods/argument-array-initilizer.vala \
+	methods/argument-named.vala \
 	methods/delegate-target.vala \
 	methods/generics.vala \
 	methods/params-array.vala \
+	methods/params-array-abstract.test \
 	methods/print-attribute.vala \
 	methods/print-attribute-invalid.test \
 	methods/printf-invalid.test \
@@ -185,6 +220,7 @@ TESTS = \
 	methods/varargs-delegate-without-target.vala \
 	methods/varargs-gvalue.vala \
 	methods/varargs-out.vala \
+	methods/varargs-ref.vala \
 	methods/varargs-struct.vala \
 	control-flow/assigned-local-variable.vala \
 	control-flow/break.vala \
@@ -206,7 +242,13 @@ TESTS = \
 	control-flow/missing-break.test \
 	control-flow/missing-return.test \
 	control-flow/nested-conditional.vala \
+	control-flow/pre-post-increment.vala \
+	control-flow/pre-post-increment-field.vala \
+	control-flow/pre-post-increment-local.vala \
+	control-flow/pre-post-increment-parameter.vala \
+	control-flow/pre-post-increment-property.vala \
 	control-flow/switch.vala \
+	control-flow/switch-enum.vala \
 	control-flow/sideeffects.vala \
 	control-flow/unassigned-captured-local-variable.test \
 	control-flow/unassigned-local-block-variable.test \
@@ -265,8 +307,10 @@ TESTS = \
 	enums/bug780050.vala \
 	structs/struct_only.vala \
 	structs/struct-base-types.vala \
+	structs/struct-boxed-cast.vala \
 	structs/struct-empty-still.test \
 	structs/struct-initializer-list-in-array.vala \
+	structs/struct-initializer-list-nested.vala \
 	structs/struct-no-gtype.vala \
 	structs/struct-no-gtype-inherit.vala \
 	structs/struct-static-field-initializer.vala \
@@ -347,9 +391,12 @@ TESTS = \
 	delegates/bug772204.test \
 	delegates/bug792077.vala \
 	objects/chainup.vala \
+	objects/class-ccode-cprefix.vala \
 	objects/class_only.vala \
 	objects/class-destroysinstance.vala \
 	objects/class-inner-types.vala \
+	objects/class-new-no-override.vala \
+	objects/class-vfunc-base-access.vala \
 	objects/classes.vala \
 	objects/classes-interfaces.vala \
 	objects/classes-interfaces-virtuals.vala \
@@ -395,6 +442,7 @@ TESTS = \
 	objects/property-array.vala \
 	objects/property-array-length.vala \
 	objects/property-base-access.vala \
+	objects/property-enum.vala \
 	objects/property-notify.vala \
 	objects/property-ownership.vala \
 	objects/property-read-only-auto.vala \
@@ -413,13 +461,18 @@ TESTS = \
 	objects/sealed-class.test \
 	objects/sealed-compact-class.test \
 	objects/signals.vala \
+	objects/signals-default-class-handler.vala \
 	objects/signals-enum-marshal.vala \
 	objects/signals-delegate.vala \
 	objects/signals-delegate-parameter.vala \
 	objects/signals-dymanic-invalid-handler.test \
+	objects/signals-error-marshal.vala \
 	objects/signals-fundamental-return.vala \
 	objects/signals-gobject-return.vala \
 	objects/signals-lambda-delegate.vala \
+	objects/signals-prototype-access.vala \
+	objects/signals-prototype-access-invalid.test \
+	objects/signals-prototype-access-invalid-2.test \
 	objects/signals-struct-return.vala \
 	objects/singleton.vala \
 	objects/test-025.vala \
@@ -498,6 +551,13 @@ TESTS = \
 	objects/bug795225-3.test \
 	objects/bug795225-4.test \
 	objects/bug795521.vala \
+	objects/with-expression.vala \
+	objects/with-instance.vala \
+	objects/with-nested.vala \
+	objects/with-nested-in-lambda.vala \
+	objects/with-nested-method.vala \
+	objects/with-nested-signal.vala \
+	objects/with-nested-unambigous-signal.vala \
 	errors/catch-error-code.vala \
 	errors/catch-in-finally.vala \
 	errors/default-gtype.vala \
@@ -513,6 +573,7 @@ TESTS = \
 	errors/bug579101.vala \
 	errors/bug596228.vala \
 	errors/bug623049.vala \
+	errors/bug627090.vala \
 	errors/bug639589.vala \
 	errors/bug651145.vala \
 	errors/bug762377.vala \
@@ -557,6 +618,7 @@ TESTS = \
 	asynchronous/catch-in-finally.vala \
 	asynchronous/creation-missing-yield.test \
 	asynchronous/closures.vala \
+	asynchronous/constructor-argument-check.vala \
 	asynchronous/finish-name.vala \
 	asynchronous/generator.vala \
 	asynchronous/out-parameter-invalid.test \
@@ -567,10 +629,15 @@ TESTS = \
 	asynchronous/yield.vala \
 	generics/arrays-not-supported.test \
 	generics/constructor-chain-up.vala \
+	generics/floating-type-cast.vala \
 	generics/inference-argument-may-fail.vala \
 	generics/inference-static-function.vala \
+	generics/integer-type-cast.vala \
+	generics/parameter-invalid-initializer.test \
 	generics/parameter-sizeof-initializer.vala \
 	generics/member-dup-destroy.vala \
+	generics/property-int-cast.vala \
+	generics/string-literal-comparison.vala \
 	generics/type-parameter-properties.vala \
 	generics/bug640330.test \
 	generics/bug640330.vala \
@@ -610,6 +677,7 @@ TESTS = \
 	gir/async-result-pos.test \
 	gir/async-sync-out.test \
 	gir/class.test \
+	gir/constant.test \
 	gir/delegate-alias-without-target.test \
 	gir/delegate-array-length-type.test \
 	gir/delegate-closure-destroy-index-conflict.test \
@@ -622,6 +690,7 @@ TESTS = \
 	gir/parameter-nullable-out-simple-type.test \
 	gir/property-non-readable.test \
 	gir/symbol-type-csuffix.test \
+	gir/union.test \
 	annotations/deprecated.vala \
 	annotations/description.vala \
 	annotations/noaccessormethod.test \
@@ -682,6 +751,7 @@ TESTS = \
 	parser/invalid-brace.test \
 	parser/invalid-statement-delimiter.test \
 	parser/local-variable.vala \
+	parser/local-variable-array-type-invalid.test \
 	parser/lock-statement.vala \
 	parser/main-block.vala \
 	parser/member-access-pointer.vala \
@@ -716,6 +786,7 @@ TESTS = \
 	parser/qualified-symbol-access.vala \
 	parser/signal-no-class.test \
 	parser/signal-no-static.test \
+	parser/statement-keyword-as-identifier.vala \
 	parser/statement-outside-root.test \
 	parser/switch-statement.vala \
 	parser/template.vala \
@@ -725,6 +796,12 @@ TESTS = \
 	parser/using-ambiguous-reference.test \
 	parser/using-directive.vala \
 	parser/using-invalid-namespace.test \
+	parser/with-embedded.vala \
+	parser/with-empty.vala \
+	parser/with-invalid-declaration.test \
+	parser/with-invalid-expression.test \
+	parser/with-no-block.test \
+	parser/with-no-expression.test \
 	parser/yield-method.test \
 	parser/yield-return.test \
 	parser/yield-return.vala \
@@ -732,6 +809,8 @@ TESTS = \
 	parser/bug749576.vala \
 	resolver/class-base-cycle.test \
 	resolver/interface-prerequisite-cycle.test \
+	resolver/peek-inner-types-ambiguous.test \
+	resolver/peek-inner-types.vala \
 	resolver/struct-base-cycle.test \
 	ordering/delegate-class.vala \
 	ordering/delegate-enum.vala \
@@ -773,16 +852,22 @@ TESTS = \
 	semantic/class-singleton-non-gobject.test \
 	semantic/class-too-few-type-arguments.test \
 	semantic/class-too-many-type-arguments.test \
+	semantic/conditional-expression-no-block.test \
 	semantic/constant-extern.test \
 	semantic/constant-pointer.test \
+	semantic/constant-reassignment-element.test \
+	semantic/constant-reassignment-member.test \
 	semantic/constant-value.test \
 	semantic/constant-value-missing.test \
 	semantic/constant-value-type.test \
 	semantic/constant-void.test \
 	semantic/construct-without-gobject.test \
+	semantic/creation-error-accessibility.test \
+	semantic/delegate-error-accessibility.test \
 	semantic/delegate-return-valist.test \
 	semantic/delegate-too-few-type-arguments.test \
 	semantic/delegate-too-many-type-arguments.test \
+	semantic/delete-unsupported.test \
 	semantic/element-access-index-invalid.test \
 	semantic/enum-empty.test \
 	semantic/errordomain-empty.test \
@@ -798,6 +883,8 @@ TESTS = \
 	semantic/field-valist.test \
 	semantic/field-void.test \
 	semantic/floating-reference.vala \
+	semantic/floating-reference-base-method.vala \
+	semantic/floating-reference-error.vala \
 	semantic/foreach-iterator-args.test \
 	semantic/foreach-iterator-element-owned.test \
 	semantic/foreach-iterator-void.test \
@@ -824,9 +911,13 @@ TESTS = \
 	semantic/localvariable-var-static-access-instance-property.test \
 	semantic/localvariable-var-without-initializer.test \
 	semantic/localvariable-void.test \
+	semantic/localvariable-void-initializer.test \
 	semantic/member-access-async-callback-invalid.test \
 	semantic/member-access-capture-out.test \
 	semantic/member-access-protected-invalid.test \
+	semantic/member-access-undefined.test \
+	semantic/member-access-static-with-instance.vala \
+	semantic/member-access-transformed-qualified.vala \
 	semantic/method-abstract.test \
 	semantic/method-abstract-body.test \
 	semantic/method-async-ref-parameter.test \
@@ -880,6 +971,7 @@ TESTS = \
 	semantic/property-accessibility.test \
 	semantic/property-construct.test \
 	semantic/property-initializer-type.test \
+	semantic/property-method-returns-modified-pointer.test \
 	semantic/property-override.test \
 	semantic/property-override-class.test \
 	semantic/property-override-interface.test \
@@ -918,42 +1010,44 @@ TESTS = \
 	semantic/unary-unsupported-increment.test \
 	semantic/unary-unsupported-minus.test \
 	semantic/unary-unsupported-negation.test \
+	semantic/with-array.test \
+	semantic/with-buildin.vala \
+	semantic/with-class.test \
+	semantic/with-compact.vala \
+	semantic/with-declaration-cast-type.vala \
+	semantic/with-declaration-wrong-type.test \
+	semantic/with-declaration.vala \
+	semantic/with-dereferenced-pointer.vala \
+	semantic/with-enum.test \
+	semantic/with-enum-member.vala \
+	semantic/with-error.test \
+	semantic/with-error-member.test \
+	semantic/with-pointer.test \
+	semantic/with-namespace.test \
+	semantic/with-no-declaration.test \
+	semantic/with-no-such-member.test \
+	semantic/with-null.vala \
+	semantic/with-string.vala \
+	semantic/with-outside-declaration.test \
+	semantic/with-value.vala \
 	semantic/yield-call-requires-async-context.test \
 	semantic/yield-call-requires-async-method.test \
+	semantic/yield-call-requires-async-method-2.test \
 	semantic/yield-creation-requires-async-context.test \
 	semantic/yield-creation-requires-async-method.test \
 	semantic/yield-statement-requires-async-context.test \
-	$(NULL)
-
-NON_NULL_TESTS = \
 	nullability/bug611223.vala \
 	nullability/local-variable-invalid-convert.test \
 	nullability/member-access-nullable-instance.test \
 	nullability/method-parameter-invalid-convert.test \
 	nullability/method-return-invalid-convert.test \
-	$(NULL)
-
-LINUX_TESTS = \
-	linux/bug793444.vala \
-	posix/file-commandpipe.vala \
-	$(NULL)
-
-POSIX_TESTS = \
-	basic-types/arrays.vala \
-	structs/struct_only.vala \
-	delegates/delegate_only.vala \
-	enums/enum_only.vala \
-	$(NULL)
-
-VERSION_CHECK_TESTS = \
+	nullability/string-concat.test \
+	nullability/with-non-null.test \
 	version/since-constant.test \
 	version/since-field.test \
 	version/since-local-variable.test \
 	version/since-method.test \
 	version/since-parameter.test \
-	$(NULL)
-
-GENIE_TESTS = \
 	genie/class.gs \
 	genie/control-flow-if-do.gs \
 	genie/control-flow-if-else.gs \
@@ -1018,32 +1112,29 @@ GENIE_TESTS = \
 	genie/preparser-or-expression.gs \
 	genie/struct.gs \
 	genie/struct-after-class.gs \
+	$(LINUX_TESTS) \
 	$(NULL)
 
-check-TESTS: $(TESTS) $(NON_NULL_TESTS)
-	@EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' \
-		$(srcdir)/testrunner.sh $(TESTS)
+LINUX_TESTS = $(NULL)
+
 if HAVE_LINUX
-	@EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' \
-		PACKAGES="linux" $(srcdir)/testrunner.sh $(LINUX_TESTS)
-	@EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' \
-		VALAFLAGS="--profile posix" PACKAGES="posix linux" $(srcdir)/testrunner.sh $(POSIX_TESTS)
+LINUX_TESTS += \
+	linux/bug793444.vala \
+	linux/file-commandpipe.vala \
+	posix/arrays.vala \
+	posix/empty-length-0.vala \
+	posix/struct_only.vala \
+	posix/delegate_only.vala \
+	posix/enum_only.vala \
+	$(NULL)
 endif
-	@EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' \
-		VALAFLAGS="--enable-experimental-non-null" $(srcdir)/testrunner.sh $(NON_NULL_TESTS)
-	@export PKG_CONFIG_PATH=$(abs_srcdir)/version; EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' \
-		TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' $(srcdir)/testrunner.sh $(VERSION_CHECK_TESTS)
-	@EXEEXT=$(EXEEXT) CFLAGS='$(CFLAGS)' CPPFLAGS='$(CPPFLAGS)' LDFLAGS='$(LDFLAGS)' TEST_CFLAGS='$(TEST_CFLAGS)' CC='$(CC)' \
-		$(srcdir)/testrunner.sh $(GENIE_TESTS)
 
 EXTRA_DIST = \
-	testrunner.sh \
+	linux/tests-extra-environment.sh \
+	nullability/tests-extra-environment.sh \
+	posix/tests-extra-environment.sh \
 	version/glib-2.0.pc \
+	version/tests-extra-environment.sh \
 	$(TESTS) \
-	$(NON_NULL_TESTS) \
 	$(LINUX_TESTS) \
-	$(POSIX_TESTS) \
-	$(VERSION_CHECK_TESTS) \
-	$(GENIE_TESTS) \
 	$(NULL)
-

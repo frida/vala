@@ -51,7 +51,7 @@ public class Vala.CodeWriter : CodeVisitor {
 
 	/**
 	 * Allows overriding of a specific cheader in the output
-	 * @param original orignal cheader to override
+	 * @param original original cheader to override
 	 * @param replacement cheader to replace original with
 	 */
 	public void set_cheader_override (string original, string replacement)
@@ -79,7 +79,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		}
 
 		if (stream == null) {
-			Report.error (null, "unable to open `%s' for writing".printf (filename));
+			Report.error (null, "unable to open `%s' for writing", filename);
 			return;
 		}
 
@@ -1157,6 +1157,16 @@ public class Vala.CodeWriter : CodeVisitor {
 			write_string (" ");
 			stmt.return_expression.accept (this);
 		}
+		write_string (";");
+		write_newline ();
+	}
+
+	public override void visit_with_statement (WithStatement stmt) {
+		write_indent ();
+		write_string ("with (");
+		stmt.expression.accept (this);
+		write_string (")");
+		stmt.body.accept (this);
 		write_string (";");
 		write_newline ();
 	}

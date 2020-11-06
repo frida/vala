@@ -100,7 +100,7 @@ public class Vala.CCodeFile {
 
 	public void add_function (CCodeFunction func) {
 		if (!definitions.add (func.name)) {
-			Report.error (null, "internal: Redefinition of `%s'".printf (func.name));
+			Report.error (null, "internal: Redefinition of `%s'", func.name);
 			return;
 		}
 
@@ -108,7 +108,7 @@ public class Vala.CCodeFile {
 	}
 
 	public List<string> get_symbols () {
-		var symbols = new ArrayList<string> ();
+		var symbols = new ArrayList<string> (str_equal);
 		get_symbols_from_fragment (symbols, type_member_declaration);
 		return symbols;
 	}

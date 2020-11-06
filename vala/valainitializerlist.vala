@@ -41,7 +41,7 @@ public class Vala.InitializerList : Expression {
 	}
 
 	/**
-	 * Returns the initalizer expression list
+	 * Returns the initializer expression list
 	 *
 	 * @return expression list
 	 */
@@ -62,7 +62,7 @@ public class Vala.InitializerList : Expression {
 	 * @param source_reference reference to source code
 	 * @return                 newly created initializer list
 	 */
-	public InitializerList (SourceReference source_reference) {
+	public InitializerList (SourceReference? source_reference = null) {
 		this.source_reference = source_reference;
 	}
 
@@ -141,6 +141,9 @@ public class Vala.InitializerList : Expression {
 			error = true;
 			Report.error (source_reference, "initializer list used for unknown type");
 			return false;
+		} else if (target_type.error) {
+			error = true;
+			return false;
 		} else if (target_type is ArrayType) {
 			/* initializer is used as array initializer */
 			unowned ArrayType array_type = (ArrayType) target_type;
@@ -197,9 +200,17 @@ public class Vala.InitializerList : Expression {
 			var in_array_creation_initializer = parent_node is InitializerList && parent_node.parent_node is ArrayCreationExpression;
 			ObjectCreationExpression? struct_creation = null;
 			if (in_array_creation_initializer) {
-				var ma = new MemberAccess.simple (st.name, source_reference);
+				unowned Symbol? sym = st;
+				var ma = new MemberAccess.simple (sym.name, source_reference);
 				ma.creation_member = true;
-				ma.symbol_reference = st;
+				ma.symbol_reference = sym;
+				MemberAccess inner = ma;
+				while (sym.parent_symbol != null && sym.parent_symbol != context.root) {
+					sym = sym.parent_symbol;
+					var ma_inner = new MemberAccess.simple (sym.name, source_reference);
+					inner.inner = ma_inner;
+					inner = ma_inner;
+				}
 				struct_creation = new ObjectCreationExpression (ma, source_reference);
 				struct_creation.target_type = target_type.copy ();
 				struct_creation.struct_creation = true;
@@ -211,7 +222,7 @@ public class Vala.InitializerList : Expression {
 				while (field == null) {
 					if (!field_it.next ()) {
 						error = true;
-						Report.error (e.source_reference, "too many expressions in initializer list for `%s'".printf (target_type.to_string ()));
+						Report.error (e.source_reference, "too many expressions in initializer list for `%s'", target_type.to_string ());
 						return false;
 					}
 					field = field_it.get ();
@@ -239,15 +250,20 @@ public class Vala.InitializerList : Expression {
 			}
 		} else {
 			error = true;
-			Report.error (source_reference, "initializer list used for `%s', which is neither array nor struct".printf (target_type.to_string ()));
+			Report.error (source_reference, "initializer list used for `%s', which is neither array nor struct", target_type.to_string ());
 			return false;
 		}
 
 		foreach (Expression expr in initializers) {
-			expr.check (context);
+			if (!expr.check (context)) {
+				error = true;
+			}
 		}
 
-		bool error = false;
+		if (error) {
+			return false;
+		}
+
 		foreach (Expression e in get_initializers ()) {
 			if (e.value_type == null) {
 				error = true;
@@ -261,7 +277,7 @@ public class Vala.InitializerList : Expression {
 			} else if (!e.value_type.compatible (e.target_type)) {
 				error = true;
 				e.error = true;
-				Report.error (e.source_reference, "Expected initializer of type `%s' but got `%s'".printf (e.target_type.to_string (), e.value_type.to_string ()));
+				Report.error (e.source_reference, "Expected initializer of type `%s' but got `%s'", e.target_type.to_string (), e.value_type.to_string ());
 			}
 		}
 

@@ -1400,7 +1400,7 @@ public class Vala.Genie.Scanner {
 				if (current < end) {
 					current++;
 				} else {
-					Report.error (get_source_reference (token_length_in_chars), "syntax error, expected %c".printf (begin[0]));
+					Report.error (get_source_reference (token_length_in_chars), "syntax error, expected %c", begin[0]);
 				}
 				break;
 			default:
@@ -1453,7 +1453,7 @@ public class Vala.Genie.Scanner {
 
 		}
 
-		/* ignore comments and whitspace and other lines that contain no code */
+		/* ignore comments and whitespace and other lines that contain no code */
 
 		space ();
 

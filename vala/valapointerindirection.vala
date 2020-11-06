@@ -22,7 +22,9 @@
 
 
 /**
- * Represents a pointer indirection in the source code, e.g. `*pointer`.
+ * Represents a pointer indirection.
+ *
+ * {{{ *foo }}}
  */
 public class Vala.PointerIndirection : Expression {
 	/**
@@ -32,7 +34,7 @@ public class Vala.PointerIndirection : Expression {
 		get {
 			return _inner;
 		}
-		set {
+		private set {
 			_inner = value;
 			_inner.parent_node = this;
 		}

@@ -158,11 +158,7 @@ public class Vala.Assignment : Expression {
 		if (left is MemberAccess) {
 			unowned MemberAccess ma = (MemberAccess) left;
 
-			if (ma.symbol_reference is Constant) {
-				error = true;
-				Report.error (source_reference, "Assignment to constant after initialization");
-				return false;
-			}
+			check_constant_assignment (ma);
 
 			if ((!(ma.symbol_reference is DynamicProperty) && ma.value_type == null) ||
 			    (ma.inner == null && ma.member_name == "this" && context.analyzer.is_in_instance_method ())) {
@@ -172,7 +168,7 @@ public class Vala.Assignment : Expression {
 			}
 			if (ma.prototype_access) {
 				error = true;
-				Report.error (source_reference, "Access to instance member `%s' denied".printf (ma.symbol_reference.get_full_name ()));
+				Report.error (source_reference, "Access to instance member `%s' denied", ma.symbol_reference.get_full_name ());
 				return false;
 			}
 
@@ -190,6 +186,8 @@ public class Vala.Assignment : Expression {
 			}
 		} else if (left is ElementAccess) {
 			unowned ElementAccess ea = (ElementAccess) left;
+
+			check_constant_assignment (ea.container as MemberAccess);
 
 			if (ea.container.value_type.type_symbol == context.analyzer.string_type.type_symbol) {
 				error = true;
@@ -276,7 +274,7 @@ public class Vala.Assignment : Expression {
 				if (prop.set_accessor == null
 				    || (!prop.set_accessor.writable && !(context.analyzer.find_current_method () is CreationMethod || context.analyzer.is_in_constructor ()))) {
 					ma.error = true;
-					Report.error (ma.source_reference, "Property `%s' is read-only".printf (prop.get_full_name ()));
+					Report.error (ma.source_reference, "Property `%s' is read-only", prop.get_full_name ());
 					return false;
 				} else if (!context.deprecated
 				           && !prop.set_accessor.writable
@@ -284,7 +282,7 @@ public class Vala.Assignment : Expression {
 					if (ma.inner.symbol_reference != context.analyzer.find_current_method ().this_parameter) {
 						// trying to set construct-only property in creation method for foreign instance
 						error = true;
-						Report.error (ma.source_reference, "Property `%s' is read-only".printf (prop.get_full_name ()));
+						Report.error (ma.source_reference, "Property `%s' is read-only", prop.get_full_name ());
 						return false;
 					} else {
 						error = true;
@@ -305,7 +303,7 @@ public class Vala.Assignment : Expression {
 						unowned Method m = (Method) right.symbol_reference;
 						unowned Delegate cb = ((DelegateType) variable.variable_type).delegate_symbol;
 						error = true;
-						Report.error (source_reference, "Declaration of method `%s' is not compatible with delegate `%s'".printf (m.get_full_name (), cb.get_full_name ()));
+						Report.error (source_reference, "Declaration of method `%s' is not compatible with delegate `%s'", m.get_full_name (), cb.get_full_name ());
 						return false;
 					}
 				} else {
@@ -330,7 +328,7 @@ public class Vala.Assignment : Expression {
 
 				if (!right.value_type.compatible (left.value_type)) {
 					error = true;
-					Report.error (source_reference, "Assignment: Cannot convert from `%s' to `%s'".printf (right.value_type.to_string (), left.value_type.to_string ()));
+					Report.error (source_reference, "Assignment: Cannot convert from `%s' to `%s'", right.value_type.to_string (), left.value_type.to_string ());
 					return false;
 				}
 
@@ -374,7 +372,7 @@ public class Vala.Assignment : Expression {
 
 			if (!right.value_type.compatible (left.value_type)) {
 				error = true;
-				Report.error (source_reference, "Assignment: Cannot convert from `%s' to `%s'".printf (right.value_type.to_string (), left.value_type.to_string ()));
+				Report.error (source_reference, "Assignment: Cannot convert from `%s' to `%s'", right.value_type.to_string (), left.value_type.to_string ());
 				return false;
 			}
 
@@ -435,6 +433,23 @@ public class Vala.Assignment : Expression {
 		}
 
 		return false;
+	}
+
+	void check_constant_assignment (MemberAccess? inner) {
+		while (inner != null) {
+			if (inner.symbol_reference is Constant) {
+				error = true;
+				Report.error (source_reference, "Assignment to constant after initialization");
+				break;
+			}
+			if (inner.inner is MemberAccess) {
+				inner = (MemberAccess) inner.inner;
+			} else if (inner.inner is ElementAccess) {
+				inner = ((ElementAccess) inner.inner).container as MemberAccess;
+			} else {
+				inner = null;
+			}
+		}
 	}
 
 	public override void emit (CodeGenerator codegen) {

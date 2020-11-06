@@ -134,7 +134,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			if (expr.lvalue) {
 				expr.target_value = get_field_cvalue (field, expr.inner != null ? expr.inner.target_value : null);
 			} else {
-				expr.target_value = load_field (field, expr.inner != null ? expr.inner.target_value : null);
+				expr.target_value = load_field (field, expr.inner != null ? expr.inner.target_value : null, expr);
 			}
 		} else if (expr.symbol_reference is EnumValue) {
 			var ev = (EnumValue) expr.symbol_reference;
@@ -180,6 +180,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					append_array_length (expr, ccall);
 					sub += "[0]";
 				}
+				((GLibValue) expr.target_value).non_null = true;
 			}
 		} else if (expr.symbol_reference is Property) {
 			var prop = (Property) expr.symbol_reference;
@@ -198,7 +199,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 
 			if (pub_inst == null && prop.binding == MemberBinding.INSTANCE) {
 				// FIXME Report this with proper source-reference on the vala side!
-				Report.error (prop.source_reference, "Invalid access to instance member `%s'".printf (prop.get_full_name ()));
+				Report.error (prop.source_reference, "Invalid access to instance member `%s'", prop.get_full_name ());
 				set_cvalue (expr, new CCodeInvalidExpression ());
 				return;
 			}
@@ -232,7 +233,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 						set_cvalue (expr, ccall);
 					}
 				} else {
-					Report.error (expr.source_reference, "internal: Invalid access to `%s'".printf (base_prop.get_full_name ()));
+					Report.error (expr.source_reference, "internal: Invalid access to `%s'", base_prop.get_full_name ());
 				}
 			} else if (prop.binding == MemberBinding.INSTANCE &&
 			    prop.get_accessor.automatic_body &&
@@ -338,7 +339,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					var owned_value_type = prop.get_accessor.value_type.copy ();
 					owned_value_type.value_owned = true;
 					if (requires_copy (owned_value_type)) {
-						Report.error (prop.get_accessor.source_reference, "unowned return value for getter of property `%s' not supported without accessor".printf (prop.get_full_name ()));
+						Report.error (prop.get_accessor.source_reference, "unowned return value for getter of property `%s' not supported without accessor", prop.get_full_name ());
 					}
 				}
 
@@ -356,7 +357,11 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				set_cvalue (expr, ctemp);
 			}
 
-			expr.target_value.value_type = expr.value_type;
+			if (prop.get_accessor.value_type is GenericType) {
+				expr.target_value.value_type = prop.get_accessor.value_type.copy ();
+			} else {
+				expr.target_value.value_type = expr.value_type.copy ();
+			}
 			expr.target_value = store_temp_value (expr.target_value, expr);
 		} else if (expr.symbol_reference is LocalVariable) {
 			var local = (LocalVariable) expr.symbol_reference;
@@ -388,7 +393,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				if (expr.lvalue) {
 					expr.target_value = get_local_cvalue (local);
 				} else {
-					expr.target_value = load_local (local);
+					expr.target_value = load_local (local, expr);
 				}
 			}
 		} else if (expr.symbol_reference is Parameter) {
@@ -396,7 +401,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			if (expr.lvalue) {
 				expr.target_value = get_parameter_cvalue (param);
 			} else {
-				expr.target_value = load_parameter (param);
+				expr.target_value = load_parameter (param, expr);
 			}
 		}
 	}
@@ -627,7 +632,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 
 			if (inst == null) {
 				// FIXME Report this with proper source-reference on the vala side!
-				Report.error (field.source_reference, "Invalid access to instance member `%s'".printf (field.get_full_name ()));
+				Report.error (field.source_reference, "Invalid access to instance member `%s'", field.get_full_name ());
 				result.cvalue = new CCodeInvalidExpression ();
 				return result;
 			}
@@ -731,7 +736,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 		return result;
 	}
 
-	public override TargetValue load_variable (Variable variable, TargetValue value) {
+	public override TargetValue load_variable (Variable variable, TargetValue value, Expression? expr = null) {
 		var result = (GLibValue) value;
 		var array_type = result.value_type as ArrayType;
 		var delegate_type = result.value_type as DelegateType;
@@ -768,6 +773,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				result.lvalue = false;
 			}
 			result.array_size_cvalue = null;
+			result.non_null = array_type.inline_allocated;
 		} else if (delegate_type != null) {
 			if (!get_ccode_delegate_target (variable)) {
 				result.delegate_target_cvalue = new CCodeConstant ("NULL");
@@ -802,6 +808,11 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			// no need to an extra copy of variables that are stack allocated simple types
 			use_temp = false;
 		}
+		// our implementation of postfix-expressions require temporary variables
+		if (expr is MemberAccess && ((MemberAccess) expr).tainted_access) {
+			use_temp = true;
+		}
+
 		var local = variable as LocalVariable;
 		if (local != null && local.name[0] == '.') {
 			// already a temporary variable generated internally
@@ -817,13 +828,13 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 	}
 
 	/* Returns unowned access to the given local variable */
-	public override TargetValue load_local (LocalVariable local) {
-		return load_variable (local, get_local_cvalue (local));
+	public override TargetValue load_local (LocalVariable local, Expression? expr = null) {
+		return load_variable (local, get_local_cvalue (local), expr);
 	}
 
 	/* Returns unowned access to the given parameter */
-	public override TargetValue load_parameter (Parameter param) {
-		return load_variable (param, get_parameter_cvalue (param));
+	public override TargetValue load_parameter (Parameter param, Expression? expr = null) {
+		return load_variable (param, get_parameter_cvalue (param), expr);
 	}
 
 	/* Convenience method returning access to "this" */
@@ -833,7 +844,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 	}
 
 	/* Returns unowned access to the given field */
-	public override TargetValue load_field (Field field, TargetValue? instance) {
-		return load_variable (field, get_field_cvalue (field, instance));
+	public override TargetValue load_field (Field field, TargetValue? instance, Expression? expr = null) {
+		return load_variable (field, get_field_cvalue (field, instance), expr);
 	}
 }

@@ -46,7 +46,7 @@ public class Vala.Constructor : Subroutine {
 	 * @param source reference to source code
 	 * @return       newly created constructor
 	 */
-	public Constructor (SourceReference? source) {
+	public Constructor (SourceReference? source = null) {
 		base (null, source);
 	}
 
@@ -82,7 +82,7 @@ public class Vala.Constructor : Subroutine {
 			body.get_error_types (body_errors);
 			foreach (DataType body_error_type in body_errors) {
 				if (!((ErrorType) body_error_type).dynamic_error) {
-					Report.warning (body_error_type.source_reference, "unhandled error `%s'".printf (body_error_type.to_string()));
+					Report.warning (body_error_type.source_reference, "unhandled error `%s'", body_error_type.to_string());
 				}
 			}
 		}

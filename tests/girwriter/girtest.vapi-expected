@@ -1,5 +1,9 @@
 [CCode (gir_namespace = "GirTest", gir_version = "1.0")]
 namespace GirTest {
+	namespace Nested {
+		[CCode (cheader_filename = "girtest.h")]
+		public static void function ();
+	}
 	[CCode (cheader_filename = "girtest.h")]
 	public abstract class AbstractObjectTest : GLib.Object {
 		protected AbstractObjectTest ();
@@ -7,6 +11,9 @@ namespace GirTest {
 		public abstract void method_int8_inout (ref int8 param);
 		public abstract void method_int8_out (out int8 param);
 		public abstract void method_throw () throws GirTest.ErrorTest;
+		public abstract void method_valist (int param, va_list vargs);
+		[GIR (visible = false)]
+		public abstract async void skipped_coroutine_method (int param);
 	}
 	[CCode (cheader_filename = "girtest.h")]
 	[Compact]
@@ -65,6 +72,7 @@ namespace GirTest {
 		public virtual void method_throw () throws GirTest.ErrorTest;
 		public void method_valist (int param, va_list vargs);
 		public void method_varargs (int param, ...);
+		public void method_with_default (int i = GLib.Priority.HIGH);
 		public virtual void method_with_default_impl (int8 param);
 		public ObjectTest.new_valist (int param, va_list vargs);
 		public ObjectTest.newv (int param, ...);
@@ -110,6 +118,9 @@ namespace GirTest {
 	public interface InterfaceTest : GLib.Object {
 		public virtual async void coroutine_async ();
 		public virtual void int8_in (int8 param);
+		public virtual void method_valist (int param, va_list vargs);
+		[GIR (visible = false)]
+		public virtual async void skipped_coroutine_method (int param);
 		public abstract int property { get; set construct; }
 	}
 	[CCode (cheader_filename = "girtest.h")]
@@ -122,6 +133,7 @@ namespace GirTest {
 	[CCode (cheader_filename = "girtest.h")]
 	public struct BoxedStruct {
 		public int field_name;
+		public int internal_field_name;
 		public BoxedStruct ();
 		public void inv ();
 	}
@@ -133,6 +145,7 @@ namespace GirTest {
 	[CCode (cheader_filename = "girtest.h", has_type_id = false)]
 	public struct Struct {
 		public int field_name;
+		public int internal_field_name;
 		public Struct ();
 		public void inv ();
 	}
@@ -185,3 +198,30 @@ namespace GirTest {
 	[CCode (cheader_filename = "girtest.h")]
 	public const string CONSTANT_STRING;
 }
+[CCode (cheader_filename = "girtest.h")]
+public enum InvalidEnum {
+	VALUE
+}
+[CCode (cheader_filename = "girtest.h")]
+public errordomain InvalidError {
+	FAILED
+}
+[CCode (cheader_filename = "girtest.h")]
+public class InvalidClass {
+	public InvalidClass ();
+}
+[CCode (cheader_filename = "girtest.h")]
+public interface InvalidIface {
+}
+[CCode (cheader_filename = "girtest.h")]
+public struct InvalidStruct {
+	public int i;
+}
+[CCode (cheader_filename = "girtest.h")]
+public delegate void InvalidFunc ();
+[CCode (cheader_filename = "girtest.h")]
+public const int INVALID_CONST;
+[CCode (cheader_filename = "girtest.h")]
+public static int invalid_field;
+[CCode (cheader_filename = "girtest.h")]
+public static void invalid_method ();

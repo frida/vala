@@ -14,6 +14,7 @@ namespace Gst {
 			public void copy ([CCode (array_length_cname = "size", array_length_pos = 2.1, array_length_type = "gsize")] out unowned uint8[] dest, size_t offset);
 			[Version (since = "1.4")]
 			public GLib.Bytes copy_bytes (size_t offset, size_t size);
+			[Version (since = "1.10")]
 			public uint64 distance_from_discont ();
 			[Version (since = "1.10")]
 			public Gst.ClockTime dts_at_discont ();
@@ -67,6 +68,8 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool decide_allocation (Gst.Query query);
 			public virtual Gst.FlowReturn finish_buffer (owned Gst.Buffer buffer);
+			[Version (since = "1.18")]
+			public virtual Gst.FlowReturn finish_buffer_list (owned Gst.BufferList bufferlist);
 			[NoWrapper]
 			public virtual Gst.Caps fixate_src_caps (Gst.Caps caps);
 			[NoWrapper]
@@ -80,8 +83,12 @@ namespace Gst {
 			public virtual bool negotiate ();
 			[NoWrapper]
 			public virtual bool negotiated_src_caps (Gst.Caps caps);
+			[Version (since = "1.18")]
+			public virtual Gst.Sample peek_next_sample (Gst.Base.AggregatorPad aggregator_pad);
 			[NoWrapper]
 			public virtual bool propose_allocation (Gst.Base.AggregatorPad pad, Gst.Query decide_query, Gst.Query query);
+			[Version (since = "1.18")]
+			public void selected_samples (Gst.ClockTime pts, Gst.ClockTime dts, Gst.ClockTime duration, Gst.Structure? info);
 			public void set_latency (Gst.ClockTime min_latency, Gst.ClockTime max_latency);
 			public void set_src_caps (Gst.Caps caps);
 			[Version (since = "1.16")]
@@ -109,12 +116,19 @@ namespace Gst {
 			[NoWrapper]
 			public virtual Gst.FlowReturn update_src_caps (Gst.Caps caps, out Gst.Caps ret);
 			[NoAccessorMethod]
+			[Version (since = "1.18")]
+			public bool emit_signals { get; set; }
+			[NoAccessorMethod]
 			public uint64 latency { get; set; }
 			[NoAccessorMethod]
 			[Version (since = "1.16")]
 			public uint64 min_upstream_latency { get; set; }
 			[NoAccessorMethod]
 			public uint64 start_time { get; set; }
+			[NoAccessorMethod]
+			public Gst.Base.AggregatorStartTimeSelection start_time_selection { get; set; }
+			[Version (since = "1.18")]
+			public signal void samples_selected (Gst.Segment segment, uint64 pts, uint64 dts, uint64 duration, Gst.Structure? info);
 		}
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstAggregatorPad", lower_case_cprefix = "gst_aggregator_pad_", type_id = "gst_aggregator_pad_get_type ()")]
 		[GIR (name = "AggregatorPad")]
@@ -552,6 +566,7 @@ namespace Gst {
 			public int overhead;
 			[CCode (has_construct_function = false)]
 			public ParseFrame (Gst.Buffer buffer, Gst.Base.ParseFrameFlags flags, int overhead);
+			[Version (since = "1.12.1")]
 			public Gst.Base.ParseFrame copy ();
 			public void free ();
 			public void init ();
@@ -727,7 +742,10 @@ namespace Gst {
 			public virtual bool is_seekable ();
 			[Version (since = "1.18")]
 			public virtual bool negotiate ();
+			[Version (deprecated = true, deprecated_since = "1.18")]
 			public bool new_seamless_segment (int64 start, int64 stop, int64 time);
+			[Version (since = "1.18")]
+			public bool new_segment (Gst.Segment segment);
 			[NoWrapper]
 			public virtual bool prepare_seek_segment (Gst.Event seek, Gst.Segment segment);
 			[NoWrapper]
@@ -889,6 +907,14 @@ namespace Gst {
 			public weak Gst.Segment segment;
 			[CCode (cname = "ABI.abi.dts")]
 			public int64 ABI_abi_dts;
+		}
+		[CCode (cheader_filename = "gst/base/base.h", cname = "GstAggregatorStartTimeSelection", cprefix = "GST_AGGREGATOR_START_TIME_SELECTION_", type_id = "gst_aggregator_start_time_selection_get_type ()")]
+		[GIR (name = "AggregatorStartTimeSelection")]
+		[Version (since = "1.18")]
+		public enum AggregatorStartTimeSelection {
+			ZERO,
+			FIRST,
+			SET
 		}
 		[CCode (cheader_filename = "gst/base/base.h", cname = "GstCollectPadsStateFlags", cprefix = "GST_COLLECT_PADS_STATE_", has_type_id = false)]
 		[Flags]

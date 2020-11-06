@@ -2,18 +2,14 @@
 // but may be some day.
 ////////////////////////////////////////////////////////////////////
 
-*.*.event#parameter type="Gdk.Event"
-
 // G-I doesn't support per-sybmol includes
 * cheader_filename="gtk/gtk.h"
-*Accessible cheader_filename="gtk/gtk.h,gtk/gtk-a11y.h"
 IMContext cheader_filename="gtk/gtk.h,gtk/gtkimmodule.h"
 
 // Causes vapigen issues, not sure why -- <union> without name
 
 // G-I doesn't support structs
 Border struct
-FileFilterInfo struct=false
 Requisition struct
 TextIter struct
 TreeIter struct
@@ -52,10 +48,10 @@ TreeStore
   .reorder skip=false
 
 // Better deprecation notices
-CellRenderer
-  .get_size replacement="get_preferred_size"
 
 // Factory method of abstract type
+ATContext
+  .create symbol_type="function"
 MediaFile
   .new* symbol_type="function" name="new_(.+)" ctype="GtkMediaStream*"
   .new name="empty"
@@ -72,10 +68,19 @@ ShortcutTrigger
 *.*_valist skip=false
 *.*_valist.args type="va_list"
 *.*_valist.var_args type="va_list"
+Accessible
+  .* skip=false
+BuilderCScope
+  .* skip=false
 CellArea
   .add_with_properties skip=false
   .cell_get skip=false
   .cell_set skip=false
+ConstantExpression
+  .new skip=false
+ConstraintLayout
+  .add_constraints_from_description skip=false throws="GLib.Error"
+  .add_constraints_from_description.error skip
 Dialog
   .add_buttons skip=false
   .new_with_buttons skip=false
@@ -95,6 +100,8 @@ MessageDialog
   .new_with_markup skip=false printf_format
 Snapshot
   .* skip=false
+Shortcut
+  .* skip=false
 TextBuffer
   .create_tag skip=false
   .insert_with_tags skip=false
@@ -110,8 +117,10 @@ TreeView
 TreeViewColumn
   .set_attributes skip=false
   .new_with_attributes skip=false
-Widget abstract=false
-  .new skip=false
+Widget
+  .activate_action skip=false
+WidgetClass
+  .add_binding* skip=false
 Actionable
   .set_action_target skip=false
 CellLayout
@@ -120,8 +129,6 @@ TreeModel
   .get skip=false sentinel="-1"
 
 // Abstract vs. virtual
-CellRenderer
-  .get_size#virtual_method abstract
 TreeModel
   .iter_previous#virtual_method virtual
   .ref_node#virtual_method virtual
@@ -184,7 +191,9 @@ RecentData
   .description nullable
 
 // Bug #: confused girparser
-Radio*.group#property no_accessor_method
+CClosureExpression
+  .new.callback_func closure=-1 destroy=-1 owned=false
+  .new.user_destroy nullable
 
 // Skipped for G-I, but usable from Vala
 FlowBox
@@ -199,26 +208,34 @@ TreeSelection
   .get_user_data skip=false
 
 // Symbol name conflicts
+ApplicationWindow
+  .get_id new
 Constraint
   .new_constant name="const"
+DragSource
+  .drag_cancel#method name="cancel"
+DropTarget
+  .drop#signal name="on_drop"
 EntryCompletion
   .insert_prefix#method name="request_prefix_insertion"
+InfoBar
+  .add_child new
+LayoutManager
+  .get_request_mode#method name="get_size_request_mode"
+MediaStream
+  .play#method name="play_now"
 Notebook
   .insert_page_menu skip
+Stack
+  .add_child new
 TreeView
   .row_expanded#method name="is_row_expanded"
 Widget
   .compute_expand#virtual_method name="compute_expand_internal"
+  .size_allocate#method name="allocate_size"
 Editable
   .delete_text#method skip
   .insert_text#method skip
-
-// time_t
-RecentInfo
-  .get_added type="time_t"
-  .get_application_info.time_ type="time_t"
-  .get_modified type="time_t"
-  .get_visited type="time_t"
 
 // Not sure what g-i was thinking
 TreeModel
@@ -231,12 +248,15 @@ CellArea
   .cell_get_property.value ref
   .get_cell_property.value ref
 
+param_spec_expression parent="Gtk.ParamSpecExpression" name="new" symbol_type="constructor"
+value_get_expression.value ref
+value_set_expression.value ref
+value_take_expression.value ref
+
 // Implementation in -custom.vala
 BuildableParser skip
 
 // Backwards compatibility
-CellAccessibleParent
-  .get_cell_area return_void
 CssProvider
   .load_from_data name="load_from_buffer"
 EntryBuffer
@@ -294,7 +314,6 @@ TreeView
 Widget
   .drag_*#method parent="Gtk" symbol_type="function"
   .get_allocation return_void
-  .size_allocate#method name="size_allocate_emit"
 TreeModel
   .get_value return_void
   .rows_reordered skip

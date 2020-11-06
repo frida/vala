@@ -269,6 +269,36 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 		return cname;
 	}
 
+	public override string? append_struct_array_destroy (Struct st) {
+		string cname = "_vala_%s_array_destroy".printf (get_ccode_name (st));
+
+		if (cfile.add_declaration (cname)) {
+			return cname;
+		}
+
+		var fun = new CCodeFunction (cname, "void");
+		fun.modifiers = CCodeModifiers.STATIC;
+		fun.add_parameter (new CCodeParameter ("array", "%s *".printf (get_ccode_name (st))));
+		fun.add_parameter (new CCodeParameter ("array_length", get_ccode_name (int_type)));
+
+		push_function (fun);
+
+		var ccondarr = new CCodeBinaryExpression (CCodeBinaryOperator.INEQUALITY, new CCodeIdentifier ("array"), new CCodeConstant ("NULL"));
+		ccode.open_if (ccondarr);
+
+		ccode.add_declaration (get_ccode_name (int_type), new CCodeVariableDeclarator ("i"));
+		append_struct_array_free_loop (st);
+
+		ccode.close ();
+
+		pop_function ();
+
+		cfile.add_function_declaration (fun);
+		cfile.add_function (fun);
+
+		return cname;
+	}
+
 	void append_vala_array_free_loop () {
 		var cforinit = new CCodeAssignment (new CCodeIdentifier ("i"), new CCodeConstant ("0"));
 		var cforcond = new CCodeBinaryExpression (CCodeBinaryOperator.LESS_THAN, new CCodeIdentifier ("i"), new CCodeIdentifier ("array_length"));
@@ -477,21 +507,21 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 	}
 
 	public override CCodeExpression destroy_value (TargetValue value, bool is_macro_definition = false) {
-		var type = value.value_type;
+		unowned ArrayType? array_type = value.value_type as ArrayType;
 
-		if (type is ArrayType) {
-			var array_type = (ArrayType) type;
-
-			if (!array_type.fixed_length) {
-				return base.destroy_value (value, is_macro_definition);
+		if (array_type != null && array_type.fixed_length) {
+			unowned Struct? st = array_type.element_type.type_symbol as Struct;
+			if (st != null && !array_type.element_type.nullable) {
+				var ccall = new CCodeFunctionCall (new CCodeIdentifier (append_struct_array_destroy (st)));
+				ccall.add_argument (get_cvalue_ (value));
+				ccall.add_argument (get_ccodenode (array_type.length));
+				return ccall;
 			}
 
 			requires_array_free = true;
 			generate_type_declaration (delegate_target_destroy_type, cfile);
 
-			var ccall = new CCodeFunctionCall (get_destroy_func_expression (type));
-
-			ccall = new CCodeFunctionCall (new CCodeIdentifier ("_vala_array_destroy"));
+			var ccall = new CCodeFunctionCall (new CCodeIdentifier ("_vala_array_destroy"));
 			ccall.add_argument (get_cvalue_ (value));
 			ccall.add_argument (get_ccodenode (array_type.length));
 			ccall.add_argument (new CCodeCastExpression (get_destroy_func_expression (array_type.element_type), get_ccode_name (delegate_target_destroy_type)));
@@ -520,7 +550,7 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 		function.add_parameter (new CCodeParameter ("length", get_ccode_name (int_type)));
 		if (array_type.element_type is GenericType) {
 			// dup function array elements
-			string func_name = "%s_dup_func".printf (((GenericType) array_type.element_type).type_parameter.name.down ());
+			string func_name = "%s_dup_func".printf (((GenericType) array_type.element_type).type_parameter.name.ascii_down ());
 			function.add_parameter (new CCodeParameter (func_name, "GBoxedCopyFunc"));
 		}
 
@@ -541,9 +571,13 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 			}
 
 			CCodeExpression length_expr = new CCodeIdentifier ("length");
+			CCodeBinaryOperator length_check_op;
 			// add extra item to have array NULL-terminated for all reference types
 			if (array_type.element_type.type_symbol != null && array_type.element_type.type_symbol.is_reference_type ()) {
 				length_expr = new CCodeBinaryExpression (CCodeBinaryOperator.PLUS, length_expr, new CCodeConstant ("1"));
+				length_check_op = CCodeBinaryOperator.GREATER_THAN_OR_EQUAL;
+			} else {
+				length_check_op = CCodeBinaryOperator.GREATER_THAN;
 			}
 			gnew.add_argument (length_expr);
 
@@ -552,6 +586,10 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 				csizeof.add_argument (new CCodeIdentifier (get_ccode_name (array_type.element_type)));
 				gnew.add_argument (csizeof);
 			}
+
+			// only attempt to dup if length >=/> 0, this deals with negative lengths and returns NULL
+			var length_check = new CCodeBinaryExpression (length_check_op, new CCodeIdentifier ("length"), new CCodeConstant ("0"));
+			ccode.open_if (length_check);
 
 			ccode.add_declaration (get_ccode_name (array_type), cvardecl);
 			ccode.add_assignment (new CCodeIdentifier ("result"), gnew);
@@ -566,7 +604,14 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 			ccode.close ();
 
 			ccode.add_return (new CCodeIdentifier ("result"));
+
+			ccode.close ();
+			ccode.add_return (new CCodeIdentifier ("NULL"));
 		} else {
+			// only dup if length > 0, this deals with negative lengths and returns NULL
+			var length_check = new CCodeBinaryExpression (CCodeBinaryOperator.GREATER_THAN, new CCodeIdentifier ("length"), new CCodeConstant ("0"));
+			ccode.open_if (length_check);
+
 			var sizeof_call = new CCodeFunctionCall (new CCodeIdentifier ("sizeof"));
 			sizeof_call.add_argument (new CCodeIdentifier (get_ccode_name (array_type.element_type)));
 			var length_expr = new CCodeIdentifier ("length");
@@ -597,6 +642,9 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 
 				ccode.add_return (dup_call);
 			}
+
+			ccode.close ();
+			ccode.add_return (new CCodeIdentifier ("NULL"));
 		}
 
 		// append to file

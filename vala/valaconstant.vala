@@ -63,7 +63,7 @@ public class Vala.Constant : Symbol {
 	 * @param source_reference reference to source code
 	 * @return                 newly created constant
 	 */
-	public Constant (string name, DataType? type_reference, Expression? value, SourceReference? source_reference, Comment? comment = null) {
+	public Constant (string name, DataType? type_reference, Expression? value, SourceReference? source_reference = null, Comment? comment = null) {
 		base (name, source_reference, comment);
 		if (type_reference != null) {
 			this.type_reference = type_reference;
@@ -117,7 +117,7 @@ public class Vala.Constant : Symbol {
 
 		if (!check_const_type (type_reference, context)) {
 			error = true;
-			Report.error (source_reference, "`%s' not supported as type for constants".printf (type_reference.to_string ()));
+			Report.error (source_reference, "`%s' not supported as type for constants", type_reference.to_string ());
 			return false;
 		}
 
@@ -131,14 +131,14 @@ public class Vala.Constant : Symbol {
 			} else {
 				value.target_type = type_reference;
 
-				if (!value.check (context)) {
+				if (!value.check (context) || type_reference.error) {
 					error = true;
 					return false;
 				}
 
 				if (!value.value_type.compatible (type_reference)) {
 					error = true;
-					Report.error (source_reference, "Cannot convert from `%s' to `%s'".printf (value.value_type.to_string (), type_reference.to_string ()));
+					Report.error (source_reference, "Cannot convert from `%s' to `%s'", value.value_type.to_string (), type_reference.to_string ());
 					return false;
 				}
 
@@ -171,7 +171,7 @@ public class Vala.Constant : Symbol {
 		}
 
 		if (!external_package && !hides && get_hidden_member () != null) {
-			Report.warning (source_reference, "%s hides inherited constant `%s'. Use the `new' keyword if hiding was intentional".printf (get_full_name (), get_hidden_member ().get_full_name ()));
+			Report.warning (source_reference, "%s hides inherited constant `%s'. Use the `new' keyword if hiding was intentional", get_full_name (), get_hidden_member ().get_full_name ());
 		}
 
 		context.analyzer.current_source_file = old_source_file;

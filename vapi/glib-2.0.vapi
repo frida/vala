@@ -1843,6 +1843,26 @@ namespace GLib {
 	}
 
 	[Version (since = "2.4")]
+	namespace AtomicUint {
+		[CCode (cname = "g_atomic_int_get")]
+		public static uint get ([CCode (type = "volatile guint *")] ref uint atomic);
+		[CCode (cname = "g_atomic_int_set")]
+		public static void set ([CCode (type = "volatile guint *")] ref uint atomic, uint newval);
+		[Version (since = "2.30")]
+		[CCode (cname = "g_atomic_int_add")]
+		public static uint add ([CCode (type = "volatile guint *")] ref uint atomic, uint val);
+		[Version (deprecated_since = "2.30", replacement = "add")]
+		[CCode (cname = "g_atomic_int_exchange_and_add")]
+		public static uint exchange_and_add ([CCode (type = "volatile guint *")] ref uint atomic, uint val);
+		[CCode (cname = "g_atomic_int_compare_and_exchange")]
+		public static bool compare_and_exchange ([CCode (type = "volatile guint *")] ref uint atomic, uint oldval, uint newval);
+		[CCode (cname = "g_atomic_int_inc")]
+		public static void inc ([CCode (type = "volatile guint *")] ref uint atomic);
+		[CCode (cname = "g_atomic_int_dec_and_test")]
+		public static bool dec_and_test ([CCode (type = "volatile guint *")] ref uint atomic);
+	}
+
+	[Version (since = "2.4")]
 	namespace AtomicPointer {
 		public static void* get ([CCode (type = "volatile gpointer *")] void** atomic);
 		public static void set ([CCode (type = "volatile gpointer *")] void** atomic, void* newval);
@@ -1852,7 +1872,7 @@ namespace GLib {
 	/* The Main Event Loop */
 
 	[Compact]
-	[CCode (ref_function = "g_main_loop_ref", unref_function = "g_main_loop_unref")]
+	[CCode (ref_function = "g_main_loop_ref", unref_function = "g_main_loop_unref", type_id = "G_TYPE_MAIN_LOOP")]
 	public class MainLoop {
 		public MainLoop (MainContext? context = null, bool is_running = false);
 		public void run ();
@@ -1870,7 +1890,7 @@ namespace GLib {
 	}
 
 	[Compact]
-	[CCode (ref_function = "g_main_context_ref", unref_function = "g_main_context_unref")]
+	[CCode (ref_function = "g_main_context_ref", unref_function = "g_main_context_unref", type_id = "G_TYPE_MAIN_CONTEXT")]
 	public class MainContext {
 		public MainContext ();
 		public static unowned MainContext @default ();
@@ -2001,7 +2021,7 @@ namespace GLib {
 	}
 
 	[Compact]
-	[CCode (ref_function = "g_source_ref", unref_function = "g_source_unref")]
+	[CCode (ref_function = "g_source_ref", unref_function = "g_source_unref", type_id = "G_TYPE_SOURCE")]
 	public abstract class Source {
 		protected Source ();
 		[Version (since = "2.12")]
@@ -2122,7 +2142,7 @@ namespace GLib {
 
 	[Compact]
 	[Version (since = "2.32")]
-	[CCode (ref_function = "g_thread_ref", unref_function = "g_thread_unref")]
+	[CCode (ref_function = "g_thread_ref", unref_function = "g_thread_unref", type_id = "G_TYPE_THREAD")]
 	public class Thread<T> {
 		[Version (since = "2.32")]
 		public Thread (string? name, owned ThreadFunc<T> func);
@@ -2149,8 +2169,6 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -2456,7 +2474,7 @@ namespace GLib {
 	/* IO Channels */
 
 	[Compact]
-	[CCode (ref_function = "g_io_channel_ref", unref_function = "g_io_channel_unref")]
+	[CCode (ref_function = "g_io_channel_ref", unref_function = "g_io_channel_unref", type_id = "G_TYPE_IO_CHANNEL")]
 	public class IOChannel {
 		[CCode (cname = "g_io_channel_unix_new")]
 		public IOChannel.unix_new (int fd);
@@ -2542,7 +2560,7 @@ namespace GLib {
 	}
 
 	[Flags]
-	[CCode (cprefix = "G_IO_")]
+	[CCode (cprefix = "G_IO_", type_id = "G_TYPE_IO_CONDITION")]
 	public enum IOCondition {
 		IN,
 		OUT,
@@ -2856,7 +2874,7 @@ namespace GLib {
 
 	[Compact]
 	[Version (since = "2.16")]
-	[CCode (free_function = "g_checksum_free")]
+	[CCode (free_function = "g_checksum_free", type_id = "G_TYPE_CHECKSUM")]
 	public class Checksum {
 		public Checksum (ChecksumType checksum_type);
 		public Checksum copy ();
@@ -3174,7 +3192,7 @@ namespace GLib {
 
 	[Compact]
 	[Version (since = "2.26")]
-	[CCode (ref_function = "g_time_zone_ref", unref_function = "g_time_zone_unref")]
+	[CCode (ref_function = "g_time_zone_ref", unref_function = "g_time_zone_unref", type_id = "G_TYPE_TIME_ZONE")]
 	public class TimeZone {
 		public TimeZone (string identifier);
 		public TimeZone.utc ();
@@ -3782,9 +3800,9 @@ namespace GLib {
 		[CCode (cname = "vfprintf")]
 		public void vprintf (string format, va_list args);
 		[CCode (cname = "fputc", instance_pos = -1)]
-		public void putc (char c);
+		public int putc (char c);
 		[CCode (cname = "fputs", instance_pos = -1)]
-		public void puts (string s);
+		public int puts (string s);
 		[CCode (cname = "fgetc")]
 		public int getc ();
 		[CCode (cname = "ungetc", instance_pos = -1)]
@@ -3834,11 +3852,7 @@ namespace GLib {
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h", has_type_id = false)]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h", has_type_id = false)]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -3849,6 +3863,8 @@ namespace GLib {
 		public static bool get_contents (string filename, out string contents, out size_t length = null) throws FileError;
 		[Version (since = "2.8")]
 		public static bool set_contents (string filename, string contents, ssize_t length = -1) throws FileError;
+		[Version (since = "2.66")]
+		public static bool set_contents_full (string filename, string contents, ssize_t length = -1, FileSetContentsFlags flags = 0, int mode = 0666) throws FileError;
 		[CCode (cname = "g_file_get_contents")]
 		public static bool get_data (string filename, [CCode (type = "gchar**", array_length_type = "size_t")] out uint8[] contents) throws FileError;
 		[CCode (cname = "g_file_set_contents")]
@@ -3882,16 +3898,22 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
 		[CCode (cname = "g_close")]
 		public static bool close_checked (int fd) throws FileError;
+	}
+
+	[Flags]
+	[Version (since = "2.66")]
+	[CCode (cprefix = "G_FILE_SET_CONTENTS_", has_type_id = false)]
+	public enum FileSetContentsFlags {
+		NONE,
+		CONSISTENT,
+		DURABLE,
+		ONLY_EXISTING
 	}
 
 	[CCode (cname = "GStatBuf", cheader_filename = "glib/gstdio.h", has_type_id = false)]
@@ -3935,7 +3957,7 @@ namespace GLib {
 
 	[Compact]
 	[Version (since = "2.22")]
-	[CCode (ref_function = "g_mapped_file_ref", unref_function = "g_mapped_file_unref")]
+	[CCode (ref_function = "g_mapped_file_ref", unref_function = "g_mapped_file_unref", type_id = "G_TYPE_MAPPED_FILE")]
 	public class MappedFile {
 		public MappedFile (string filename, bool writable) throws FileError;
 		[Version (since = "2.32")]
@@ -3957,24 +3979,144 @@ namespace GLib {
 
 	/* URI Functions */
 
-	namespace Uri {
+	[Compact]
+	[CCode (ref_function = "g_uri_ref", unref_function = "g_uri_unref", type_id = "G_TYPE_URI")]
+	public class Uri {
+		[Version (since = "2.16")]
 		public const string RESERVED_CHARS_ALLOWED_IN_PATH;
+		[Version (since = "2.16")]
 		public const string RESERVED_CHARS_ALLOWED_IN_PATH_ELEMENT;
+		[Version (since = "2.16")]
 		public const string RESERVED_CHARS_ALLOWED_IN_USERINFO;
+		[Version (since = "2.16")]
 		public const string RESERVED_CHARS_GENERIC_DELIMITERS;
+		[Version (since = "2.16")]
 		public const string RESERVED_CHARS_SUBCOMPONENT_DELIMITERS;
 
+		[Version (since = "2.66")]
+		public static bool split (string uri_string, UriFlags flags, out string? scheme, out string? userinfo, out string? host, out int port, out string? path, out string? query, out string? fragment) throws UriError;
+		[Version (since = "2.66")]
+		public static bool split_with_user (string uri_string, UriFlags flags, out string? scheme, out string? user, out string? password, out string? auth_params, out string? host, out int port, out string? path, out string? query, out string? fragment) throws UriError;
+		[Version (since = "2.66")]
+		public static bool split_network (string uri_string, UriFlags flags, out string? scheme, out string? host, out int port) throws UriError;
+		[Version (since = "2.66")]
+		public static bool is_valid (string uri_string, UriFlags flags) throws UriError;
+		[Version (since = "2.66")]
+		public static string join (UriFlags flags, string scheme, string? userinfo, string? host, int port, string path, string? query, string? fragment);
+		[Version (since = "2.66")]
+		public static string join_with_user (UriFlags flags, string scheme, string? user, string? password, string? auth_params, string? host, int port, string path, string? query, string? fragment);
+
+		[Version (since = "2.66")]
+		public static Uri parse (string uri_string, UriFlags flags) throws UriError;
+		[Version (since = "2.66")]
+		public static Uri parse_relative (Uri? base_uri, string uri_string, UriFlags flags) throws UriError;
+		[Version (since = "2.66")]
+		public static string resolve_relative (string base_uri_string, string uri_string, UriFlags flags) throws UriError;
+		[Version (since = "2.66")]
+		public static Uri build (UriFlags flags, string scheme, string? userinfo, string? host, int port, string path, string? query, string? fragment);
+		[Version (since = "2.66")]
+		public static Uri build_with_user (UriFlags flags, string scheme, string? user, string? password, string? auth_params, string? host, int port, string path, string? query, string? fragment);
+
+		[Version (since = "2.66")]
+		public unowned string get_scheme ();
+		[Version (since = "2.66")]
+		public unowned string? get_userinfo ();
+		[Version (since = "2.66")]
+		public unowned string? get_user ();
+		[Version (since = "2.66")]
+		public unowned string? get_password ();
+		[Version (since = "2.66")]
+		public unowned string? get_auth_params ();
+		[Version (since = "2.66")]
+		public unowned string? get_host ();
+		[Version (since = "2.66")]
+		public int get_port ();
+		[Version (since = "2.66")]
+		public unowned string get_path ();
+		[Version (since = "2.66")]
+		public unowned string? get_query ();
+		[Version (since = "2.66")]
+		public unowned string? get_fragment ();
+		[Version (since = "2.66")]
+		public UriFlags get_flags ();
+
+		[Version (since = "2.66")]
+		public static HashTable<string,string> parse_params (string uri, size_t length = -1, string separators = "&;", UriParamsFlags flags = 0) throws UriError;
 		[Version (since = "2.16")]
 		public static string? parse_scheme (string uri);
+		[Version (since = "2.66")]
+		public static unowned string? peek_scheme (string uri);
 		[Version (since = "2.16")]
 		public static string escape_string (string unescaped, string? reserved_chars_allowed = null, bool allow_utf8 = true);
 		[Version (since = "2.16")]
 		public static string? unescape_string (string escaped_string, string? illegal_characters = null);
 		[Version (since = "2.16")]
 		public static string? unescape_segment (string? escaped_string, string? escaped_string_end, string? illegal_characters = null);
+		[Version (since = "2.66")]
+		public static Bytes? unescape_bytes (string escaped_string, size_t length = -1, string? illegal_characters = null) throws UriError;
+		[Version (since = "2.66")]
+		public static string? escape_bytes ([CCode (array_length_type = "gsize")] uint8[] unescaped, string? reserved_chars_allowed = null);
 		[Version (since = "2.6")]
 		[CCode (array_length = false, array_null_terminated = true)]
 		public static string[] list_extract_uris (string uri_list);
+	}
+
+	[Version (since = "2.66")]
+	public errordomain UriError {
+		FAILED,
+		BAD_SCHEME,
+		BAD_USER,
+		BAD_PASSWORD,
+		BAD_AUTH_PARAMS,
+		BAD_HOST,
+		BAD_PORT,
+		BAD_PATH,
+		BAD_QUERY,
+		BAD_FRAGMENT;
+		public static GLib.Quark quark ();
+	}
+
+	[Flags]
+	[Version (since = "2.66")]
+	[CCode (cprefix = "G_URI_FLAGS_", has_type_id = false)]
+	public enum UriFlags {
+		NONE,
+		PARSE_RELAXED,
+		HAS_PASSWORD,
+		HAS_AUTH_PARAMS,
+		ENCODED,
+		NON_DNS,
+		ENCODED_QUERY,
+		ENCODED_PATH,
+		ENCODED_FRAGMENT
+	}
+
+	[Flags]
+	[Version (since = "2.66")]
+	[CCode (cprefix = "G_URI_HIDE_", has_type_id = false)]
+	public enum UriHideFlags {
+		NONE,
+		USERINFO,
+		PASSWORD,
+		AUTH_PARAMS,
+		QUERY,
+		FRAGMENT
+	}
+
+	[Version (since = "2.66")]
+	public struct UriParamsIter {
+		public UriParamsIter (string @params, int length = -1, string separators = "&;", UriParamsFlags flags = 0);
+		public bool next (out string attribute = null, out string @value = null) throws Error;
+	}
+
+	[Flags]
+	[Version (since = "2.66")]
+	[CCode (cprefix = "G_URI_PARAMS_", has_type_id = false)]
+	public enum UriParamsFlags {
+		NONE,
+		CASE_INSENSITIVE,
+		WWW_FORM,
+		PARSE_RELAXED
 	}
 
 	/* Shell-related Utilities */
@@ -4501,24 +4643,48 @@ namespace GLib {
 		public string get_mime_type (string uri) throws BookmarkFileError;
 		public bool get_is_private (string uri) throws BookmarkFileError;
 		public bool get_icon (string uri, out string href, out string mime_type) throws BookmarkFileError;
+		[Version (deprecated_since = "2.66", replacement = "get_added_date_time")]
 		public time_t get_added (string uri) throws BookmarkFileError;
+		[Version (since = "2.66")]
+		public unowned DateTime get_added_date_time (string uri) throws BookmarkFileError;
+		[Version (deprecated_since = "2.66", replacement = "get_modified_date_time")]
 		public time_t get_modified (string uri) throws BookmarkFileError;
+		[Version (since = "2.66")]
+		public unowned DateTime get_modified_date_time (string uri) throws BookmarkFileError;
+		[Version (deprecated_since = "2.66", replacement = "get_visited_date_time")]
 		public time_t get_visited (string uri) throws BookmarkFileError;
+		[Version (since = "2.66")]
+		public unowned DateTime get_visited_date_time (string uri) throws BookmarkFileError;
 		[CCode (array_length_type = "gsize")]
 		public string[] get_groups (string uri) throws BookmarkFileError;
 		[CCode (array_length_type = "gsize")]
 		public string[] get_applications (string uri) throws BookmarkFileError;
+		[Version (deprecated_since = "2.66", replacement = "get_application_info")]
 		public bool get_app_info (string uri, string name, out string exec, out uint count, out time_t stamp) throws BookmarkFileError;
+		[Version (since = "2.66")]
+		public bool get_application_info (string uri, string name, out string exec, out uint count, out unowned DateTime? stamp) throws BookmarkFileError;
 		public void set_title (string uri, string title);
 		public void set_description (string uri, string description);
 		public void set_mime_type (string uri, string mime_type);
 		public void set_is_private (string uri, bool is_private);
 		public void set_icon (string uri, string href, string mime_type);
+		[Version (deprecated_since = "2.66", replacement = "set_added_date_time")]
 		public void set_added (string uri, time_t added);
+		[Version (since = "2.66")]
+		public void set_added_date_time (string uri, DateTime added);
 		public void set_groups (string uri, string[] groups);
+		[Version (deprecated_since = "2.66", replacement = "set_modified_date_time")]
 		public void set_modified (string uri, time_t modified);
+		[Version (since = "2.66")]
+		public void set_modified_date_time (string uri, DateTime modified);
+		[Version (deprecated_since = "2.66", replacement = "set_visited_date_time")]
 		public void set_visited (string uri, time_t visited);
+		[Version (since = "2.66")]
+		public void set_visited_date_time (string uri, DateTime visited);
+		[Version (deprecated_since = "2.66", replacement = "set_application_info")]
 		public bool set_app_info (string uri, string name, string exec, int count, time_t stamp) throws BookmarkFileError;
+		[Version (since = "2.66")]
+		public bool set_application_info (string uri, string name, string exec, int count, DateTime? stamp) throws BookmarkFileError;
 		public void add_group (string uri, string group);
 		public void add_application (string uri, string name, string exec);
 		public bool remove_group (string uri, string group) throws BookmarkFileError;
@@ -5233,6 +5399,9 @@ namespace GLib {
 		public void** pdata;
 	}
 
+	[CCode (cname = "GEqualFunc", has_target = false)]
+	public delegate bool ArraySearchFunc<G,T> (G element, T needle);
+
 	[Compact]
 	[CCode (cname = "GPtrArray", cprefix = "g_ptr_array_", ref_function = "g_ptr_array_ref", unref_function = "g_ptr_array_unref", type_id = "G_TYPE_PTR_ARRAY")]
 	[GIR (name = "PtrArray")]
@@ -5249,6 +5418,9 @@ namespace GLib {
 		public void extend_and_steal (owned GenericArray<G> array);
 		[Version (since = "2.54")]
 		public bool find (G needle, out uint index = null);
+		[Version (since = "2.54")]
+		[CCode (cname = "g_ptr_array_find_with_equal_func")]
+		public bool find_custom<T> (T needle, GLib.ArraySearchFunc<G,T>? equal_func, out uint index = null);
 		[Version (since = "2.54")]
 		public bool find_with_equal_func (G needle, GLib.EqualFunc<G>? equal_func, out uint index = null);
 		public void foreach (GLib.Func<G> func);
@@ -5304,17 +5476,17 @@ namespace GLib {
 	[Version (since = "2.32")]
 	[CCode (cprefix = "g_bytes_", ref_function = "g_bytes_ref", unref_function = "g_bytes_unref", type_id = "G_TYPE_BYTES")]
 	public class Bytes {
-		public Bytes ([CCode (array_length_type = "gsize")] uint8[] data);
-		public Bytes.take ([CCode (array_length_type = "gsize")] owned uint8[] data);
-		public Bytes.static ([CCode (array_length_type = "gsize")] uint8[] data);
-		public Bytes.with_free_func ([CCode (array_length_type = "gsize")] owned uint8[] data, GLib.DestroyNotify? free_func, void* user_data);
+		public Bytes ([CCode (array_length_type = "gsize")] uint8[]? data);
+		public Bytes.take ([CCode (array_length_type = "gsize")] owned uint8[]? data);
+		public Bytes.static ([CCode (array_length_type = "gsize")] uint8[]? data);
+		public Bytes.with_free_func ([CCode (array_length_type = "gsize")] owned uint8[]? data, GLib.DestroyNotify? free_func, void* user_data);
 		public Bytes.from_bytes (GLib.Bytes bytes, size_t offset, size_t length);
 
 		[CCode (cname = "g_bytes_new_with_free_func", simple_generics = true)]
-		public static Bytes new_with_owner<T> ([CCode (array_length_type = "gsize")] uint8[] data, [CCode (destroy_notify_pos = 1.9)] owned T? owner = null);
+		public static Bytes new_with_owner<T> ([CCode (array_length_type = "gsize")] uint8[]? data, [CCode (destroy_notify_pos = 1.9)] owned T? owner = null);
 
 		[CCode (array_length_type = "gsize")]
-		public unowned uint8[] get_data ();
+		public unowned uint8[]? get_data ();
 		public size_t get_size ();
 		public uint hash ();
 		public int compare (GLib.Bytes bytes2);
@@ -5324,7 +5496,8 @@ namespace GLib {
 
 		[CCode (cname = "_vala_g_bytes_get")]
 		public uint8 get (int index) {
-			unowned uint8[] data = this.get_data ();
+			assert (index >= 0 && index < (int) this.get_size ());
+			unowned uint8[] data = (!) this.get_data ();
 			return data[index];
 		}
 
@@ -6040,7 +6213,7 @@ namespace GLib {
 
 	[Compact]
 	[Version (since = "2.24")]
-	[CCode (ref_function = "g_variant_builder_ref", unref_function = "g_variant_builder_unref")]
+	[CCode (ref_function = "g_variant_builder_ref", unref_function = "g_variant_builder_unref", type_id = "G_TYPE_VARIANT_BUILDER")]
 	public class VariantBuilder {
 		public VariantBuilder (VariantType type);
 		public void open (VariantType type);
@@ -6052,7 +6225,7 @@ namespace GLib {
 	}
 
 	[Version (since = "2.40")]
-	[Compact, CCode (ref_function = "g_variant_dict_ref", unref_function = "g_variant_dict_unref")]
+	[Compact, CCode (ref_function = "g_variant_dict_ref", unref_function = "g_variant_dict_unref", type_id = "G_TYPE_VARIANT_DICT")]
 	public class VariantDict {
 		public VariantDict (GLib.Variant? from_asv = null);
 		public bool lookup (string key, string format_string, ...);
@@ -6410,11 +6583,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }

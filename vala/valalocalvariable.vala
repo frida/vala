@@ -122,6 +122,9 @@ public class Vala.LocalVariable : Variable {
 
 			if (!initializer.check (context)) {
 				error = true;
+			} else if (initializer.value_type is VoidType) {
+				error = true;
+				Report.error (initializer.source_reference, "'void' not supported as initializer type");
 			}
 		}
 
@@ -147,7 +150,7 @@ public class Vala.LocalVariable : Variable {
 			}
 			if (initializer.value_type is FieldPrototype || initializer.value_type is PropertyPrototype) {
 				error = true;
-				Report.error (initializer.source_reference, "Access to instance member `%s' denied".printf (initializer.symbol_reference.get_full_name ()));
+				Report.error (initializer.source_reference, "Access to instance member `%s' denied", initializer.symbol_reference.get_full_name ());
 				return false;
 			}
 
@@ -163,7 +166,7 @@ public class Vala.LocalVariable : Variable {
 		if (!external_package) {
 			// check symbol availability
 			if (variable_type.type_symbol != null) {
-				variable_type.type_symbol.version.check (source_reference);
+				variable_type.type_symbol.version.check (context, source_reference);
 			}
 		}
 
@@ -194,7 +197,7 @@ public class Vala.LocalVariable : Variable {
 						unowned Method m = (Method) initializer.symbol_reference;
 						unowned Delegate cb = ((DelegateType) variable_type).delegate_symbol;
 						error = true;
-						Report.error (source_reference, "Declaration of method `%s' is not compatible with delegate `%s'".printf (m.get_full_name (), cb.get_full_name ()));
+						Report.error (source_reference, "Declaration of method `%s' is not compatible with delegate `%s'", m.get_full_name (), cb.get_full_name ());
 						return false;
 					}
 				} else {
@@ -206,7 +209,7 @@ public class Vala.LocalVariable : Variable {
 
 			if (!initializer.value_type.compatible (variable_type)) {
 				error = true;
-				Report.error (source_reference, "Assignment: Cannot convert from `%s' to `%s'".printf (initializer.value_type.to_string (), variable_type.to_string ()));
+				Report.error (source_reference, "Assignment: Cannot convert from `%s' to `%s'", initializer.value_type.to_string (), variable_type.to_string ());
 				return false;
 			}
 

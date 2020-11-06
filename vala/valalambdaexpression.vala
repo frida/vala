@@ -23,8 +23,9 @@
 using GLib;
 
 /**
- * Represents a lambda expression in the source code. Lambda expressions are
- * anonymous methods with implicitly typed parameters.
+ * Represents a lambda expression in the source code.
+ *
+ * Lambda expressions are anonymous methods with implicitly typed parameters.
  */
 public class Vala.LambdaExpression : Expression {
 	private static int next_lambda_id = 0;
@@ -33,13 +34,29 @@ public class Vala.LambdaExpression : Expression {
 	 * The expression body of this lambda expression. Only one of
 	 * expression_body or statement_body may be set.
 	 */
-	public Expression expression_body { get; private set; }
+	public Expression expression_body {
+		get { return _expression_body; }
+		private set {
+			_expression_body = value;
+			if (_expression_body != null) {
+				_expression_body.parent_node = this;
+			}
+		}
+	}
 
 	/**
 	 * The statement body of this lambda expression. Only one of
 	 * expression_body or statement_body may be set.
 	 */
-	public Block statement_body { get; private set; }
+	public Block statement_body {
+		get { return _statement_body; }
+		private set {
+			_statement_body = value;
+			if (_statement_body != null) {
+				_statement_body.parent_node = this;
+			}
+		}
+	}
 
 	/**
 	 * The generated method.
@@ -47,6 +64,8 @@ public class Vala.LambdaExpression : Expression {
 	public Method method { get; private set; }
 
 	private List<Parameter> parameters = new ArrayList<Parameter> ();
+	Block _statement_body;
+	Expression _expression_body;
 
 	/**
 	 * Creates a new lambda expression.
@@ -55,7 +74,7 @@ public class Vala.LambdaExpression : Expression {
 	 * @param source_reference reference to source code
 	 * @return                 newly created lambda expression
 	 */
-	public LambdaExpression (Expression expression_body, SourceReference source_reference) {
+	public LambdaExpression (Expression expression_body, SourceReference? source_reference = null) {
 		this.source_reference = source_reference;
 		this.expression_body = expression_body;
 	}
@@ -67,7 +86,7 @@ public class Vala.LambdaExpression : Expression {
 	 * @param source_reference reference to source code
 	 * @return                 newly created lambda expression
 	 */
-	public LambdaExpression.with_statement_body (Block statement_body, SourceReference source_reference) {
+	public LambdaExpression.with_statement_body (Block statement_body, SourceReference? source_reference = null) {
 		this.statement_body = statement_body;
 		this.source_reference = source_reference;
 	}
@@ -123,7 +142,7 @@ public class Vala.LambdaExpression : Expression {
 		if (!(target_type is DelegateType)) {
 			error = true;
 			if (target_type != null) {
-				Report.error (source_reference, "Cannot convert lambda expression to `%s'".printf (target_type.to_string ()));
+				Report.error (source_reference, "Cannot convert lambda expression to `%s'", target_type.to_string ());
 			} else {
 				Report.error (source_reference, "lambda expression not allowed in this context");
 			}
@@ -167,6 +186,7 @@ public class Vala.LambdaExpression : Expression {
 			}
 		}
 		method.owner = context.analyzer.current_symbol.scope;
+		method.parent_node = this;
 
 		var lambda_params = get_parameters ();
 		Iterator<Parameter> lambda_param_it = lambda_params.iterator ();
@@ -190,7 +210,7 @@ public class Vala.LambdaExpression : Expression {
 
 			if (lambda_param.direction != cb_param.direction) {
 				error = true;
-				Report.error (lambda_param.source_reference, "direction of parameter `%s' is incompatible with the target delegate".printf (lambda_param.name));
+				Report.error (lambda_param.source_reference, "direction of parameter `%s' is incompatible with the target delegate", lambda_param.name);
 			}
 
 			lambda_param.variable_type = cb_param.variable_type.get_actual_type (target_type, null, this);

@@ -31,7 +31,7 @@ public class Vala.TypeCheck : Expression {
 	 */
 	public Expression expression {
 		get { return _expression; }
-		set {
+		private set {
 			_expression = value;
 			_expression.parent_node = this;
 		}
@@ -42,7 +42,7 @@ public class Vala.TypeCheck : Expression {
 	 */
 	public DataType type_reference {
 		get { return _data_type; }
-		set {
+		private set {
 			_data_type = value;
 			_data_type.parent_node = this;
 		}
@@ -59,7 +59,7 @@ public class Vala.TypeCheck : Expression {
 	 * @param source reference to source code
 	 * @return       newly created type check expression
 	 */
-	public TypeCheck (Expression expr, DataType type, SourceReference source) {
+	public TypeCheck (Expression expr, DataType type, SourceReference? source = null) {
 		expression = expr;
 		type_reference = type;
 		source_reference = source;
@@ -117,7 +117,7 @@ public class Vala.TypeCheck : Expression {
 		}
 
 		if (type_reference is ErrorType && !(expression.value_type is ErrorType)) {
-			Report.error (expression.source_reference, "`%s' must be an error".printf (expression.to_string ()));
+			Report.error (expression.source_reference, "`%s' must be an error", expression.to_string ());
 			error = true;
 			return false;
 		}

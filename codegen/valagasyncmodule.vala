@@ -70,9 +70,9 @@ public class Vala.GAsyncModule : GtkModule {
 		}
 
 		foreach (var type_param in m.get_type_parameters ()) {
-			data.add_field ("GType", "%s_type".printf (type_param.name.down ()));
-			data.add_field ("GBoxedCopyFunc", "%s_dup_func".printf (type_param.name.down ()));
-			data.add_field ("GDestroyNotify", "%s_destroy_func".printf (type_param.name.down ()));
+			data.add_field ("GType", "%s_type".printf (type_param.name.ascii_down ()));
+			data.add_field ("GBoxedCopyFunc", "%s_dup_func".printf (type_param.name.ascii_down ()));
+			data.add_field ("GDestroyNotify", "%s_destroy_func".printf (type_param.name.ascii_down ()));
 		}
 
 		if (!(m.return_type is VoidType)) {
@@ -179,6 +179,27 @@ public class Vala.GAsyncModule : GtkModule {
 		}
 
 		push_function (asyncfunc);
+
+		// FIXME partial code duplication with CCodeMethodModule.visit_method
+		unowned Class? cl = m.parent_symbol as Class;
+		if (cl != null) {
+			if (m.binding == MemberBinding.INSTANCE && !(m is CreationMethod)
+			    && m.base_method == null && m.base_interface_method == null) {
+				create_type_check_statement (m, new VoidType (), cl, true, "self");
+			}
+		}
+		foreach (Parameter param in m.get_parameters ()) {
+			if (param.ellipsis || param.params_array) {
+				break;
+			}
+
+			if (param.direction == ParameterDirection.IN) {
+				unowned TypeSymbol? t = param.variable_type.type_symbol;
+				if (t != null && (t.is_reference_type () || param.variable_type.is_real_struct_type ())) {
+					create_type_check_statement (m, new VoidType (), t, !param.variable_type.nullable, get_ccode_name (param));
+				}
+			}
+		}
 
 		// logic copied from valaccodemethodmodule
 		if (m.overrides || (m.base_interface_method != null && !m.is_abstract && !m.is_virtual)) {
@@ -292,9 +313,9 @@ public class Vala.GAsyncModule : GtkModule {
 		emit_context.pop_symbol ();
 
 		foreach (var type_param in m.get_type_parameters ()) {
-			var type = "%s_type".printf (type_param.name.down ());
-			var dup_func = "%s_dup_func".printf (type_param.name.down ());
-			var destroy_func = "%s_destroy_func".printf (type_param.name.down ());
+			var type = "%s_type".printf (type_param.name.ascii_down ());
+			var dup_func = "%s_dup_func".printf (type_param.name.ascii_down ());
+			var destroy_func = "%s_destroy_func".printf (type_param.name.ascii_down ());
 			ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, type), new CCodeIdentifier (type));
 			ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, dup_func), new CCodeIdentifier (dup_func));
 			ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, destroy_func), new CCodeIdentifier (destroy_func));

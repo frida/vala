@@ -30,27 +30,30 @@ public abstract class Vala.CCodeStructModule : CCodeBaseModule {
 			return;
 		}
 
+		if (st.base_struct != null) {
+			generate_struct_declaration (st.base_struct, decl_space);
+		}
+
 		if (st.is_boolean_type () || st.is_integer_type () || st.is_floating_type ()) {
+			string typename;
 			// See GTypeModule.visit_struct()
 			if (st.base_struct != null) {
-				generate_struct_declaration (st.base_struct, decl_space);
-				decl_space.add_type_declaration (new CCodeTypeDefinition (get_ccode_name (st.base_struct), new CCodeVariableDeclarator (get_ccode_name (st))));
+				typename = get_ccode_name (st.base_struct);
+			} else if (st.is_boolean_type ()) {
+				// typedef for boolean types
+				decl_space.add_include ("stdbool.h");
+				typename = "bool";
+			} else if (st.is_integer_type ()) {
+				// typedef for integral types
+				decl_space.add_include ("stdint.h");
+				typename = "%sint%d_t".printf (st.signed ? "" : "u", st.width);
+			} else if (st.is_floating_type ()) {
+				// typedef for floating types
+				typename = (st.width == 64 ? "double" : "float");
 			} else {
-				string typename = null;
-				if (st.is_boolean_type ()) {
-					// typedef for boolean types
-					decl_space.add_include ("stdbool.h");
-					typename = "bool";
-				} else if (st.is_integer_type ()) {
-					// typedef for integral types
-					decl_space.add_include ("stdint.h");
-					typename = "%sint%d_t".printf (st.signed ? "" : "u", st.width);
-				} else if (st.is_floating_type ()) {
-					// typedef for floating types
-					typename = (st.width == 64 ? "double" : "float");
-				}
-				decl_space.add_type_declaration (new CCodeTypeDefinition (typename, new CCodeVariableDeclarator (get_ccode_name (st))));
+				assert_not_reached ();
 			}
+			decl_space.add_type_declaration (new CCodeTypeDefinition (typename, new CCodeVariableDeclarator (get_ccode_name (st))));
 			return;
 		}
 
@@ -132,7 +135,7 @@ public abstract class Vala.CCodeStructModule : CCodeBaseModule {
 
 		if (get_ccode_has_type_id (st) && get_ccode_name (st).length < 3) {
 			st.error = true;
-			Report.error (st.source_reference, "Name `%s' is too short for struct using GType".printf (get_ccode_name (st)));
+			Report.error (st.source_reference, "Name `%s' is too short for struct using GType", get_ccode_name (st));
 			return;
 		}
 
@@ -194,9 +197,13 @@ public abstract class Vala.CCodeStructModule : CCodeBaseModule {
 		} else if (context.profile == Profile.POSIX) {
 			// calloc needs stdlib.h
 			cfile.add_include ("stdlib.h");
+
+			var sizeof_call = new CCodeFunctionCall (new CCodeIdentifier ("sizeof"));
+			sizeof_call.add_argument (new CCodeConstant (get_ccode_name (st)));
+
 			var creation_call = new CCodeFunctionCall (new CCodeIdentifier ("calloc"));
 			creation_call.add_argument (new CCodeConstant ("1"));
-			creation_call.add_argument (new CCodeIdentifier ("sizeof (%s*)".printf (get_ccode_name (st))));
+			creation_call.add_argument (sizeof_call);
 			ccode.add_assignment (new CCodeIdentifier ("dup"), creation_call);
 		}
 

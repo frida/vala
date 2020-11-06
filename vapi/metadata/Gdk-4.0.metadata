@@ -6,13 +6,10 @@ KEY_* name="KEY_(.+)" type="uint" parent="Gdk.Key"
 // Event API
 events_*#function parent="Gdk.Event" name="events_(.+)"
 
+Clipboard
+        .set* skip=false
 Cursor	abstract=false
 Device
-        .free_history skip=false
-        .get_axis skip=false
-        .get_axis_value skip=false
-        .get_history skip=false
-        .get_state skip=false
         .get_surface_at_position skip=false
 Event
         ._get_angle skip
@@ -20,6 +17,14 @@ Event
         ._get_distance skip
 Paintable
         .new_empty name="empty"
+        .get_current_image#virtual_method virtual
+        .get_flags#virtual_method virtual
+        .get_intrinsic_width#virtual_method virtual
+        .get_intrinsic_height#virtual_method virtual
+        .get_intrinsic_aspect_ratio#virtual_method virtual
+PaintableFlags cprefix="GDK_PAINTABLE_"
+        .size name="STATIC_SIZE"
+        .contents name="STATIC_CONTENTS"
 Surface abstract=false
 Rectangle struct
         .x skip
@@ -33,14 +38,15 @@ Texture
         .new_* symbol_type="function" name="new_(.+)"
 Surface
         .destroy destroys_instance
+Toplevel
+        .compute_size.size nullable unowned
+ToplevelSize struct
 
 // g-i doesn't support nullable fields and properties (bug #730479)
 Device
-        .associated_device nullable
         .name nullable
 
 // vapigen actually generates the correctly, but in away that breaks BC
 Rectangle.union return_void
 
 DrawingContext skip
-Geometry skip

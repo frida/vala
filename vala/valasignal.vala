@@ -207,7 +207,7 @@ public class Vala.Signal : Symbol, Callable {
 
 		if (return_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
 			error = true;
-			Report.error (source_reference, "`%s' not supported as return type".printf (return_type.type_symbol.get_full_name ()));
+			Report.error (source_reference, "`%s' not supported as return type", return_type.type_symbol.get_full_name ());
 			return false;
 		}
 
@@ -222,23 +222,16 @@ public class Vala.Signal : Symbol, Callable {
 			}
 		}
 
-		if (!is_virtual && body != null) {
-			error = true;
-			Report.error (source_reference, "Only virtual signals can have a default signal handler body");
-		}
-
-
-		if (is_virtual) {
+		if (body != null || (is_virtual && external_package)) {
 			default_handler = new Method (name, return_type, source_reference);
 
 			default_handler.owner = owner;
-			default_handler.access = access;
+			default_handler.access = (is_virtual ? access : SymbolAccessibility.PRIVATE);
 			default_handler.external = external;
 			default_handler.hides = hides;
-			default_handler.is_virtual = true;
+			default_handler.is_virtual = is_virtual;
 			default_handler.signal_reference = this;
 			default_handler.body = body;
-
 
 			foreach (Parameter param in parameters) {
 				default_handler.add_parameter (param);
@@ -250,7 +243,7 @@ public class Vala.Signal : Symbol, Callable {
 			default_handler.check (context);
 		}
 
-		if (!external_package && get_attribute ("HasEmitter") != null) {
+		if (get_attribute ("HasEmitter") != null) {
 			emitter = new Method (name, return_type, source_reference);
 
 			emitter.owner = owner;
@@ -274,12 +267,14 @@ public class Vala.Signal : Symbol, Callable {
 			unowned ObjectTypeSymbol? cl = parent_symbol as ObjectTypeSymbol;
 
 			cl.add_hidden_method (emitter);
-			emitter.check (context);
+			if (!external_package) {
+				emitter.check (context);
+			}
 		}
 
 
 		if (!external_package && !hides && get_hidden_member () != null) {
-			Report.warning (source_reference, "%s hides inherited signal `%s'. Use the `new' keyword if hiding was intentional".printf (get_full_name (), get_hidden_member ().get_full_name ()));
+			Report.warning (source_reference, "%s hides inherited signal `%s'. Use the `new' keyword if hiding was intentional", get_full_name (), get_hidden_member ().get_full_name ());
 		}
 
 		return !error;

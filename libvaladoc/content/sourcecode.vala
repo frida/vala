@@ -111,7 +111,7 @@ public class Valadoc.Content.SourceCode : ContentElement, Inline {
 			}
 		}
 
-		// search relative to the current directory / absoulte path
+		// search relative to the current directory / absolute path
 		if (!FileUtils.test (path, FileTest.EXISTS | FileTest.IS_REGULAR)) {
 			string node_segment = (container is Api.Package)? "" : container.get_full_name () + ": ";
 			code = "File '%s' does not exist".printf (path);
@@ -180,7 +180,7 @@ public class Valadoc.Content.SourceCode : ContentElement, Inline {
 				string path = start.strip ();
 				load_source_code (path, container, file_path, reporter);
 			} else {
-				string name = start._strip ().down ();
+				string name = start._strip ().ascii_down ();
 				_language = Language.from_string (name);
 				code = splitted[1] ?? "";
 				if (_language == Language.UNKNOWN && name != "none") {

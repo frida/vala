@@ -596,6 +596,8 @@ namespace Soup {
 		[Version (since = "2.42")]
 		public unowned Soup.Request get_soup_request ();
 		public unowned Soup.URI get_uri ();
+		[Version (since = "2.72")]
+		public bool is_feature_disabled (GLib.Type feature_type);
 		public bool is_keepalive ();
 		[Version (deprecated = true)]
 		public void set_chunk_allocator (owned Soup.ChunkAllocator allocator);
@@ -1350,7 +1352,8 @@ namespace Soup {
 	public enum CookieJarAcceptPolicy {
 		ALWAYS,
 		NEVER,
-		NO_THIRD_PARTY
+		NO_THIRD_PARTY,
+		GRANDFATHERED_THIRD_PARTY
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_DATE_", type_id = "soup_date_format_get_type ()")]
 	public enum DateFormat {
@@ -1546,6 +1549,7 @@ namespace Soup {
 		USE_PROXY,
 		NOT_APPEARING_IN_THIS_PROTOCOL,
 		TEMPORARY_REDIRECT,
+		PERMANENT_REDIRECT,
 		BAD_REQUEST,
 		UNAUTHORIZED,
 		PAYMENT_REQUIRED,
@@ -1989,6 +1993,8 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	[Version (since = "2.42")]
 	public static uint get_minor_version ();
+	[CCode (cheader_filename = "libsoup/soup.h")]
+	public static GLib.Resource get_resource ();
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static bool header_contains (string header, string token);
 	[CCode (cheader_filename = "libsoup/soup.h")]

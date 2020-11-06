@@ -149,6 +149,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/audio/audio.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_audio_converter_get_type ()")]
 		[Compact]
 		[GIR (name = "AudioConverter")]
+		[Version (since = "1.8")]
 		public class Converter {
 			[CCode (has_construct_function = false)]
 			public Converter (Gst.Audio.ConverterFlags flags, Gst.Audio.Info in_info, Gst.Audio.Info out_info, owned Gst.Structure? config);
@@ -163,6 +164,7 @@ namespace Gst {
 			public bool is_passthrough ();
 			public void reset ();
 			public bool samples (Gst.Audio.ConverterFlags flags, void* @in, size_t in_frames, void* @out, size_t out_frames);
+			[Version (since = "1.12")]
 			public bool supports_inplace ();
 			public bool update_config (int in_rate, int out_rate, owned Gst.Structure? config);
 		}
@@ -247,6 +249,8 @@ namespace Gst {
 			public virtual bool stop ();
 			[NoWrapper]
 			public virtual bool transform_meta (Gst.Buffer outbuf, Gst.Meta meta, Gst.Buffer inbuf);
+			[Version (since = "1.18")]
+			public int max_errors { get; set; }
 			public int64 min_latency { get; set; }
 			public bool plc { get; set; }
 			public int64 tolerance { get; set; }
@@ -375,10 +379,10 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/audio/audio.h", has_type_id = false)]
 		[Compact]
 		[GIR (name = "AudioResampler")]
+		[Version (since = "1.10")]
 		public class Resampler {
 			[CCode (has_construct_function = false)]
 			public Resampler (Gst.Audio.ResamplerMethod method, Gst.Audio.ResamplerFlags flags, Gst.Audio.Format format, int channels, int in_rate, int out_rate, Gst.Structure options);
-			[Version (since = "1.6")]
 			public void free ();
 			public size_t get_in_frames (size_t out_frames);
 			public size_t get_max_latency ();
@@ -441,8 +445,10 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/audio/audio.h", type_id = "gst_audio_sink_get_type ()")]
 		[GIR (name = "AudioSink")]
 		public class Sink : Gst.Audio.BaseSink {
+			public class Gst.Audio.SinkClassExtension? extension;
 			[CCode (has_construct_function = false)]
 			protected Sink ();
+			[CCode (vfunc_name = "extension->clear_all")]
 			[NoWrapper]
 			public virtual void clear_all ();
 			[NoWrapper]
@@ -595,6 +601,11 @@ namespace Gst {
 			public int segsize;
 			public int segtotal;
 			public int seglatency;
+		}
+		[CCode (cheader_filename = "gst/audio/audio.h", has_type_id = false)]
+		[GIR (name = "AudioSinkClassExtension")]
+		public struct SinkClassExtension {
+			public GLib.Callback clear_all;
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", cprefix = "GST_AUDIO_BASE_SINK_DISCONT_REASON_", type_id = "gst_audio_base_sink_discont_reason_get_type ()")]
 		[GIR (name = "AudioBaseSinkDiscontReason")]
@@ -788,6 +799,7 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", cprefix = "GST_AUDIO_RESAMPLER_FILTER_INTERPOLATION_", type_id = "gst_audio_resampler_filter_interpolation_get_type ()")]
 		[GIR (name = "AudioResamplerFilterInterpolation")]
+		[Version (since = "1.10")]
 		public enum ResamplerFilterInterpolation {
 			NONE,
 			LINEAR,
@@ -795,6 +807,7 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", cprefix = "GST_AUDIO_RESAMPLER_FILTER_MODE_", type_id = "gst_audio_resampler_filter_mode_get_type ()")]
 		[GIR (name = "AudioResamplerFilterMode")]
+		[Version (since = "1.10")]
 		public enum ResamplerFilterMode {
 			INTERPOLATED,
 			FULL,
@@ -803,6 +816,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/audio/audio.h", cprefix = "GST_AUDIO_RESAMPLER_FLAG_", type_id = "gst_audio_resampler_flags_get_type ()")]
 		[Flags]
 		[GIR (name = "AudioResamplerFlags")]
+		[Version (since = "1.10")]
 		public enum ResamplerFlags {
 			NONE,
 			NON_INTERLEAVED_IN,
@@ -811,7 +825,7 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", cprefix = "GST_AUDIO_RESAMPLER_METHOD_", type_id = "gst_audio_resampler_method_get_type ()")]
 		[GIR (name = "AudioResamplerMethod")]
-		[Version (since = "1.6")]
+		[Version (since = "1.10")]
 		public enum ResamplerMethod {
 			NEAREST,
 			LINEAR,
@@ -974,12 +988,18 @@ namespace Gst {
 		public static GLib.Type audio_format_info_get_type ();
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_format_to_string")]
 		public static unowned string audio_format_to_string (Gst.Audio.Format format);
+		[CCode (array_length_pos = 0.1, array_length_type = "guint", cheader_filename = "gst/audio/audio.h", cname = "gst_audio_formats_raw")]
+		[Version (since = "1.18")]
+		public static unowned Gst.Audio.Format[] audio_formats_raw ();
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_get_channel_reorder_map")]
 		public static bool audio_get_channel_reorder_map ([CCode (array_length_cname = "channels", array_length_pos = 0.5)] Gst.Audio.ChannelPosition[] from, [CCode (array_length_cname = "channels", array_length_pos = 0.5)] Gst.Audio.ChannelPosition[] to, [CCode (array_length_cname = "channels", array_length_pos = 0.5)] int[] reorder_map);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_iec61937_frame_size")]
 		public static uint audio_iec61937_frame_size (Gst.Audio.RingBufferSpec spec);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_iec61937_payload")]
 		public static bool audio_iec61937_payload ([CCode (array_length_cname = "src_n", array_length_pos = 1.5, array_length_type = "guint")] uint8[] src, [CCode (array_length_cname = "dst_n", array_length_pos = 2.5, array_length_type = "guint")] uint8[] dst, Gst.Audio.RingBufferSpec spec, int endianness);
+		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_make_raw_caps")]
+		[Version (since = "1.18")]
+		public static Gst.Caps audio_make_raw_caps ([CCode (array_length_cname = "len", array_length_pos = 1.5, array_length_type = "guint")] Gst.Audio.Format[]? formats, Gst.Audio.Layout layout);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_meta_api_get_type")]
 		public static GLib.Type audio_meta_api_get_type ();
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_audio_meta_get_info")]

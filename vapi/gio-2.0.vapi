@@ -1206,7 +1206,7 @@ namespace GLib {
 		[CCode (has_construct_function = false)]
 		public FileAttributeMatcher (string attributes);
 		public bool enumerate_namespace (string ns);
-		public unowned string enumerate_next ();
+		public unowned string? enumerate_next ();
 		public bool matches (string attribute);
 		public bool matches_only (string attribute);
 		public unowned GLib.FileAttributeMatcher @ref ();
@@ -1272,22 +1272,22 @@ namespace GLib {
 		public GLib.FileInfo dup ();
 		public string? get_attribute_as_string (string attribute);
 		public bool get_attribute_boolean (string attribute);
-		public unowned string get_attribute_byte_string (string attribute);
+		public unowned string? get_attribute_byte_string (string attribute);
 		public bool get_attribute_data (string attribute, out GLib.FileAttributeType type, out void* value_pp, out GLib.FileAttributeStatus status);
 		public int32 get_attribute_int32 (string attribute);
 		public int64 get_attribute_int64 (string attribute);
-		public unowned GLib.Object get_attribute_object (string attribute);
+		public unowned GLib.Object? get_attribute_object (string attribute);
 		public GLib.FileAttributeStatus get_attribute_status (string attribute);
-		public unowned string get_attribute_string (string attribute);
+		public unowned string? get_attribute_string (string attribute);
 		[CCode (array_length = false, array_null_terminated = true)]
 		[Version (since = "2.22")]
-		public unowned string[] get_attribute_stringv (string attribute);
+		public unowned string[]? get_attribute_stringv (string attribute);
 		public GLib.FileAttributeType get_attribute_type (string attribute);
 		public uint32 get_attribute_uint32 (string attribute);
 		public uint64 get_attribute_uint64 (string attribute);
-		public unowned string get_content_type ();
+		public unowned string? get_content_type ();
 		[Version (since = "2.36")]
-		public GLib.DateTime get_deletion_date ();
+		public GLib.DateTime? get_deletion_date ();
 		public unowned string get_display_name ();
 		public unowned string get_edit_name ();
 		public unowned string get_etag ();
@@ -1447,7 +1447,7 @@ namespace GLib {
 		public const string PROXY;
 		[CCode (cheader_filename = "gio/gio.h", cname = "G_PROXY_RESOLVER_EXTENSION_POINT_NAME")]
 		public const string PROXY_RESOLVER;
-		[CCode (cheader_filename = "gio/gio.h", cname = "G_SETTINGS_BACKEND_EXTENSION_POINT_NAME")]
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", cname = "G_SETTINGS_BACKEND_EXTENSION_POINT_NAME", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		public const string SETTINGS_BACKEND;
 		[CCode (cheader_filename = "gio/gio.h", cname = "G_TLS_BACKEND_EXTENSION_POINT_NAME")]
 		public const string TLS_BACKEND;
@@ -2115,9 +2115,15 @@ namespace GLib {
 		[Version (since = "2.34")]
 		public virtual async GLib.List<GLib.Variant> lookup_records_async (string rrname, GLib.ResolverRecordType record_type, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[Version (since = "2.22")]
-		public virtual GLib.List<GLib.SrvTarget> lookup_service (string service, string protocol, string domain, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		[CCode (finish_vfunc_name = "lookup_service_finish", vfunc_name = "lookup_service_async")]
-		public virtual async GLib.List<GLib.SrvTarget> lookup_service_async (string rrname, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public GLib.List<GLib.SrvTarget> lookup_service (string service, string protocol, string domain, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[Version (since = "2.22")]
+		public async GLib.List<GLib.SrvTarget> lookup_service_async (string service, string protocol, string domain, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[CCode (vfunc_name = "lookup_service")]
+		[NoWrapper]
+		public virtual GLib.List<GLib.SrvTarget> lookup_service_fn (string rrname, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[CCode (finish_name = "g_resolver_lookup_service_finish", vfunc_name = "lookup_service_async")]
+		[NoWrapper]
+		public virtual async GLib.List<GLib.SrvTarget> lookup_service_fn_async (string rrname, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[Version (since = "2.22")]
 		public void set_default ();
 		public virtual signal void reload ();
@@ -2273,46 +2279,63 @@ namespace GLib {
 	public abstract class SettingsBackend : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected SettingsBackend ();
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
 		public void changed (string key, void* origin_tag);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
 		public void changed_tree (GLib.Tree tree, void* origin_tag);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
 		public static void flatten_tree (GLib.Tree tree, out string path, [CCode (array_length = false, array_null_terminated = true)] out (unowned string)[] keys, [CCode (array_length = false, array_null_terminated = true)] out (unowned GLib.Variant)[] values);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.28")]
 		public static GLib.SettingsBackend get_default ();
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual bool get_writable (string key);
-		[CCode (cheader_filename = "gio/gio.h", cname = "g_keyfile_settings_backend_new")]
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", cname = "g_keyfile_settings_backend_new", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		public static GLib.SettingsBackend keyfile_settings_backend_new (string filename, string root_path, string? root_group);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
 		public void keys_changed (string path, [CCode (array_length = false, array_null_terminated = true)] string[] items, void* origin_tag);
-		[CCode (cheader_filename = "gio/gio.h", cname = "g_memory_settings_backend_new")]
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", cname = "g_memory_settings_backend_new", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.28")]
 		public static GLib.SettingsBackend memory_settings_backend_new ();
-		[CCode (cheader_filename = "gio/gio.h", cname = "g_null_settings_backend_new")]
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", cname = "g_null_settings_backend_new", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.28")]
 		public static GLib.SettingsBackend null_settings_backend_new ();
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
 		public void path_changed (string path, void* origin_tag);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
 		public void path_writable_changed (string path);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual GLib.Variant read (string key, GLib.VariantType expected_type, bool default_value);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual GLib.Variant read_user_value (string key, GLib.VariantType expected_type);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual void reset (string key, void* origin_tag);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual void subscribe (string name);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual void sync ();
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual void unsubscribe (string name);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
 		public void writable_changed (string key);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual bool write (string key, GLib.Variant value, void* origin_tag);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
 		public virtual bool write_tree (GLib.Tree tree, void* origin_tag);
 	}
@@ -2962,7 +2985,7 @@ namespace GLib {
 		public ThreadedSocketService (int max_threads);
 		[NoAccessorMethod]
 		public int max_threads { get; construct; }
-		public virtual signal bool run (GLib.SocketConnection connection, GLib.Object source_object);
+		public virtual signal bool run (GLib.SocketConnection connection, GLib.Object? source_object);
 	}
 	[CCode (cheader_filename = "gio/gio.h", type_id = "g_tls_certificate_get_type ()")]
 	[Version (since = "2.28")]
@@ -2997,6 +3020,9 @@ namespace GLib {
 		protected TlsConnection ();
 		public bool emit_accept_certificate (GLib.TlsCertificate peer_cert, GLib.TlsCertificateFlags errors);
 		public unowned GLib.TlsCertificate? get_certificate ();
+		[CCode (vfunc_name = "get_binding_data")]
+		[Version (since = "2.66")]
+		public virtual bool get_channel_binding_data (GLib.TlsChannelBindingType type, out unowned GLib.ByteArray data) throws GLib.TlsChannelBindingError;
 		[Version (since = "2.30")]
 		public unowned GLib.TlsDatabase? get_database ();
 		[Version (since = "2.30")]
@@ -3302,8 +3328,8 @@ namespace GLib {
 		public static GLib.List<GLib.AppInfo> get_all_for_type (string content_type);
 		[NoWrapper]
 		public abstract unowned string get_commandline ();
-		public static GLib.AppInfo get_default_for_type (string content_type, bool must_support_uris);
-		public static GLib.AppInfo get_default_for_uri_scheme (string uri_scheme);
+		public static GLib.AppInfo? get_default_for_type (string content_type, bool must_support_uris);
+		public static GLib.AppInfo? get_default_for_uri_scheme (string uri_scheme);
 		public abstract unowned string get_description ();
 		[Version (since = "2.24")]
 		public abstract unowned string get_display_name ();
@@ -3489,6 +3515,9 @@ namespace GLib {
 		public async bool close_async (int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public bool emit_accept_certificate (GLib.TlsCertificate peer_cert, GLib.TlsCertificateFlags errors);
 		public unowned GLib.TlsCertificate? get_certificate ();
+		[CCode (vfunc_name = "get_binding_data")]
+		[Version (since = "2.66")]
+		public virtual bool get_channel_binding_data (GLib.TlsChannelBindingType type, out unowned GLib.ByteArray data) throws GLib.TlsChannelBindingError;
 		public unowned GLib.TlsDatabase? get_database ();
 		public unowned GLib.TlsInteraction? get_interaction ();
 		[Version (since = "2.60")]
@@ -4117,7 +4146,8 @@ namespace GLib {
 		FREEBSD_CMSGCRED,
 		OPENBSD_SOCKPEERCRED,
 		SOLARIS_UCRED,
-		NETBSD_UNPCBID
+		NETBSD_UNPCBID,
+		APPLE_XUCRED
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_DBUS_CALL_FLAGS_", type_id = "g_dbus_call_flags_get_type ()")]
 	[Flags]
@@ -4596,6 +4626,12 @@ namespace GLib {
 	public enum TlsCertificateRequestFlags {
 		NONE
 	}
+	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_CHANNEL_BINDING_TLS_", type_id = "g_tls_channel_binding_type_get_type ()")]
+	[Version (since = "2.66")]
+	public enum TlsChannelBindingType {
+		UNIQUE,
+		SERVER_END_POINT
+	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_DATABASE_LOOKUP_", type_id = "g_tls_database_lookup_flags_get_type ()")]
 	[Version (since = "2.30")]
 	public enum TlsDatabaseLookupFlags {
@@ -4797,6 +4833,15 @@ namespace GLib {
 		[CCode (cheader_filename = "gio/gio.h")]
 		public static GLib.Quark quark ();
 	}
+	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_CHANNEL_BINDING_ERROR_")]
+	[Version (since = "2.66")]
+	public errordomain TlsChannelBindingError {
+		NOT_IMPLEMENTED,
+		INVALID_STATE,
+		NOT_AVAILABLE,
+		NOT_SUPPORTED,
+		GENERAL_ERROR
+	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_ERROR_")]
 	[Version (since = "2.28")]
 	public errordomain TlsError {
@@ -4955,11 +5000,4 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gio.h")]
 	[Version (since = "2.32")]
 	public static void resources_unregister (GLib.Resource resource);
-}
-
-[CCode (cheader_filename = "gio/gio.h", lower_case_cprefix = "gio_")]
-namespace GIOFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }

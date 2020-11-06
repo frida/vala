@@ -67,7 +67,7 @@ public class Vala.CastExpression : Expression {
 	 * @param type_reference  target type
 	 * @return                newly created cast expression
 	 */
-	public CastExpression (Expression inner, DataType type_reference, SourceReference source_reference) {
+	public CastExpression (Expression inner, DataType type_reference, SourceReference? source_reference = null) {
 		this.type_reference = type_reference;
 		this.source_reference = source_reference;
 		this.is_silent_cast = false;
@@ -75,7 +75,7 @@ public class Vala.CastExpression : Expression {
 		this.inner = inner;
 	}
 
-	public CastExpression.silent (Expression inner, DataType type_reference, SourceReference source_reference) {
+	public CastExpression.silent (Expression inner, DataType type_reference, SourceReference? source_reference = null) {
 		this.type_reference = type_reference;
 		this.source_reference = source_reference;
 		this.is_silent_cast = true;
@@ -83,7 +83,7 @@ public class Vala.CastExpression : Expression {
 		this.inner = inner;
 	}
 
-	public CastExpression.non_null (Expression inner, SourceReference source_reference) {
+	public CastExpression.non_null (Expression inner, SourceReference? source_reference = null) {
 		this.inner = inner;
 		this.is_non_null_cast = true;
 		this.source_reference = source_reference;
@@ -172,6 +172,27 @@ public class Vala.CastExpression : Expression {
 			}
 		}
 
+		// Implicit transformation of stack-allocated value to heap-allocated boxed-type
+		if (!(is_silent_cast || is_non_null_cast)
+		    && (type_reference is ValueType && type_reference.nullable)
+		    && inner.value_type.is_non_null_simple_type ()) {
+			var local = new LocalVariable (type_reference, get_temp_name (), null, inner.source_reference);
+			var decl = new DeclarationStatement (local, source_reference);
+
+			insert_statement (context.analyzer.insert_block, decl);
+
+			var temp_access = SemanticAnalyzer.create_temp_access (local, target_type);
+			temp_access.formal_target_type = formal_target_type;
+
+			// don't set initializer earlier as this changes parent_node and parent_statement
+			local.initializer = inner;
+			decl.check (context);
+
+			context.analyzer.replaced_nodes.add (this);
+			parent_node.replace_expression (this, temp_access);
+			return temp_access.check (context);
+		}
+
 		value_type = type_reference;
 		value_type.value_owned = inner.value_type.value_owned;
 		value_type.floating_reference = inner.value_type.floating_reference;
@@ -186,7 +207,7 @@ public class Vala.CastExpression : Expression {
 			value_type.value_owned = true;
 			if (value_type.get_type_signature () == null) {
 				error = true;
-				Report.error (source_reference, "Casting of `GLib.Variant' to `%s' is not supported".printf (value_type.to_qualified_string ()));
+				Report.error (source_reference, "Casting of `GLib.Variant' to `%s' is not supported", value_type.to_qualified_string ());
 			}
 		}
 

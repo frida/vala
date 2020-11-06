@@ -75,6 +75,7 @@ namespace Atspi {
 		public Atspi.Value get_value ();
 		public Atspi.Value get_value_iface ();
 		public void set_cache_mask (Atspi.Cache mask);
+		public virtual signal void mode_changed (int enabled, string why);
 		public virtual signal void region_changed (int current_offset, int last_offset);
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", type_id = "atspi_application_get_type ()")]
@@ -867,6 +868,8 @@ namespace Atspi {
 	public const int KEYEVENTTYPE_COUNT;
 	[CCode (cheader_filename = "atspi/atspi.h", cname = "ATSPI_KEYSYNTHTYPE_COUNT")]
 	public const int KEYSYNTHTYPE_COUNT;
+	[CCode (cheader_filename = "atspi/atspi.h", cname = "ATSPI_LOCALE_TYPE_COUNT")]
+	public const int LOCALE_TYPE_COUNT;
 	[CCode (cheader_filename = "atspi/atspi.h", cname = "ATSPI_MATCHTYPES_COUNT")]
 	public const int MATCHTYPES_COUNT;
 	[CCode (cheader_filename = "atspi/atspi.h", cname = "ATSPI_MODIFIERTYPE_COUNT")]
@@ -885,6 +888,8 @@ namespace Atspi {
 	public const int TEXT_BOUNDARY_TYPE_COUNT;
 	[CCode (cheader_filename = "atspi/atspi.h", cname = "ATSPI_TEXT_CLIP_TYPE_COUNT")]
 	public const int TEXT_CLIP_TYPE_COUNT;
+	[CCode (cheader_filename = "atspi/atspi.h", cname = "ATSPI_TREETRAVERSALTYPE_COUNT")]
+	public const int TREETRAVERSALTYPE_COUNT;
 	[CCode (cheader_filename = "atspi/atspi.h")]
 	public static bool deregister_device_event_listener (Atspi.DeviceListener listener, void* filter) throws GLib.Error;
 	[CCode (cheader_filename = "atspi/atspi.h")]

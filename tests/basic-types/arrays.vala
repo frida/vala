@@ -38,6 +38,26 @@ void test_integer_array () {
 	assert (c[0] == 23);
 	assert (c[1] == 11);
 
+	int[]? c0 = a[0:0];
+	assert (c0 == null);
+	assert (c0.length == 0);
+
+	int[] c1 = a[1:];
+	assert (c1.length == 2);
+	assert (c1[0] == 23);
+	assert (c1[1] == 11);
+
+	int[] c2 = a[:2];
+	assert (c2.length == 2);
+	assert (c2[0] == 42);
+	assert (c2[1] == 23);
+
+	int[] c3 = a[:];
+	assert (c3.length == 3);
+	assert (c3[0] == 42);
+	assert (c3[1] == 23);
+	assert (c3[2] == 11);
+
 	// in expressions
 	assert (23 in a);
 	assert (!(-1 in a));
@@ -144,7 +164,7 @@ int[,,] nd_array_pass (int[,,] a, out int[,,] b) {
 }
 
 void test_nd_array () {
-	int[2,2,2] a = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
+	int[,,] a = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
 	assert (a[1,0,1] == 6);
 
 	int[,,] b, c;
@@ -158,7 +178,7 @@ void test_nd_array () {
 	assert (c.length[2] == 2);
 	assert (c[0,1,1] == 4);
 
-	string[1,2,3] s = {{{"a", "b", "c"}, {"d", "e", "f"}}};
+	string[,,] s = {{{"a", "b", "c"}, {"d", "e", "f"}}};
 	assert (s[0,0,2] == "c");
 }
 
@@ -220,6 +240,11 @@ struct Bar {
 	public int bar;
 }
 
+struct Manam {
+	Bar array[1024];
+	Bar manam;
+}
+
 void test_struct_array () {
 	assert (FOO_ARRAY_CONST[0].bar == 42);
 
@@ -227,6 +252,9 @@ void test_struct_array () {
 	var bar = new Bar[23];
 	bar[7] = b;
 	assert (b in bar);
+
+	Manam? manam = {};
+	Manam? manam_copy = manam;
 }
 
 void give_fixed_array (out int i[3]) {

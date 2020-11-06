@@ -102,6 +102,7 @@ libvala_la_VALASOURCES = \
 	valaintegertype.vala \
 	valainterface.vala \
 	valainterfacetype.vala \
+	valainvalidexpression.vala \
 	valainvalidtype.vala \
 	valalambdaexpression.vala \
 	valaliteral.vala \
@@ -163,6 +164,7 @@ libvala_la_VALASOURCES = \
 	valatemplate.vala \
 	valathrowstatement.vala \
 	valatokentype.vala \
+	valatraversevisitor.vala \
 	valatrystatement.vala \
 	valatuple.vala \
 	valatypecheck.vala \
@@ -182,6 +184,7 @@ libvala_la_VALASOURCES = \
 	valaversionattribute.vala \
 	valavoidtype.vala \
 	valawhilestatement.vala \
+	valawithstatement.vala \
 	valayieldstatement.vala \
 	$(NULL)
 
@@ -204,7 +207,6 @@ vala.vapi vala.vala.stamp: $(libvala_la_VALASOURCES)
 		--vapidir $(top_srcdir)/vapi --pkg gmodule-2.0 --pkg gobject-2.0 \
 		--vapidir $(top_srcdir)/gee --pkg gee \
 		--pkg config \
-		--use-header \
 		-H vala.h \
 		--library vala \
 		$^

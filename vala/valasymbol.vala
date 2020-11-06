@@ -73,7 +73,7 @@ public abstract class Vala.Symbol : CodeNode {
 	public bool used { get; set; }
 
 	/**
-	 * Specifies whether this symbol is anonymous and has no public defintion.
+	 * Specifies whether this symbol is anonymous and has no public definition.
 	 */
 	public bool anonymous { get; set; }
 
@@ -210,7 +210,7 @@ public abstract class Vala.Symbol : CodeNode {
 	private Scope _scope;
 	private bool? _external;
 
-	protected Symbol (string? name, SourceReference? source_reference, Comment? comment = null) {
+	protected Symbol (string? name, SourceReference? source_reference = null, Comment? comment = null) {
 		this.name = name;
 		this.source_reference = source_reference;
 		this.comment = comment;
@@ -252,7 +252,7 @@ public abstract class Vala.Symbol : CodeNode {
 	public static string camel_case_to_lower_case (string camel_case) {
 		if ("_" in camel_case) {
 			// do not insert additional underscores if input is not real camel case
-			return camel_case.down ();
+			return camel_case.ascii_down ();
 		}
 
 		var result_builder = new StringBuilder ("");
@@ -319,6 +319,27 @@ public abstract class Vala.Symbol : CodeNode {
 		}
 
 		return result_builder.str;
+	}
+
+	/**
+	 * Implementation of GLib.EqualFunc to use with e.g. HashMap
+	 *
+	 * @param a a symbol
+	 * @param b a symbol
+	 * @return whether the given instances represent the same symbol
+	 */
+	public static bool equal_func (Symbol a, Symbol b) {
+		return str_equal (a.get_full_name (), b.get_full_name ());
+	}
+
+	/**
+	 * Implementation of GLib.HashFunc to use with e.g. HashMap
+	 *
+	 * @param s a symbol
+	 * @return a hash value
+	 */
+	public static uint hash_func (Symbol s) {
+		return str_hash (s.get_full_name ());
 	}
 
 	// get the top scope from where this symbol is still accessible
@@ -431,59 +452,59 @@ public abstract class Vala.Symbol : CodeNode {
 	}
 
 	public virtual void add_namespace (Namespace ns) {
-		Report.error (ns.source_reference, "inner `%s' is not supported in `%s'".printf ("namespace", get_full_name ()));
+		Report.error (ns.source_reference, "inner `%s' is not supported in `%s'", "namespace", get_full_name ());
 	}
 
 	public virtual void add_class (Class cl) {
-		Report.error (cl.source_reference, "inner `%s' types are not supported in `%s'".printf ("class", get_full_name ()));
+		Report.error (cl.source_reference, "inner `%s' types are not supported in `%s'", "class", get_full_name ());
 	}
 
 	public virtual void add_interface (Interface iface) {
-		Report.error (iface.source_reference, "inner `%s' types are not supported in `%s'".printf ("interface", get_full_name ()));
+		Report.error (iface.source_reference, "inner `%s' types are not supported in `%s'", "interface", get_full_name ());
 	}
 
 	public virtual void add_struct (Struct st) {
-		Report.error (st.source_reference, "inner `%s' types are not supported in `%s'".printf ("struct", get_full_name ()));
+		Report.error (st.source_reference, "inner `%s' types are not supported in `%s'", "struct", get_full_name ());
 	}
 
 	public virtual void add_enum (Enum en) {
-		Report.error (en.source_reference, "inner `%s' types are not supported in `%s'".printf ("enum", get_full_name ()));
+		Report.error (en.source_reference, "inner `%s' types are not supported in `%s'", "enum", get_full_name ());
 	}
 
 	public virtual void add_error_domain (ErrorDomain edomain) {
-		Report.error (edomain.source_reference, "inner `%s' types are not supported in `%s'".printf ("errordomain", get_full_name ()));
+		Report.error (edomain.source_reference, "inner `%s' types are not supported in `%s'", "errordomain", get_full_name ());
 	}
 
 	public virtual void add_delegate (Delegate d) {
-		Report.error (d.source_reference, "inner `%s' types are not supported in `%s'".printf ("delegate", get_full_name ()));
+		Report.error (d.source_reference, "inner `%s' types are not supported in `%s'", "delegate", get_full_name ());
 	}
 
 	public virtual void add_constant (Constant constant) {
-		Report.error (constant.source_reference, "constants are not allowed in `%s'".printf (get_full_name ()));
+		Report.error (constant.source_reference, "constants are not allowed in `%s'", get_full_name ());
 	}
 
 	public virtual void add_field (Field f) {
-		Report.error (f.source_reference, "fields are not allowed in `%s'".printf (get_full_name ()));
+		Report.error (f.source_reference, "fields are not allowed in `%s'", get_full_name ());
 	}
 
 	public virtual void add_method (Method m) {
-		Report.error (m.source_reference, "methods are not allowed in `%s'".printf (get_full_name ()));
+		Report.error (m.source_reference, "methods are not allowed in `%s'", get_full_name ());
 	}
 
 	public virtual void add_property (Property prop) {
-		Report.error (prop.source_reference, "properties are not allowed in `%s'".printf (get_full_name ()));
+		Report.error (prop.source_reference, "properties are not allowed in `%s'", get_full_name ());
 	}
 
 	public virtual void add_signal (Signal sig) {
-		Report.error (sig.source_reference, "signals are not allowed in `%s'".printf (get_full_name ()));
+		Report.error (sig.source_reference, "signals are not allowed in `%s'", get_full_name ());
 	}
 
 	public virtual void add_constructor (Constructor c) {
-		Report.error (c.source_reference, "constructors are not allowed in `%s'".printf (get_full_name ()));
+		Report.error (c.source_reference, "constructors are not allowed in `%s'", get_full_name ());
 	}
 
 	public virtual void add_destructor (Destructor d) {
-		Report.error (d.source_reference, "destructors are not allowed in `%s'".printf (get_full_name ()));
+		Report.error (d.source_reference, "destructors are not allowed in `%s'", get_full_name ());
 	}
 
 	public override string to_string () {

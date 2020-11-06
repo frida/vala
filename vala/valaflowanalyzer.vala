@@ -146,7 +146,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			if (!f.is_private_symbol () && (context.internal_header_filename != null || context.use_fast_vapi)) {
 				// do not warn if internal member may be used outside this compilation unit
 			} else {
-				Report.warning (f.source_reference, "field `%s' never used".printf (f.get_full_name ()));
+				Report.warning (f.source_reference, "Field `%s' never used", f.get_full_name ());
 			}
 		}
 	}
@@ -175,7 +175,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			    && m.get_attribute_bool ("DBus", "visible", true)) {
 				// do not warn if internal member is a visible DBus method
 			} else {
-				Report.warning (m.source_reference, "method `%s' never used".printf (m.get_full_name ()));
+				Report.warning (m.source_reference, "Method `%s' never used", m.get_full_name ());
 			}
 		}
 
@@ -422,10 +422,10 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				foreach (Variable variable in phi.operands) {
 					if (variable == null) {
 						if (used_var is LocalVariable) {
-							Report.error (used_var.source_reference, "use of possibly unassigned local variable `%s'".printf (used_var.name));
+							Report.error (used_var.source_reference, "Use of possibly unassigned local variable `%s'", used_var.name);
 						} else {
 							// parameter
-							Report.warning (used_var.source_reference, "use of possibly unassigned parameter `%s'".printf (used_var.name));
+							Report.warning (used_var.source_reference, "Use of possibly unassigned parameter `%s'", used_var.name);
 						}
 						continue;
 					}
@@ -458,10 +458,10 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				var variable_stack = var_map.get (var_symbol);
 				if (variable_stack == null || variable_stack.size == 0) {
 					if (var_symbol is LocalVariable) {
-						Report.error (node.source_reference, "use of possibly unassigned local variable `%s'".printf (var_symbol.name));
+						Report.error (node.source_reference, "Use of possibly unassigned local variable `%s'", var_symbol.name);
 					} else {
 						// parameter
-						Report.warning (node.source_reference, "use of possibly unassigned parameter `%s'".printf (var_symbol.name));
+						Report.warning (node.source_reference, "Use of possibly unassigned parameter `%s'", var_symbol.name);
 					}
 					continue;
 				}
@@ -561,7 +561,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		}
 
 		if (!stmt.declaration.used) {
-			Report.warning (stmt.declaration.source_reference, "local variable `%s' declared but never used".printf (stmt.declaration.name));
+			Report.warning (stmt.declaration.source_reference, "Local variable `%s' declared but never used", stmt.declaration.name);
 		}
 
 		current_block.add_node (stmt);
@@ -597,6 +597,18 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				return;
 			}
 		}
+	}
+
+	public override void visit_with_statement (WithStatement stmt) {
+		if (unreachable (stmt)) {
+			return;
+		}
+
+		current_block.add_node (stmt.expression);
+
+		handle_errors (stmt.expression);
+
+		stmt.body.accept_children (this);
 	}
 
 	public override void visit_if_statement (IfStatement stmt) {
@@ -664,6 +676,14 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		handle_errors (stmt.expression);
 
 		bool has_default_label = false;
+		bool is_enum_typed = stmt.expression.value_type is EnumValueType;
+
+		unowned Enum? en = null;
+		HashSet<unowned EnumValue>? enum_values = null;
+		if (is_enum_typed) {
+			en = (Enum) ((EnumValueType) stmt.expression.value_type).type_symbol;
+			enum_values = new HashSet<unowned EnumValue> (direct_hash, direct_equal);
+		}
 
 		foreach (SwitchSection section in stmt.get_sections ()) {
 			current_block = new BasicBlock ();
@@ -671,6 +691,17 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			condition_block.connect (current_block);
 			foreach (Statement section_stmt in section.get_statements ()) {
 				section_stmt.accept (this);
+			}
+
+			if (is_enum_typed) {
+				foreach (SwitchLabel label in section.get_labels ()) {
+					if (label.expression != null) {
+						unowned EnumValue? val = label.expression.symbol_reference as EnumValue;
+						if (val != null) {
+							enum_values.add (val);
+						}
+					}
+				}
 			}
 
 			if (section.has_default_label ()) {
@@ -685,6 +716,24 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				section.error = true;
 
 				current_block.connect (after_switch_block);
+			}
+		}
+
+		if (!has_default_label && is_enum_typed) {
+			// Check if enum-based switching as fully covered, and if so,
+			// handle it like there was a default-label given
+
+			HashSet<EnumValue> remaining_values = new HashSet<EnumValue> ();
+			remaining_values.add_all (en.get_values ());
+			foreach (unowned EnumValue val in enum_values) {
+				remaining_values.remove (val);
+			}
+			if (remaining_values.size > 0) {
+				string[] missing_vals = {};
+				foreach (var val in remaining_values) {
+					missing_vals += val.name;
+				}
+				Report.warning (stmt.source_reference, "Switch does not handle `%s' of enum `%s'", string.joinv ("', `", missing_vals), en.get_full_name ());
 			}
 		}
 

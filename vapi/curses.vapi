@@ -1,4 +1,4 @@
-/* curses.vala
+/* curses.vapi
  *
  * Copyright (c) 2007 Ed Schouten <ed@fxq.nl>
  * All rights reserved.
@@ -125,10 +125,10 @@ namespace Curses {
 		[CCode (cname = "mvwinstr")]
 		public int mvinstr(int y, int x, string str);
 		[CCode (cname = "mvwprintw")]
-		[PrintfLike]
+		[PrintfFormat]
 		public int mvprintw(int y, int x, string str, ...);
 		[CCode (cname = "mvwscanw")]
-		[PrintfLike]
+		[PrintfFormat]
 		public int mvscanw(int y, int x, string str, ...);
 		[CCode (cname = "mvwvline")]
 		public int mvvline(int y, int x, ulong ch, int n);
@@ -150,9 +150,12 @@ namespace Curses {
 		public int untouchwin();
 		[CCode (cname = "waddch")]
 		public int addch(ulong ch);
-		public int waddchnstr([CCode (array_length = false)] ulong[] chstr, int n);
-		public int waddchstr([CCode (array_length = false)] ulong[] chstr);
-		public int waddnstr(string str, int n);
+		[CCode (cname = "waddchnstr")]
+		public int addchnstr([CCode (array_length = false)] ulong[] chstr, int n);
+		[CCode (cname = "waddchstr")]
+		public int addchstr([CCode (array_length = false)] ulong[] chstr);
+		[CCode (name = "waddnstr")]
+		public int addnstr(string str, int n);
 		[CCode (cname = "waddstr")]
 		public int addstr(string str);
 		[CCode (cname = "wattron")]
@@ -230,7 +233,7 @@ namespace Curses {
 		[CCode (cname = "wnoutrefresh")]
 		public int noutrefresh();
 		[CCode (cname = "wprintw")]
-		[PrintfLike]
+		[PrintfFormat]
 		public int printw(string str, ...);
 		[CCode (cname = "vw_printw")]
 		public int vprintw(string str, va_list args);
@@ -239,7 +242,7 @@ namespace Curses {
 		[CCode (cname = "wrefresh")]
 		public int refresh();
 		[CCode (cname = "wscanw")]
-		[PrintfLike]
+		[PrintfFormat]
 		public int scanw(string str, ...);
 		[CCode (cname = "vw_scanw")]
 		public int vscanw(string str, va_list args);
@@ -357,7 +360,6 @@ namespace Curses {
 	public int mvaddnstr(int y, int x, string str, int n);
 	public int mvaddstr(int y, int x, string str);
 	public int mvchgat(int y, int x, int n, ulong attr, short color);
-	public int mvcur(int oldrow, int oldcol, int newrow, int newcol);
 	public int mvdelch(int y, int x);
 	public int mvgetch(int y, int x);
 	public int mvgetnstr(int y, int x, string str, int n);
@@ -371,9 +373,9 @@ namespace Curses {
 	public int mvinsnstr(int y, int x, string str, int n);
 	public int mvinsstr(int y, int x, string str);
 	public int mvinstr(int y, int x, string str);
-	[PrintfLike]
+	[PrintfFormat]
 	public int mvprintw(int y, int x, string str, ...);
-	[PrintfLike]
+	[PrintfFormat]
 	public int mvscanw(int y, int x, string str, ...);
 	public int mvvline(int y, int x, ulong ch, int n);
 	public int napms(int ms);
@@ -385,7 +387,7 @@ namespace Curses {
 	public int noraw();
 	public int pair_content(short pair, ref Color f, ref Color b);
 	public int PAIR_NUMBER(int attrs);
-	[PrintfLike]
+	[PrintfFormat]
 	public int printw(string str, ...);
 	public void qiflush();
 	public int raw();
@@ -396,7 +398,7 @@ namespace Curses {
 	public delegate int RipofflineInitFunc(Window win, int n);
 	public int ripoffline(int line, RipofflineInitFunc init);
 	public int savetty();
-	[PrintfLike]
+	[PrintfFormat]
 	public int scanw(string str, ...);
 	public int scr_dump(string str);
 	public int scr_init(string str);
@@ -429,23 +431,63 @@ namespace Curses {
 	public int typeahead(int fd);
 	public int ungetch(int ch);
 	public void use_env(bool bf);
-	public int vidattr(ulong attrs);
-	public delegate int VidputsPutcFunc(char ch);
-	public int vidputs(ulong attrs, VidputsPutcFunc putc);
 	public int vline(ulong ch, int n);
+
+	// curses interface to terminfo (term.h)
+	[CCode (cname = "TERMINAL", cheader_filename = "term.h", has_type_id = false)]
+	public struct Terminal {
+		[CCode (cname = "set_curterm")]
+		public unowned Terminal? set_cur();
+		[CCode (cname = "del_curterm")]
+		public int del_cur();
+	}
+	public static Terminal? cur_term;
+	[CCode (cheader_filename = "term.h")]
+	public int setupterm(string? term, int filedes, out int errret);
+	[CCode (cheader_filename = "term.h")]
+	public int setterm(string? term);
+	[CCode (cheader_filename = "term.h")]
+	public int restartterm(string? term, int filedes, out int errret);
+
+	[CCode (has_typedef = false, has_target = false)]
+	public delegate int VidputsPutcFunc([CCode (type = "int")] char c);
+
+	[CCode (cheader_filename = "term.h")]
+	namespace TermInfo {
+		[CCode (cname = "tputs")]
+#if POSIX
+		public int puts(string str, int affcnt = 1, VidputsPutcFunc putc = (c) => Posix.stdout.putc (c));
+#else
+		public int puts(string str, int affcnt = 1, VidputsPutcFunc putc = (c) => GLib.stdout.putc (c));
+#endif
+		[CCode (cname = "tigetflag")]
+		public int getflag(string capname);
+		[CCode (cname = "tigetnum")]
+		public int getnum(string capname);
+		[CCode (cname = "tigetstr")]
+		public unowned string? getstr(string capname);
+		[CCode (cname = "tiparm")]
+		public unowned string parm(string capname, ...);
+	}
+
+	public int vidputs(ulong attrs, VidputsPutcFunc putc);
+	public int vidattr(ulong attrs);
+
+	public int mvcur(int oldrow, int oldcol, int newrow, int newcol);
 
 	[CCode (cprefix = "A_", has_type_id = false)]
 	public enum Attribute {
 		NORMAL, ATTRIBUTES, CHARTEXT, COLOR, STANDOUT,
 		UNDERLINE, REVERSE, BLINK, DIM, BOLD, ALTCHARSET, INVIS,
-		PROTECT, HORIZONTAL, LEFT, LOW, RIGHT, TOP, VERTICAL
+		PROTECT, HORIZONTAL, LEFT, LOW, RIGHT, TOP, VERTICAL,
+		ITALIC // ITALIC is an ncurses extension
 	}
 
 	[CCode (has_type_id = false)]
 	public enum Key {
 		CODE_YES, MIN, BREAK, SRESET, RESET, DOWN, UP, LEFT,
-		RIGHT, HOME, BACKSPACE, F0, /* XXX F(n), */ DL, IL, DC,
-		IC, EIC, CLEAR, EOS, EOL, SF, SR, NPAGE, PPAGE, STAB,
+		RIGHT, HOME, BACKSPACE, F0, DL, IL, DC, IC, EIC,
+		CLEAR, EOS, EOL, SF, SR, NPAGE, PPAGE, STAB,
 		CTAB, CATAB, ENTER, PRINT, LL, A1, A3, B2, C1, C3, BTAB,
 		BEG, CANCEL, CLOSE, COMMAND, COPY, CREATE, END, EXIT,
 		FIND, HELP, MARK, MESSAGE, MOVE, NEXT, OPEN, OPTIONS,
@@ -455,7 +497,11 @@ namespace Curses {
 		SHOME, SIC, SLEFT, SMESSAGE, SMOVE, SNEXT, SOPTIONS,
 		SPREVIOUS, SPRINT, SREDO, SREPLACE, SRIGHT, SRSUME,
 		SSAVE, SSUSPEND, SUNDO, SUSPEND, UNDO, MOUSE, RESIZE,
-		EVENT, MAX
+		EVENT, MAX;
+
+		public static int F (int n) {
+			return F0 + n;
+		}
 	}
 
 	/* TODO: mouse + wide char support */

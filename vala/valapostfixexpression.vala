@@ -52,7 +52,7 @@ public class Vala.PostfixExpression : Expression {
 	 * @param source  reference to source code
 	 * @return newly  created postfix expression
 	 */
-	public PostfixExpression (Expression _inner, bool inc, SourceReference source) {
+	public PostfixExpression (Expression _inner, bool inc, SourceReference? source = null) {
 		inner = _inner;
 		increment = inc;
 		source_reference = source;
@@ -121,7 +121,7 @@ public class Vala.PostfixExpression : Expression {
 
 			if (ma.prototype_access) {
 				error = true;
-				Report.error (source_reference, "Access to instance member `%s' denied".printf (ma.symbol_reference.get_full_name ()));
+				Report.error (source_reference, "Access to instance member `%s' denied", ma.symbol_reference.get_full_name ());
 				return false;
 			}
 
@@ -151,7 +151,7 @@ public class Vala.PostfixExpression : Expression {
 
 				if (prop.set_accessor == null || !prop.set_accessor.writable) {
 					ma.error = true;
-					Report.error (ma.source_reference, "Property `%s' is read-only".printf (prop.get_full_name ()));
+					Report.error (ma.source_reference, "Property `%s' is read-only", prop.get_full_name ());
 					return false;
 				}
 			}

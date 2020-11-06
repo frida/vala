@@ -113,7 +113,7 @@ public class Vala.Delegate : TypeSymbol, Callable {
 	}
 
 	/**
-	 * Appends paramater to this callback function.
+	 * Appends parameter to this callback function.
 	 *
 	 * @param param a formal parameter
 	 */
@@ -313,7 +313,7 @@ public class Vala.Delegate : TypeSymbol, Callable {
 
 		if (return_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
 			error = true;
-			Report.error (source_reference, "`%s' not supported as return type".printf (return_type.type_symbol.get_full_name ()));
+			Report.error (source_reference, "`%s' not supported as return type", return_type.type_symbol.get_full_name ());
 			return false;
 		}
 
@@ -326,6 +326,13 @@ public class Vala.Delegate : TypeSymbol, Callable {
 		if (error_types != null) {
 			foreach (DataType error_type in error_types) {
 				error_type.check (context);
+
+				// check whether error type is at least as accessible as the delegate
+				if (!context.analyzer.is_type_accessible (this, error_type)) {
+					error = true;
+					Report.error (source_reference, "error type `%s' is less accessible than delegate `%s'", error_type.to_string (), get_full_name ());
+					return false;
+				}
 			}
 		}
 

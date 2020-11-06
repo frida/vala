@@ -4,7 +4,7 @@ check: $(top_builddir)/compiler/valac
 	echo "void main () {}" > test.vala; \
 	for vapi in `ls *.vapi | sed -e "s/\.vapi//g"`; do \
 		echo "Checking $$vapi..."; \
-		$(top_builddir)/compiler/valac -C --pkg=$$vapi --vapidir=. test.vala || exit 1; \
+		$(top_builddir)/compiler/valac -C --enable-deprecated --pkg=$$vapi --vapidir=. test.vala || exit 1; \
 	done; \
 	rm -f test.vala test.c
 
@@ -253,17 +253,25 @@ dist_vapi_DATA = \
 	rest-0.7.vapi \
 	rest-extras-0.7.deps \
 	rest-extras-0.7.vapi \
-	sdl.vapi \
-	sdl-gfx.vapi \
-	sdl-gfx.deps \
-	sdl-image.vapi \
-	sdl-image.deps \
-	sdl-mixer.vapi \
-	sdl-mixer.deps \
-	sdl-net.vapi \
-	sdl-net.deps \
-	sdl-ttf.vapi \
-	sdl-ttf.deps \
+	sdl2-android.deps \
+	sdl2-android.vapi \
+	SDL2_gfx.deps \
+	SDL2_gfx.vapi \
+	SDL2_image.deps \
+	SDL2_image.vapi \
+	sdl2-ios.deps \
+	sdl2-ios.vapi \
+	SDL2_mixer.deps \
+	SDL2_mixer.vapi \
+	SDL2_net.deps \
+	SDL2_net.vapi \
+	SDL2_ttf.deps \
+	SDL2_ttf.vapi \
+	sdl2.vapi \
+	sdl2-windows.deps \
+	sdl2-windows.vapi \
+	sdl2-winrt.deps \
+	sdl2-winrt.vapi \
 	sqlite3.vapi \
 	taglib_c.vapi \
 	tiff.vapi \
@@ -524,7 +532,7 @@ gstreamer-app-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-app-1.0 --pkg gstreamer-base-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstApp-1.0.gir
 
 gstreamer-audio-1.0:
-	$(GENVAPI) --library $(srcdir)/gstreamer-audio-1.0 --pkg gstreamer-base-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstAudio-1.0.gir
+	$(GENVAPI) --library $(srcdir)/gstreamer-audio-1.0 --pkg gstreamer-base-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GstAudio-1.0-custom.vala $(GIRDIR)/GstAudio-1.0.gir
 
 gstreamer-bad-allocators-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-bad-allocators-1.0 --pkg gstreamer-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstBadAllocators-1.0.gir
@@ -584,8 +592,9 @@ gtk+-3.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-3.0 --pkg atk --pkg gdk-3.0 --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg pango --pkg cairo --metadatadir $(METADATADIR) $(METADATADIR)/Gtk-3.0-custom.vala $(GIRDIR)/Gtk-3.0.gir
 
 gtk4:
-	$(GENVAPI) --library $(srcdir)/gtk4 --pkg atk --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg x11 \
+	$(GENVAPI) --library $(srcdir)/gtk4 --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg x11 \
 		--metadatadir $(METADATADIR) \
+		$(METADATADIR)/GdkWayland-4.0-custom.vala $(GIRDIR)/GdkWayland-4.0.gir \
 		$(METADATADIR)/GdkX11-4.0-custom.vala $(GIRDIR)/GdkX11-4.0.gir \
 		$(METADATADIR)/Gdk-4.0-custom.vala $(GIRDIR)/Gdk-4.0.gir \
 		$(METADATADIR)/Gsk-4.0-custom.vala $(GIRDIR)/Gsk-4.0.gir \

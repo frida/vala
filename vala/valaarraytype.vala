@@ -83,7 +83,7 @@ public class Vala.ArrayType : ReferenceType {
 	private ArrayMoveMethod move_method;
 	private ArrayCopyMethod copy_method;
 
-	public ArrayType (DataType element_type, int rank, SourceReference? source_reference) {
+	public ArrayType (DataType element_type, int rank, SourceReference? source_reference = null) {
 		base (null);
 		this.element_type = element_type;
 		this.rank = rank;
@@ -188,6 +188,8 @@ public class Vala.ArrayType : ReferenceType {
 			result.length = length;
 		}
 
+		result.invalid_syntax = invalid_syntax;
+
 		return result;
 	}
 
@@ -205,13 +207,15 @@ public class Vala.ArrayType : ReferenceType {
 	}
 
 	public override bool compatible (DataType target_type) {
-		if (CodeContext.get ().profile == Profile.GOBJECT && target_type.type_symbol != null) {
-			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvalue_type.type_symbol) && element_type.type_symbol == CodeContext.get ().root.scope.lookup ("string")) {
+		var context = CodeContext.get ();
+
+		if (context.profile == Profile.GOBJECT && target_type.type_symbol != null) {
+			if (target_type.type_symbol.is_subtype_of (context.analyzer.gvalue_type.type_symbol) && element_type.type_symbol == context.root.scope.lookup ("string")) {
 				// allow implicit conversion from string[] to GValue
 				return true;
 			}
 
-			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvariant_type.type_symbol)) {
+			if (target_type.type_symbol.is_subtype_of (context.analyzer.gvariant_type.type_symbol)) {
 				// allow implicit conversion to GVariant
 				return true;
 			}

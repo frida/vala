@@ -1648,7 +1648,7 @@ namespace Posix {
 	[CCode (cheader_filename = "stdlib.h")]
 	public void _exit (int status);
 
-	[CCode (has_target = false)]
+	[CCode (has_target = false, has_typedef = false)]
 	public delegate void AtExitFunc ();
 
 	[CCode (cheader_filename = "stdlib.h")]
@@ -2280,13 +2280,13 @@ namespace Posix {
 		public blkcnt_t st_blocks;
 	}
 	[CCode (cheader_filename = "sys/stat.h")]
-	int fstat( int fd, out Stat buf);
+	public int fstat (int fd, out Stat buf);
 	[CCode (cheader_filename = "sys/stat.h")]
-	int stat (string filename, out Stat buf);
+	public int stat (string filename, out Stat buf);
 	[CCode (cheader_filename = "sys/stat.h")]
-	int lstat (string filename, out Stat buf);
+	public int lstat (string filename, out Stat buf);
 	[CCode (cheader_filename = "sys/stat.h", feature_test_macro = "_GNU_SOURCE")]
-	int fstatat (int dirfd, string pathname, out Stat buf, int flags);
+	public int fstatat (int dirfd, string pathname, out Stat buf, int flags);
 
 	[CCode (cheader_filename = "sys/stat.h")]
 	public int chmod (string filename, mode_t mode);
@@ -3397,8 +3397,8 @@ namespace Posix {
 		}
 	}
 
-	[CCode (has_target = false)]
-	public delegate int GlobErrorFunction (string filename, int errcode);
+	[CCode (has_target = false, has_typedef = false)]
+	public delegate int GlobErrorFunc (string filename, int errcode);
 
 	[CCode (cheader_filename = "glob.h")]
 	public const int GLOB_ERR;
@@ -3448,7 +3448,7 @@ namespace Posix {
 		public size_t offs;
 
 		[CCode (cname = "glob", instance_pos = -1)]
-		public int glob (string pattern, int flags = 0, GlobErrorFunction? errfunc = null);
+		public int glob (string pattern, int flags = 0, GlobErrorFunc? errfunc = null);
 	}
 
 	[CCode (cheader_filename = "langinfo.h", cname = "nl_item", cprefix = "", has_type_id = false)]
@@ -3561,7 +3561,7 @@ namespace Posix {
 	}
 
 	[CCode(cheader_filename = "wordexp.h")]
-	private const int WRDE_APPEND;
+	public const int WRDE_APPEND;
 	[CCode(cheader_filename = "wordexp.h")]
 	public const int WRDE_BADCHAR;
 	[CCode(cheader_filename = "wordexp.h")]

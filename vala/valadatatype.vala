@@ -275,17 +275,19 @@ public abstract class Vala.DataType : CodeNode {
 	}
 
 	public virtual bool compatible (DataType target_type) {
-		if (CodeContext.get ().experimental_non_null && nullable && !target_type.nullable) {
+		var context = CodeContext.get ();
+
+		if (context.experimental_non_null && nullable && !target_type.nullable) {
 			return false;
 		}
 
-		if (CodeContext.get ().profile == Profile.GOBJECT && target_type.type_symbol != null) {
-			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvalue_type.type_symbol)) {
+		if (context.profile == Profile.GOBJECT && target_type.type_symbol != null) {
+			if (target_type.type_symbol.is_subtype_of (context.analyzer.gvalue_type.type_symbol)) {
 				// allow implicit conversion to GValue
 				return true;
 			}
 
-			if (target_type.type_symbol.is_subtype_of (CodeContext.get ().analyzer.gvariant_type.type_symbol)) {
+			if (target_type.type_symbol.is_subtype_of (context.analyzer.gvariant_type.type_symbol)) {
 				// allow implicit conversion to GVariant
 				return true;
 			}
@@ -370,7 +372,7 @@ public abstract class Vala.DataType : CodeNode {
 				return true;
 			}
 
-			// Allow compatiblity of struct subtypes in both ways
+			// Allow compatibility of struct subtypes in both ways
 			if (expect_struct.is_subtype_of (expr_struct)) {
 				return true;
 			}

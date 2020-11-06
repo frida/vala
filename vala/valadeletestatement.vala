@@ -21,7 +21,9 @@
  */
 
 /**
- * Represents a delete statement e.g. "delete a".
+ * Represents a delete statement.
+ *
+ * {{{ delete foo; }}}
  */
 public class Vala.DeleteStatement : CodeNode, Statement {
 	/**
@@ -71,7 +73,7 @@ public class Vala.DeleteStatement : CodeNode, Statement {
 
 		if (!(expression.value_type is PointerType) && !(expression.value_type is ArrayType)) {
 			error = true;
-			Report.error (source_reference, "delete operator not supported for `%s'".printf (expression.value_type.to_string ()));
+			Report.error (source_reference, "delete operator not supported for `%s'", expression.value_type.to_string ());
 		}
 
 		return !error;

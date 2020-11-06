@@ -1567,7 +1567,7 @@ namespace Gtk {
 		[Version (since = "2.18")]
 		public bool get_sensitive ();
 		[Version (deprecated = true, deprecated_since = "3.0", replacement = "get_preferred_size")]
-		public abstract void get_size (Gtk.Widget widget, Gdk.Rectangle? cell_area, out int x_offset, out int y_offset, out int width, out int height);
+		public virtual void get_size (Gtk.Widget widget, Gdk.Rectangle? cell_area, out int x_offset, out int y_offset, out int width, out int height);
 		[Version (since = "3.0")]
 		public Gtk.StateFlags get_state (Gtk.Widget? widget, Gtk.CellRendererState cell_state);
 		[Version (since = "2.18")]
@@ -2751,9 +2751,9 @@ namespace Gtk {
 		public virtual signal void cut_clipboard ();
 		public virtual signal void delete_from_cursor (Gtk.DeleteType type, int count);
 		[Version (since = "2.16")]
-		public signal void icon_press (Gtk.EntryIconPosition icon_pos, Gdk.EventButton event);
+		public signal void icon_press (Gtk.EntryIconPosition icon_pos, Gdk.Event event);
 		[Version (since = "2.16")]
-		public signal void icon_release (Gtk.EntryIconPosition icon_pos, Gdk.EventButton event);
+		public signal void icon_release (Gtk.EntryIconPosition icon_pos, Gdk.Event event);
 		public virtual signal void insert_at_cursor (string str);
 		[Version (since = "3.22.27")]
 		public virtual signal void insert_emoji ();
@@ -3462,15 +3462,15 @@ namespace Gtk {
 		[Version (since = "3.14")]
 		public Gdk.Window window { get; set; }
 		[Version (since = "3.14")]
-		public signal void begin (Gdk.EventSequence sequence);
+		public signal void begin (Gdk.EventSequence? sequence);
 		[Version (since = "3.14")]
-		public signal void cancel (Gdk.EventSequence sequence);
+		public signal void cancel (Gdk.EventSequence? sequence);
 		[Version (since = "3.14")]
-		public signal void end (Gdk.EventSequence sequence);
+		public signal void end (Gdk.EventSequence? sequence);
 		[Version (since = "3.14")]
-		public signal void sequence_state_changed (Gdk.EventSequence sequence, Gtk.EventSequenceState state);
+		public signal void sequence_state_changed (Gdk.EventSequence? sequence, Gtk.EventSequenceState state);
 		[Version (since = "3.14")]
-		public signal void update (Gdk.EventSequence sequence);
+		public signal void update (Gdk.EventSequence? sequence);
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_gesture_drag_get_type ()")]
 	public class GestureDrag : Gtk.GestureSingle {
@@ -3742,6 +3742,8 @@ namespace Gtk {
 		[NoAccessorMethod]
 		public bool snap_edge_set { get; set; }
 		public virtual signal void child_attached (Gtk.Widget child);
+		[CCode (cname = "child-detached")]
+		public signal void on_child_detached (Gtk.Widget widget);
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_header_bar_get_type ()")]
 	public class HeaderBar : Gtk.Container, Atk.Implementor, Gtk.Buildable {
@@ -5619,6 +5621,15 @@ namespace Gtk {
 		public signal void drag_perform_drop (GLib.File dest_file, GLib.List<GLib.File> source_file_list, int action);
 		[Version (since = "3.20")]
 		public signal void mount (GLib.MountOperation mount_operation);
+		[CCode (cname = "show-connect-to-server")]
+		[Version (deprecated = true, deprecated_since = "3.18")]
+		public signal void on_show_connect_to_server ();
+		[CCode (cname = "show-enter-location")]
+		[Version (since = "3.14")]
+		public signal void on_show_enter_location ();
+		[CCode (cname = "show-starred-location")]
+		[Version (since = "3.22.26")]
+		public signal void on_show_starred_location (Gtk.PlacesOpenFlags open_flags);
 		[Version (since = "3.10")]
 		public signal void open_location (GLib.File location, Gtk.PlacesOpenFlags open_flags);
 		[Version (since = "3.10")]
@@ -5652,6 +5663,14 @@ namespace Gtk {
 		public virtual bool embedded { get; }
 		[Version (since = "2.14")]
 		public Gdk.Window socket_window { get; }
+		[CCode (cname = "embedded")]
+		public signal void on_embedded ();
+	}
+	[CCode (cheader_filename = "gtk/gtk.h,gtk/gtk-a11y.h", type_id = "gtk_plug_accessible_get_type ()")]
+	public class PlugAccessible : Gtk.WindowAccessible, Atk.Component, Atk.Window {
+		[CCode (has_construct_function = false)]
+		protected PlugAccessible ();
+		public string get_id ();
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_popover_get_type ()")]
 	[Version (since = "3.12")]
@@ -6779,6 +6798,8 @@ namespace Gtk {
 		[Version (deprecated = true, deprecated_since = "3.8", since = "2.10")]
 		public string gtk_color_scheme { owned get; set; }
 		[NoAccessorMethod]
+		public float gtk_cursor_aspect_ratio { get; set; }
+		[NoAccessorMethod]
 		public bool gtk_cursor_blink { get; set; }
 		[NoAccessorMethod]
 		public int gtk_cursor_blink_time { get; set; }
@@ -7092,6 +7113,12 @@ namespace Gtk {
 		public unowned Gdk.Window? get_plug_window ();
 		public virtual signal void plug_added ();
 		public virtual signal bool plug_removed ();
+	}
+	[CCode (cheader_filename = "gtk/gtk.h,gtk/gtk-a11y.h", type_id = "gtk_socket_accessible_get_type ()")]
+	public class SocketAccessible : Gtk.ContainerAccessible, Atk.Component {
+		[CCode (has_construct_function = false)]
+		protected SocketAccessible ();
+		public void embed (string path);
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_spin_button_get_type ()")]
 	public class SpinButton : Gtk.Entry, Atk.Implementor, Gtk.Buildable, Gtk.CellEditable, Gtk.Editable, Gtk.Orientable {
@@ -10760,9 +10787,9 @@ namespace Gtk {
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_style_provider_get_type ()")]
 	public interface StyleProvider : GLib.Object {
 		[Version (deprecated = true, deprecated_since = "3.8", since = "3.0")]
-		public abstract unowned Gtk.IconFactory? get_icon_factory (Gtk.WidgetPath path);
+		public virtual unowned Gtk.IconFactory? get_icon_factory (Gtk.WidgetPath path);
 		[Version (deprecated = true, deprecated_since = "3.8", since = "3.0")]
-		public abstract Gtk.StyleProperties? get_style (Gtk.WidgetPath path);
+		public virtual Gtk.StyleProperties? get_style (Gtk.WidgetPath path);
 		[Version (since = "3.0")]
 		public abstract bool get_style_property (Gtk.WidgetPath path, Gtk.StateFlags state, GLib.ParamSpec pspec, ref GLib.Value value);
 	}
@@ -13146,7 +13173,7 @@ namespace Gtk {
 	[Version (since = "2.6")]
 	public static void show_about_dialog (Gtk.Window? parent, ...);
 	[CCode (cheader_filename = "gtk/gtk.h")]
-	[Version (since = "2.14")]
+	[Version (deprecated = true, deprecated_since = "3.22", since = "2.14")]
 	public static bool show_uri (Gdk.Screen? screen, string uri, uint32 timestamp) throws GLib.Error;
 	[CCode (cheader_filename = "gtk/gtk.h")]
 	[Version (since = "3.22")]
