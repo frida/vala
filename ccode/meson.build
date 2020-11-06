@@ -1,4 +1,5 @@
 valaccode_sources = [
+	'valaccode.vala',
 	'valaccodeassignment.vala',
 	'valaccodebinaryexpression.vala',
 	'valaccodeblock.vala',
@@ -9,9 +10,11 @@ valaccode_sources = [
 	'valaccodecomment.vala',
 	'valaccodeconditionalexpression.vala',
 	'valaccodeconstant.vala',
+	'valaccodeconstantidentifier.vala',
 	'valaccodecontinuestatement.vala',
 	'valaccodedeclaration.vala',
 	'valaccodedeclarator.vala',
+	'valaccodedefine.vala',
 	'valaccodedostatement.vala',
 	'valaccodeelementaccess.vala',
 	'valaccodeemptystatement.vala',
@@ -51,13 +54,13 @@ valaccode_sources = [
 	'valaccodeunaryexpression.vala',
 	'valaccodevariabledeclarator.vala',
 	'valaccodewhilestatement.vala',
-	'valaccodewriter.vala'
+	'valaccodewriter.vala',
 ]
 
 valaccode_lib = static_library(
 	'valaccode',
 	valaccode_sources,
-	dependencies: [gobject_dep, valagee_dep],
+	dependencies: [gobject_dep, valagee_dep, valacore_dep],
 	install: false,
 	vala_args: ['--use-header'],
 	vala_header: 'valaccode.h',
