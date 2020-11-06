@@ -1,5 +1,4 @@
 valadoc_sources = [
-	'driver.vala',
 	'girwriter.vala',
 	'initializerbuilder.vala',
 	'symbolresolver.vala',
@@ -12,6 +11,7 @@ valadoc_name = 'valadoc@0@'.format(vala_version_suffix)
 executable(
 	valadoc_name,
 	valadoc_sources,
+	c_args: ['-DPACKAGE_VALADOC_LIBDIR="@0@"'.format(join_paths(get_option('prefix'), get_option('libdir'), 'valadoc'))],
 	dependencies: [gobject_dep, valacodegen_dep, libvaladoc_dep],
 	install: true,
 )
