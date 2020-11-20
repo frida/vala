@@ -95,6 +95,7 @@ TESTS = \
 	basic-types/bug788775.vala \
 	constants/array-type-invalid.test \
 	constants/glog.vala \
+	constants/strings.vala \
 	namespace/unique.vala \
 	arrays/cast-silent-invalid.test \
 	arrays/class-field-length-cname.vala \
@@ -159,9 +160,11 @@ TESTS = \
 	methods/parameter-fixed-array-initializer.vala \
 	methods/parameter-ref-array-resize.vala \
 	methods/parameter-ref-array-resize-captured.vala \
+	methods/parameter-ref-delegate.vala \
 	methods/prepostconditions.vala \
 	methods/prepostconditions-captured.vala \
 	methods/postconditions.vala \
+	methods/return-unowned-delegate.vala \
 	methods/same-name.vala \
 	methods/symbolresolution.vala \
 	methods/bug540483.vala \
@@ -406,6 +409,7 @@ TESTS = \
 	objects/compact-class-refcount.vala \
 	objects/compact-class-custom-ref.vala \
 	objects/constructor-abstract-public.test \
+	objects/constructor-inner-error.vala \
 	objects/constructor-variadic.test \
 	objects/constructor-wrong-name.test \
 	objects/constructors.vala \
@@ -475,6 +479,8 @@ TESTS = \
 	objects/signals-prototype-access-invalid-2.test \
 	objects/signals-struct-return.vala \
 	objects/singleton.vala \
+	objects/type-narrowing.vala \
+	objects/type-narrowing-fallback.vala \
 	objects/test-025.vala \
 	objects/test-026.vala \
 	objects/test-029.vala \
@@ -745,6 +751,7 @@ TESTS = \
 	parser/field-no-override.test \
 	parser/field-no-static-class.test \
 	parser/field-no-virtual.test \
+	parser/foreach.vala \
 	parser/foreach-no-type.test \
 	parser/function-syntax-error.test \
 	parser/inner-array-size.test \
@@ -1038,6 +1045,7 @@ TESTS = \
 	semantic/yield-statement-requires-async-context.test \
 	nullability/bug611223.vala \
 	nullability/local-variable-invalid-convert.test \
+	nullability/member-access-narrowed-instance.vala \
 	nullability/member-access-nullable-instance.test \
 	nullability/method-parameter-invalid-convert.test \
 	nullability/method-return-invalid-convert.test \
@@ -1123,6 +1131,7 @@ LINUX_TESTS += \
 	linux/file-commandpipe.vala \
 	posix/arrays.vala \
 	posix/empty-length-0.vala \
+	posix/string-printf.vala \
 	posix/struct_only.vala \
 	posix/delegate_only.vala \
 	posix/enum_only.vala \
