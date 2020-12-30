@@ -48,6 +48,7 @@ dist_vapi_DATA = \
 	curses.vapi \
 	dbus-glib-1.vapi \
 	enchant.vapi \
+	enchant-2.vapi \
 	fuse.deps \
 	fuse.vapi \
 	gconf-2.0.vapi \
@@ -86,6 +87,8 @@ dist_vapi_DATA = \
 	gnome-desktop-3.0.deps \
 	gnome-desktop-3.0.vapi \
 	gnome-vfs-2.0.vapi \
+	gnu.deps \
+	gnu.vapi \
 	gnutls.vapi \
 	gobject-2.0.deps \
 	gobject-2.0.vapi \
