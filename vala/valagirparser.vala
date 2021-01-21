@@ -914,9 +914,13 @@ public class Vala.GirParser : CodeVisitor {
 					var colliding = parent.lookup_all (name);
 					foreach (var node in colliding) {
 						var sym = node.symbol;
-						if (sym is Field && !(m.return_type is VoidType) && m.get_parameters().size == 0) {
-							// assume method is getter
-							merged = true;
+						if (sym is Field) {
+							if (m.return_type.compatible (((Field) sym).variable_type) && m.get_parameters ().size == 0) {
+								// assume method is getter
+								merged = true;
+							} else {
+								Report.warning (symbol.source_reference, "Field `%s' conflicts with method of the same name", get_full_name ());
+							}
 						} else if (sym is Signal) {
 							node.process (parser);
 							var sig = (Signal) sym;
@@ -1136,6 +1140,17 @@ public class Vala.GirParser : CodeVisitor {
 						var d = ((DelegateType) field.variable_type).delegate_symbol;
 						parser.process_virtual_method_field (this, d, parent.gtype_struct_for);
 						merged = true;
+					} else if (field.variable_type is DelegateType) {
+						// anonymous delegate
+						var d = ((DelegateType) field.variable_type).delegate_symbol;
+						if (this.lookup (d.name).parent == this) {
+							d.set_attribute_bool ("CCode", "has_typedef", false);
+							if (d.has_target && !metadata.has_argument (ArgumentType.DELEGATE_TARGET)) {
+								field.set_attribute_bool ("CCode", "delegate_target", false);
+							}
+							d.name = "%s%sFunc".printf (parent.symbol.name, Symbol.lower_case_to_camel_case (d.name));
+							get_parent_namespace (this).add_delegate (d);
+						}
 					} else if (field.variable_type is ArrayType) {
 						Node array_length;
 						if (metadata.has_argument (ArgumentType.ARRAY_LENGTH_FIELD)) {
@@ -1148,6 +1163,9 @@ public class Vala.GirParser : CodeVisitor {
 								array_length = parent.lookup ("num_%s".printf (field.name));
 								if (array_length == null) {
 									array_length = parent.lookup ("%s_length".printf (field.name));
+									if (array_length == null) {
+										array_length = parent.lookup ("%s_length1".printf (field.name));
+									}
 								}
 							}
 						}
@@ -1596,6 +1614,17 @@ public class Vala.GirParser : CodeVisitor {
 
 	static bool is_container (Symbol sym) {
 		return sym is ObjectTypeSymbol || sym is Struct || sym is Namespace || sym is ErrorDomain || sym is Enum;
+	}
+
+	static unowned Namespace get_parent_namespace (Node node) {
+		unowned Node? n = node.parent;
+		while (n != null) {
+			if (n.symbol is Namespace) {
+				return (Namespace) n.symbol;
+			}
+			n = n.parent;
+		}
+		assert_not_reached ();
 	}
 
 	UnresolvedSymbol? parse_symbol_from_string (string symbol_string, SourceReference? source_reference = null) {
@@ -3458,7 +3487,7 @@ public class Vala.GirParser : CodeVisitor {
 		bool require_copy_free = false;
 		if (current.new_symbol) {
 			cl = new Class (current.name, current.source_reference);
-			cl.is_compact = true;
+			cl.set_attribute ("Compact", true);
 			current.symbol = cl;
 		} else {
 			cl = (Class) current.symbol;
@@ -3786,7 +3815,7 @@ public class Vala.GirParser : CodeVisitor {
 				cl.add_base_type (base_type);
 			}
 			cl.comment = alias.comment;
-			cl.is_compact = ((Class) type_sym).is_compact;
+			cl.set_attribute ("Compact", ((Class) type_sym).is_compact);
 			alias.symbol = cl;
 		} else if (type_sym is Interface) {
 			// this is not a correct alias, but what can we do otherwise?

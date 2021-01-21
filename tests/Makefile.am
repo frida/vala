@@ -99,6 +99,7 @@ TESTS = \
 	constants/strings.vala \
 	namespace/unique.vala \
 	arrays/cast-silent-invalid.test \
+	arrays/class-field-initializer.vala \
 	arrays/class-field-length-cname.vala \
 	arrays/constant-element-access.vala \
 	arrays/empty-length-0.vala \
@@ -119,6 +120,7 @@ TESTS = \
 	arrays/in-operator-with-boxed-needle.vala \
 	arrays/length-inline-assignment.vala \
 	arrays/length-type-include.vala \
+	arrays/length-no-int-type.test \
 	arrays/struct-field-length-cname.vala \
 	arrays/struct-field-initializer.vala \
 	arrays/struct-namespaced-initializer.vala \
@@ -161,6 +163,7 @@ TESTS = \
 	methods/extern.vala \
 	methods/iterator.vala \
 	methods/parameter-fixed-array-initializer.vala \
+	methods/parameter-out-free-on-error.vala \
 	methods/parameter-ref-array-resize.vala \
 	methods/parameter-ref-array-resize-captured.vala \
 	methods/parameter-ref-delegate.vala \
@@ -255,6 +258,7 @@ TESTS = \
 	control-flow/pre-post-increment-property.vala \
 	control-flow/switch.vala \
 	control-flow/switch-enum.vala \
+	control-flow/switch-string.vala \
 	control-flow/sideeffects.vala \
 	control-flow/unassigned-captured-local-variable.test \
 	control-flow/unassigned-local-block-variable.test \
@@ -451,6 +455,7 @@ TESTS = \
 	objects/property-base-access.vala \
 	objects/property-enum.vala \
 	objects/property-notify.vala \
+	objects/property-notify-owned-getter.vala \
 	objects/property-ownership.vala \
 	objects/property-read-only-auto.vala \
 	objects/property-read-only-write.test \
@@ -459,6 +464,7 @@ TESTS = \
 	objects/property-delegate.vala \
 	objects/property-delegate-owned.vala \
 	objects/property-gboxed-nullable.vala \
+	objects/property-real-struct-assignment.vala \
 	objects/property-real-struct-no-accessor.test \
 	objects/property-simple-type-struct-nullable.vala \
 	objects/property-static.vala \
@@ -481,6 +487,7 @@ TESTS = \
 	objects/signals-prototype-access-invalid.test \
 	objects/signals-prototype-access-invalid-2.test \
 	objects/signals-struct-return.vala \
+	objects/simple-generics-chainup.vala \
 	objects/singleton.vala \
 	objects/type-narrowing.vala \
 	objects/type-narrowing-fallback.vala \
@@ -630,6 +637,7 @@ TESTS = \
 	asynchronous/constructor-argument-check.vala \
 	asynchronous/finish-name.vala \
 	asynchronous/generator.vala \
+	asynchronous/out-parameter-free-on-error.vala \
 	asynchronous/out-parameter-invalid.test \
 	asynchronous/params-array-invalid.test \
 	asynchronous/result-pos.vala \
@@ -688,6 +696,7 @@ TESTS = \
 	gir/class.test \
 	gir/constant.test \
 	gir/delegate-alias-without-target.test \
+	gir/delegate-anonymous.test \
 	gir/delegate-array-length-type.test \
 	gir/delegate-closure-destroy-index-conflict.test \
 	gir/delegate-error-pos.test \
@@ -700,6 +709,18 @@ TESTS = \
 	gir/property-non-readable.test \
 	gir/symbol-type-csuffix.test \
 	gir/union.test \
+	gtktemplate/gtkcallback-incompatible.test \
+	gtktemplate/gtkcallback-unknown.test \
+	gtktemplate/gtkchild-field-assignment.test \
+	gtktemplate/gtkchild-field-incompatible-type.test \
+	gtktemplate/gtkchild-field-out-assignment.test \
+	gtktemplate/gtkchild-field-ref-assignment.test \
+	gtktemplate/gtkchild-field-unknown.test \
+	gtktemplate/gtkchild-property-assignment.test \
+	gtktemplate/gtkchild-property-not-automatic.test \
+	gtktemplate/gtkchild-property-unknown.test \
+	gtktemplate/gtkchild-without-gtktemplate.test \
+	gtktemplate/gtktemplate-gtkwidget-subclass.test \
 	annotations/deprecated.vala \
 	annotations/description.vala \
 	annotations/noaccessormethod.test \
@@ -722,10 +743,13 @@ TESTS = \
 	scanner/string-escape-x-digit-length.test \
 	scanner/string-escape-x-empty.test \
 	scanner/string-escape-x.vala \
+	parser/argument-list-incomplete.test \
 	parser/array-creation-invalid.test \
 	parser/assignment.vala \
 	parser/attribute-duplicate.test \
+	parser/attribute-missing-literal.test \
 	parser/attribute-wrong-number.test \
+	parser/block-delimiter-missing.test \
 	parser/constant-owned.test \
 	parser/constant-local-owned.test \
 	parser/constructor-class-exists.test \
@@ -757,6 +781,7 @@ TESTS = \
 	parser/foreach.vala \
 	parser/foreach-no-type.test \
 	parser/function-syntax-error.test \
+	parser/initializer-list-incomplete.test \
 	parser/inner-array-size.test \
 	parser/invalid-brace.test \
 	parser/invalid-statement-delimiter.test \
@@ -850,6 +875,11 @@ TESTS = \
 	semantic/class-compact-interface.test \
 	semantic/class-compact-method-baseaccess.test \
 	semantic/class-compact-property-baseaccess.test \
+	semantic/class-opaque.vala \
+	semantic/class-opaque-public-field.test \
+	semantic/class-opaque-abstract-method.test \
+	semantic/class-opaque-abstract-property.test \
+	semantic/class-opaque-automatic-property.vala \
 	semantic/class-missing-implement-interface-method.test \
 	semantic/class-missing-implement-interface-property.test \
 	semantic/class-missing-implement-interfaces-methods.test \
@@ -1143,6 +1173,7 @@ LINUX_TESTS += \
 endif
 
 EXTRA_DIST = \
+	gtktemplate/tests-extra-environment.sh \
 	linux/tests-extra-environment.sh \
 	nullability/tests-extra-environment.sh \
 	posix/tests-extra-environment.sh \

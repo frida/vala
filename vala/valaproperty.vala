@@ -116,6 +116,11 @@ public class Vala.Property : Symbol, Lockable {
 						Report.error (source_reference, "Property setter must have a body");
 					}
 					if (!get_has_body && !set_has_body) {
+						if (get_attribute ("GtkChild") != null && property_type.value_owned) {
+							Report.warning (source_reference, "[GtkChild] properties must be declared as `unowned'");
+							property_type.value_owned = false;
+						}
+
 						/* automatic property accessor body generation */
 						_field = new Field ("_%s".printf (name), property_type.copy (), initializer, source_reference);
 						_field.access = SymbolAccessibility.PRIVATE;
@@ -419,6 +424,11 @@ public class Vala.Property : Symbol, Lockable {
 				Report.error (source_reference, "Abstract and virtual properties may not be declared in derived compact classes");
 				return false;
 			}
+			if (cl.is_opaque) {
+				error = true;
+				Report.error (source_reference, "Abstract and virtual properties may not be declared in opaque compact classes");
+				return false;
+			}
 		}
 
 		if (is_abstract) {
@@ -468,6 +478,10 @@ public class Vala.Property : Symbol, Lockable {
 			return false;
 		}
 
+		if (field != null) {
+			field.check (context);
+		}
+
 		property_type.check (context);
 		if (!external_package) {
 			context.analyzer.check_type (property_type);
@@ -483,6 +497,9 @@ public class Vala.Property : Symbol, Lockable {
 			get_accessor.check (context);
 		}
 		if (set_accessor != null) {
+			if (get_attribute ("GtkChild") != null) {
+				Report.warning (set_accessor.source_reference, "[GtkChild] property `%s' is not allowed to have `set' accessor", get_full_name ());
+			}
 			set_accessor.check (context);
 		}
 

@@ -5382,6 +5382,7 @@ namespace Gdk {
 		public Gdk.FrameClock frame_clock { get; construct; }
 		public int height { get; }
 		public bool mapped { get; }
+		public int scale_factor { get; }
 		public int width { get; }
 		public signal void enter_monitor (Gdk.Monitor monitor);
 		public signal bool event (Gdk.Event event);
@@ -7387,6 +7388,7 @@ namespace Gtk {
 		public bool inconsistent { get; set; }
 		public string label { get; set; }
 		public bool use_underline { get; set; }
+		public virtual signal void activate ();
 		public virtual signal void toggled ();
 	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_closure_expression_get_type ()")]
@@ -12377,10 +12379,6 @@ namespace Gtk {
 		public bool empty { get; }
 		public Gtk.PackType side { get; set; }
 	}
-	[CCode (cheader_filename = "gtk/gtk.h", has_type_id = false)]
-	[Compact]
-	public class WindowGeometryInfo {
-	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_window_group_get_type ()")]
 	public class WindowGroup : GLib.Object {
 		[CCode (has_construct_function = false)]
@@ -14059,7 +14057,7 @@ namespace Gtk {
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 2.9)]
 	public delegate string ScaleFormatValueFunc (Gtk.Scale scale, double value);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 2.9)]
-	public delegate bool ShortcutFunc (Gtk.Widget widget, GLib.Variant args);
+	public delegate bool ShortcutFunc (Gtk.Widget widget, GLib.Variant? args);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 1.9)]
 	public delegate bool TextCharPredicate (unichar ch);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 1.9)]
