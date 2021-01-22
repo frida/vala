@@ -229,9 +229,10 @@ public class Vala.UnaryExpression : Expression {
 				Report.error (source_reference, "ref and out method arguments can only be used with fields, parameters, local variables, and array element access");
 				return false;
 			}
-			if (inner.symbol_reference.get_attribute ("GtkChild") != null) {
+			var r = inner.symbol_reference;
+			if (r != null && r.get_attribute ("GtkChild") != null) {
 				error = true;
-				Report.error (source_reference, "Assignment of [GtkChild] `%s' is not allowed", inner.symbol_reference.get_full_name ());
+				Report.error (source_reference, "Assignment of [GtkChild] `%s' is not allowed", r.get_full_name ());
 				return false;
 			}
 			break;
