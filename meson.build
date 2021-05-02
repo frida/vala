@@ -74,8 +74,8 @@ add_project_arguments([
 )
 
 common_flags = [
-	'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_48',
-	'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_48',
+	'-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_68',
+	'-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_68',
 ]
 ndebug = get_option('b_ndebug')
 if ndebug == 'true' or (ndebug == 'if-release' and not get_option('debug'))
