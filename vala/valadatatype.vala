@@ -506,6 +506,38 @@ public abstract class Vala.DataType : CodeNode {
 		return result;
 	}
 
+	public bool is_generic () {
+		if (this is GenericType) {
+			return true;
+		}
+
+		if (!has_type_arguments ()) {
+			return false;
+		}
+		foreach (var type_arg in type_argument_list) {
+			if (type_arg.is_generic ()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void replace_type_parameter (TypeParameter old_type_param, TypeParameter new_type_param) {
+		if (this is GenericType) {
+			unowned GenericType generic_type = (GenericType) this;
+			if (generic_type.type_parameter == old_type_param) {
+				generic_type.type_parameter = new_type_param;
+			}
+			return;
+		}
+		if (!has_type_arguments ()) {
+			return;
+		}
+		foreach (var type_arg in type_argument_list) {
+			type_arg.replace_type_parameter (old_type_param, new_type_param);
+		}
+	}
+
 	/**
 	 * Search for the type parameter in this formal type and match it in
 	 * value_type.
@@ -583,7 +615,12 @@ public abstract class Vala.DataType : CodeNode {
 				str.append_c ('(');
 				foreach (Field f in st.get_fields ()) {
 					if (f.binding == MemberBinding.INSTANCE) {
-						str.append (f.variable_type.get_type_signature (f));
+						var s = f.variable_type.get_type_signature (f);
+						if (s != null) {
+							str.append (s);
+						} else {
+							return null;
+						}
 					}
 				}
 				str.append_c (')');
@@ -620,5 +657,50 @@ public abstract class Vala.DataType : CodeNode {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Returns whether the given amount of type-argument matches the symbol's count of type-parameters
+	 *
+	 * @param context a CodeContext
+	 * @param allow_none whether no type-argments are allowed
+	 * @return true if successful
+	 */
+	public bool check_type_arguments (CodeContext context, bool allow_none = false) {
+		int n_type_args = get_type_arguments ().size;
+		int expected_n_type_args = 0;
+
+		if (type_symbol is ObjectTypeSymbol) {
+			expected_n_type_args = ((ObjectTypeSymbol) type_symbol).get_type_parameters ().size;
+		} else if (type_symbol is Struct) {
+			expected_n_type_args = ((Struct) type_symbol).get_type_parameters ().size;
+		} else if (type_symbol is Delegate) {
+			expected_n_type_args = ((Delegate) type_symbol).get_type_parameters ().size;
+		} else if (n_type_args > 0) {
+			Report.error (source_reference, "`%s' does not support type arguments", type_symbol.get_full_name ());
+			error = true;
+			return false;
+		} else {
+			// nothing to do here
+			return true;
+		}
+
+		if ((!allow_none || n_type_args > 0) && n_type_args < expected_n_type_args) {
+			error = true;
+			Report.error (source_reference, "too few type arguments for `%s'", type_symbol.get_full_name ());
+			return false;
+		} else if ((!allow_none || n_type_args > 0) && n_type_args > expected_n_type_args) {
+			error = true;
+			Report.error (source_reference, "too many type arguments for `%s'", type_symbol.get_full_name ());
+			return false;
+		}
+
+		foreach (DataType type in get_type_arguments ()) {
+			if (!type.check (context)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

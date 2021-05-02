@@ -303,6 +303,11 @@ public class Vala.BinaryExpression : Expression {
 		    && (operator == BinaryOperator.BITWISE_AND || operator == BinaryOperator.BITWISE_OR)) {
 			left.target_type = target_type.copy ();
 			right.target_type = target_type.copy ();
+		} else if (operator == BinaryOperator.IN) {
+			right.check (context);
+			if (right.value_type.type_symbol is Enum) {
+				left.target_type = right.value_type.copy ();
+			}
 		}
 		left.check (context);
 		if (left.value_type != null && left.value_type.type_symbol is Enum
@@ -568,6 +573,11 @@ public class Vala.BinaryExpression : Expression {
 				// integers or enums
 				left.target_type.nullable = false;
 				right.target_type.nullable = false;
+				if (left.value_type.type_symbol is Enum && right.value_type.type_symbol is Enum
+				    && left.value_type.type_symbol != right.value_type.type_symbol) {
+					error = true;
+					Report.error (source_reference, "Cannot look for `%s' in `%s'", left.value_type.to_string (), right.value_type.to_string ());
+				}
 			} else if (right.value_type is ArrayType) {
 				if (!left.value_type.compatible (((ArrayType) right.value_type).element_type)) {
 					error = true;

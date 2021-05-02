@@ -69,10 +69,14 @@ public class Valadoc.Importer.GirDocumentationImporter : DocumentationImporter {
 		this.reader = new Vala.MarkupReader (source_file);
 
 		// xml prolog
-		next ();
-		next ();
+		do {
+			next ();
+			if (current_token == Vala.MarkupTokenType.EOF) {
+				error ("unexpected end of file");
+				return;
+			}
+		} while (current_token != Vala.MarkupTokenType.START_ELEMENT && reader.name != "repository");
 
-		next ();
 		parse_repository ();
 
 		reader = null;
@@ -845,7 +849,15 @@ public class Valadoc.Importer.GirDocumentationImporter : DocumentationImporter {
 
 	private void parse_constant () {
 		start_element ("constant");
-		string c_identifier = reader.get_attribute ("c:type");
+		string c_identifier = reader.get_attribute ("c:identifier");
+		if (c_identifier == null) {
+			//TODO G-I seems to do this wrong
+			c_identifier = reader.get_attribute ("c:type");
+		}
+		if (c_identifier == null) {
+			skip_element ();
+			return ;
+		}
 		next ();
 
 		Api.GirSourceComment? comment = parse_symbol_doc ();

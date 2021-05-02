@@ -978,6 +978,9 @@ public class Vala.CodeWriter : CodeVisitor {
 		}
 
 		write_end_block ();
+		if (b.parent_node is Block) {
+			write_newline ();
+		}
 	}
 
 	public override void visit_empty_statement (EmptyStatement stmt) {
@@ -1078,9 +1081,11 @@ public class Vala.CodeWriter : CodeVisitor {
 		}
 	}
 
-	public override void visit_loop (Loop stmt) {
+	public override void visit_loop_statement (LoopStatement stmt) {
 		write_indent ();
-		write_string ("loop");
+		write_string ("while (");
+		stmt.condition.accept (this);
+		write_string (")");
 		stmt.body.accept (this);
 		write_newline ();
 	}
@@ -1167,7 +1172,6 @@ public class Vala.CodeWriter : CodeVisitor {
 		stmt.expression.accept (this);
 		write_string (")");
 		stmt.body.accept (this);
-		write_string (";");
 		write_newline ();
 	}
 

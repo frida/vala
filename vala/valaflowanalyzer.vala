@@ -235,6 +235,8 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 			}
 
 			current_block.connect (m.return_block);
+		} else {
+			m.body.unreachable_exit = true;
 		}
 
 		analyze_body (m.entry_block);
@@ -752,7 +754,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		jump_stack.remove_at (jump_stack.size - 1);
 	}
 
-	public override void visit_loop (Loop stmt) {
+	public override void visit_loop_statement (LoopStatement stmt) {
 		if (unreachable (stmt)) {
 			return;
 		}

@@ -70,8 +70,6 @@ dist_vapi_DATA = \
 	gdl-1.0.vapi \
 	gdl-3.0.deps \
 	gdl-3.0.vapi \
-	gedit-2.20.vapi \
-	gedit-2.20.deps \
 	gio-2.0.deps \
 	gio-2.0.vapi \
 	gio-unix-2.0.deps \
@@ -125,6 +123,8 @@ dist_vapi_DATA = \
 	gstreamer-net-1.0.deps \
 	gstreamer-pbutils-1.0.vapi \
 	gstreamer-pbutils-1.0.deps \
+	gstreamer-play-1.0.vapi \
+	gstreamer-play-1.0.deps \
 	gstreamer-player-1.0.vapi \
 	gstreamer-player-1.0.deps \
 	gstreamer-riff-1.0.deps \
@@ -218,6 +218,7 @@ dist_vapi_DATA = \
 	libsexy.vapi \
 	libsoup-2.4.deps \
 	libsoup-2.4.vapi \
+	libunwind-generic.vapi \
 	libusb.vapi \
 	libusb-1.0.deps \
 	libusb-1.0.vapi \
@@ -284,8 +285,6 @@ dist_vapi_DATA = \
 	unique-1.0.deps \
 	unique-1.0.vapi \
 	v4l2.vapi \
-	webkit-1.0.deps \
-	webkit-1.0.vapi \
 	webkit2gtk-4.0.vapi \
 	webkit2gtk-4.0.deps \
 	webkit2gtk-web-extension-4.0.vapi \
@@ -332,7 +331,6 @@ GIDL_BINDINGS = \
 	loudmouth-1.0 \
 	purple \
 	unique-1.0 \
-	webkit-1.0 \
 	$(NULL)
 
 GSTREAMER_1_0_BINDINGS = \
@@ -347,6 +345,7 @@ GSTREAMER_1_0_BINDINGS = \
 	gstreamer-audio-1.0 \
 	gstreamer-fft-1.0 \
 	gstreamer-pbutils-1.0 \
+	gstreamer-play-1.0 \
 	gstreamer-player-1.0 \
 	gstreamer-riff-1.0 \
 	gstreamer-rtp-1.0 \
@@ -492,9 +491,6 @@ gdl-1.0:
 gdl-3.0:
 	$(GENVAPI) --library $(srcdir)/gdl-3.0 --pkg gio-2.0 --pkg gtk+-3.0 --metadatadir $(METADATADIR) $(GIRDIR)/Gdl-3.gir
 
-gedit-2.20:
-	$(GENVAPI) --library $(srcdir)/gedit-2.20 $(PACKAGESDIR)/gedit-2.20/gedit-2.20.gi
-
 gio-2.0:
 	$(GENVAPI) --library $(srcdir)/gio-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/Gio-2.0-custom.vala $(GIRDIR)/Gio-2.0.gir
 
@@ -558,6 +554,9 @@ gstreamer-net-1.0:
 gstreamer-pbutils-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-pbutils-1.0 --pkg gstreamer-base-1.0 --pkg gstreamer-audio-1.0 --pkg gstreamer-video-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPbutils-1.0.gir
 
+gstreamer-play-1.0:
+	$(GENVAPI) --library $(srcdir)/gstreamer-play-1.0 --pkg gstreamer-1.0 --pkg gstreamer-pbutils-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPlay-1.0.gir
+
 gstreamer-player-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-player-1.0 --pkg gstreamer-1.0 --pkg gstreamer-pbutils-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstPlayer-1.0.gir
 
@@ -595,7 +594,7 @@ gtk+-3.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-3.0 --pkg atk --pkg gdk-3.0 --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg pango --pkg cairo --metadatadir $(METADATADIR) $(METADATADIR)/Gtk-3.0-custom.vala $(GIRDIR)/Gtk-3.0.gir
 
 gtk4:
-	$(GENVAPI) --library $(srcdir)/gtk4 --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg x11 \
+	$(GENVAPI) --library $(srcdir)/gtk4 --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg pangocairo --pkg x11 \
 		--metadatadir $(METADATADIR) \
 		$(METADATADIR)/GdkWayland-4.0-custom.vala $(GIRDIR)/GdkWayland-4.0.gir \
 		$(METADATADIR)/GdkX11-4.0-custom.vala $(GIRDIR)/GdkX11-4.0.gir \
@@ -610,7 +609,9 @@ gtk+-unix-print-3.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-unix-print-3.0 $(PACKAGESDIR)/gtk+-unix-print-3.0/gtk+-unix-print-3.0-custom.vala $(PACKAGESDIR)/gtk+-unix-print-3.0/gtk+-unix-print-3.0.gi
 
 gtk4-unix-print:
-	$(GENVAPI) --library $(srcdir)/gtk4-unix-print $(PACKAGESDIR)/gtk4-unix-print/gtk4-unix-print-custom.vala $(PACKAGESDIR)/gtk4-unix-print/gtk4-unix-print.gi
+	ln -s $(GIRDIR)/Gtk-4.0.gir GtkUnixPrint-4.0.gir; \
+	$(GENVAPI) --library $(srcdir)/gtk4-unix-print --pkg gtk4 --pkg pangocairo --metadatadir $(METADATADIR) $(METADATADIR)/GtkUnixPrint-4.0-custom.vala GtkUnixPrint-4.0.gir; \
+	rm -f GtkUnixPrint-4.0.gir
 
 gtksourceview-2.0:
 	$(GENVAPI) --library $(srcdir)/gtksourceview-2.0 $(PACKAGESDIR)/gtksourceview-2.0/gtksourceview-2.0.gi
@@ -719,9 +720,6 @@ udisks2:
 
 unique-1.0:
 	$(GENVAPI) --library $(srcdir)/unique-1.0 $(PACKAGESDIR)/unique-1.0/unique-1.0.gi
-
-webkit-1.0:
-	$(GENVAPI) --library $(srcdir)/webkit-1.0 $(PACKAGESDIR)/webkit-1.0/webkit-1.0.gi
 
 webkit2gtk-4.0:
 	$(GENVAPI) --library $(srcdir)/webkit2gtk-4.0 --metadatadir $(METADATADIR) --pkg gtk+-3.0 --pkg libsoup-2.4 $(GIRDIR)/WebKit2-4.0.gir

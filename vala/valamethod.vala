@@ -175,7 +175,7 @@ public class Vala.Method : Subroutine, Callable {
 		}
 	}
 
-	public LocalVariable? params_array_var { get; private set; }
+	public LocalVariable? params_array_var { get; protected set; }
 
 	public weak Signal signal_reference { get; set; }
 
@@ -748,6 +748,12 @@ public class Vala.Method : Subroutine, Callable {
 			return false;
 		}
 
+		if (get_attribute ("NoWrapper") != null && !(is_abstract || is_virtual)) {
+			error = true;
+			Report.error (source_reference, "[NoWrapper] methods must be declared abstract or virtual");
+			return false;
+		}
+
 		if (is_abstract) {
 			if (parent_symbol is Class) {
 				unowned Class cl = (Class) parent_symbol;
@@ -1195,7 +1201,7 @@ public class Vala.Method : Subroutine, Callable {
 		assert (this.coroutine);
 
 		if (callback_method == null) {
-			var bool_type = new BooleanType ((Struct) CodeContext.get ().root.scope.lookup ("bool"));
+			var bool_type = CodeContext.get ().analyzer.bool_type.copy ();
 			bool_type.value_owned = true;
 			callback_method = new Method ("callback", bool_type, source_reference);
 			callback_method.access = SymbolAccessibility.PUBLIC;

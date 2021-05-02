@@ -302,11 +302,11 @@ public class Vala.Parser : CodeVisitor {
 		}
 	}
 
-	string parse_identifier () throws ParseError {
+	string parse_identifier (bool required = false) throws ParseError {
 		try {
 			skip_identifier ();
 		} catch (ParseError e) {
-			if (context.keep_going) {
+			if (!required && context.keep_going) {
 				report_parse_error (e);
 				prev ();
 				return get_location_string ();
@@ -539,6 +539,7 @@ public class Vala.Parser : CodeVisitor {
 
 			if (!(type is PointerType)) {
 				type.nullable = accept (TokenType.INTERR);
+				type.source_reference = get_src (begin);
 			}
 		}
 
@@ -982,7 +983,7 @@ public class Vala.Parser : CodeVisitor {
 		}
 
 		var member = parse_member_name ();
-		DataType element_type = UnresolvedType.new_from_expression (member);
+		DataType element_type = new UnresolvedType.from_expression (member);
 		bool is_pointer_type = false;
 		while (accept (TokenType.STAR)) {
 			element_type = new PointerType (element_type, get_src (begin));
@@ -1052,20 +1053,32 @@ public class Vala.Parser : CodeVisitor {
 	List<MemberInitializer> parse_object_initializer () throws ParseError {
 		var list = new ArrayList<MemberInitializer> ();
 		if (accept (TokenType.OPEN_BRACE)) {
-			do {
+			while (current () != TokenType.CLOSE_BRACE) {
 				list.add (parse_member_initializer ());
-			} while (accept (TokenType.COMMA));
+
+				if (!accept (TokenType.COMMA)) {
+					break;
+				}
+			}
 			expect (TokenType.CLOSE_BRACE);
 		}
 		return list;
 	}
 
-	MemberInitializer parse_member_initializer () throws ParseError {
+	MemberInitializer parse_member_initializer (bool chained = false) throws ParseError {
 		var begin = get_location ();
-		string id = parse_identifier ();
+		string id = parse_identifier (chained);
 		expect (TokenType.ASSIGN);
-		var expr = parse_expression ();
 
+		var inner = get_location ();
+		Expression expr;
+		try {
+			// chained member initializer
+			expr = parse_member_initializer (true);
+		} catch {
+			rollback (inner);
+			expr = parse_expression ();
+		}
 		return new MemberInitializer (id, expr, get_src (begin));
 	}
 
@@ -1931,10 +1944,12 @@ public class Vala.Parser : CodeVisitor {
 		DataType variable_type;
 		if (accept (TokenType.UNOWNED) && accept (TokenType.VAR)) {
 			variable_type = new VarType (false);
+			variable_type.nullable = accept (TokenType.INTERR);
 		} else {
 			rollback (begin);
 			if (accept (TokenType.VAR)) {
 				variable_type = new VarType ();
+				variable_type.nullable = accept (TokenType.INTERR);
 			} else {
 				variable_type = parse_type (true, true);
 			}
@@ -2124,7 +2139,7 @@ public class Vala.Parser : CodeVisitor {
 		var condition = parse_expression ();
 		expect (TokenType.CLOSE_PARENS);
 		expect (TokenType.SEMICOLON);
-		return new DoStatement (body, condition, get_src (begin));
+		return new DoStatement (condition, body, get_src (begin));
 	}
 
 	Statement parse_for_statement () throws ParseError {
@@ -2198,10 +2213,12 @@ public class Vala.Parser : CodeVisitor {
 		DataType type;
 		if (accept (TokenType.UNOWNED) && accept (TokenType.VAR)) {
 			type = new VarType (false);
+			type.nullable = accept (TokenType.INTERR);
 		} else {
 			rollback (var_or_type);
 			if (accept (TokenType.VAR)) {
 				type = new VarType ();
+				type.nullable = accept (TokenType.INTERR);
 			} else {
 				type = parse_type (true, true);
 				if (accept (TokenType.IN)) {
@@ -2367,10 +2384,12 @@ public class Vala.Parser : CodeVisitor {
 			DataType variable_type;
 			if (accept (TokenType.UNOWNED) && accept (TokenType.VAR)) {
 				variable_type = new VarType (false);
+				variable_type.nullable = accept (TokenType.INTERR);
 			} else {
 				rollback (expr_or_decl);
 				if (accept (TokenType.VAR)) {
 					variable_type = new VarType ();
+					variable_type.nullable = accept (TokenType.INTERR);
 				} else {
 					variable_type = parse_type (true, true);
 				}
@@ -2489,12 +2508,18 @@ public class Vala.Parser : CodeVisitor {
 		case TokenType.CONSTRUCT:
 			if (context.profile == Profile.GOBJECT) {
 				rollback (begin);
+				if (!(parent is TypeSymbol)) {
+					throw new ParseError.SYNTAX ("unexpected `construct' declaration");
+				}
 				parse_constructor_declaration (parent, attrs);
 				return;
 			}
 			break;
 		case TokenType.TILDE:
 			rollback (begin);
+			if (!(parent is TypeSymbol)) {
+				throw new ParseError.SYNTAX ("unexpected `destructor' declaration");
+			}
 			parse_destructor_declaration (parent, attrs);
 			return;
 		case TokenType.OPEN_BRACE:
@@ -2573,6 +2598,9 @@ public class Vala.Parser : CodeVisitor {
 				break;
 			case TokenType.OPEN_PARENS:
 				rollback (begin);
+				if (!(parent is TypeSymbol)) {
+					throw new ParseError.SYNTAX ("unexpected `constructor' declaration");
+				}
 				parse_creation_method_declaration (parent, attrs);
 				return;
 			default:
@@ -2585,6 +2613,9 @@ public class Vala.Parser : CodeVisitor {
 						parse_delegate_declaration (parent, attrs);
 						return;
 					case TokenType.SIGNAL:
+						if (!(parent is ObjectTypeSymbol)) {
+							throw new ParseError.SYNTAX ("unexpected `signal' declaration");
+						}
 						parse_signal_declaration (parent, attrs);
 						return;
 					default:
@@ -2605,6 +2636,9 @@ public class Vala.Parser : CodeVisitor {
 				case TokenType.OPEN_BRACE:
 				case TokenType.THROWS:
 					rollback (begin);
+					if (!(parent is TypeSymbol)) {
+						throw new ParseError.SYNTAX ("unexpected `property' declaration");
+					}
 					parse_property_declaration (parent, attrs);
 					return;
 				default:

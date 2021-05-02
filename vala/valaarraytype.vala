@@ -210,7 +210,7 @@ public class Vala.ArrayType : ReferenceType {
 		var context = CodeContext.get ();
 
 		if (context.profile == Profile.GOBJECT && target_type.type_symbol != null) {
-			if (target_type.type_symbol.is_subtype_of (context.analyzer.gvalue_type.type_symbol) && element_type.type_symbol == context.root.scope.lookup ("string")) {
+			if (target_type.type_symbol.is_subtype_of (context.analyzer.gvalue_type.type_symbol) && element_type.type_symbol == context.analyzer.string_type.type_symbol) {
 				// allow implicit conversion from string[] to GValue
 				return true;
 			}
@@ -319,14 +319,25 @@ public class Vala.ArrayType : ReferenceType {
 			length_type = context.analyzer.int_type.copy ();
 		} else {
 			length_type.check (context);
-			if (!(length_type is IntegerType)) {
+			if (!(length_type is IntegerType) || length_type.nullable) {
 				error = true;
 				Report.error (length_type.source_reference, "Expected integer type as length type of array");
 				return false;
 			}
 		}
 
-		return element_type.check (context);
+		if (!element_type.check (context)) {
+			error = true;
+			return false;
+		}
+
+		// check whether there is the expected amount of type-arguments
+		if (!element_type.check_type_arguments (context, true)) {
+			error = true;
+			return false;
+		}
+
+		return true;
 	}
 
 	public override DataType get_actual_type (DataType? derived_instance_type, List<DataType>? method_type_arguments, CodeNode? node_reference) {

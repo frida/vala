@@ -50,6 +50,9 @@ namespace Gst {
 			[Version (since = "1.16")]
 			public void set_source_info_enabled (bool enable);
 			[NoAccessorMethod]
+			[Version (since = "1.20")]
+			public bool auto_header_extension { get; set; }
+			[NoAccessorMethod]
 			[Version (since = "1.18")]
 			public int max_reorder { get; set; }
 			[NoAccessorMethod]
@@ -95,6 +98,9 @@ namespace Gst {
 			public virtual bool sink_event (Gst.Event event);
 			[NoWrapper]
 			public virtual bool src_event (Gst.Event event);
+			[NoAccessorMethod]
+			[Version (since = "1.20")]
+			public bool auto_header_extension { get; set; }
 			[NoAccessorMethod]
 			public int64 max_ptime { get; set; }
 			[NoAccessorMethod]
@@ -205,6 +211,11 @@ namespace Gst {
 			public virtual bool set_caps_from_attributes (Gst.Caps caps);
 			public bool set_caps_from_attributes_simple_sdp (Gst.Caps caps);
 			public void set_id (uint ext_id);
+			public virtual bool set_non_rtp_sink_caps (Gst.Caps caps);
+			[CCode (cname = "gst_rtp_header_extension_class_set_uri")]
+			public class void set_uri (string uri);
+			public void set_wants_update_non_rtp_src_caps (bool state);
+			public virtual bool update_non_rtp_src_caps (Gst.Caps caps);
 			public virtual size_t write (Gst.Buffer input_meta, Gst.RTP.HeaderExtensionFlags write_flags, Gst.Buffer output, uint8 data, size_t size);
 		}
 		[CCode (cheader_filename = "gst/rtp/rtp.h", has_type_id = false)]

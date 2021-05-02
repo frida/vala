@@ -345,7 +345,7 @@ public class Vala.GVariantModule : GValueModule {
 			// NULL terminate array
 			var length = new CCodeIdentifier (temp_name + "_length");
 			var element_access = new CCodeElementAccess (new CCodeIdentifier (temp_name), length);
-			ccode.add_assignment (element_access, new CCodeIdentifier ("NULL"));
+			ccode.add_assignment (element_access, new CCodeConstant ("NULL"));
 		}
 
 		return new CCodeIdentifier (temp_name);
@@ -418,7 +418,13 @@ public class Vala.GVariantModule : GValueModule {
 		ccode.add_declaration ("gsize", new CCodeVariableDeclarator (temp_name + "_length", get_size_call));
 		var length = new CCodeIdentifier (temp_name + "_length");
 
-		var dup_call = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup"));
+		CCodeFunctionCall dup_call;
+		if (context.require_glib_version (2, 68)) {
+			dup_call = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup2"));
+		} else {
+			requires_memdup2 = true;
+			dup_call = new CCodeFunctionCall (new CCodeIdentifier ("_vala_memdup2"));
+		}
 		dup_call.add_argument (get_data_call);
 		dup_call.add_argument (length);
 
@@ -468,7 +474,10 @@ public class Vala.GVariantModule : GValueModule {
 		string value_name = "_tmp%d_".printf (next_temp_var_id++);
 
 		var type_args = type.get_type_arguments ();
-		assert (type_args.size == 2);
+		if (type_args.size != 2) {
+			Report.error (type.source_reference, "Missing type-arguments for GVariant deserialization of `%s'", type.type_symbol.get_full_name ());
+			return new CCodeInvalidExpression ();
+		}
 		var key_type = type_args.get (0);
 		var value_type = type_args.get (1);
 
@@ -496,7 +505,7 @@ public class Vala.GVariantModule : GValueModule {
 		} else if (key_type.type_symbol.get_full_name () == "GLib.HashTable") {
 			hash_table_new.add_argument (new CCodeCastExpression (new CCodeIdentifier ("g_hash_table_unref"), "GDestroyNotify"));
 		} else {
-			hash_table_new.add_argument (new CCodeIdentifier ("NULL"));
+			hash_table_new.add_argument (new CCodeConstant ("NULL"));
 		}
 
 		if (value_type.type_symbol.is_subtype_of (string_type.type_symbol)) {
@@ -506,7 +515,7 @@ public class Vala.GVariantModule : GValueModule {
 		} else if (value_type.type_symbol.get_full_name () == "GLib.HashTable") {
 			hash_table_new.add_argument (new CCodeCastExpression (new CCodeIdentifier ("g_hash_table_unref"), "GDestroyNotify"));
 		} else {
-			hash_table_new.add_argument (new CCodeIdentifier ("NULL"));
+			hash_table_new.add_argument (new CCodeConstant ("NULL"));
 		}
 		ccode.add_assignment (new CCodeIdentifier (temp_name), hash_table_new);
 
@@ -559,7 +568,13 @@ public class Vala.GVariantModule : GValueModule {
 			if (result != null && type.nullable) {
 				var csizeof = new CCodeFunctionCall (new CCodeIdentifier ("sizeof"));
 				csizeof.add_argument (new CCodeIdentifier (get_ccode_name (st)));
-				var cdup = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup"));
+				CCodeFunctionCall cdup;
+				if (context.require_glib_version (2, 68)) {
+					cdup = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup2"));
+				} else {
+					requires_memdup2 = true;
+					cdup = new CCodeFunctionCall (new CCodeIdentifier ("_vala_memdup2"));
+				}
 				cdup.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, result));
 				cdup.add_argument (csizeof);
 				result = cdup;
@@ -731,7 +746,13 @@ public class Vala.GVariantModule : GValueModule {
 		var gvariant_type = new CCodeFunctionCall (new CCodeIdentifier ("G_VARIANT_TYPE"));
 		gvariant_type.add_argument (new CCodeConstant ("\"%s\"".printf (array_type.get_type_signature ())));
 
-		var dup_call = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup"));
+		CCodeFunctionCall dup_call;
+		if (context.require_glib_version (2, 68)) {
+			dup_call = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup2"));
+		} else {
+			requires_memdup2 = true;
+			dup_call = new CCodeFunctionCall (new CCodeIdentifier ("_vala_memdup2"));
+		}
 		dup_call.add_argument (array_expr);
 		dup_call.add_argument (get_array_length (array_expr, 1));
 		ccode.add_declaration (get_ccode_name (array_type), new CCodeVariableDeclarator (buffer_name, dup_call));
@@ -785,7 +806,10 @@ public class Vala.GVariantModule : GValueModule {
 		string value_name = "_tmp%d_".printf (next_temp_var_id++);
 
 		var type_args = type.get_type_arguments ();
-		assert (type_args.size == 2);
+		if (type_args.size != 2) {
+			Report.error (type.source_reference, "Missing type-arguments for GVariant serialization of `%s'", type.type_symbol.get_full_name ());
+			return new CCodeInvalidExpression ();
+		}
 		var key_type = type_args.get (0);
 		var value_type = type_args.get (1);
 

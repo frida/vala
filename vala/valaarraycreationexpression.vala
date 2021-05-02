@@ -245,6 +245,12 @@ public class Vala.ArrayCreationExpression : Expression {
 
 		if (element_type != null) {
 			element_type.check (context);
+
+			// check whether there is the expected amount of type-arguments
+			if (!element_type.check_type_arguments (context, true)) {
+				error = true;
+				return false;
+			}
 		}
 
 		if (length_type == null) {
@@ -252,7 +258,7 @@ public class Vala.ArrayCreationExpression : Expression {
 			length_type = context.analyzer.int_type.copy ();
 		} else {
 			length_type.check (context);
-			if (!(length_type is IntegerType)) {
+			if (!(length_type is IntegerType) || length_type.nullable) {
 				error = true;
 				Report.error (length_type.source_reference, "Expected integer type as length type of array");
 			}

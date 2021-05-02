@@ -59,6 +59,7 @@ TESTS = \
 	basic-types/glists.vala \
 	basic-types/gptrarray.vala \
 	basic-types/gvariants.vala \
+	basic-types/gvariants-hashtable-missing-type-arguments.test \
 	basic-types/gvariants-unboxing-safe.vala \
 	basic-types/null.vala \
 	basic-types/bug570846.test \
@@ -99,6 +100,7 @@ TESTS = \
 	constants/strings.vala \
 	namespace/unique.vala \
 	arrays/cast-silent-invalid.test \
+	arrays/cast-struct-boxed-element-access.vala \
 	arrays/class-field-initializer.vala \
 	arrays/class-field-length-cname.vala \
 	arrays/constant-element-access.vala \
@@ -142,6 +144,7 @@ TESTS = \
 	chainup/class-base.vala \
 	chainup/class-base-foo.vala \
 	chainup/class-compact-base.vala \
+	chainup/class-compact-this.vala \
 	chainup/class-object.vala \
 	chainup/class-this.vala \
 	chainup/class-this-foo.vala \
@@ -155,6 +158,7 @@ TESTS = \
 	chainup/struct-this.vala \
 	chainup/struct-this-foo.vala \
 	chainup/bug791785.vala \
+	pointers/delete.vala \
 	pointers/bug590641.vala \
 	methods/array-length-type.vala \
 	methods/lambda.vala \
@@ -167,9 +171,12 @@ TESTS = \
 	methods/parameter-ref-array-resize.vala \
 	methods/parameter-ref-array-resize-captured.vala \
 	methods/parameter-ref-delegate.vala \
+	methods/parameter-ref-element-access.vala \
+	methods/preconditions-temp-variables.vala \
 	methods/prepostconditions.vala \
 	methods/prepostconditions-captured.vala \
 	methods/postconditions.vala \
+	methods/postconditions-temp-variables.vala \
 	methods/return-unowned-delegate.vala \
 	methods/same-name.vala \
 	methods/symbolresolution.vala \
@@ -218,8 +225,11 @@ TESTS = \
 	methods/argument-named.vala \
 	methods/delegate-target.vala \
 	methods/generics.vala \
+	methods/nowrapper-interface.vala \
+	methods/nowrapper-no-vfunc.test \
 	methods/params-array.vala \
 	methods/params-array-abstract.test \
+	methods/params-array-with-throws.vala \
 	methods/print-attribute.vala \
 	methods/print-attribute-invalid.test \
 	methods/printf-invalid.test \
@@ -307,6 +317,8 @@ TESTS = \
 	enums/enums.vala \
 	enums/flags.vala \
 	enums/from-0-literal.vala \
+	enums/in-inference.vala \
+	enums/in-invalid.test \
 	enums/no_gtype_to_string.vala \
 	enums/switch.vala \
 	enums/bug666035.vala \
@@ -315,6 +327,7 @@ TESTS = \
 	enums/bug673879.vala \
 	enums/bug763831.vala \
 	enums/bug780050.vala \
+	structs/cast-struct-boxed.vala \
 	structs/struct_only.vala \
 	structs/struct-base-types.vala \
 	structs/struct-boxed-cast.vala \
@@ -330,8 +343,12 @@ TESTS = \
 	structs/constructor-wrong-name.test \
 	structs/default-gtype.vala \
 	structs/gmutex.vala \
+	structs/gtype-base-struct.vala \
 	structs/gvalue.vala \
 	structs/gvalue-implicit-comparison.vala \
+	structs/properties.vala \
+	structs/simple-type-constructor.vala \
+	structs/simple-type-disposable.test \
 	structs/bug530605.vala \
 	structs/bug572091.vala \
 	structs/bug583603.vala \
@@ -368,6 +385,7 @@ TESTS = \
 	delegates/casting.vala \
 	delegates/compatible.vala \
 	delegates/delegate_only.vala \
+	delegates/delegate-recusive.vala \
 	delegates/delegates.vala \
 	delegates/delegates-error.test \
 	delegates/error-pos.vala \
@@ -380,6 +398,7 @@ TESTS = \
 	delegates/incompatible-target.test \
 	delegates/instance-method-to-no-target.test \
 	delegates/instance-method-to-no-target-2.test \
+	delegates/lambda-incompatible.test \
 	delegates/lambda-mixed-instance-static.vala \
 	delegates/lambda-shared-closure.vala \
 	delegates/member-target-destroy.vala \
@@ -437,6 +456,7 @@ TESTS = \
 	objects/interface-inner-types.vala \
 	objects/interfaces.vala \
 	objects/interface-abstract-async-override.vala \
+	objects/interface-async-captured-generic.vala \
 	objects/interface-generics.vala \
 	objects/interface-property-base-access.vala \
 	objects/interface-property-base-impl.vala \
@@ -444,6 +464,8 @@ TESTS = \
 	objects/interface-property-override.vala \
 	objects/interface-virtual-override.vala \
 	objects/member-initializer-base-properties.vala \
+	objects/member-initializer-chained.vala \
+	objects/member-initializer-chained-2.vala \
 	objects/member-initializer-property.vala \
 	objects/member-initializer-property-owned-setter.vala \
 	objects/methods.vala \
@@ -458,17 +480,23 @@ TESTS = \
 	objects/property-notify-owned-getter.vala \
 	objects/property-ownership.vala \
 	objects/property-read-only-auto.vala \
+	objects/property-read-only-member-write.test \
 	objects/property-read-only-write.test \
+	objects/property-class-invalid-name.test \
+	objects/property-construct-only.vala \
 	objects/property-construct-only-write.test \
+	objects/property-construct-only-write-after.test \
 	objects/property-construct-only-write-foreign.test \
 	objects/property-delegate.vala \
 	objects/property-delegate-owned.vala \
 	objects/property-gboxed-nullable.vala \
+	objects/property-interface-invalid-name.test \
 	objects/property-real-struct-assignment.vala \
 	objects/property-real-struct-no-accessor.test \
 	objects/property-simple-type-struct-nullable.vala \
 	objects/property-static.vala \
 	objects/property-struct-no-gtype.vala \
+	objects/property-write-only-member-read.test \
 	objects/regex.vala \
 	objects/sealed-abstract-class.test \
 	objects/sealed-class.test \
@@ -490,6 +518,7 @@ TESTS = \
 	objects/simple-generics-chainup.vala \
 	objects/singleton.vala \
 	objects/type-narrowing.vala \
+	objects/type-narrowing-by-precondition.vala \
 	objects/type-narrowing-fallback.vala \
 	objects/test-025.vala \
 	objects/test-026.vala \
@@ -517,6 +546,7 @@ TESTS = \
 	objects/bug620706.vala \
 	objects/bug624594.vala \
 	objects/bug626038.vala \
+	objects/bug626038-2.vala \
 	objects/bug628639.vala \
 	objects/bug629593.vala \
 	objects/bug631267.vala \
@@ -585,6 +615,7 @@ TESTS = \
 	errors/invalid-type-check.test \
 	errors/loops.vala \
 	errors/method-throws.vala \
+	errors/unhandled.vala \
 	errors/bug567181.vala \
 	errors/bug579101.vala \
 	errors/bug596228.vala \
@@ -637,6 +668,7 @@ TESTS = \
 	asynchronous/constructor-argument-check.vala \
 	asynchronous/finish-name.vala \
 	asynchronous/generator.vala \
+	asynchronous/nowrapper.vala \
 	asynchronous/out-parameter-free-on-error.vala \
 	asynchronous/out-parameter-invalid.test \
 	asynchronous/params-array-invalid.test \
@@ -644,18 +676,26 @@ TESTS = \
 	asynchronous/variadic-invalid.test \
 	asynchronous/variadic-invalid-2.test \
 	asynchronous/yield.vala \
+	generics/arrays.vala \
 	generics/arrays-not-supported.test \
+	generics/arrays-not-supported-2.test \
+	generics/arrays-not-supported-3.test \
 	generics/constructor-chain-up.vala \
 	generics/floating-type-cast.vala \
+	generics/gvariant-serialization.test \
 	generics/inference-argument-may-fail.vala \
 	generics/inference-static-function.vala \
+	generics/integer-member-access.vala \
 	generics/integer-type-cast.vala \
+	generics/integer-type-cast-return.vala \
 	generics/parameter-invalid-initializer.test \
 	generics/parameter-sizeof-initializer.vala \
 	generics/member-dup-destroy.vala \
 	generics/property-int-cast.vala \
+	generics/reference-transfer.vala \
 	generics/string-literal-comparison.vala \
 	generics/type-parameter-properties.vala \
+	generics/value-pointer-type-access.vala \
 	generics/bug640330.test \
 	generics/bug640330.vala \
 	generics/bug694765-1.vala \
@@ -670,8 +710,10 @@ TESTS = \
 	dbus/async-connection.test \
 	dbus/async-errors.test \
 	dbus/connection.test \
+	dbus/dbus-name-missing.test \
 	dbus/dynamic-method.test \
 	dbus/enum-string-marshalling.vala \
+	dbus/generics.test \
 	dbus/signals.test \
 	dbus/filedescriptor.test \
 	dbus/filedescriptor-async.test \
@@ -690,7 +732,9 @@ TESTS = \
 	gir/bug742012.test \
 	gir/bug788775.test \
 	gir/bug792998.test \
+	gir/alias.test \
 	gir/array-fixed-length.test \
+	gir/async-creation-method.test \
 	gir/async-result-pos.test \
 	gir/async-sync-out.test \
 	gir/class.test \
@@ -702,13 +746,18 @@ TESTS = \
 	gir/delegate-error-pos.test \
 	gir/enum.test \
 	gir/errordomain.test \
+	gir/gtype-struct-name.test \
 	gir/instance-parameter-owned.test \
 	gir/method-array-length-type.test \
+	gir/method-class.test \
+	gir/method-nowrapper.test \
 	gir/parameter-array-length-type.test \
 	gir/parameter-nullable-out-simple-type.test \
 	gir/property-non-readable.test \
+	gir/signal-virtual.test \
 	gir/symbol-type-csuffix.test \
 	gir/union.test \
+	gir/union-transparent.test \
 	gtktemplate/gtkcallback-incompatible.test \
 	gtktemplate/gtkcallback-unknown.test \
 	gtktemplate/gtkchild-field-assignment.test \
@@ -722,6 +771,11 @@ TESTS = \
 	gtktemplate/gtkchild-without-gtktemplate.test \
 	gtktemplate/gtktemplate-gtkwidget-subclass.test \
 	annotations/deprecated.vala \
+	annotations/deprecated-delegate-minimal.vala \
+	annotations/deprecated-enum-minimal.vala \
+	annotations/deprecated-method-minimal.vala \
+	annotations/deprecated-property-minimal.vala \
+	annotations/deprecated-struct-minimal.vala \
 	annotations/description.vala \
 	annotations/noaccessormethod.test \
 	scanner/comment-not-closed.test \
@@ -790,6 +844,9 @@ TESTS = \
 	parser/lock-statement.vala \
 	parser/main-block.vala \
 	parser/member-access-pointer.vala \
+	parser/member-initializer.vala \
+	parser/member-initializer-empty.vala \
+	parser/member-initializer-trailing-comma.vala \
 	parser/method-no-abstract-override.test \
 	parser/method-no-abstract-virtual-override.test \
 	parser/method-no-abstract-virtual.test \
@@ -831,6 +888,7 @@ TESTS = \
 	parser/using-ambiguous-reference.test \
 	parser/using-directive.vala \
 	parser/using-invalid-namespace.test \
+	parser/var-type-nullable.vala \
 	parser/with-embedded.vala \
 	parser/with-empty.vala \
 	parser/with-invalid-declaration.test \
@@ -842,6 +900,7 @@ TESTS = \
 	parser/yield-return.vala \
 	parser/bug728574.vala \
 	parser/bug749576.vala \
+	parser-keep-going/member-initializer.vala \
 	resolver/class-base-cycle.test \
 	resolver/interface-prerequisite-cycle.test \
 	resolver/peek-inner-types-ambiguous.test \
@@ -856,11 +915,16 @@ TESTS = \
 	semantic/array-stacked.test \
 	semantic/array-incompatible-initializer.test \
 	semantic/array-incompatible-initializer2.test \
+	semantic/array-invalid-type-argument.test \
+	semantic/array-too-few-type-arguments.test \
+	semantic/array-too-many-type-arguments.test \
 	semantic/assignment-element-incompatible-ownership.test \
 	semantic/assignment-element-incompatible-type.test \
+	semantic/assignment-fixed-array-length.test \
 	semantic/assignment-same-variable.vala \
 	semantic/assignment-signal-incompatible-method.test \
 	semantic/assignment-signal-incompatible-type.test \
+	semantic/cast-gvalue-unsupported.test \
 	semantic/cast-gvariant-unsupported.test \
 	semantic/chainup-gobject-incompatible-type-property.test \
 	semantic/chainup-gobject-unknown-property.test \
@@ -892,6 +956,7 @@ TESTS = \
 	semantic/class-singleton-non-gobject.test \
 	semantic/class-too-few-type-arguments.test \
 	semantic/class-too-many-type-arguments.test \
+	semantic/conditional-expression-incompatible.test \
 	semantic/conditional-expression-no-block.test \
 	semantic/constant-extern.test \
 	semantic/constant-pointer.test \
@@ -903,6 +968,10 @@ TESTS = \
 	semantic/constant-void.test \
 	semantic/construct-without-gobject.test \
 	semantic/creation-error-accessibility.test \
+	semantic/creation-method-enum.test \
+	semantic/creation-method-errordomain.test \
+	semantic/creation-method-interface.test \
+	semantic/creation-method-namespace.test \
 	semantic/delegate-error-accessibility.test \
 	semantic/delegate-return-valist.test \
 	semantic/delegate-too-few-type-arguments.test \
@@ -955,9 +1024,12 @@ TESTS = \
 	semantic/localvariable-void-initializer.test \
 	semantic/member-access-async-callback-invalid.test \
 	semantic/member-access-capture-out.test \
+	semantic/member-access-capture-valist-parameter.test \
+	semantic/member-access-capture-valist-variable.test \
 	semantic/member-access-protected-invalid.test \
 	semantic/member-access-undefined.test \
 	semantic/member-access-static-with-instance.vala \
+	semantic/member-access-static-transformed-qualified.vala \
 	semantic/member-access-transformed-qualified.vala \
 	semantic/method-abstract.test \
 	semantic/method-abstract-body.test \
@@ -1004,6 +1076,8 @@ TESTS = \
 	semantic/parameter-ref-default.test \
 	semantic/parameter-void.test \
 	semantic/params-array-multiple.test \
+	semantic/params-array-objectcreation-multiple.test \
+	semantic/params-array-objectcreation-struct-length.test \
 	semantic/params-array-struct-length.test \
 	semantic/pointer-indirection-type-not-supported.test \
 	semantic/pointer-indirection-void-not-supported.test \
@@ -1047,10 +1121,12 @@ TESTS = \
 	semantic/throw-no-error-type.test \
 	semantic/throw-unknown-error-type.test \
 	semantic/type-argument-ownership-mismatch.test \
+	semantic/unary-invalid-instance-member-access.test \
 	semantic/unary-unsupported-complement.test \
 	semantic/unary-unsupported-increment.test \
 	semantic/unary-unsupported-minus.test \
 	semantic/unary-unsupported-negation.test \
+	semantic/unary-unsupported-out-ref.test \
 	semantic/with-array.test \
 	semantic/with-buildin.vala \
 	semantic/with-class.test \
@@ -1085,6 +1161,7 @@ TESTS = \
 	nullability/method-return-invalid-convert.test \
 	nullability/string-concat.test \
 	nullability/with-non-null.test \
+	nullability/var-type.vala \
 	version/since-constant.test \
 	version/since-field.test \
 	version/since-local-variable.test \
@@ -1154,6 +1231,7 @@ TESTS = \
 	genie/preparser-or-expression.gs \
 	genie/struct.gs \
 	genie/struct-after-class.gs \
+	glib/conditional-glib-api.vala \
 	$(LINUX_TESTS) \
 	$(NULL)
 
@@ -1165,15 +1243,26 @@ LINUX_TESTS += \
 	linux/file-commandpipe.vala \
 	posix/arrays.vala \
 	posix/empty-length-0.vala \
+	posix/string-concat.vala \
 	posix/string-printf.vala \
 	posix/struct_only.vala \
 	posix/delegate_only.vala \
 	posix/enum_only.vala \
+	posix/enum-to-string.vala \
+	$(NULL)
+endif
+
+if ENABLE_TEST_ASAN
+XFAIL_TESTS = \
+	objects/property-array.vala \
+	dbus/filedescriptor-errors.test \
 	$(NULL)
 endif
 
 EXTRA_DIST = \
+	glib/tests-extra-environment.sh \
 	gtktemplate/tests-extra-environment.sh \
+	parser-keep-going/tests-extra-environment.sh \
 	linux/tests-extra-environment.sh \
 	nullability/tests-extra-environment.sh \
 	posix/tests-extra-environment.sh \

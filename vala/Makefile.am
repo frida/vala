@@ -43,6 +43,7 @@ libvala_la_VALASOURCES = \
 	valabooleantype.vala \
 	valabreakstatement.vala \
 	valacallable.vala \
+	valacallableexpression.vala \
 	valacallabletype.vala \
 	valacastexpression.vala \
 	valacatchclause.vala \
@@ -110,6 +111,7 @@ libvala_la_VALASOURCES = \
 	valalockable.vala \
 	valalockstatement.vala \
 	valaloop.vala \
+	valaloopstatement.vala \
 	valamarkupreader.vala \
 	valamemberaccess.vala \
 	valamemberinitializer.vala \

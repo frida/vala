@@ -63,6 +63,7 @@ public class Vala.GirParser : CodeVisitor {
 		VFUNC_NAME,
 		VIRTUAL,
 		ABSTRACT,
+		COMPACT,
 		SEALED,
 		SCOPE,
 		STRUCT,
@@ -86,11 +87,14 @@ public class Vala.GirParser : CodeVisitor {
 		FEATURE_TEST_MACRO,
 		FLOATING,
 		TYPE_ID,
+		TYPE_GET_FUNCTION,
 		RETURN_VOID,
 		RETURNS_MODIFIED_POINTER,
 		DELEGATE_TARGET_CNAME,
+		DESTROY_NOTIFY_CNAME,
 		FINISH_VFUNC_NAME,
 		NO_ACCESSOR_METHOD,
+		NO_WRAPPER,
 		CNAME,
 		DELEGATE_TARGET,
 		CTYPE;
@@ -535,6 +539,8 @@ public class Vala.GirParser : CodeVisitor {
 		public ArrayList<int> destroy_parameters;
 		// record-specific
 		public UnresolvedSymbol gtype_struct_for;
+		// class-specific
+		public UnresolvedSymbol type_struct;
 		// alias-specific
 		public DataType base_type;
 		// struct-specific
@@ -852,6 +858,25 @@ public class Vala.GirParser : CodeVisitor {
 			return res;
 		}
 
+		static void move_class_methods (Node target, Node? source) {
+			if (source == null) {
+				return;
+			}
+
+			var i = 0;
+			while (i < source.members.size) {
+				var node = source.members[i];
+				if (node.symbol is Method) {
+					source.remove_member (node);
+					target.add_member (node);
+
+					((Method) node.symbol).binding = MemberBinding.CLASS;
+				} else {
+					i++;
+				}
+			}
+		}
+
 		public void process (GirParser parser) {
 			if (processed) {
 				return;
@@ -879,24 +904,12 @@ public class Vala.GirParser : CodeVisitor {
 			}
 
 			if (symbol is Class && girdata != null) {
+				if (type_struct != null) {
+					move_class_methods (this, parser.resolve_node (parent, type_struct));
+				}
 				var class_struct = girdata["glib:type-struct"];
 				if (class_struct != null) {
-					var klass = parser.resolve_node (parent, parser.parse_symbol_from_string (class_struct, source_reference));
-					if (klass != null) {
-						var i = 0;
-						while ( i < klass.members.size ) {
-							var node = klass.members[i];
-							if (node.symbol is Method) {
-								klass.remove_member (node);
-								this.add_member (node);
-
-								Method m = (Method) node.symbol;
-								m.binding = MemberBinding.CLASS;
-							} else {
-								i++;
-							}
-						}
-					}
+					move_class_methods (this, parser.resolve_node (parent, parser.parse_symbol_from_string (class_struct, source_reference)));
 				}
 			}
 
@@ -978,6 +991,9 @@ public class Vala.GirParser : CodeVisitor {
 								vfunc.merged = true;
 							}
 						}
+					}
+					if (metadata.has_argument (ArgumentType.DELEGATE_TARGET)) {
+						m.set_attribute_bool ("CCode", "delegate_target", metadata.get_bool (ArgumentType.DELEGATE_TARGET));
 					}
 					if (m.coroutine) {
 						parser.process_async_method (this);
@@ -1134,6 +1150,9 @@ public class Vala.GirParser : CodeVisitor {
 					if (metadata.has_argument (ArgumentType.DELEGATE_TARGET_CNAME)) {
 						field.set_attribute_string ("CCode", "delegate_target_cname", metadata.get_string (ArgumentType.DELEGATE_TARGET_CNAME));
 					}
+					if (metadata.has_argument (ArgumentType.DESTROY_NOTIFY_CNAME)) {
+						field.set_attribute_string ("CCode", "destroy_notify_cname", metadata.get_string (ArgumentType.DESTROY_NOTIFY_CNAME));
+					}
 
 					if (field.variable_type is DelegateType && parent.gtype_struct_for != null) {
 						// virtual method field
@@ -1205,12 +1224,14 @@ public class Vala.GirParser : CodeVisitor {
 						merged = true;
 					} else {
 						// record for a gtype
-						var gtype_struct_for = girdata["glib:is-gtype-struct-for"];
 						if (gtype_struct_for != null) {
-							var iface = parser.resolve_node (parent, parser.parse_symbol_from_string (gtype_struct_for, source_reference));
-							if (iface != null && iface.symbol is Interface && "%sIface".printf (iface.get_cname ()) != get_cname ()) {
+							var obj = parser.resolve_node (parent, gtype_struct_for);
+							if (obj != null && obj.symbol is Interface && "%sIface".printf (obj.get_cname ()) != get_cname ()) {
 								// set the interface struct name
-								iface.symbol.set_attribute_string ("CCode", "type_cname", get_cname ());
+								obj.symbol.set_attribute_string ("CCode", "type_cname", get_cname ());
+							} else if (obj != null && obj.symbol is Class && "%sClass".printf (obj.get_cname ()) != get_cname ()) {
+								// set the class struct name
+								obj.symbol.set_attribute_string ("CCode", "type_cname", get_cname ());
 							}
 							merged = true;
 						}
@@ -1458,10 +1479,14 @@ public class Vala.GirParser : CodeVisitor {
 		reader = new MarkupReader (source_file.filename);
 
 		// xml prolog
-		next ();
-		next ();
+		do {
+			next ();
+			if (current_token == MarkupTokenType.EOF) {
+				Report.error (get_current_src (), "unexpected end of file");
+				return;
+			}
+		} while (current_token != MarkupTokenType.START_ELEMENT && reader.name != "repository");
 
-		next ();
 		parse_repository ();
 
 		reader = null;
@@ -2638,6 +2663,9 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (direction == "inout") {
 				param.direction = ParameterDirection.REF;
 			}
+			if (type is DelegateType && metadata.has_argument (ArgumentType.DELEGATE_TARGET)) {
+				param.set_attribute_bool ("CCode", "delegate_target", metadata.get_bool (ArgumentType.DELEGATE_TARGET));
+			}
 			if (type is ArrayType) {
 				if (metadata.has_argument (ArgumentType.ARRAY_LENGTH_IDX)) {
 					array_length_idx = metadata.get_integer (ArgumentType.ARRAY_LENGTH_IDX);
@@ -2725,7 +2753,16 @@ public class Vala.GirParser : CodeVisitor {
 			type_name = ctype;
 		}
 
-		DataType type = parse_type_from_gir_name (type_name, out no_array_length, out array_null_terminated, ctype);
+		DataType type;
+		if (type_name != null) {
+			type = parse_type_from_gir_name (type_name, out no_array_length, out array_null_terminated, ctype);
+		} else {
+			// empty <type/>
+			no_array_length = false;
+			array_null_terminated = false;
+			type = new InvalidType ();
+			Report.error (get_current_src (), "empty type element");
+		}
 
 		// type arguments / element types
 		while (current_token == MarkupTokenType.START_ELEMENT) {
@@ -2937,9 +2974,17 @@ public class Vala.GirParser : CodeVisitor {
 			cl = new Class (current.name, current.source_reference);
 			cl.is_abstract = metadata.get_bool (ArgumentType.ABSTRACT, reader.get_attribute ("abstract") == "1");
 			cl.is_sealed = metadata.get_bool (ArgumentType.SEALED, false);
+			if (metadata.has_argument (ArgumentType.TYPE_GET_FUNCTION)) {
+				cl.set_attribute_string ("CCode", "type_get_function", metadata.get_string (ArgumentType.TYPE_GET_FUNCTION));
+			}
 
 			if (parent != null) {
 				cl.add_base_type (parse_type_from_gir_name (parent));
+			}
+			var type_struct = reader.get_attribute ("glib:type-struct");
+			if (type_struct != null) {
+				current.type_struct = parse_symbol_from_string (type_struct, current.source_reference);
+				unresolved_gir_symbols.add (current.type_struct);
 			}
 			current.symbol = cl;
 		} else {
@@ -3019,6 +3064,10 @@ public class Vala.GirParser : CodeVisitor {
 		Interface iface;
 		if (current.new_symbol) {
 			iface = new Interface (current.name, current.source_reference);
+			if (metadata.has_argument (ArgumentType.TYPE_GET_FUNCTION)){
+				iface.set_attribute_string ("CCode", "type_get_function", metadata.get_string (ArgumentType.TYPE_GET_FUNCTION));
+			}
+
 			current.symbol = iface;
 		} else {
 			iface = (Interface) current.symbol;
@@ -3275,9 +3324,12 @@ public class Vala.GirParser : CodeVisitor {
 				} else {
 					m.is_virtual = true;
 				}
-				if (invoker == null && !metadata.has_argument (ArgumentType.VFUNC_NAME)) {
+				if (metadata.has_argument (ArgumentType.NO_WRAPPER)) {
+					s.set_attribute ("NoWrapper", metadata.get_bool (ArgumentType.NO_WRAPPER), s.source_reference);
+				} else if (invoker == null && !metadata.has_argument (ArgumentType.VFUNC_NAME)) {
 					s.set_attribute ("NoWrapper", true, s.source_reference);
-				} if (current.girdata["name"] != name) {
+				}
+				if (current.girdata["name"] != name) {
 					m.set_attribute_string ("CCode", "vfunc_name", current.girdata["name"]);
 				}
 			} else if (symbol_type == "function") {
@@ -3487,7 +3539,11 @@ public class Vala.GirParser : CodeVisitor {
 		bool require_copy_free = false;
 		if (current.new_symbol) {
 			cl = new Class (current.name, current.source_reference);
-			cl.set_attribute ("Compact", true);
+			if (metadata.has_argument (ArgumentType.COMPACT)) {
+				cl.set_attribute ("Compact", metadata.get_bool (ArgumentType.COMPACT));
+			} else {
+				cl.set_attribute ("Compact", true);
+			}
 			current.symbol = cl;
 		} else {
 			cl = (Class) current.symbol;

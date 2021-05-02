@@ -9,11 +9,16 @@ namespace GirTest {
 		[CCode (has_construct_function = false)]
 		protected AbstractObjectTest ();
 		public abstract void internal_method (int8 param);
+		public abstract void method_implicit_params ([CCode (array_length_cname = "param1_length1", array_length_pos = 1.5)] int[] param1, owned GirTest.DelegateTest param2);
 		public abstract void method_int8_in (int8 param);
 		public abstract void method_int8_inout (ref int8 param);
 		public abstract void method_int8_out (out int8 param);
-		public abstract void method_throw () throws GLib.Error;
+		public abstract void method_throw () throws GirTest.ErrorTest;
 		public abstract void method_valist (int param, va_list vargs);
+		[NoWrapper]
+		public abstract void no_wrapper_method ();
+		[NoWrapper]
+		public abstract async void no_wrapper_method_async ();
 	}
 	[CCode (cheader_filename = "girtest.h", has_type_id = false)]
 	[Compact]
@@ -81,7 +86,7 @@ namespace GirTest {
 		[CCode (array_length_pos = 0.1)]
 		public (unowned string)[] container_return ();
 		public async void coroutine_async ();
-		public virtual async void coroutine_method_throw (int i1, out int o1) throws GLib.Error;
+		public virtual async void coroutine_method_throw (int i1, out int o1) throws GirTest.ErrorTest, GLib.Error;
 		public virtual void coroutine_method_throw_finish (GLib.AsyncResult _res_, out int o1) throws GLib.Error;
 		public virtual async void coroutine_virtual_async ();
 		public virtual void coroutine_virtual_finish (GLib.AsyncResult _res_);
@@ -99,11 +104,20 @@ namespace GirTest {
 		public int[] int_in_int_in_array_return (int param1, int param2);
 		public virtual void internal_method_with_default_impl (int8 param);
 		[CCode (cname = "gir_test_object_test_new_may_fail", has_construct_function = false)]
-		public ObjectTest.may_fail (int param) throws GLib.Error;
+		public ObjectTest.may_fail (int param) throws GirTest.ErrorTest;
 		public void method ();
-		public virtual void method_throw () throws GLib.Error;
+		public virtual void method_implicit_params ([CCode (array_length_cname = "param1_length1", array_length_pos = 1.5)] int[] param1, owned GirTest.DelegateTest param2);
+		public virtual void method_throw () throws GirTest.ErrorTest;
+		public void method_valist (int param, va_list vargs);
+		public void method_varargs (int param, ...);
 		public void method_with_default (int i);
 		public virtual void method_with_default_impl (int8 param);
+		[CCode (cname = "gir_test_object_test_new_newv", has_construct_function = false)]
+		public ObjectTest.newv (int param, ...);
+		[NoWrapper]
+		public virtual void no_wrapper_method ();
+		[NoWrapper]
+		public virtual async void no_wrapper_method_async ();
 		public void none_in ();
 		public static void none_inout (ref unowned GirTest.ObjectTest obj);
 		public static void none_out (out unowned GirTest.ObjectTest obj);
@@ -111,18 +125,20 @@ namespace GirTest {
 		public void set_some_property (string value);
 		public void set_write_only_property (string value);
 		public unowned GLib.EqualFunc simple_delegate_return ();
-		public void simple_throw () throws GLib.Error;
+		public void simple_throw () throws GirTest.ErrorTest;
 		public static void static_method ();
 		public void string_array_out ([CCode (array_length_cname = "array_length1", array_length_pos = 1.1)] out string[] array);
 		[CCode (array_length_pos = 0.1)]
 		public string[] string_array_return ();
+		[CCode (cname = "gir_test_object_test_new_new_valist", has_construct_function = false)]
+		public ObjectTest.valist (int param, va_list vargs);
 		[CCode (cname = "gir_test_object_test_new_with_int", has_construct_function = false)]
 		public ObjectTest.with_int (int param);
 		[NoAccessorMethod]
 		public string construct_only_property { construct; }
 		public string some_property { get; set construct; }
 		public string write_only_property { set; }
-		public signal void signal_with_default_handlder (int i1);
+		public virtual signal void signal_with_default_handlder (int i1);
 		public signal void some_signal (int param);
 	}
 	[CCode (cheader_filename = "girtest.h", type_id = "gir_test_sub_type_test_get_type ()")]
@@ -149,8 +165,16 @@ namespace GirTest {
 		public virtual int get_property ();
 		public virtual void int8_in (int8 param);
 		public virtual void internal_method ();
+		public virtual void method_implicit_params ([CCode (array_length_cname = "param1_length1", array_length_pos = 1.5)] int[] param1, owned GirTest.DelegateTest param2);
+		[NoWrapper]
+		public virtual void no_wrapper_method ();
+		[NoWrapper]
+		public virtual async void no_wrapper_method_async ();
 		public virtual void set_property (int value);
+		public static void static_method ();
 		public abstract int property { get; set construct; }
+		[HasEmitter]
+		public signal void some_signal (int param);
 	}
 	[CCode (cheader_filename = "girtest.h", type_id = "gir_test_prerequisite_test_get_type ()")]
 	public interface PrerequisiteTest : GirTest.InterfaceTest, GLib.Object {
@@ -193,7 +217,7 @@ namespace GirTest {
 		FISHY
 	}
 	[CCode (cheader_filename = "girtest.h", has_target = false)]
-	public delegate bool DelegateErrorTest () throws GLib.Error;
+	public delegate bool DelegateErrorTest () throws GirTest.ErrorTest;
 	[CCode (cheader_filename = "girtest.h", instance_pos = 8.9)]
 	public delegate bool DelegateGenericsTest (GLib.Type g_type, GLib.BoxedCopyFunc g_dup_func, GLib.DestroyNotify g_destroy_func, GLib.Type t_type, GLib.BoxedCopyFunc t_dup_func, GLib.DestroyNotify t_destroy_func, void* g, void* t);
 	[CCode (cheader_filename = "girtest.h", instance_pos = 2.9)]

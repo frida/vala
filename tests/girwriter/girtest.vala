@@ -81,6 +81,18 @@ namespace GirTest {
 		}
 		internal virtual void internal_method () {
 		}
+		[NoWrapper]
+		public virtual void no_wrapper_method () {
+		}
+		[NoWrapper]
+		public virtual async void no_wrapper_method_async () {
+		}
+		public virtual void method_implicit_params (int[] param1, owned DelegateTest param2) {
+		}
+		[HasEmitter]
+		public signal void some_signal (int param);
+		public static void static_method () {
+		}
 	}
 
 	[GIR (visible = false)]
@@ -280,6 +292,17 @@ namespace GirTest {
 		[GIR (visible = false)]
 		public void skipped_method () {
 		}
+
+		[NoWrapper]
+		public virtual void no_wrapper_method () {
+		}
+
+		[NoWrapper]
+		public virtual async void no_wrapper_method_async () {
+		}
+
+		public virtual void method_implicit_params (int[] param1, owned DelegateTest param2) {
+		}
 	}
 
 	public abstract class AbstractObjectTest : Object {
@@ -297,6 +320,14 @@ namespace GirTest {
 		public abstract async void skipped_coroutine_method (int param);
 
 		internal abstract void internal_method (int8 param);
+
+		[NoWrapper]
+		public abstract void no_wrapper_method ();
+
+		[NoWrapper]
+		public abstract async void no_wrapper_method_async ();
+
+		public abstract void method_implicit_params (int[] param1, owned DelegateTest param2);
 	}
 
 	public interface PrerequisiteTest : InterfaceTest {

@@ -211,6 +211,16 @@ public class Vala.CastExpression : Expression {
 			}
 		}
 
+		if (context.profile == Profile.GOBJECT
+		    && is_gvalue (context, inner.value_type) && !is_gvalue (context, value_type)) {
+			// GValue unboxing returns unowned value
+			value_type.value_owned = false;
+			if (value_type.nullable && value_type.type_symbol != null && !value_type.type_symbol.is_reference_type ()) {
+				error = true;
+				Report.error (source_reference, "Casting of `GLib.Value' to `%s' is not supported", value_type.to_qualified_string ());
+			}
+		}
+
 		inner.target_type = inner.value_type.copy ();
 
 		return !error;
@@ -218,6 +228,10 @@ public class Vala.CastExpression : Expression {
 
 	bool is_gvariant (CodeContext context, DataType type) {
 		return type.type_symbol != null && type.type_symbol.is_subtype_of (context.analyzer.gvariant_type.type_symbol);
+	}
+
+	bool is_gvalue (CodeContext context, DataType type) {
+		return type.type_symbol != null && type.type_symbol.is_subtype_of (context.analyzer.gvalue_type.type_symbol);
 	}
 
 	public override void emit (CodeGenerator codegen) {

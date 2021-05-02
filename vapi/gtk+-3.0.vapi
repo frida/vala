@@ -1391,13 +1391,13 @@ namespace Gtk {
 		[Version (since = "3.0")]
 		public void cell_get_property (Gtk.CellRenderer renderer, string property_name, ref GLib.Value value);
 		[Version (since = "3.0")]
-		public void cell_get_valist (Gtk.CellRenderer renderer, string first_property_name, [CCode (type = "va_list")] va_list var_args);
+		public void cell_get_valist (Gtk.CellRenderer renderer, string first_property_name, va_list var_args);
 		[Version (since = "3.0")]
 		public void cell_set (Gtk.CellRenderer renderer, ...);
 		[Version (since = "3.0")]
 		public void cell_set_property (Gtk.CellRenderer renderer, string property_name, GLib.Value value);
 		[Version (since = "3.0")]
-		public void cell_set_valist (Gtk.CellRenderer renderer, string first_property_name, [CCode (type = "va_list")] va_list var_args);
+		public void cell_set_valist (Gtk.CellRenderer renderer, string first_property_name, va_list var_args);
 		[Version (since = "3.0")]
 		public virtual Gtk.CellAreaContext copy_context (Gtk.CellAreaContext context);
 		[Version (since = "3.0")]
@@ -2183,6 +2183,7 @@ namespace Gtk {
 		public unowned Atk.Object get_popup_accessible ();
 		[Version (since = "3.0")]
 		public bool get_popup_fixed_width ();
+		[CCode (delegate_target = false)]
 		[Version (since = "2.6")]
 		public unowned Gtk.TreeViewRowSeparatorFunc get_row_separator_func ();
 		[Version (since = "2.6")]
@@ -2324,14 +2325,14 @@ namespace Gtk {
 		public void add_with_properties (Gtk.Widget widget, ...);
 		public void child_get (Gtk.Widget child, ...);
 		public void child_get_property (Gtk.Widget child, string property_name, ref GLib.Value value);
-		public void child_get_valist (Gtk.Widget child, string first_property_name, [CCode (type = "va_list")] va_list var_args);
+		public void child_get_valist (Gtk.Widget child, string first_property_name, va_list var_args);
 		[Version (since = "3.2")]
 		public void child_notify (Gtk.Widget child, string child_property);
 		[Version (since = "3.18")]
 		public void child_notify_by_pspec (Gtk.Widget child, GLib.ParamSpec pspec);
 		public void child_set (Gtk.Widget child, ...);
 		public void child_set_property (Gtk.Widget child, string property_name, GLib.Value value);
-		public void child_set_valist (Gtk.Widget child, string first_property_name, [CCode (type = "va_list")] va_list var_args);
+		public void child_set_valist (Gtk.Widget child, string first_property_name, va_list var_args);
 		public virtual GLib.Type child_type ();
 		[Version (deprecated_since = "vala-0.40", replacement = "find_child_property")]
 		public class unowned GLib.ParamSpec? class_find_child_property (string property_name);
@@ -4735,7 +4736,7 @@ namespace Gtk {
 		[CCode (sentinel = "-1")]
 		public void @set (Gtk.TreeIter iter, ...);
 		public void set_column_types ([CCode (array_length_cname = "n_columns", array_length_pos = 0.5)] GLib.Type[] types);
-		public void set_valist (Gtk.TreeIter iter, [CCode (type = "va_list")] va_list var_args);
+		public void set_valist (Gtk.TreeIter iter, va_list var_args);
 		public void set_value (Gtk.TreeIter iter, int column, GLib.Value value);
 		[Version (since = "2.12")]
 		public void set_valuesv (Gtk.TreeIter iter, [CCode (array_length_cname = "n_values", array_length_pos = 3.1)] int[] columns, [CCode (array_length_cname = "n_values", array_length_pos = 3.1)] GLib.Value[] values);
@@ -7497,7 +7498,7 @@ namespace Gtk {
 		[Version (since = "2.16")]
 		public void get_style_property (GLib.Type widget_type, string property_name, ref GLib.Value value);
 		[Version (since = "2.16")]
-		public void get_valist (GLib.Type widget_type, string first_property_name, [CCode (type = "va_list")] va_list var_args);
+		public void get_valist (GLib.Type widget_type, string first_property_name, va_list var_args);
 		[Version (since = "3.0")]
 		public bool has_context ();
 		[NoWrapper]
@@ -7566,9 +7567,9 @@ namespace Gtk {
 		public void get_style (...);
 		public void get_style_property (string property_name, ref GLib.Value value);
 		[Version (since = "3.0")]
-		public void get_style_valist ([CCode (type = "va_list")] va_list args);
+		public void get_style_valist (va_list args);
 		[Version (since = "3.0")]
-		public void get_valist (Gtk.StateFlags state, [CCode (type = "va_list")] va_list args);
+		public void get_valist (Gtk.StateFlags state, va_list args);
 		[Version (since = "3.0")]
 		public bool has_class (string class_name);
 		[Version (deprecated = true, deprecated_since = "3.14", since = "3.0")]
@@ -7704,7 +7705,7 @@ namespace Gtk {
 		[Version (deprecated = true, deprecated_since = "3.16", since = "3.0")]
 		public bool get_property (string property, Gtk.StateFlags state, out GLib.Value value);
 		[Version (deprecated = true, deprecated_since = "3.16", since = "3.0")]
-		public void get_valist (Gtk.StateFlags state, [CCode (type = "va_list")] va_list args);
+		public void get_valist (Gtk.StateFlags state, va_list args);
 		[Version (deprecated = true, deprecated_since = "3.8", since = "3.0")]
 		public unowned Gtk.SymbolicColor lookup_color (string name);
 		[Version (deprecated = true, deprecated_since = "3.8", since = "3.0")]
@@ -7720,7 +7721,7 @@ namespace Gtk {
 		[Version (deprecated = true, deprecated_since = "3.16", since = "3.0")]
 		public void set_property (string property, Gtk.StateFlags state, GLib.Value value);
 		[Version (deprecated = true, deprecated_since = "3.16", since = "3.0")]
-		public void set_valist (Gtk.StateFlags state, [CCode (type = "va_list")] va_list args);
+		public void set_valist (Gtk.StateFlags state, va_list args);
 		[Version (deprecated = true, deprecated_since = "3.16", since = "3.0")]
 		public void unset_property (string property, Gtk.StateFlags state);
 	}
@@ -8407,9 +8408,9 @@ namespace Gtk {
 		[Version (deprecated = true, deprecated_since = "3.14", since = "3.0")]
 		public void get_style_property (string property_name, ref GLib.Value value);
 		[Version (deprecated = true, deprecated_since = "3.14", since = "3.0")]
-		public void get_style_valist ([CCode (type = "va_list")] va_list args);
+		public void get_style_valist (va_list args);
 		[Version (deprecated = true, deprecated_since = "3.14", since = "3.0")]
-		public void get_valist (Gtk.StateFlags state, [CCode (type = "va_list")] va_list args);
+		public void get_valist (Gtk.StateFlags state, va_list args);
 		[Version (deprecated = true, deprecated_since = "3.14", since = "3.0")]
 		public bool has_class (string style_class);
 		[Version (deprecated = true, deprecated_since = "3.14", since = "3.0")]
@@ -8921,7 +8922,7 @@ namespace Gtk {
 		[CCode (sentinel = "-1")]
 		public void @set (Gtk.TreeIter iter, ...);
 		public void set_column_types ([CCode (array_length_cname = "n_columns", array_length_pos = 0.5)] GLib.Type[] types);
-		public void set_valist (Gtk.TreeIter iter, [CCode (type = "va_list")] va_list var_args);
+		public void set_valist (Gtk.TreeIter iter, va_list var_args);
 		public void set_value (Gtk.TreeIter iter, int column, GLib.Value value);
 		[Version (since = "2.12")]
 		public void set_valuesv (Gtk.TreeIter iter, [CCode (array_length_cname = "n_values", array_length_pos = 3.1)] int[] columns, [CCode (array_length_cname = "n_values", array_length_pos = 3.1)] GLib.Value[] values);
@@ -8989,6 +8990,7 @@ namespace Gtk {
 		public uint get_n_columns ();
 		public bool get_path_at_pos (int x, int y, out Gtk.TreePath? path, out unowned Gtk.TreeViewColumn? column, out int cell_x, out int cell_y);
 		public bool get_reorderable ();
+		[CCode (delegate_target = false)]
 		[Version (since = "2.6")]
 		public unowned Gtk.TreeViewRowSeparatorFunc get_row_separator_func ();
 		[Version (since = "2.10")]
@@ -8998,7 +9000,9 @@ namespace Gtk {
 		public int get_search_column ();
 		[Version (since = "2.10")]
 		public unowned Gtk.Entry get_search_entry ();
+		[CCode (delegate_target = false)]
 		public unowned Gtk.TreeViewSearchEqualFunc get_search_equal_func ();
+		[CCode (delegate_target = false)]
 		[Version (since = "2.10")]
 		public unowned Gtk.TreeViewSearchPositionFunc get_search_position_func ();
 		public unowned Gtk.TreeSelection get_selection ();
@@ -9351,9 +9355,9 @@ namespace Gtk {
 		[Version (since = "3.8")]
 		public uint add_tick_callback (owned Gtk.TickCallback callback);
 		[NoWrapper]
-		public virtual void adjust_baseline_allocation (int baseline);
+		public virtual void adjust_baseline_allocation (ref int baseline);
 		[NoWrapper]
-		public virtual void adjust_baseline_request (int minimum_baseline, int natural_baseline);
+		public virtual void adjust_baseline_request (ref int minimum_baseline, ref int natural_baseline);
 		[NoWrapper]
 		public virtual void adjust_size_allocation (Gtk.Orientation orientation, ref int minimum_size, ref int natural_size, ref int allocated_pos, ref int allocated_size);
 		[NoWrapper]
@@ -9766,7 +9770,7 @@ namespace Gtk {
 		public void style_attach ();
 		public void style_get (...);
 		public void style_get_property (string property_name, ref GLib.Value value);
-		public void style_get_valist (string first_property_name, [CCode (type = "va_list")] va_list var_args);
+		public void style_get_valist (string first_property_name, va_list var_args);
 		public void thaw_child_notify ();
 		public bool translate_coordinates (Gtk.Widget dest_widget, int src_x, int src_y, out int dest_x, out int dest_y);
 		[Version (since = "2.12")]
@@ -10427,10 +10431,10 @@ namespace Gtk {
 		public void copy_clipboard ();
 		public void cut_clipboard ();
 		public void delete_selection ();
-		[NoWrapper]
-		public abstract void do_delete_text (int start_pos, int end_pos);
-		[NoWrapper]
-		public abstract void do_insert_text (string new_text, int new_text_length, ref int position);
+		[CCode (cname = "gtk_editable_delete_text", vfunc_name = "delete_text")]
+		public virtual void do_delete_text (int start_pos, int end_pos);
+		[CCode (cname = "gtk_editable_insert_text", vfunc_name = "insert_text")]
+		public virtual void do_insert_text (string new_text, int new_text_length, ref int position);
 		public abstract string get_chars (int start_pos = 0, int end_pos = -1);
 		public bool get_editable ();
 		public abstract int get_position ();
@@ -10839,7 +10843,7 @@ namespace Gtk {
 		public abstract Gtk.TreePath? get_path (Gtk.TreeIter iter);
 		[Version (since = "2.2")]
 		public string get_string_from_iter (Gtk.TreeIter iter);
-		public void get_valist (Gtk.TreeIter iter, [CCode (type = "va_list")] va_list var_args);
+		public void get_valist (Gtk.TreeIter iter, va_list var_args);
 		public abstract void get_value (Gtk.TreeIter iter, int column, out GLib.Value value);
 		public abstract bool iter_children (out Gtk.TreeIter iter, Gtk.TreeIter? parent);
 		public abstract bool iter_has_child (Gtk.TreeIter iter);
@@ -12290,7 +12294,7 @@ namespace Gtk {
 	public delegate bool AccelGroupFindFunc (Gtk.AccelKey key, GLib.Closure closure);
 	[CCode (cheader_filename = "gtk/gtk.h", has_target = false)]
 	public delegate void AccelMapForeach (void* data, string accel_path, uint accel_key, Gdk.ModifierType accel_mods, bool changed);
-	[CCode (cheader_filename = "gtk/gtk.h", type_cname = "GCallback")]
+	[CCode (cheader_filename = "gtk/gtk.h", cname = "GCallback")]
 	[Version (deprecated_since = "3.10")]
 	public delegate void ActionCallback (Gtk.Action action);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 1.9)]
@@ -12380,12 +12384,12 @@ namespace Gtk {
 	[Version (since = "2.2")]
 	public delegate void ModuleDisplayInitFunc (Gdk.Display display);
 	[CCode (cheader_filename = "gtk/gtk.h", has_target = false)]
-	public delegate void ModuleInitFunc ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] string[]? argv);
+	public delegate void ModuleInitFunc ([CCode (array_length_cname = "argc", array_length_pos = 0.5)] ref unowned string[]? argv);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 1.9)]
 	public delegate void PageSetupDoneFunc (Gtk.PageSetup page_setup);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 2.9)]
 	public delegate void PrintSettingsFunc (string key, string value);
-	[CCode (cheader_filename = "gtk/gtk.h", type_cname = "GCallback")]
+	[CCode (cheader_filename = "gtk/gtk.h", cname = "GCallback")]
 	public delegate void RadioActionCallback (Gtk.Action action, Gtk.Action current);
 	[CCode (cheader_filename = "gtk/gtk.h", has_target = false)]
 	public delegate bool RcPropertyParser (GLib.ParamSpec pspec, GLib.StringBuilder rc_string, GLib.Value property_value);
@@ -12397,8 +12401,8 @@ namespace Gtk {
 	public delegate bool StylePropertyParser (string str, GLib.Value value) throws GLib.Error;
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 5.9)]
 	public delegate bool TextBufferDeserializeFunc (Gtk.TextBuffer register_buffer, Gtk.TextBuffer content_buffer, Gtk.TextIter iter, [CCode (array_length_cname = "length", array_length_pos = 4.5, array_length_type = "gsize")] uint8[] data, bool create_tags) throws GLib.Error;
-	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 5.9)]
-	public delegate unowned uint8? TextBufferSerializeFunc (Gtk.TextBuffer register_buffer, Gtk.TextBuffer content_buffer, Gtk.TextIter start, Gtk.TextIter end, size_t length);
+	[CCode (array_length_pos = 4.1, array_length_type = "gsize", cheader_filename = "gtk/gtk.h", instance_pos = 4.9)]
+	public delegate uint8[]? TextBufferSerializeFunc (Gtk.TextBuffer register_buffer, Gtk.TextBuffer content_buffer, Gtk.TextIter start, Gtk.TextIter end);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 1.9)]
 	public delegate bool TextCharPredicate (unichar ch);
 	[CCode (cheader_filename = "gtk/gtk.h", instance_pos = 1.9)]

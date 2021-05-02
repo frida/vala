@@ -29,10 +29,12 @@ public class Vala.VarType : DataType {
 	}
 
 	public override string to_qualified_string (Scope? scope) {
-		return (value_owned ? "var" : "unowned var");
+		return "var";
 	}
 
 	public override DataType copy () {
-		return new VarType (value_owned);
+		var result = new VarType (value_owned);
+		result.nullable = nullable;
+		return result;
 	}
 }

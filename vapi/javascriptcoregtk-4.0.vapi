@@ -43,7 +43,7 @@ namespace JS {
 		[CCode (cname = "JSObjectHasProperty", instance_pos = 1.1)]
 		public bool has_property (JS.Context ctx, JS.String property_name);
 		[CCode (cname = "JSObjectMakeFunction")]
-		public Object.make_function (JS.String? name, [CCode (array_length_pos = 1.5)] JS.String[]? parameter_names, JS.String body, JS.String? source_url, int starting_line_number, out JS.Value? exception);
+		public Object.make_function (JS.Context ctx, JS.String? name, [CCode (array_length_pos = 2.5)] JS.String[]? parameter_names, JS.String body, JS.String? source_url, int starting_line_number, out JS.Value? exception);
 	}
 	[CCode (cheader_filename = "JavaScriptCore/JavaScript.h", cname = "struct OpaqueJSString", free_function = "JSStringRelease", has_type_id = false)]
 	[Compact]
@@ -72,7 +72,7 @@ namespace JS {
 		[CCode (cname = "JSValueGetType", instance_pos = 1.1)]
 		public JS.Type get_type (JS.Context ctx);
 		[CCode (cname = "JSValueGetTypedArrayType", instance_pos = 1.1)]
-		public JS.TypedArrayType get_typed_array_type (JS.Context ctx);
+		public JS.TypedArrayType get_typed_array_type (JS.Context ctx, out JS.Value? exception = null);
 		[CCode (cname = "JSValueIsArray", instance_pos = 1.1)]
 		public bool is_array (JS.Context ctx);
 		[CCode (cname = "JSValueIsBoolean", instance_pos = 1.1)]
@@ -385,7 +385,7 @@ namespace JSC {
 		ENUMERABLE,
 		WRITABLE
 	}
-	[CCode (cheader_filename = "jsc/jsc.h", instance_pos = 1.9, type_cname = "GCallback")]
+	[CCode (cheader_filename = "jsc/jsc.h", cname = "GCallback", instance_pos = 1.9)]
 	public delegate T ClassConstructorCb<T> (GLib.GenericArray<JSC.Value> values);
 	[CCode (cheader_filename = "jsc/jsc.h", has_target = false)]
 	public delegate bool ClassDeletePropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name);
@@ -395,7 +395,7 @@ namespace JSC {
 	public delegate JSC.Value? ClassGetPropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name);
 	[CCode (cheader_filename = "jsc/jsc.h", has_target = false)]
 	public delegate bool ClassHasPropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name);
-	[CCode (cheader_filename = "jsc/jsc.h", instance_pos = 2.9, type_cname = "GCallback")]
+	[CCode (cheader_filename = "jsc/jsc.h", cname = "GCallback", instance_pos = 2.9)]
 	public delegate T ClassMethodCb<T> (JSC.Class instance, GLib.GenericArray<JSC.Value> values);
 	[CCode (cheader_filename = "jsc/jsc.h", has_target = false)]
 	public delegate bool ClassSetPropertyFunction (JSC.Class jsc_class, JSC.Context context, void* instance, string name, JSC.Value value);

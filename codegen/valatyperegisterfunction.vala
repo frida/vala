@@ -50,7 +50,11 @@ public abstract class Vala.TypeRegisterFunction {
 		if (!plugin) {
 			cdecl = new CCodeDeclaration ("gsize");
 			cdecl.add_declarator (new CCodeVariableDeclarator (type_id_name + "__volatile", new CCodeConstant ("0")));
-			cdecl.modifiers = CCodeModifiers.STATIC | CCodeModifiers.VOLATILE;
+			if (context.require_glib_version (2, 68)) {
+				cdecl.modifiers = CCodeModifiers.STATIC;
+			} else {
+				cdecl.modifiers = CCodeModifiers.STATIC | CCodeModifiers.VOLATILE;
+			}
 			type_block.add_statement (cdecl);
 		} else {
 			cdecl = new CCodeDeclaration ("GType");
@@ -223,7 +227,7 @@ public abstract class Vala.TypeRegisterFunction {
 
 			add_class_private_call = new CCodeFunctionCall (new CCodeIdentifier ("g_type_add_class_private"));
 			add_class_private_call.add_argument (new CCodeIdentifier (type_id_name));
-			add_class_private_call.add_argument (new CCodeIdentifier ("sizeof (%sClassPrivate)".printf (get_ccode_name (type_symbol))));
+			add_class_private_call.add_argument (new CCodeIdentifier ("sizeof (%sPrivate)".printf (get_ccode_type_name (cl))));
 			type_init.add_statement (new CCodeExpressionStatement (add_class_private_call));
 		}
 

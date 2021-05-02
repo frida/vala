@@ -65,11 +65,19 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			}
 
 			if (m.base_method != null) {
-				if (m.base_method.get_attribute ("NoWrapper") != null) {
+				if (get_ccode_no_wrapper (m.base_method)) {
 					var base_class = (Class) m.base_method.parent_symbol;
 					if (!base_class.is_compact) {
-						var vclass = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_get_function (base_class)));
-						vclass.add_argument (pub_inst);
+						CCodeFunctionCall vclass;
+						if (base_class.external_package) {
+							vclass = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_INSTANCE_GET_CLASS"));
+							vclass.add_argument (pub_inst);
+							vclass.add_argument (new CCodeIdentifier (get_ccode_type_id (base_class)));
+							vclass.add_argument (new CCodeIdentifier (get_ccode_type_name (base_class)));
+						} else {
+							vclass = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (base_class)));
+							vclass.add_argument (pub_inst);
+						}
 						set_cvalue (expr, new CCodeMemberAccess.pointer (vclass, get_ccode_vfunc_name (m)));
 					} else {
 						set_cvalue (expr, new CCodeMemberAccess.pointer (pub_inst, get_ccode_vfunc_name (m)));
@@ -78,7 +86,22 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 					set_cvalue (expr, new CCodeIdentifier (get_ccode_name (m.base_method)));
 				}
 			} else if (m.base_interface_method != null) {
-				set_cvalue (expr, new CCodeIdentifier (get_ccode_name (m.base_interface_method)));
+				if (get_ccode_no_wrapper (m.base_interface_method)) {
+					var base_iface = (Interface) m.base_interface_method.parent_symbol;
+					CCodeFunctionCall vclass;
+					if (base_iface.external_package) {
+						vclass = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_INSTANCE_GET_INTERFACE"));
+						vclass.add_argument (pub_inst);
+						vclass.add_argument (new CCodeIdentifier (get_ccode_type_id (base_iface)));
+						vclass.add_argument (new CCodeIdentifier (get_ccode_type_name (base_iface)));
+					} else {
+						vclass = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (base_iface)));
+						vclass.add_argument (pub_inst);
+					}
+					set_cvalue (expr, new CCodeMemberAccess.pointer (vclass, get_ccode_vfunc_name (m)));
+				} else {
+					set_cvalue (expr, new CCodeIdentifier (get_ccode_name (m.base_interface_method)));
+				}
 			} else if (m is CreationMethod) {
 				set_cvalue (expr, new CCodeIdentifier (get_ccode_real_name (m)));
 			} else {
@@ -462,9 +485,9 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				}
 			} else if (delegate_type != null && delegate_type.delegate_symbol.has_target) {
 				if (is_in_coroutine ()) {
-					result.delegate_target_cvalue = new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), get_delegate_target_cname (get_local_cname (local)));
+					result.delegate_target_cvalue = get_variable_cexpression (get_delegate_target_cname (get_local_cname (local)));
 					if (local.variable_type.is_disposable ()) {
-						result.delegate_target_destroy_notify_cvalue = new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), get_delegate_target_destroy_notify_cname (get_local_cname (local)));
+						result.delegate_target_destroy_notify_cvalue = get_variable_cexpression (get_delegate_target_destroy_notify_cname (get_local_cname (local)));
 					}
 				} else {
 					result.delegate_target_cvalue = new CCodeIdentifier (get_delegate_target_cname (get_local_cname (local)));
@@ -499,7 +522,7 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 		if (param.name == "this") {
 			if (is_in_coroutine ()) {
 				// use closure
-				result.cvalue = new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "self");
+				result.cvalue = get_this_cexpression ();
 			} else {
 				unowned Struct? st = result.value_type.type_symbol as Struct;
 				if (st != null && !st.is_simple_type ()) {
@@ -532,9 +555,9 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				// use closure
 				result.cvalue = get_parameter_cexpression (param);
 				if (delegate_type != null && delegate_type.delegate_symbol.has_target) {
-					result.delegate_target_cvalue = new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), get_ccode_delegate_target_name (param));
+					result.delegate_target_cvalue = get_variable_cexpression (get_ccode_delegate_target_name (param));
 					if (delegate_type.is_disposable ()) {
-						result.delegate_target_destroy_notify_cvalue = new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), get_ccode_delegate_target_destroy_notify_name (param));
+						result.delegate_target_destroy_notify_cvalue = get_variable_cexpression (get_ccode_delegate_target_destroy_notify_name (param));
 					}
 				}
 			} else {

@@ -33,14 +33,23 @@ Rectangle struct
         .height skip
 RGBA struct
 pango_layout_get_clip_region skip=false
+        .index_ranges array array_length_idx=4
 Texture
         // Factory method
         .new_* symbol_type="function" name="new_(.+)"
 Surface
         .destroy destroys_instance
+        .translate_coordinates.x ref
+        .translate_coordinates.y ref
 Toplevel
         .compute_size.size nullable unowned
 ToplevelSize struct
+
+// Bug #: confused girparser
+content_register_deserializer
+  .deserialize closure=-1 destroy=-1 owned=false
+content_register_serializer
+  .serialize closure=-1 destroy=-1 owned=false
 
 // g-i doesn't support nullable fields and properties (bug #730479)
 Device
@@ -48,5 +57,3 @@ Device
 
 // vapigen actually generates the correctly, but in away that breaks BC
 Rectangle.union return_void
-
-DrawingContext skip

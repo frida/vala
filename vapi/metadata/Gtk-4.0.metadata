@@ -6,10 +6,22 @@
 * cheader_filename="gtk/gtk.h"
 IMContext cheader_filename="gtk/gtk.h,gtk/gtkimmodule.h"
 
+// Needs to be in gtk4-unix-print
+PageSetupUnixDialog skip
+Printer skip
+PrinterFunc skip
+PrintBackend skip
+PrintCapabilities skip
+PrintJob skip
+PrintJobCompleteFunc skip
+PrintUnixDialog skip
+enumerate_printers skip
+
 // Causes vapigen issues, not sure why -- <union> without name
 
 // G-I doesn't support structs
 Border struct
+ExpressionWatch compact=false
 Requisition struct
 TextIter struct
 TreeIter struct
@@ -66,8 +78,6 @@ ShortcutTrigger
 
 // G-I cannot handle variadic functions
 *.*_valist skip=false
-*.*_valist.args type="va_list"
-*.*_valist.var_args type="va_list"
 Accessible
   .* skip=false
 BuilderCScope
@@ -194,6 +204,13 @@ RecentData
 CClosureExpression
   .new.callback_func closure=-1 destroy=-1 owned=false
   .new.user_destroy nullable
+ComboBox
+  .get_row_separator_func delegate_target=false
+TreeSelection
+  .get_select_function delegate_target=false
+TreeView
+  .get_row_separator_func delegate_target=false
+  .get_search_equal_func delegate_target=false
 
 // Skipped for G-I, but usable from Vala
 FlowBox
@@ -238,8 +255,8 @@ Widget
   .compute_expand#virtual_method name="compute_expand_internal"
   .size_allocate#method name="allocate_size"
 Editable
-  .delete_text#method skip
-  .insert_text#method skip
+  .delete_text#method name="do_delete_text" vfunc_name="delete_text"
+  .insert_text#method name="do_insert_text" vfunc_name="insert_text"
 
 // Not sure what g-i was thinking
 TreeModel

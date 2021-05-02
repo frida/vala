@@ -531,7 +531,7 @@ namespace Gst {
 			[HasEmitter]
 			public virtual signal void value_changed (Gst.Video.ColorBalanceChannel channel, int value);
 		}
-		[CCode (cheader_filename = "gst/video/video.h", type_id = "gst_video_direction_get_type ()")]
+		[CCode (cheader_filename = "gst/video/video.h", type_cname = "GstVideoDirectionInterface", type_id = "gst_video_direction_get_type ()")]
 		[GIR (name = "VideoDirection")]
 		[Version (since = "1.10")]
 		public interface Direction : GLib.Object {
@@ -573,7 +573,7 @@ namespace Gst {
 			[Version (since = "1.18")]
 			public void send_mouse_scroll_event (double x, double y, double delta_x, double delta_y);
 		}
-		[CCode (cheader_filename = "gst/video/video.h", type_id = "gst_video_orientation_get_type ()")]
+		[CCode (cheader_filename = "gst/video/video.h", type_cname = "GstVideoOrientationInterface", type_id = "gst_video_orientation_get_type ()")]
 		[GIR (name = "VideoOrientation")]
 		public interface Orientation : GLib.Object {
 			public abstract bool get_hcenter (out int center);
@@ -585,7 +585,7 @@ namespace Gst {
 			public abstract bool set_vcenter (int center);
 			public abstract bool set_vflip (bool flip);
 		}
-		[CCode (cheader_filename = "gst/video/video.h", type_id = "gst_video_overlay_get_type ()")]
+		[CCode (cheader_filename = "gst/video/video.h", type_cname = "GstVideoOverlayInterface", type_id = "gst_video_overlay_get_type ()")]
 		[GIR (name = "VideoOverlay")]
 		public interface Overlay : GLib.Object {
 			public abstract void expose ();
@@ -731,6 +731,8 @@ namespace Gst {
 			public bool from_caps (Gst.Caps caps);
 			public bool from_string (string level);
 			public void init ();
+			[Version (since = "1.20")]
+			public bool is_equal (Gst.Video.ContentLightLevel other);
 			public string to_string ();
 		}
 		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]

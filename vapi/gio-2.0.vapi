@@ -85,6 +85,12 @@ namespace GLib {
 		[Version (since = "2.26")]
 		public static unowned string? annotation_info_lookup ([CCode (array_length = false, array_null_terminated = true)] GLib.DBusAnnotationInfo[]? annotations, string name);
 		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (since = "2.68")]
+		public static string escape_object_path (string s);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (since = "2.68")]
+		public static string escape_object_path_bytestring ([CCode (array_length = false, array_null_terminated = true)] uint8[] bytes);
+		[CCode (cheader_filename = "gio/gio.h")]
 		[Version (since = "2.26")]
 		public static string generate_guid ();
 		[CCode (cheader_filename = "gio/gio.h")]
@@ -114,6 +120,9 @@ namespace GLib {
 		[CCode (cheader_filename = "gio/gio.h")]
 		[Version (since = "2.26")]
 		public static bool is_unique_name (string string);
+		[CCode (array_length = false, array_null_terminated = true, cheader_filename = "gio/gio.h")]
+		[Version (since = "2.68")]
+		public static unowned uint8[]? unescape_object_path (string s);
 	}
 	namespace FileAttribute {
 		[CCode (cheader_filename = "gio/gio.h", cname = "G_FILE_ATTRIBUTE_ACCESS_CAN_DELETE")]
@@ -885,7 +894,7 @@ namespace GLib {
 		[DestroysInstance]
 		public void return_error_literal (GLib.Quark domain, int code, string message);
 		[DestroysInstance]
-		public void return_error_valist (GLib.Quark domain, int code, string format, [CCode (type = "va_list")] va_list var_args);
+		public void return_error_valist (GLib.Quark domain, int code, string format, va_list var_args);
 		[DestroysInstance]
 		public void return_gerror (GLib.Error error);
 		[DestroysInstance]
@@ -1270,6 +1279,8 @@ namespace GLib {
 		public void clear_status ();
 		public void copy_into (GLib.FileInfo dest_info);
 		public GLib.FileInfo dup ();
+		[Version (since = "2.70")]
+		public GLib.DateTime? get_access_date_time ();
 		public string? get_attribute_as_string (string attribute);
 		public bool get_attribute_boolean (string attribute);
 		public unowned string? get_attribute_byte_string (string attribute);
@@ -1286,6 +1297,8 @@ namespace GLib {
 		public uint32 get_attribute_uint32 (string attribute);
 		public uint64 get_attribute_uint64 (string attribute);
 		public unowned string? get_content_type ();
+		[Version (since = "2.70")]
+		public GLib.DateTime? get_creation_date_time ();
 		[Version (since = "2.36")]
 		public GLib.DateTime? get_deletion_date ();
 		public unowned string get_display_name ();
@@ -1312,6 +1325,8 @@ namespace GLib {
 		[CCode (array_length = false, array_null_terminated = true)]
 		public string[]? list_attributes (string? name_space);
 		public void remove_attribute (string attribute);
+		[Version (since = "2.70")]
+		public void set_access_date_time (GLib.DateTime atime);
 		public void set_attribute (string attribute, GLib.FileAttributeType type, void* value_p);
 		public void set_attribute_boolean (string attribute, bool attr_value);
 		public void set_attribute_byte_string (string attribute, string attr_value);
@@ -1326,6 +1341,8 @@ namespace GLib {
 		public void set_attribute_uint32 (string attribute, uint32 attr_value);
 		public void set_attribute_uint64 (string attribute, uint64 attr_value);
 		public void set_content_type (string content_type);
+		[Version (since = "2.70")]
+		public void set_creation_date_time (GLib.DateTime creation_time);
 		public void set_display_name (string display_name);
 		public void set_edit_name (string edit_name);
 		public void set_file_type (GLib.FileType type);
@@ -1682,7 +1699,7 @@ namespace GLib {
 		[Version (since = "2.64")]
 		public bool find (GLib.Object item, out uint position);
 		[Version (since = "2.64")]
-		public bool find_with_equal_func (GLib.Object item, GLib.EqualFunc equal_func, out uint position);
+		public bool find_with_equal_func (GLib.Object item, GLib.EqualFunc<GLib.Object> equal_func, out uint position);
 		[Version (since = "2.44")]
 		public void insert (uint position, GLib.Object item);
 		[Version (since = "2.44")]
@@ -2284,10 +2301,10 @@ namespace GLib {
 		public void changed (string key, void* origin_tag);
 		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
-		public void changed_tree (GLib.Tree tree, void* origin_tag);
+		public void changed_tree ([CCode (type = "GTree*")] GLib.Tree<string,GLib.Variant> tree, void* origin_tag);
 		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.26")]
-		public static void flatten_tree (GLib.Tree tree, out string path, [CCode (array_length = false, array_null_terminated = true)] out (unowned string)[] keys, [CCode (array_length = false, array_null_terminated = true)] out (unowned GLib.Variant)[] values);
+		public static void flatten_tree ([CCode (type = "GTree*")] GLib.Tree<string,GLib.Variant> tree, out string path, [CCode (array_length = false, array_null_terminated = true)] out (unowned string)[] keys, [CCode (array_length = false, array_null_terminated = true)] out (unowned GLib.Variant)[] values);
 		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[Version (since = "2.28")]
 		public static GLib.SettingsBackend get_default ();
@@ -2337,7 +2354,7 @@ namespace GLib {
 		public virtual bool write (string key, GLib.Variant value, void* origin_tag);
 		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
-		public virtual bool write_tree (GLib.Tree tree, void* origin_tag);
+		public virtual bool write_tree ([CCode (type = "GTree*")] GLib.Tree<string,GLib.Variant> tree, void* origin_tag);
 	}
 	[CCode (cheader_filename = "gio/gio.h", ref_function = "g_settings_schema_ref", type_id = "g_settings_schema_get_type ()", unref_function = "g_settings_schema_unref")]
 	[Compact]
@@ -3126,7 +3143,7 @@ namespace GLib {
 		public virtual unowned string get_default_warning ();
 		public unowned string get_description ();
 		public GLib.TlsPasswordFlags get_flags ();
-		[CCode (array_length_pos = 0.1)]
+		[CCode (array_length_pos = 0.1, array_length_type = "gsize")]
 		public virtual unowned uint8[] get_value ();
 		public unowned string get_warning ();
 		public void set_description (string description);
@@ -3337,14 +3354,13 @@ namespace GLib {
 		public abstract bool equal (GLib.AppInfo appinfo2);
 		public static GLib.List<GLib.AppInfo> get_all ();
 		public static GLib.List<GLib.AppInfo> get_all_for_type (string content_type);
-		[NoWrapper]
-		public abstract unowned string get_commandline ();
+		[Version (since = "2.20")]
+		public abstract unowned string? get_commandline ();
 		public static GLib.AppInfo? get_default_for_type (string content_type, bool must_support_uris);
 		public static GLib.AppInfo? get_default_for_uri_scheme (string uri_scheme);
 		public abstract unowned string? get_description ();
 		[Version (since = "2.24")]
 		public abstract unowned string get_display_name ();
-		[NoWrapper]
 		public abstract unowned string get_executable ();
 		[Version (since = "2.28")]
 		public static GLib.List<GLib.AppInfo> get_fallback_for_type (string content_type);
@@ -3448,14 +3464,19 @@ namespace GLib {
 		public bool condition_wait (GLib.IOCondition condition, int64 timeout, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public GLib.Source create_source (GLib.IOCondition condition, GLib.Cancellable? cancellable = null);
 		[CCode (vfunc_name = "condition_check")]
+		[NoWrapper]
 		public virtual GLib.IOCondition datagram_condition_check (GLib.IOCondition condition);
 		[CCode (vfunc_name = "condition_wait")]
+		[NoWrapper]
 		public virtual bool datagram_condition_wait (GLib.IOCondition condition, int64 timeout, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[CCode (vfunc_name = "create_source")]
+		[NoWrapper]
 		public virtual GLib.Source datagram_create_source (GLib.IOCondition condition, GLib.Cancellable? cancellable = null);
 		[CCode (vfunc_name = "receive_messages")]
+		[NoWrapper]
 		public virtual int datagram_receive_messages ([CCode (array_length_cname = "num_messages", array_length_pos = 1.5, array_length_type = "guint")] GLib.InputMessage[] messages, int flags, int64 timeout, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[CCode (vfunc_name = "send_messages")]
+		[NoWrapper]
 		public virtual int datagram_send_messages ([CCode (array_length_cname = "num_messages", array_length_pos = 1.5, array_length_type = "guint")] GLib.OutputMessage[] messages, int flags, int64 timeout, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public int receive_messages ([CCode (array_length_cname = "num_messages", array_length_pos = 1.5, array_length_type = "guint")] GLib.InputMessage[] messages, int flags, int64 timeout, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public int send_messages ([CCode (array_length_cname = "num_messages", array_length_pos = 1.5, array_length_type = "guint")] GLib.OutputMessage[] messages, int flags, int64 timeout, GLib.Cancellable? cancellable = null) throws GLib.Error;
@@ -3612,15 +3633,12 @@ namespace GLib {
 		public abstract bool equal (GLib.File file2);
 		public abstract GLib.Mount find_enclosing_mount (GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public virtual async GLib.Mount find_enclosing_mount_async (int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		[NoWrapper]
 		public abstract string? get_basename ();
 		public GLib.File get_child (string name);
 		public abstract GLib.File get_child_for_display_name (string display_name) throws GLib.Error;
 		public abstract GLib.File? get_parent ();
 		public abstract string get_parse_name ();
-		[NoWrapper]
 		public abstract string? get_path ();
-		[NoWrapper]
 		public abstract string? get_relative_path (GLib.File descendant);
 		public abstract string get_uri ();
 		public abstract string? get_uri_scheme ();
@@ -3635,8 +3653,8 @@ namespace GLib {
 		public GLib.Bytes load_bytes (GLib.Cancellable? cancellable = null, out string? etag_out = null) throws GLib.Error;
 		[Version (since = "2.56")]
 		public async GLib.Bytes load_bytes_async (GLib.Cancellable? cancellable = null, out string? etag_out) throws GLib.Error;
-		public bool load_contents (GLib.Cancellable? cancellable, [CCode (array_length_cname = "length", array_length_pos = 2.5, array_length_type = "gsize")] out uint8[] contents, out string etag_out) throws GLib.Error;
-		public async bool load_contents_async (GLib.Cancellable? cancellable = null, [CCode (array_length_cname = "length", array_length_pos = 2.5, array_length_type = "gsize")] out uint8[] contents, out string etag_out) throws GLib.Error;
+		public bool load_contents (GLib.Cancellable? cancellable, [CCode (array_length_cname = "length", array_length_pos = 2.5, array_length_type = "gsize")] out uint8[] contents, out string? etag_out) throws GLib.Error;
+		public async bool load_contents_async (GLib.Cancellable? cancellable = null, [CCode (array_length_cname = "length", array_length_pos = 2.5, array_length_type = "gsize")] out uint8[] contents, out string? etag_out) throws GLib.Error;
 		public async bool load_partial_contents_async (GLib.Cancellable? cancellable = null, [CCode (delegate_target_pos = -0.9)] GLib.FileReadMoreCallback read_more_callback, [CCode (array_length_cname = "length", array_length_pos = 2.5, array_length_type = "gsize")] out uint8[] contents, out string etag_out) throws GLib.Error;
 		public abstract bool make_directory (GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[Version (since = "2.38")]
@@ -3691,11 +3709,11 @@ namespace GLib {
 		public virtual async GLib.FileInputStream read_async (int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public abstract GLib.FileOutputStream replace (string? etag, bool make_backup, GLib.FileCreateFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public virtual async GLib.FileOutputStream replace_async (string? etag, bool make_backup, GLib.FileCreateFlags flags, int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		public bool replace_contents ([CCode (array_length_cname = "length", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] contents, string? etag, bool make_backup, GLib.FileCreateFlags flags, out string new_etag, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		public async bool replace_contents_async ([CCode (array_length_cname = "length", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] contents, string? etag, bool make_backup, GLib.FileCreateFlags flags, GLib.Cancellable? cancellable = null, out string new_etag) throws GLib.Error;
+		public bool replace_contents ([CCode (array_length_cname = "length", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] contents, string? etag, bool make_backup, GLib.FileCreateFlags flags, out string? new_etag, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public async bool replace_contents_async ([CCode (array_length_cname = "length", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] contents, string? etag, bool make_backup, GLib.FileCreateFlags flags, GLib.Cancellable? cancellable = null, out string? new_etag) throws GLib.Error;
 		[CCode (finish_name = "g_file_replace_contents_finish")]
 		[Version (since = "2.40")]
-		public async bool replace_contents_bytes_async (GLib.Bytes contents, string? etag, bool make_backup, GLib.FileCreateFlags flags, GLib.Cancellable? cancellable = null, out string new_etag) throws GLib.Error;
+		public async bool replace_contents_bytes_async (GLib.Bytes contents, string? etag, bool make_backup, GLib.FileCreateFlags flags, GLib.Cancellable? cancellable = null, out string? new_etag) throws GLib.Error;
 		[Version (since = "2.22")]
 		public abstract GLib.FileIOStream replace_readwrite (string? etag, bool make_backup, GLib.FileCreateFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[Version (since = "2.22")]
@@ -3847,6 +3865,7 @@ namespace GLib {
 		public abstract bool is_readable ();
 		public ssize_t read_nonblocking ([CCode (array_length_cname = "count", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[CCode (vfunc_name = "read_nonblocking")]
+		[NoWrapper]
 		public abstract ssize_t read_nonblocking_fn ([CCode (array_length_cname = "count", array_length_pos = 1.1, array_length_type = "gsize")] uint8[] buffer) throws GLib.Error;
 	}
 	[CCode (cheader_filename = "gio/gio.h", type_cname = "GPollableOutputStreamInterface", type_id = "g_pollable_output_stream_get_type ()")]
@@ -3855,9 +3874,16 @@ namespace GLib {
 		public abstract bool can_poll ();
 		public abstract GLib.PollableSource create_source (GLib.Cancellable? cancellable = null);
 		public abstract bool is_writable ();
-		public abstract ssize_t write_nonblocking ([CCode (array_length_cname = "count", array_length_pos = 1.1, array_length_type = "gsize")] uint8[]? buffer) throws GLib.Error;
+		public ssize_t write_nonblocking ([CCode (array_length_cname = "count", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[CCode (vfunc_name = "write_nonblocking")]
+		[NoWrapper]
+		public abstract ssize_t write_nonblocking_fn ([CCode (array_length_cname = "count", array_length_pos = 1.1, array_length_type = "gsize")] uint8[]? buffer) throws GLib.Error;
 		[Version (since = "2.60")]
-		public abstract GLib.PollableReturn writev_nonblocking ([CCode (array_length_cname = "n_vectors", array_length_pos = 1.5, array_length_type = "gsize")] GLib.OutputVector[] vectors, out size_t bytes_written) throws GLib.Error;
+		public GLib.PollableReturn writev_nonblocking ([CCode (array_length_cname = "n_vectors", array_length_pos = 1.5, array_length_type = "gsize")] GLib.OutputVector[] vectors, out size_t bytes_written, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[CCode (vfunc_name = "writev_nonblocking")]
+		[NoWrapper]
+		[Version (since = "2.60")]
+		public abstract GLib.PollableReturn writev_nonblocking_fn ([CCode (array_length_cname = "n_vectors", array_length_pos = 1.5, array_length_type = "gsize")] GLib.OutputVector[] vectors, out size_t bytes_written) throws GLib.Error;
 	}
 	[CCode (cheader_filename = "gio/gio.h", type_cname = "GProxyInterface", type_id = "g_proxy_get_type ()")]
 	[Version (since = "2.26")]
@@ -4186,7 +4212,8 @@ namespace GLib {
 		AUTHENTICATION_SERVER,
 		AUTHENTICATION_ALLOW_ANONYMOUS,
 		MESSAGE_BUS_CONNECTION,
-		DELAY_MESSAGE_PROCESSING
+		DELAY_MESSAGE_PROCESSING,
+		AUTHENTICATION_REQUIRE_SAME_USER
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_DBUS_INTERFACE_SKELETON_FLAGS_", type_id = "g_dbus_interface_skeleton_flags_get_type ()")]
 	[Flags]
@@ -4272,7 +4299,8 @@ namespace GLib {
 	public enum DBusServerFlags {
 		NONE,
 		RUN_IN_THREAD,
-		AUTHENTICATION_ALLOW_ANONYMOUS
+		AUTHENTICATION_ALLOW_ANONYMOUS,
+		AUTHENTICATION_REQUIRE_SAME_USER
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_DBUS_SIGNAL_FLAGS_", type_id = "g_dbus_signal_flags_get_type ()")]
 	[Flags]
@@ -4941,9 +4969,9 @@ namespace GLib {
 	public delegate GLib.Variant SettingsBindSetMappingShared (GLib.Value value, GLib.VariantType expected_type, void* user_data);
 	[CCode (cheader_filename = "gio/gio.h", instance_pos = 2.9)]
 	public delegate bool SettingsGetMapping (GLib.Variant value, out void* result);
-	[CCode (cheader_filename = "gio/gio.h")]
+	[CCode (cheader_filename = "gio/gio.h", has_typedef = false)]
 	public delegate void SimpleActionActivateCallback (GLib.SimpleAction action, GLib.Variant? parameter);
-	[CCode (cheader_filename = "gio/gio.h")]
+	[CCode (cheader_filename = "gio/gio.h", has_typedef = false)]
 	public delegate void SimpleActionChangeStateCallback (GLib.SimpleAction action, GLib.Variant value);
 	[CCode (cheader_filename = "gio/gio.h", has_target = false)]
 	public delegate void SimpleAsyncThreadFunc (GLib.SimpleAsyncResult res, GLib.Object object, GLib.Cancellable? cancellable = null);
@@ -5019,11 +5047,4 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gio.h")]
 	[Version (since = "2.32")]
 	public static void resources_unregister (GLib.Resource resource);
-}
-
-[CCode (cheader_filename = "gio/gio.h", lower_case_cprefix = "gio_")]
-namespace GIOFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }

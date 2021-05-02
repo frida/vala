@@ -45,8 +45,8 @@ namespace Vala {
 		return get_ccode_attribute(node).const_name;
 	}
 
-	public static string get_ccode_type_name (Interface iface) {
-		return get_ccode_attribute(iface).type_name;
+	public static string get_ccode_type_name (ObjectTypeSymbol sym) {
+		return get_ccode_attribute (sym).type_name;
 	}
 
 	public static string get_ccode_type_cast_function (ObjectTypeSymbol sym) {
@@ -54,13 +54,20 @@ namespace Vala {
 		return get_ccode_upper_case_name (sym);
 	}
 
-	public static string get_ccode_interface_get_function (Interface iface) {
-		return "%s_GET_INTERFACE".printf (get_ccode_upper_case_name (iface));
-	}
-
-	public static string get_ccode_class_get_function (Class cl) {
-		assert (!cl.is_compact);
-		return "%s_GET_CLASS".printf (get_ccode_upper_case_name (cl));
+	public static string get_ccode_type_get_function (ObjectTypeSymbol sym) {
+		var func_name = sym.get_attribute_string ("CCode", "type_get_function");
+		if (func_name != null) {
+			return func_name;
+		}
+		if (sym is Class) {
+			assert (!((Class) sym).is_compact);
+			return "%s_GET_CLASS".printf (get_ccode_upper_case_name (sym));
+		} else if (sym is Interface) {
+			return "%s_GET_INTERFACE".printf (get_ccode_upper_case_name (sym));
+		} else {
+			Report.error (sym.source_reference, "`CCode.type_get_function' not supported");
+			return "";
+		}
 	}
 
 	public static string get_ccode_class_get_private_function (Class cl) {
@@ -358,12 +365,7 @@ namespace Vala {
 		if (a != null && a.has_argument ("destroy_notify_pos")) {
 			return a.get_double ("destroy_notify_pos");
 		}
-		if (node is Parameter) {
-			unowned Parameter param = (Parameter) node;
-			return get_ccode_pos (param) + 0.1;
-		} else {
-			return -3;
-		}
+		return get_ccode_delegate_target_pos (node) + 0.01;
 	}
 
 	public static bool get_ccode_delegate_target (CodeNode node) {
@@ -457,6 +459,10 @@ namespace Vala {
 
 	public static double get_ccode_generic_type_pos (Method m) {
 		return m.get_attribute_double ("CCode", "generic_type_pos");
+	}
+
+	public static bool get_ccode_no_wrapper (Method m) {
+		return m.get_attribute ("NoWrapper") != null;
 	}
 
 	public static string get_ccode_sentinel (Method m) {

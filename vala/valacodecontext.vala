@@ -582,8 +582,6 @@ public class Vala.CodeContext {
 		for (int i = 16; i <= target_glib_minor; i += 2) {
 			defines.add ("GLIB_2_%d".printf (i));
 		}
-
-		add_define ("VALA_OS_" + Config.VALA_HOST_OS.up ());
 	}
 
 	/**
@@ -609,7 +607,9 @@ public class Vala.CodeContext {
 			}
 			break;
 		case Profile.POSIX:
+		// case Profile.LIBC:
 			this.profile = profile;
+			add_define ("LIBC");
 			add_define ("POSIX");
 
 			if (include_stdpkg) {
@@ -634,10 +634,13 @@ public class Vala.CodeContext {
 		if (target_glib == "auto") {
 			var available_glib = pkg_config_modversion ("glib-2.0");
 			if (available_glib != null && available_glib.scanf ("%d.%d", out glib_major, out glib_minor) >= 2) {
-				glib_minor -= ++glib_minor % 2;
+				glib_minor++;
+				glib_minor -= glib_minor % 2;
 				set_target_glib_version ("%d.%d".printf (glib_major, glib_minor));
-				return;
+			} else {
+				Report.warning (null, "Could not determine the version of `glib-2.0', target version of glib was not set");
 			}
+			return;
 		}
 
 		glib_major = target_glib_major;

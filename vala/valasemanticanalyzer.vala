@@ -465,11 +465,6 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			return false;
 		}
 
-		if (!prop.name[0].isalpha ()) {
-			// GObject requires properties to start with a letter
-			return false;
-		}
-
 		if (type_sym is Interface && !prop.is_abstract && !prop.external && !prop.external_package) {
 			// GObject does not support non-abstract interface properties,
 			// however we assume external properties always are GObject properties
@@ -1043,46 +1038,6 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		}
 
 		return temp_access;
-	}
-
-	public void visit_member_initializer (MemberInitializer init, DataType type) {
-		init.symbol_reference = symbol_lookup_inherited (type.type_symbol, init.name);
-		if (!(init.symbol_reference is Field || init.symbol_reference is Property)) {
-			init.error = true;
-			Report.error (init.source_reference, "Invalid member `%s' in `%s'", init.name, type.type_symbol.get_full_name ());
-			return;
-		}
-		if (init.symbol_reference.access != SymbolAccessibility.PUBLIC) {
-			init.error = true;
-			Report.error (init.source_reference, "Access to private member `%s' denied", init.symbol_reference.get_full_name ());
-			return;
-		}
-		DataType member_type = null;
-		if (init.symbol_reference is Field) {
-			unowned Field f = (Field) init.symbol_reference;
-			member_type = f.variable_type;
-		} else if (init.symbol_reference is Property) {
-			unowned Property prop = (Property) init.symbol_reference;
-			member_type = prop.property_type;
-			if (prop.set_accessor == null || !prop.set_accessor.writable) {
-				init.error = true;
-				Report.error (init.source_reference, "Property `%s' is read-only", prop.get_full_name ());
-				return;
-			}
-		}
-
-		init.initializer.formal_target_type = member_type;
-		init.initializer.target_type = init.initializer.formal_target_type.get_actual_type (type, null, init);
-
-		if (!init.check (context)) {
-			return;
-		}
-
-		if (init.initializer.value_type == null || !init.initializer.value_type.compatible (init.initializer.target_type)) {
-			init.error = true;
-			Report.error (init.source_reference, "Invalid type for member `%s'", init.name);
-			return;
-		}
 	}
 
 	unowned Struct? get_arithmetic_struct (DataType type) {

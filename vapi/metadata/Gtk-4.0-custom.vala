@@ -9,13 +9,6 @@ namespace Gtk {
 		public virtual signal void rows_reordered (Gtk.TreePath path, Gtk.TreeIter iter, [CCode (array_length = false)] int[] new_order);
 	}
 
-	public interface Editable {
-		[NoWrapper]
-		public abstract void do_insert_text (string text, int length, ref int position);
-		[NoWrapper]
-		public abstract void do_delete_text (int start_pos, int end_pos);
-	}
-
 	[CCode (has_type_id = false)]
 	public struct BindingArg {
 		[CCode (cname = "d.long_data")]
@@ -46,4 +39,7 @@ namespace Gtk {
 		[CCode (delegate_target = false)]
 		public unowned Gtk.BuildableParserErrorFunc error;
 	}
+
+	[CCode (cname = "GTK_INVALID_LIST_POSITION")]
+	public const uint INVALID_LIST_POSITION;
 }

@@ -75,7 +75,7 @@ public class Vala.GTypeModule : GErrorModule {
 			macro = "(G_TYPE_CHECK_INSTANCE_CAST ((obj), %s, %s))".printf (get_ccode_type_id (cl), get_ccode_name (cl));
 			decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(obj)".printf (get_ccode_type_cast_function (cl)), macro));
 
-			macro = "(G_TYPE_CHECK_CLASS_CAST ((klass), %s, %sClass))".printf (get_ccode_type_id (cl), get_ccode_name (cl));
+			macro = "(G_TYPE_CHECK_CLASS_CAST ((klass), %s, %s))".printf (get_ccode_type_id (cl), get_ccode_type_name (cl));
 			decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(klass)".printf (get_ccode_class_type_function (cl)), macro));
 
 			macro = "(G_TYPE_CHECK_INSTANCE_TYPE ((obj), %s))".printf (get_ccode_type_id (cl));
@@ -84,8 +84,8 @@ public class Vala.GTypeModule : GErrorModule {
 			macro = "(G_TYPE_CHECK_CLASS_TYPE ((klass), %s))".printf (get_ccode_type_id (cl));
 			decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(klass)".printf (get_ccode_class_type_check_function (cl)), macro));
 
-			macro = "(G_TYPE_INSTANCE_GET_CLASS ((obj), %s, %sClass))".printf (get_ccode_type_id (cl), get_ccode_name (cl));
-			decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(obj)".printf (get_ccode_class_get_function (cl)), macro));
+			macro = "(G_TYPE_INSTANCE_GET_CLASS ((obj), %s, %s))".printf (get_ccode_type_id (cl), get_ccode_type_name (cl));
+			decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(obj)".printf (get_ccode_type_get_function (cl)), macro));
 			decl_space.add_type_declaration (new CCodeNewline ());
 		}
 
@@ -184,7 +184,7 @@ public class Vala.GTypeModule : GErrorModule {
 		}
 
 		if (is_gtypeinstance) {
-			decl_space.add_type_declaration (new CCodeTypeDefinition ("struct _%sClass".printf (get_ccode_name (cl)), new CCodeVariableDeclarator ("%sClass".printf (get_ccode_name (cl)))));
+			decl_space.add_type_declaration (new CCodeTypeDefinition ("struct _%s".printf (get_ccode_type_name (cl)), new CCodeVariableDeclarator (get_ccode_type_name (cl))));
 
 			var type_fun = new ClassRegisterFunction (cl);
 			type_fun.init_from_type (context, in_plugin, true);
@@ -236,7 +236,7 @@ public class Vala.GTypeModule : GErrorModule {
 		bool is_fundamental = is_gtypeinstance && cl.base_class == null;
 
 		var instance_struct = new CCodeStruct ("_%s".printf (get_ccode_name (cl)));
-		var type_struct = new CCodeStruct ("_%sClass".printf (get_ccode_name (cl)));
+		var type_struct = new CCodeStruct ("_%s".printf (get_ccode_type_name (cl)));
 
 		if (cl.base_class != null) {
 			instance_struct.add_field (get_ccode_name (cl.base_class), "parent_instance");
@@ -254,7 +254,7 @@ public class Vala.GTypeModule : GErrorModule {
 			if (is_fundamental) {
 				type_struct.add_field ("GTypeClass", "parent_class");
 			} else {
-				type_struct.add_field ("%sClass".printf (get_ccode_name (cl.base_class)), "parent_class");
+				type_struct.add_field (get_ccode_type_name (cl.base_class), "parent_class");
 			}
 
 			if (is_fundamental) {
@@ -483,21 +483,14 @@ public class Vala.GTypeModule : GErrorModule {
 		bool has_class_locks = false;
 
 		var instance_priv_struct = new CCodeStruct ("_%sPrivate".printf (get_ccode_name (cl)));
-		var type_priv_struct = new CCodeStruct ("_%sClassPrivate".printf (get_ccode_name (cl)));
+		var type_priv_struct = new CCodeStruct ("_%sPrivate".printf (get_ccode_type_name (cl)));
 
 		if (is_gtypeinstance) {
 			/* create type, dup_func, and destroy_func fields for generic types */
 			foreach (TypeParameter type_param in cl.get_type_parameters ()) {
-				string func_name;
-
-				func_name = "%s_type".printf (type_param.name.ascii_down ());
-				instance_priv_struct.add_field ("GType", func_name);
-
-				func_name = "%s_dup_func".printf (type_param.name.ascii_down ());
-				instance_priv_struct.add_field ("GBoxedCopyFunc", func_name);
-
-				func_name = "%s_destroy_func".printf (type_param.name.ascii_down ());
-				instance_priv_struct.add_field ("GDestroyNotify", func_name);
+				instance_priv_struct.add_field ("GType", get_ccode_type_id (type_param));
+				instance_priv_struct.add_field ("GBoxedCopyFunc", get_ccode_copy_function (type_param));
+				instance_priv_struct.add_field ("GDestroyNotify", get_ccode_destroy_function (type_param));
 			}
 		}
 
@@ -537,7 +530,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		if (is_gtypeinstance) {
 			if (cl.has_class_private_fields || has_class_locks) {
-				decl_space.add_type_declaration (new CCodeTypeDefinition ("struct %s".printf (type_priv_struct.name), new CCodeVariableDeclarator ("%sClassPrivate".printf (get_ccode_name (cl)))));
+				decl_space.add_type_declaration (new CCodeTypeDefinition ("struct %s".printf (type_priv_struct.name), new CCodeVariableDeclarator ("%sPrivate".printf (get_ccode_type_name (cl)))));
 			}
 
 			/* only add the *Private struct if it is not empty, i.e. we actually have private data */
@@ -569,7 +562,7 @@ public class Vala.GTypeModule : GErrorModule {
 			if (cl.has_class_private_fields || has_class_locks) {
 				decl_space.add_type_definition (type_priv_struct);
 
-				string macro = "(G_TYPE_CLASS_GET_PRIVATE (klass, %s, %sClassPrivate))".printf (get_ccode_type_id (cl), get_ccode_name (cl));
+				string macro = "(G_TYPE_CLASS_GET_PRIVATE (klass, %s, %sPrivate))".printf (get_ccode_type_id (cl), get_ccode_type_name (cl));
 				decl_space.add_type_member_declaration (new CCodeMacroReplacement ("%s(klass)".printf (get_ccode_class_get_private_function (cl)), macro));
 			}
 		}
@@ -762,11 +755,11 @@ public class Vala.GTypeModule : GErrorModule {
 				ccall.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, ref_count));
 				ccode.open_if (ccall);
 
-				var get_class = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_get_function (cl)));
+				var get_class = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (cl)));
 				get_class.add_argument (new CCodeIdentifier ("self"));
 
 				// finalize class
-				var ccast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_get_function (cl)));
+				var ccast = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (cl)));
 				ccast.add_argument (new CCodeIdentifier ("self"));
 				ccall = new CCodeFunctionCall (new CCodeMemberAccess.pointer (ccast, "finalize"));
 				ccall.add_argument (new CCodeIdentifier ("self"));
@@ -1011,7 +1004,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		var ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_return_val_if_fail"));
 		ccall.add_argument (subccall);
-		ccall.add_argument (new CCodeIdentifier ("NULL"));
+		ccall.add_argument (new CCodeConstant ("NULL"));
 		ccode.add_expression (ccall);
 
 		ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_param_spec_internal"));
@@ -1190,7 +1183,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		var ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_return_val_if_fail"));
 		ccall.add_argument (ccall_typecheck);
-		ccall.add_argument (new CCodeIdentifier ("NULL"));
+		ccall.add_argument (new CCodeConstant ("NULL"));
 		ccode.add_expression (ccall);
 
 		ccode.add_return (vpointer);
@@ -1203,7 +1196,7 @@ public class Vala.GTypeModule : GErrorModule {
 		push_context (base_init_context);
 
 		var base_init = new CCodeFunction ("%s_base_init".printf (get_ccode_lower_case_name (cl, null)), "void");
-		base_init.add_parameter (new CCodeParameter ("klass", "%sClass *".printf (get_ccode_name (cl))));
+		base_init.add_parameter (new CCodeParameter ("klass", "%s *".printf (get_ccode_type_name (cl))));
 		base_init.modifiers = CCodeModifiers.STATIC;
 
 		push_function (base_init);
@@ -1225,7 +1218,7 @@ public class Vala.GTypeModule : GErrorModule {
 		push_context (class_init_context);
 
 		var func = new CCodeFunction ("%s_class_init".printf (get_ccode_lower_case_name (cl, null)));
-		func.add_parameter (new CCodeParameter ("klass", "%sClass *".printf (get_ccode_name (cl))));
+		func.add_parameter (new CCodeParameter ("klass", "%s *".printf (get_ccode_type_name (cl))));
 		func.add_parameter (new CCodeParameter ("klass_data", "gpointer"));
 		func.modifiers = CCodeModifiers.STATIC;
 
@@ -1254,7 +1247,7 @@ public class Vala.GTypeModule : GErrorModule {
 				fundamental_class = fundamental_class.base_class;
 			}
 
-			var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%sClass *".printf (get_ccode_name (fundamental_class)));
+			var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%s *".printf (get_ccode_type_name (fundamental_class)));
 			var finalize_assignment = new CCodeAssignment (new CCodeMemberAccess.pointer (ccast, "finalize"), new CCodeIdentifier ("%sfinalize".printf (get_ccode_lower_case_prefix (cl))));
 			ccode.add_expression (finalize_assignment);
 		}
@@ -1280,7 +1273,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 				CCodeExpression cfunc = new CCodeIdentifier (get_ccode_real_name (m));
 				cfunc = cast_method_pointer (m.base_method, cfunc, base_type, (m.coroutine ? 1 : 3));
-				var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%sClass *".printf (get_ccode_name (base_type)));
+				var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%s *".printf (get_ccode_type_name (base_type)));
 				ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, get_ccode_vfunc_name (m.base_method)), cfunc);
 
 				if (m.coroutine) {
@@ -1296,9 +1289,8 @@ public class Vala.GTypeModule : GErrorModule {
 			if (sig.default_handler == null || !sig.is_virtual) {
 				continue;
 			}
-			generate_method_declaration (sig.default_handler, cfile);
 
-			var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%sClass *".printf (get_ccode_name (cl)));
+			var ccast = new CCodeCastExpression (new CCodeIdentifier ("klass"), "%s *".printf (get_ccode_type_name (cl)));
 			ccode.add_assignment (new CCodeMemberAccess.pointer (ccast, get_ccode_vfunc_name (sig.default_handler)), new CCodeIdentifier (get_ccode_real_name (sig.default_handler)));
 		}
 
@@ -1428,17 +1420,17 @@ public class Vala.GTypeModule : GErrorModule {
 				GenericType p_type = new GenericType (p);
 				DataType p_data_type = p_type.get_actual_type (SemanticAnalyzer.get_data_type_for_symbol (cl), null, cl);
 
-				add_generic_accessor_function ("get_%s_type".printf (p.name.ascii_down ()),
+				add_generic_accessor_function ("get_%s".printf (get_ccode_type_id (p)),
 				                               "GType",
 				                               get_type_id_expression (p_data_type),
 				                               p, cl, iface);
 
-				add_generic_accessor_function ("get_%s_dup_func".printf (p.name.ascii_down ()),
+				add_generic_accessor_function ("get_%s".printf (get_ccode_copy_function (p)),
 				                               "GBoxedCopyFunc",
 				                               get_dup_func_expression (p_data_type, null),
 				                               p, cl, iface);
 
-				add_generic_accessor_function ("get_%s_destroy_func".printf (p.name.ascii_down ()),
+				add_generic_accessor_function ("get_%s".printf (get_ccode_destroy_function (p)),
 				                               "GDestroyNotify",
 				                               get_destroy_func_expression (p_data_type),
 				                               p, cl, iface);
@@ -1705,12 +1697,22 @@ public class Vala.GTypeModule : GErrorModule {
 		var function = new CCodeFunction ("%s_class_finalize".printf (get_ccode_lower_case_name (cl, null)), "void");
 		function.modifiers = CCodeModifiers.STATIC;
 
-		function.add_parameter (new CCodeParameter ("klass", "%sClass *".printf (get_ccode_name (cl))));
+		function.add_parameter (new CCodeParameter ("klass", "%s *".printf (get_ccode_type_name (cl))));
 
 		push_function (function);
 
 		if (cl.static_destructor != null) {
 			cl.static_destructor.body.emit (this);
+
+			if (current_method_inner_error) {
+				ccode.add_declaration ("GError*", new CCodeVariableDeclarator.zero ("_inner_error%d_".printf (current_inner_error_id), new CCodeConstant ("NULL")));
+			}
+
+			if (current_method_return) {
+				// support return statements in destructors
+				ccode.add_label ("_return");
+				ccode.add_statement (new CCodeEmptyStatement ());
+			}
 		}
 
 		pop_context ();
@@ -1727,13 +1729,23 @@ public class Vala.GTypeModule : GErrorModule {
 		var function = new CCodeFunction ("%s_base_finalize".printf (get_ccode_lower_case_name (cl, null)), "void");
 		function.modifiers = CCodeModifiers.STATIC;
 
-		function.add_parameter (new CCodeParameter ("klass", "%sClass *".printf (get_ccode_name (cl))));
+		function.add_parameter (new CCodeParameter ("klass", "%s *".printf (get_ccode_type_name (cl))));
 		function.add_parameter (new CCodeParameter ("klass_data", "gpointer"));
 
 		push_function (function);
 
 		if (cl.class_destructor != null) {
 			cl.class_destructor.body.emit (this);
+
+			if (current_method_inner_error) {
+				ccode.add_declaration ("GError*", new CCodeVariableDeclarator.zero ("_inner_error%d_".printf (current_inner_error_id), new CCodeConstant ("NULL")));
+			}
+
+			if (current_method_return) {
+				// support return statements in destructors
+				ccode.add_label ("_return");
+				ccode.add_statement (new CCodeEmptyStatement ());
+			}
 		}
 
 		pop_context ();
@@ -2072,7 +2084,7 @@ public class Vala.GTypeModule : GErrorModule {
 		decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(obj)".printf (get_ccode_type_check_function (iface)), macro));
 
 		macro = "(G_TYPE_INSTANCE_GET_INTERFACE ((obj), %s, %s))".printf (get_ccode_type_id (iface), get_ccode_type_name (iface));
-		decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(obj)".printf (get_ccode_interface_get_function (iface)), macro));
+		decl_space.add_type_declaration (new CCodeMacroReplacement ("%s(obj)".printf (get_ccode_type_get_function (iface)), macro));
 		decl_space.add_type_declaration (new CCodeNewline ());
 
 		decl_space.add_type_declaration (new CCodeTypeDefinition ("struct _%s".printf (get_ccode_name (iface)), new CCodeVariableDeclarator (get_ccode_name (iface))));
@@ -2092,8 +2104,7 @@ public class Vala.GTypeModule : GErrorModule {
 
 		if (iface.get_attribute ("GenericAccessors") != null) {
 			foreach (TypeParameter p in iface.get_type_parameters ()) {
-				string method_name = "get_%s_type".printf (p.name.ascii_down ());
-				var vdeclarator = new CCodeFunctionDeclarator (method_name);
+				var vdeclarator = new CCodeFunctionDeclarator ("get_%s".printf (get_ccode_type_id (p)));
 				var this_type = SemanticAnalyzer.get_data_type_for_symbol (iface);
 				vdeclarator.add_parameter (new CCodeParameter ("self", get_ccode_name (this_type)));
 
@@ -2101,8 +2112,7 @@ public class Vala.GTypeModule : GErrorModule {
 				vdecl.add_declarator (vdeclarator);
 				type_struct.add_declaration (vdecl);
 
-				method_name = "get_%s_dup_func".printf (p.name.ascii_down ());
-				vdeclarator = new CCodeFunctionDeclarator (method_name);
+				vdeclarator = new CCodeFunctionDeclarator ("get_%s".printf (get_ccode_copy_function (p)));
 				this_type = SemanticAnalyzer.get_data_type_for_symbol (iface);
 				vdeclarator.add_parameter (new CCodeParameter ("self", get_ccode_name (this_type)));
 
@@ -2110,8 +2120,7 @@ public class Vala.GTypeModule : GErrorModule {
 				vdecl.add_declarator (vdeclarator);
 				type_struct.add_declaration (vdecl);
 
-				method_name = "get_%s_destroy_func".printf (p.name.ascii_down ());
-				vdeclarator = new CCodeFunctionDeclarator (method_name);
+				vdeclarator = new CCodeFunctionDeclarator ("get_%s".printf (get_ccode_destroy_function (p)));
 				this_type = SemanticAnalyzer.get_data_type_for_symbol (iface);
 				vdeclarator.add_parameter (new CCodeParameter ("self", get_ccode_name (this_type)));
 
@@ -2206,7 +2215,7 @@ public class Vala.GTypeModule : GErrorModule {
 		push_context (new EmitContext (iface));
 
 		var default_init = new CCodeFunction ("%s_default_init".printf (get_ccode_lower_case_name (iface, null)), "void");
-		default_init.add_parameter (new CCodeParameter ("iface", "%sIface *".printf (get_ccode_name (iface))));
+		default_init.add_parameter (new CCodeParameter ("iface", "%s *".printf (get_ccode_type_name (iface))));
 		default_init.add_parameter (new CCodeParameter ("iface_data", "gpointer"));
 		default_init.modifiers = CCodeModifiers.STATIC;
 
@@ -2283,6 +2292,11 @@ public class Vala.GTypeModule : GErrorModule {
 	}
 
 	public override void visit_struct (Struct st) {
+		// custom simple type structs cannot have a type id which depends on head-allocation
+		if (st.get_attribute ("SimpleType") != null && !st.has_attribute_argument ("CCode", "type_id")) {
+			st.set_attribute_bool ("CCode", "has_type_id", false);
+		}
+
 		base.visit_struct (st);
 
 		if (st.is_boolean_type () || st.is_integer_type () || st.is_floating_type ()) {
@@ -2343,8 +2357,8 @@ public class Vala.GTypeModule : GErrorModule {
 			get_value.add_argument ((CCodeExpression) get_ccodenode (((MemberAccess) expr.call).inner));
 
 			ccode.add_assignment (get_variable_cexpression (temp_var.name), get_value);
-			var is_null_value = new CCodeBinaryExpression (CCodeBinaryOperator.INEQUALITY, get_variable_cexpression (temp_var.name), new CCodeIdentifier ("NULL"));
-			set_cvalue (expr, new CCodeConditionalExpression (is_null_value, new CCodeMemberAccess.pointer (get_variable_cexpression (temp_var.name), "value_name"), new CCodeIdentifier ("NULL")));
+			var is_null_value = new CCodeBinaryExpression (CCodeBinaryOperator.INEQUALITY, get_variable_cexpression (temp_var.name), new CCodeConstant ("NULL"));
+			set_cvalue (expr, new CCodeConditionalExpression (is_null_value, new CCodeMemberAccess.pointer (get_variable_cexpression (temp_var.name), "value_name"), new CCodeConstant ("NULL")));
 		}
 		pop_line ();
 	}

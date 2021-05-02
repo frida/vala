@@ -370,6 +370,9 @@ public class Vala.MemberAccess : Expression {
 			if (inner.value_type is PointerType) {
 				unowned PointerType? pointer_type = inner.value_type as PointerType;
 				if (pointer_type != null && pointer_type.base_type is ValueType) {
+					if (inner.formal_value_type is GenericType) {
+						inner = new CastExpression (inner, pointer_type.copy (), source_reference);
+					}
 					// transform foo->bar to (*foo).bar
 					inner = new PointerIndirection (inner, source_reference);
 					inner.check (context);
@@ -450,7 +453,7 @@ public class Vala.MemberAccess : Expression {
 						m.add_error_type (err);
 						m.access = SymbolAccessibility.PUBLIC;
 						m.add_parameter (new Parameter.with_ellipsis ());
-						m.this_parameter = new Parameter ("this", dynamic_object_type.copy ());
+						m.this_parameter = new Parameter ("this", dynamic_object_type.copy (), m.source_reference);
 						dynamic_object_type.type_symbol.scope.add (null, m);
 						symbol_reference = m;
 					}
@@ -617,6 +620,11 @@ public class Vala.MemberAccess : Expression {
 
 				local.captured = true;
 				block.captured = true;
+
+				if (local.variable_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
+					error = true;
+					Report.error (source_reference, "Capturing `va_list' variable `%s' is not allowed", local.get_full_name ());
+				}
 			}
 		} else if (member is Parameter) {
 			unowned Parameter param = (Parameter) member;
@@ -639,6 +647,10 @@ public class Vala.MemberAccess : Expression {
 				if (param.direction != ParameterDirection.IN) {
 					error = true;
 					Report.error (source_reference, "Cannot capture reference or output parameter `%s'", param.get_full_name ());
+				}
+				if (param.variable_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
+					error = true;
+					Report.error (source_reference, "Capturing `va_list' parameter `%s' is not allowed", param.get_full_name ());
 				}
 			} else {
 				unowned PropertyAccessor? acc = param.parent_symbol.parent_symbol as PropertyAccessor;
@@ -786,6 +798,22 @@ public class Vala.MemberAccess : Expression {
 					error = true;
 					Report.error (source_reference, "Property `%s' is read-only", prop.get_full_name ());
 					return false;
+				} else if (!prop.set_accessor.writable && prop.set_accessor.construction) {
+					if (context.analyzer.find_current_method () is CreationMethod) {
+						error = true;
+						Report.error (source_reference, "Cannot assign to construct-only properties, use Object (property: value) constructor chain up");
+						return false;
+					} else if (context.analyzer.is_in_constructor ()) {
+						if (!context.analyzer.current_type_symbol.is_subtype_of ((TypeSymbol) prop.parent_symbol)) {
+							error = true;
+							Report.error (source_reference, "Cannot assign to construct-only property `%s' in `construct' of `%s'", prop.get_full_name (), context.analyzer.current_type_symbol.get_full_name ());
+							return false;
+						}
+					} else {
+						error = true;
+						Report.error (source_reference, "Cannot assign to construct-only property in this context");
+						return false;
+					}
 				}
 				if (prop.access == SymbolAccessibility.PUBLIC) {
 					access = prop.set_accessor.access;
@@ -940,6 +968,7 @@ public class Vala.MemberAccess : Expression {
 						inner_ma = (MemberAccess) inner_ma.inner;
 						inner_sym = inner_sym.parent_symbol;
 					}
+					inner_ma.qualified = true;
 					inner.check (context);
 				}
 			}
@@ -1130,6 +1159,7 @@ public class Vala.MemberAccess : Expression {
 		bool is_negation = false;
 		unowned CodeNode? parent = parent_node;
 		unowned IfStatement? if_statement = null;
+		var scope_type_checks = new ArrayList<unowned TypeCheck> ();
 		while (parent != null && !(parent is Method)) {
 			if (parent is TypeCheck) {
 				parent = null;
@@ -1138,6 +1168,14 @@ public class Vala.MemberAccess : Expression {
 			if (parent.parent_node is IfStatement) {
 				if_statement = (IfStatement) parent.parent_node;
 				is_negation = if_statement.false_statement == parent;
+				break;
+			}
+			if (parent.parent_node is Method) {
+				foreach (Expression expr in ((Method) parent.parent_node).get_preconditions ()) {
+					if (expr is TypeCheck) {
+						scope_type_checks.add ((TypeCheck) expr);
+					}
+				}
 				break;
 			}
 			parent = parent.parent_node;
@@ -1151,6 +1189,17 @@ public class Vala.MemberAccess : Expression {
 			}
 			unowned TypeCheck? type_check = expr as TypeCheck;
 			if (!is_negation && type_check != null) {
+				unowned TypeSymbol? narrowed_symnol = type_check.type_reference.type_symbol;
+				if (variable == type_check.expression.symbol_reference) {
+					if (narrowed_symnol != value_type.type_symbol) {
+						value_type.context_symbol = narrowed_symnol;
+					}
+					value_type.nullable = false;
+				}
+			}
+		}
+		if (value_type.context_symbol == null) {
+			foreach (TypeCheck type_check in scope_type_checks) {
 				unowned TypeSymbol? narrowed_symnol = type_check.type_reference.type_symbol;
 				if (variable == type_check.expression.symbol_reference) {
 					if (narrowed_symnol != value_type.type_symbol) {

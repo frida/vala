@@ -158,6 +158,10 @@ public class Vala.UnaryExpression : Expression {
 			/* if there was an error in the inner expression, skip type check */
 			error = true;
 			return false;
+		} else if (inner.value_type == null) {
+			error = true;
+			Report.error (inner.source_reference, "Invalid inner operand");
+			return false;
 		}
 
 		if (inner.value_type is FieldPrototype || inner.value_type is PropertyPrototype) {
@@ -229,10 +233,9 @@ public class Vala.UnaryExpression : Expression {
 				Report.error (source_reference, "ref and out method arguments can only be used with fields, parameters, local variables, and array element access");
 				return false;
 			}
-			var r = inner.symbol_reference;
-			if (r != null && r.get_attribute ("GtkChild") != null) {
+			if (inner.symbol_reference != null && inner.symbol_reference.get_attribute ("GtkChild") != null) {
 				error = true;
-				Report.error (source_reference, "Assignment of [GtkChild] `%s' is not allowed", r.get_full_name ());
+				Report.error (source_reference, "Assignment of [GtkChild] `%s' is not allowed", inner.symbol_reference.get_full_name ());
 				return false;
 			}
 			break;

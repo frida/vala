@@ -25,7 +25,7 @@ using GLib;
 /**
  * Represents an object creation expression in the source code.
  */
-public class Vala.ObjectCreationExpression : Expression {
+public class Vala.ObjectCreationExpression : Expression, CallableExpression {
 	/**
 	 * The object type to create.
 	 */
@@ -256,13 +256,8 @@ public class Vala.ObjectCreationExpression : Expression {
 		value_type = type_reference.copy ();
 		value_type.value_owned = true;
 
-		int given_num_type_args = type_reference.get_type_arguments ().size;
-		int expected_num_type_args = 0;
-
 		if (type is Class) {
 			var cl = (Class) type;
-
-			expected_num_type_args = cl.get_type_parameters ().size;
 
 			if (struct_creation) {
 				error = true;
@@ -320,8 +315,6 @@ public class Vala.ObjectCreationExpression : Expression {
 		} else if (type is Struct) {
 			var st = (Struct) type;
 
-			expected_num_type_args = st.get_type_parameters ().size;
-
 			if (!struct_creation && !context.deprecated) {
 				Report.warning (source_reference, "deprecated syntax, don't use `new' to initialize structs");
 			}
@@ -337,13 +330,9 @@ public class Vala.ObjectCreationExpression : Expression {
 			}
 		}
 
-		if (expected_num_type_args > given_num_type_args) {
+		// check whether there is the expected amount of type-arguments
+		if (!type_reference.check_type_arguments (context)) {
 			error = true;
-			Report.error (source_reference, "too few type arguments");
-			return false;
-		} else if (expected_num_type_args < given_num_type_args) {
-			error = true;
-			Report.error (source_reference, "too many type arguments");
 			return false;
 		}
 
@@ -387,6 +376,18 @@ public class Vala.ObjectCreationExpression : Expression {
 					break;
 				}
 
+				if (param.params_array) {
+					var array_type = (ArrayType) param.variable_type;
+					while (arg_it.next ()) {
+						Expression arg = arg_it.get ();
+
+						/* store expected type for callback parameters */
+						arg.target_type = array_type.element_type;
+						arg.target_type.value_owned = array_type.value_owned;
+					}
+					break;
+				}
+
 				if (arg_it.next ()) {
 					Expression arg = arg_it.get ();
 
@@ -415,7 +416,7 @@ public class Vala.ObjectCreationExpression : Expression {
 						// recreate iterator and skip to right position
 						arg_it = argument_list.iterator ();
 						foreach (Parameter param in m.get_parameters ()) {
-							if (param.ellipsis) {
+							if (param.ellipsis || param.params_array) {
 								break;
 							}
 							arg_it.next ();
@@ -495,8 +496,35 @@ public class Vala.ObjectCreationExpression : Expression {
 			context.analyzer.check_type (type_reference);
 		}
 
+		// Unwrap chained member initializers
 		foreach (MemberInitializer init in get_object_initializer ()) {
-			context.analyzer.visit_member_initializer (init, type_reference);
+			if (!(init.initializer is MemberInitializer)) {
+				continue;
+			}
+
+			int index = object_initializer.index_of (init);
+			object_initializer.remove_at (index);
+			assert (index >= 0);
+
+			unowned MemberInitializer? inner_mi = (MemberInitializer) init.initializer;
+			while (inner_mi.initializer is MemberInitializer) {
+				inner_mi = (MemberInitializer) inner_mi.initializer;
+			}
+
+			var local = new LocalVariable (null, get_temp_name (), inner_mi.initializer, inner_mi.initializer.source_reference);
+			var decl = new DeclarationStatement (local, inner_mi.initializer.source_reference);
+			decl.check (context);
+			insert_statement (context.analyzer.insert_block, decl);
+
+			do {
+				var member_init = new MemberInitializer (inner_mi.name, new MemberAccess (null, local.name, inner_mi.source_reference), inner_mi.source_reference);
+				object_initializer.insert (index++, member_init);
+				inner_mi = inner_mi.parent_node as MemberInitializer;
+			} while (inner_mi != null);
+		}
+		foreach (MemberInitializer init in get_object_initializer ()) {
+			init.parent_node = this;
+			init.check (context);
 		}
 
 		// FIXME code duplication in MethodCall.check

@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip subdir-objects])
 AM_MAINTAINER_MODE([enable])
 
-API_VERSION=0.52
+API_VERSION=0.54
 PACKAGE_SUFFIX="-$API_VERSION"
 
 VALA_MAJOR_VERSION=`echo $PACKAGE_VERSION | cut -d. -f1 | sed s/[[a-zA-Z\-]].*//g`
@@ -122,6 +122,7 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=pointer-arith \
 -Werror=redundant-decls \
 -Werror=return-local-addr \
+-Werror=return-stack-address \
 -Werror=return-type \
 -Werror=sequence-point \
 -Werror=uninitialized \
@@ -151,6 +152,13 @@ for flag in $TEST_EXTRA_CFLAGS; do
 	AX_CHECK_COMPILE_FLAG([$flag],[TEST_CFLAGS="$TEST_CFLAGS $flag"])
 done
 
+AC_ARG_ENABLE(test-asan, AS_HELP_STRING([--enable-test-asan], [Enable Address Sanitizer analysis for tests]), enable_test_asan=$enableval, enable_test_asan=no)
+AM_CONDITIONAL(ENABLE_TEST_ASAN, test x$enable_test_asan = xyes)
+
+if test "$enable_test_asan" = "yes"; then
+	TEST_CFLAGS="$TEST_CFLAGS -g3 -fsanitize=address -fno-omit-frame-pointer"
+fi
+
 AC_SUBST(TEST_CFLAGS)
 
 
@@ -179,7 +187,7 @@ if test x$enable_valadoc = xyes; then
 	AC_RUN_IFELSE(
 		[AC_LANG_SOURCE([
 			#include <gvc.h>
-			int main(void) {
+			int main() {
 				#ifdef WITH_CGRAPH
 					return 0;
 				#else

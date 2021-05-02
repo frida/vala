@@ -7,11 +7,16 @@ namespace GirTest {
 	[CCode (cheader_filename = "girtest.h")]
 	public abstract class AbstractObjectTest : GLib.Object {
 		protected AbstractObjectTest ();
+		public abstract void method_implicit_params (int[] param1, owned GirTest.DelegateTest param2);
 		public abstract void method_int8_in (int8 param);
 		public abstract void method_int8_inout (ref int8 param);
 		public abstract void method_int8_out (out int8 param);
 		public abstract void method_throw () throws GirTest.ErrorTest;
 		public abstract void method_valist (int param, va_list vargs);
+		[NoWrapper]
+		public abstract void no_wrapper_method ();
+		[NoWrapper]
+		public abstract async void no_wrapper_method_async ();
 		[GIR (visible = false)]
 		public abstract async void skipped_coroutine_method (int param);
 	}
@@ -69,6 +74,7 @@ namespace GirTest {
 		public int[] int_in_int_in_array_return (int param1, int param2);
 		public ObjectTest.may_fail (int param) throws GirTest.ErrorTest;
 		public void method ();
+		public virtual void method_implicit_params (int[] param1, owned GirTest.DelegateTest param2);
 		public virtual void method_throw () throws GirTest.ErrorTest;
 		public void method_valist (int param, va_list vargs);
 		public void method_varargs (int param, ...);
@@ -76,6 +82,10 @@ namespace GirTest {
 		public virtual void method_with_default_impl (int8 param);
 		public ObjectTest.new_valist (int param, va_list vargs);
 		public ObjectTest.newv (int param, ...);
+		[NoWrapper]
+		public virtual void no_wrapper_method ();
+		[NoWrapper]
+		public virtual async void no_wrapper_method_async ();
 		public void none_in ();
 		public static void none_inout (ref unowned GirTest.ObjectTest obj);
 		public static void none_out (out unowned GirTest.ObjectTest obj);
@@ -118,10 +128,18 @@ namespace GirTest {
 	public interface InterfaceTest : GLib.Object {
 		public virtual async void coroutine_async ();
 		public virtual void int8_in (int8 param);
+		public virtual void method_implicit_params (int[] param1, owned GirTest.DelegateTest param2);
 		public virtual void method_valist (int param, va_list vargs);
+		[NoWrapper]
+		public virtual void no_wrapper_method ();
+		[NoWrapper]
+		public virtual async void no_wrapper_method_async ();
 		[GIR (visible = false)]
 		public virtual async void skipped_coroutine_method (int param);
+		public static void static_method ();
 		public abstract int property { get; set construct; }
+		[HasEmitter]
+		public signal void some_signal (int param);
 	}
 	[CCode (cheader_filename = "girtest.h")]
 	public interface PrerequisiteTest : GirTest.InterfaceTest {

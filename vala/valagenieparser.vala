@@ -1179,8 +1179,16 @@ public class Vala.Genie.Parser : CodeVisitor {
 		var begin = get_location ();
 		string id = parse_identifier ();
 		expect (TokenType.ASSIGN);
-		var expr = parse_expression ();
 
+		var inner = get_location ();
+		Expression expr;
+		try {
+			// chained member initializer
+			expr = parse_member_initializer ();
+		} catch {
+			rollback (inner);
+			expr = parse_expression ();
+		}
 		return new MemberInitializer (id, expr, get_src (begin));
 	}
 
@@ -2111,7 +2119,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 		expect_terminator ();
 
-		return new DoStatement (body, condition, get_src (begin));
+		return new DoStatement (condition, body, get_src (begin));
 	}
 
 

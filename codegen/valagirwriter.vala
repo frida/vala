@@ -361,7 +361,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 		string? csymbol_prefix = get_ccode_lower_case_suffix (ns);
 		if (csymbol_prefix != null) {
-			buffer.append_printf (" c:symbol-prefix=\"%s\"", csymbol_prefix);
+			buffer.append_printf (" c:symbol-prefixes=\"%s\"", csymbol_prefix);
 		}
 		buffer.append_printf (">\n");
 		indent++;
@@ -1099,9 +1099,9 @@ public class Vala.GIRWriter : CodeVisitor {
 	private void write_type_parameter (TypeParameter type_parameter, string tag_type) {
 		write_indent ();
 		if (tag_type == "property") {
-			buffer.append_printf ("<%s name=\"%s-type\" writable=\"1\" construct-only=\"1\">\n", tag_type, type_parameter.name.ascii_down ());
+			buffer.append_printf ("<%s name=\"%s\" writable=\"1\" construct-only=\"1\">\n", tag_type, get_ccode_type_id (type_parameter).replace ("_", "-"));
 		} else {
-			buffer.append_printf ("<%s name=\"%s_type\" transfer-ownership=\"none\">\n", tag_type, type_parameter.name.ascii_down ());
+			buffer.append_printf ("<%s name=\"%s\" transfer-ownership=\"none\">\n", tag_type, get_ccode_type_id (type_parameter));
 		}
 		indent++;
 		write_indent ();
@@ -1111,9 +1111,9 @@ public class Vala.GIRWriter : CodeVisitor {
 		buffer.append_printf ("</%s>\n", tag_type);
 		write_indent ();
 		if (tag_type == "property") {
-			buffer.append_printf ("<%s name=\"%s-dup-func\" writable=\"1\" construct-only=\"1\">\n", tag_type, type_parameter.name.ascii_down ());
+			buffer.append_printf ("<%s name=\"%s\" writable=\"1\" construct-only=\"1\">\n", tag_type, get_ccode_copy_function (type_parameter).replace ("_", "-"));
 		} else {
-			buffer.append_printf ("<%s name=\"%s_dup_func\" transfer-ownership=\"none\">\n", tag_type, type_parameter.name.ascii_down ());
+			buffer.append_printf ("<%s name=\"%s\" transfer-ownership=\"none\">\n", tag_type, get_ccode_copy_function (type_parameter));
 		}
 		indent++;
 		write_indent ();
@@ -1123,9 +1123,9 @@ public class Vala.GIRWriter : CodeVisitor {
 		buffer.append_printf ("</%s>\n", tag_type);
 		write_indent ();
 		if (tag_type == "property") {
-			buffer.append_printf ("<%s name=\"%s-destroy-func\" writable=\"1\" construct-only=\"1\">\n", tag_type, type_parameter.name.ascii_down ());
+			buffer.append_printf ("<%s name=\"%s\" writable=\"1\" construct-only=\"1\">\n", tag_type, get_ccode_destroy_function (type_parameter).replace ("_", "-"));
 		} else {
-			buffer.append_printf ("<%s name=\"%s_destroy_func\" transfer-ownership=\"none\">\n", tag_type, type_parameter.name.ascii_down ());
+			buffer.append_printf ("<%s name=\"%s\" transfer-ownership=\"none\">\n", tag_type, get_ccode_destroy_function (type_parameter));
 		}
 		indent++;
 		write_indent ();
@@ -1135,7 +1135,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		buffer.append_printf ("</%s>\n", tag_type);
 	}
 
-	private void write_params_and_return (List<Parameter> params, List<TypeParameter>? type_params, DataType? return_type, bool return_array_length, string? return_comment = null, bool constructor = false, Parameter? instance_param = null, bool user_data = false) {
+	private void write_params_and_return (string tag_name, List<Parameter> params, List<TypeParameter>? type_params, DataType? return_type, bool return_array_length, string? return_comment = null, bool constructor = false, Parameter? instance_param = null, bool user_data = false) {
 		int last_index = 0;
 		bool ret_is_struct = return_type != null && return_type.is_real_non_null_struct_type ();
 
@@ -1179,7 +1179,12 @@ public class Vala.GIRWriter : CodeVisitor {
 					type.nullable = true;
 				}
 				int skip = 0;
-				write_param_or_return (type, "instance-parameter", ref skip, false, "self");
+				if (tag_name == "callback") {
+					write_param_or_return (type, "parameter", ref skip, false, "self");
+					index++;
+				} else {
+					write_param_or_return (type, "instance-parameter", ref skip, false, "self");
+				}
 			}
 
 			if (type_params != null) {
@@ -1190,9 +1195,9 @@ public class Vala.GIRWriter : CodeVisitor {
 			}
 
 			foreach (Parameter param in params) {
-				write_param_or_return (param.variable_type, "parameter", ref index, get_ccode_array_length (param), param.name, get_parameter_comment (param), param.direction, false, false, param.ellipsis || param.params_array);
+				write_param_or_return (param.variable_type, "parameter", ref index, get_ccode_array_length (param), get_ccode_name (param), get_parameter_comment (param), param.direction, false, false, param.ellipsis || param.params_array);
 
-				write_implicit_params (param.variable_type, ref index, get_ccode_array_length (param), param.name, param.direction);
+				write_implicit_params (param.variable_type, ref index, get_ccode_array_length (param), get_ccode_name (param), param.direction);
 			}
 
 			if (ret_is_struct) {
@@ -1244,7 +1249,7 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		write_doc (get_delegate_comment (cb));
 
-		write_params_and_return (cb.get_parameters (), cb.get_type_parameters (), cb.return_type, get_ccode_array_length (cb), get_delegate_return_comment (cb), false, null, cb.has_target);
+		write_params_and_return ("callback", cb.get_parameters (), cb.get_type_parameters (), cb.return_type, get_ccode_array_length (cb), get_delegate_return_comment (cb), false, null, cb.has_target);
 
 		indent--;
 		write_indent ();
@@ -1276,7 +1281,9 @@ public class Vala.GIRWriter : CodeVisitor {
 			tag_name = "function";
 		}
 
-		write_signature (m, tag_name, true);
+		if (!get_ccode_no_wrapper (m) && m.signal_reference == null) {
+			write_signature (m, tag_name, true);
+		}
 
 		if (m.is_abstract || m.is_virtual) {
 			write_signature (m, "virtual-method", true, false);
@@ -1343,7 +1350,9 @@ public class Vala.GIRWriter : CodeVisitor {
 		write_indent ();
 		buffer.append_printf ("<%s name=\"%s\"", tag_name, name);
 		if (tag_name == "virtual-method") {
-			buffer.append_printf (" invoker=\"%s\"", name);
+			if (!get_ccode_no_wrapper (m)) {
+				buffer.append_printf (" invoker=\"%s\"", name);
+			}
 		} else if (tag_name == "callback") {
 			/* this is only used for vfuncs */
 			buffer.append_printf (" c:type=\"%s\"", name);
@@ -1365,7 +1374,7 @@ public class Vala.GIRWriter : CodeVisitor {
 			write_doc (get_method_comment (m));
 		}
 
-		write_params_and_return (params, m.get_type_parameters (), return_type, get_ccode_array_length (m), return_comment, false, m.this_parameter);
+		write_params_and_return (tag_name, params, m.get_type_parameters (), return_type, get_ccode_array_length (m), return_comment, false, m.this_parameter);
 
 		indent--;
 		write_indent ();
@@ -1413,7 +1422,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		if (m.parent_symbol is Class) {
 			type_params = ((Class) m.parent_symbol).get_type_parameters ();
 		}
-		write_params_and_return (m.get_parameters (), type_params, datatype, false, get_method_return_comment (m), true);
+		write_params_and_return (tag_name, m.get_parameters (), type_params, datatype, false, get_method_return_comment (m), true);
 
 		indent--;
 		write_indent ();
@@ -1478,6 +1487,10 @@ public class Vala.GIRWriter : CodeVisitor {
 			sig.emitter.accept (this);
 		}
 
+		if (sig.default_handler != null) {
+			sig.default_handler.accept (this);
+		}
+
 		write_indent ();
 		buffer.append_printf ("<glib:signal name=\"%s\"", get_ccode_name (sig));
 		write_symbol_attributes (sig);
@@ -1486,7 +1499,7 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		write_doc (get_signal_comment (sig));
 
-		write_params_and_return (sig.get_parameters (), null, sig.return_type, false, get_signal_return_comment (sig));
+		write_params_and_return ("glib:signal", sig.get_parameters (), null, sig.return_type, false, get_signal_return_comment (sig));
 
 		indent--;
 		write_indent ();

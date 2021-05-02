@@ -1829,6 +1829,47 @@ namespace GLib {
 
 	/* Atomic Operations */
 
+#if GLIB_2_68
+	[Version (since = "2.4")]
+	namespace AtomicInt {
+		public static int get (ref int atomic);
+		public static void set (ref int atomic, int newval);
+		[Version (since = "2.30")]
+		public static int add (ref int atomic, int val);
+		[Version (deprecated_since = "2.30", replacement = "add")]
+		public static int exchange_and_add (ref int atomic, int val);
+		public static bool compare_and_exchange (ref int atomic, int oldval, int newval);
+		public static void inc (ref int atomic);
+		public static bool dec_and_test (ref int atomic);
+	}
+
+	[Version (since = "2.4")]
+	namespace AtomicUint {
+		[CCode (cname = "g_atomic_int_get")]
+		public static uint get (ref uint atomic);
+		[CCode (cname = "g_atomic_int_set")]
+		public static void set (ref uint atomic, uint newval);
+		[Version (since = "2.30")]
+		[CCode (cname = "g_atomic_int_add")]
+		public static uint add (ref uint atomic, uint val);
+		[Version (deprecated_since = "2.30", replacement = "add")]
+		[CCode (cname = "g_atomic_int_exchange_and_add")]
+		public static uint exchange_and_add (ref uint atomic, uint val);
+		[CCode (cname = "g_atomic_int_compare_and_exchange")]
+		public static bool compare_and_exchange (ref uint atomic, uint oldval, uint newval);
+		[CCode (cname = "g_atomic_int_inc")]
+		public static void inc (ref uint atomic);
+		[CCode (cname = "g_atomic_int_dec_and_test")]
+		public static bool dec_and_test (ref uint atomic);
+	}
+
+	[Version (since = "2.4")]
+	namespace AtomicPointer {
+		public static void* get (void** atomic);
+		public static void set (void** atomic, void* newval);
+		public static bool compare_and_exchange (void** atomic, void* oldval, void* newval);
+	}
+#else
 	[Version (since = "2.4")]
 	namespace AtomicInt {
 		public static int get ([CCode (type = "volatile gint *")] ref int atomic);
@@ -1868,6 +1909,7 @@ namespace GLib {
 		public static void set ([CCode (type = "volatile gpointer *")] void** atomic, void* newval);
 		public static bool compare_and_exchange ([CCode (type = "volatile gpointer *")] void** atomic, void* oldval, void* newval);
 	}
+#endif
 
 	/* The Main Event Loop */
 
@@ -2165,12 +2207,10 @@ namespace GLib {
 		public static void yield ();
 		public static void exit (T retval);
 		[Version (deprecated_since = "2.32", since = "2.10")]
-		public static void @foreach (Func<Thread> thread_func);
+		public static void @foreach (Func<Thread<T>> thread_func);
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -2309,10 +2349,17 @@ namespace GLib {
 	public struct Once<G> {
 		[CCode (cname = "g_once")]
 		public unowned G once (OnceFunc<G> function);
+#if GLIB_2_68
+		[Version (since = "2.14")]
+		public static bool init_enter (size_t *value);
+		[Version (since = "2.14")]
+		public static void init_leave (size_t *value, size_t set_value);
+#else
 		[Version (since = "2.14")]
 		public static bool init_enter ([CCode (type="volatile gsize *")] size_t *value);
 		[Version (since = "2.14")]
 		public static void init_leave ([CCode (type="volatile gsize *")] size_t *value, size_t set_value);
+#endif
 		public OnceStatus status;
 	}
 
@@ -2348,10 +2395,10 @@ namespace GLib {
 		[CCode (cname = "g_thread_pool_free")]
 		void _free (bool immediate, bool wait);
 		[CCode (cname = "vala__g_thread_pool_free_wrapper")]
-		public static void free (owned ThreadPool? pool, bool immediate, bool wait) {
-			ThreadPool* ptr = (owned) pool;
+		public static void free (owned ThreadPool<T>? pool, bool immediate, bool wait) {
+			ThreadPool<T>* ptr = (owned) pool;
 			if (ptr != null) {
-				((ThreadPool)ptr)._free (immediate, wait);
+				((ThreadPool<T>)ptr)._free (immediate, wait);
 			}
 		}
 		public static void set_max_unused_threads (int max_threads);
@@ -2446,6 +2493,9 @@ namespace GLib {
 		public static void* move (void* dest, void* src, size_t n);
 		[CCode (cname = "g_memdup")]
 		public static void* dup (void* mem, uint n);
+		[Version (since = "2.68")]
+		[CCode (cname = "g_memdup2")]
+		public static void* dup2 (void* mem, size_t n);
 	}
 
 	[Version (since = "2.10")]
@@ -2679,6 +2729,8 @@ namespace GLib {
 
 	[Version (since = "2.16")]
 	public static void assert_cmpstr (string? s1, CompareOperator cmp, string? s2);
+	[Version (since = "2.68")]
+	public static void assert_cmpstrv ([CCode (array_length = false, array_null_terminated = true)] string[] strv1, [CCode (array_length = false, array_null_terminated = true)] string[] strv2);
 	[Version (since = "2.16")]
 	public static void assert_cmpint (int n1, CompareOperator cmp, int n2);
 	[Version (since = "2.16")]
@@ -2802,6 +2854,10 @@ namespace GLib {
 		public static bool writer_is_journald (int output_fd);
 		[Version (since = "2.50")]
 		public static string writer_format_fields (LogLevelFlags log_levels, [CCode (array_length_type = "gsize")] LogField[] fields, bool use_color);
+		[Version (since = "2.68")]
+		public static void writer_default_set_use_stderr (bool use_stderr);
+		[Version (since = "2.68")]
+		public static bool writer_default_would_drop (LogLevelFlags log_level, string log_domain);
 		[Version (since = "2.50")]
 		[CCode (delegate_target = false)]
 		public static LogWriterFunc writer_journald;
@@ -3232,8 +3288,16 @@ namespace GLib {
 	public class TimeZone {
 		[Version (deprecated = true, deprecated_since = "2.68", replacement = "TimeZone.identifier")]
 		public TimeZone (string identifier);
+		[CCode (cname = "g_time_zone_new_identifier")]
+		TimeZone.new_identifier (string? identifier);
 		[Version (since = "2.68")]
-		public TimeZone.identifier (string identifier);
+		[CCode (cname = "vala_g_time_zone_new_identifier")]
+		public TimeZone.identifier (string? identifier) throws Error {
+			this.new_identifier (identifier);
+			if ((TimeZone?) this == null) {
+				throw new ConvertError.ILLEGAL_SEQUENCE ("Invalid identifier argument");
+			}
+		}
 		public TimeZone.utc ();
 		public TimeZone.local ();
 		[Version (since = "2.58")]
@@ -3708,6 +3772,8 @@ namespace GLib {
 		[Version (since = "2.58")]
 		public static bool spawn_async_with_fds (string? working_directory, [CCode (array_length = false, array_null_terminated = true)] string[] argv, [CCode (array_length = false, array_null_terminated = true)] string[]? envp, SpawnFlags _flags, SpawnChildSetupFunc? child_setup, out Pid child_pid = null, int stdin_fd = -1, int stdout_fd = -1, int stderr_fd = -1) throws SpawnError;
 		public static bool spawn_async_with_pipes (string? working_directory, [CCode (array_length = false, array_null_terminated = true)] string[] argv, [CCode (array_length = false, array_null_terminated = true)] string[]? envp, SpawnFlags _flags, SpawnChildSetupFunc? child_setup, out Pid child_pid, out int standard_input = null, out int standard_output = null, out int standard_error = null) throws SpawnError;
+		[Version (since = "2.68")]
+		public static bool spawn_async_with_pipes_and_fds (string? working_directory, [CCode (array_length = false, array_null_terminated = true)] string[] argv, [CCode (array_length = false, array_null_terminated = true)] string[]? envp, SpawnFlags _flags, SpawnChildSetupFunc? child_setup, int stdin_fd, int stdout_fd, int stderr_fd, [CCode (array_length_pos = 10.1, array_length_type = "size_t")] int[] source_fds, [CCode (array_length_pos = 10.1, array_length_type = "size_t")] int[] target_fds, out Pid child_pid, out int standard_input = null, out int standard_output = null, out int standard_error = null) throws SpawnError;
 		public static bool spawn_async (string? working_directory, [CCode (array_length = false, array_null_terminated = true)] string[] argv, [CCode (array_length = false, array_null_terminated = true)] string[]? envp, SpawnFlags _flags, SpawnChildSetupFunc? child_setup, out Pid child_pid) throws SpawnError;
 		public static bool spawn_sync (string? working_directory, [CCode (array_length = false, array_null_terminated = true)] string[] argv, [CCode (array_length = false, array_null_terminated = true)] string[]? envp, SpawnFlags _flags, SpawnChildSetupFunc? child_setup, out string standard_output = null, out string standard_error = null, out int exit_status = null) throws SpawnError;
 		public static bool spawn_command_line_async (string command_line) throws SpawnError;
@@ -3891,11 +3957,7 @@ namespace GLib {
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h", has_type_id = false)]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h", has_type_id = false)]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -3941,11 +4003,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
@@ -4802,6 +4860,8 @@ namespace GLib {
 		public static unowned string get_dir (GLib.Test.FileType file_type);
 		[Version (since = "2.38")]
 		public static unowned string get_filename (GLib.Test.FileType file_type, params string[] path_segments);
+		[Version (since = "2.68")]
+		public static unowned string get_path ();
 		[Version (since = "2.38")]
 		public static void incomplete (string? msg = null);
 		[Version (since = "2.36")]
@@ -4974,7 +5034,7 @@ namespace GLib {
 
 		[CCode (cname = "vala_g_list_is_empty")]
 		public inline bool is_empty () {
-			return (List?) this == null;
+			return (List<G>?) this == null;
 		}
 
 		public G data;
@@ -5039,7 +5099,7 @@ namespace GLib {
 
 		[CCode (cname = "vala_g_slist_is_empty")]
 		public inline bool is_empty () {
-			return (SList?) this == null;
+			return (SList<G>?) this == null;
 		}
 
 		public G data;
@@ -5080,7 +5140,7 @@ namespace GLib {
 		public uint get_length ();
 		[Version (since = "2.4")]
 		public void reverse ();
-		public Queue copy ();
+		public Queue<G> copy ();
 		[Version (since = "2.4")]
 		public unowned List<G> find (G data);
 		[Version (since = "2.4")]
@@ -5396,6 +5456,8 @@ namespace GLib {
 		public void vprintf (string format, va_list args);
 		[Version (since = "2.14")]
 		public void append_vprintf (string format, va_list args);
+		[Version (since = "2.68")]
+		public uint replace (string find, string replace, uint limit = 0U);
 
 		public string str;
 		public ssize_t len;
@@ -5472,7 +5534,7 @@ namespace GLib {
 		[Version (since = "2.54")]
 		public bool find (G needle, out uint index = null);
 		[Version (since = "2.54")]
-		[CCode (cname = "g_ptr_array_find_with_equal_func")]
+		[CCode (cname = "g_ptr_array_find_with_equal_func", simple_generics = true)]
 		public bool find_custom<T> (T needle, GLib.ArraySearchFunc<G,T>? equal_func, out uint index = null);
 		[Version (since = "2.54")]
 		public bool find_with_equal_func (G needle, GLib.EqualFunc<G>? equal_func, out uint index = null);
@@ -5602,8 +5664,8 @@ namespace GLib {
 
 	/* N-ary Trees */
 
-	public delegate bool NodeTraverseFunc (Node node);
-	public delegate void NodeForeachFunc (Node node);
+	public delegate bool NodeTraverseFunc<G> (Node<G> node);
+	public delegate void NodeForeachFunc<G> (Node<G> node);
 
 	[CCode (cprefix = "G_TRAVERSE_")]
 	public enum TraverseFlags {
@@ -5631,8 +5693,8 @@ namespace GLib {
 		public unowned Node<G> append_data (owned G data);
 		public unowned Node<G> prepend_data (owned G data);
 		public void reverse_children ();
-		public void traverse (TraverseType order, TraverseFlags flags, int max_depth, NodeTraverseFunc func);
-		public void children_foreach (TraverseFlags flags, NodeForeachFunc func);
+		public void traverse (TraverseType order, TraverseFlags flags, int max_depth, NodeTraverseFunc<G> func);
+		public void children_foreach (TraverseFlags flags, NodeForeachFunc<G> func);
 		public unowned Node<G> get_root ();
 		public unowned Node<G> find (TraverseType order, TraverseFlags flags, G data);
 		public unowned Node<G> find_child (TraverseFlags flags, G data);
@@ -5668,10 +5730,10 @@ namespace GLib {
 		}
 
 		public G data;
-		public Node next;
-		public Node prev;
-		public Node parent;
-		public Node children;
+		public Node<G> next;
+		public Node<G> prev;
+		public Node<G> parent;
+		public Node<G> children;
 	}
 
 	/* Quarks */
@@ -5778,7 +5840,7 @@ namespace GLib {
 
 	/* GTree */
 
-	public delegate bool TraverseNodeFunc<K,V> (TreeNode node);
+	public delegate bool TraverseNodeFunc<K,V> (TreeNode<K,V> node);
 
 	[Compact]
 	[Version (since = "2.68")]
@@ -6674,11 +6736,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }

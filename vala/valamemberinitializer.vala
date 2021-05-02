@@ -26,7 +26,7 @@ using GLib;
  * Represents a member initializer, i.e. an element of an object initializer, in
  * the source code.
  */
-public class Vala.MemberInitializer : CodeNode {
+public class Vala.MemberInitializer : Expression {
 	/**
 	 * Member name.
 	 */
@@ -42,11 +42,6 @@ public class Vala.MemberInitializer : CodeNode {
 			_initializer.parent_node = this;
 		}
 	}
-
-	/**
-	 * The symbol this expression refers to.
-	 */
-	public weak Symbol symbol_reference { get; set; }
 
 	Expression _initializer;
 
@@ -64,12 +59,69 @@ public class Vala.MemberInitializer : CodeNode {
 		this.name = name;
 	}
 
+	public override bool is_pure () {
+		return false;
+	}
+
 	public override void accept (CodeVisitor visitor) {
 		initializer.accept (visitor);
 	}
 
 	public override bool check (CodeContext context) {
-		return initializer.check (context);
+		if (checked) {
+			return !error;
+		}
+
+		checked = true;
+
+		unowned ObjectCreationExpression? oce = parent_node as ObjectCreationExpression;
+		if (oce == null) {
+			error = true;
+			Report.error (source_reference, "internal: Invalid member initializer");
+			return false;
+		}
+
+		unowned DataType type = oce.type_reference;
+
+		symbol_reference = SemanticAnalyzer.symbol_lookup_inherited (type.type_symbol, name);
+		if (!(symbol_reference is Field || symbol_reference is Property)) {
+			error = true;
+			Report.error (source_reference, "Invalid member `%s' in `%s'", name, type.type_symbol.get_full_name ());
+			return false;
+		}
+		if (symbol_reference.access != SymbolAccessibility.PUBLIC) {
+			error = true;
+			Report.error (source_reference, "Access to private member `%s' denied", symbol_reference.get_full_name ());
+			return false;
+		}
+		DataType member_type = null;
+		if (symbol_reference is Field) {
+			unowned Field f = (Field) symbol_reference;
+			member_type = f.variable_type;
+		} else if (symbol_reference is Property) {
+			unowned Property prop = (Property) symbol_reference;
+			member_type = prop.property_type;
+			if (prop.set_accessor == null || !prop.set_accessor.writable) {
+				error = true;
+				Report.error (source_reference, "Property `%s' is read-only", prop.get_full_name ());
+				return false;
+			}
+		}
+
+		initializer.formal_target_type = member_type;
+		initializer.target_type = initializer.formal_target_type.get_actual_type (type, null, this);
+
+		if (!initializer.check (context)) {
+			return false;
+		}
+
+		if (initializer.value_type == null || !initializer.value_type.compatible (initializer.target_type)) {
+			error = true;
+			Report.error (source_reference, "Invalid type for member `%s'", name);
+			return false;
+		}
+
+		return !error;
 	}
 
 	public override void emit (CodeGenerator codegen) {
