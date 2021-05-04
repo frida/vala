@@ -337,7 +337,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 	public TypeSymbol gstringbuilder_type;
 	public TypeSymbol garray_type;
 	public TypeSymbol gbytearray_type;
-	public TypeSymbol gptrarray_type;
+	public TypeSymbol genericarray_type;
 	public TypeSymbol gthreadpool_type;
 	public DataType gquark_type;
 	public Struct gvalue_type;
@@ -510,7 +510,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			gstringbuilder_type = (TypeSymbol) glib_ns.scope.lookup ("StringBuilder");
 			garray_type = (TypeSymbol) glib_ns.scope.lookup ("Array");
 			gbytearray_type = (TypeSymbol) glib_ns.scope.lookup ("ByteArray");
-			gptrarray_type = (TypeSymbol) glib_ns.scope.lookup ("PtrArray");
+			genericarray_type = (TypeSymbol) glib_ns.scope.lookup ("GenericArray");
 			gthreadpool_type = (TypeSymbol) glib_ns.scope.lookup ("ThreadPool");
 
 			gerror = (Class) root_symbol.scope.lookup ("GLib").scope.lookup ("Error");
@@ -2539,20 +2539,80 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		return get_cexpression ("self");
 	}
 
-	public CCodeExpression get_this_interface_cexpression (Interface iface) {
-		if (current_class.implements (iface)) {
-			return new CCodeIdentifier ("%s_%s_parent_iface".printf (get_ccode_lower_case_name (current_class), get_ccode_lower_case_name (iface)));
+	public CCodeExpression get_this_class_cexpression (Class cl, TargetValue? instance = null) {
+		CCodeExpression cast;
+		CCodeFunctionCall call;
+		if (instance != null) {
+			// Accessing the member of an instance
+			if (cl.external_package) {
+				call = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_INSTANCE_GET_CLASS"));
+				call.add_argument (get_cvalue_ (instance));
+				call.add_argument (new CCodeIdentifier (get_ccode_type_id (cl)));
+				call.add_argument (new CCodeIdentifier (get_ccode_type_name (cl)));
+			} else {
+				call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (cl)));
+				call.add_argument (get_cvalue_ (instance));
+			}
+			cast = call;
+		} else if (get_this_type () != null) {
+			// Accessing the member from within an instance method
+			if (cl.external_package) {
+				call = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_INSTANCE_GET_CLASS"));
+				call.add_argument (get_this_cexpression ());
+				call.add_argument (new CCodeIdentifier (get_ccode_type_id (cl)));
+				call.add_argument (new CCodeIdentifier (get_ccode_type_name (cl)));
+			} else {
+				call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (cl)));
+				call.add_argument (get_this_cexpression ());
+			}
+			cast = call;
+		} else {
+			// Accessing the member from a static or class constructor
+			cast = new CCodeIdentifier ("klass");
+		}
+		return cast;
+	}
+
+	public CCodeExpression get_this_interface_cexpression (Interface iface, TargetValue? instance = null) {
+		unowned Class? cl = current_class;
+		if (cl != null && cl.implements (iface)) {
+			return new CCodeIdentifier ("%s_%s_parent_iface".printf (get_ccode_lower_case_name (cl), get_ccode_lower_case_name (iface)));
 		}
 
-		if (!current_class.is_a (iface)) {
-			Report.warning (current_class.source_reference, "internal: `%s' is not a `%s'", current_class.get_full_name (), iface.get_full_name ());
+		if (cl != null && !cl.is_a (iface)) {
+			Report.warning (cl.source_reference, "internal: `%s' is not a `%s'", cl.get_full_name (), iface.get_full_name ());
 		}
 
-		var vcast = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_INSTANCE_GET_INTERFACE"));
-		vcast.add_argument (get_this_cexpression ());
-		vcast.add_argument (new CCodeIdentifier (get_ccode_type_id (iface)));
-		vcast.add_argument (new CCodeIdentifier (get_ccode_type_name (iface)));
-		return vcast;
+		CCodeExpression cast;
+		CCodeFunctionCall call;
+		if (instance != null) {
+			if (iface.external_package) {
+				call = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_INSTANCE_GET_INTERFACE"));
+				call.add_argument (get_cvalue_ (instance));
+				call.add_argument (new CCodeIdentifier (get_ccode_type_id (iface)));
+				call.add_argument (new CCodeIdentifier (get_ccode_type_name (iface)));
+			} else {
+				call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (iface)));
+				call.add_argument (get_cvalue_ (instance));
+			}
+			cast = call;
+		} else if (get_this_type () != null) {
+			if (iface.external_package) {
+				call = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_INSTANCE_GET_INTERFACE"));
+				call.add_argument (get_this_cexpression ());
+				call.add_argument (new CCodeIdentifier (get_ccode_type_id (iface)));
+				call.add_argument (new CCodeIdentifier (get_ccode_type_name (iface)));
+			} else {
+				call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_type_get_function (iface)));
+				call.add_argument (get_this_cexpression ());
+			}
+			cast = call;
+		} else {
+			Report.error (null, "internal: missing instance");
+			cast = null;
+			assert_not_reached ();
+		}
+		return cast;
 	}
 
 	public CCodeExpression get_inner_error_cexpression () {
@@ -3789,11 +3849,8 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		var ccomma = new CCodeCommaExpression ();
 
 		if (context.profile == Profile.GOBJECT
-		    && type.type_symbol != null && !is_reference_counting (type.type_symbol) &&
-		    (type.type_symbol.is_subtype_of (gstringbuilder_type)
-		     || type.type_symbol.is_subtype_of (garray_type)
-		     || type.type_symbol.is_subtype_of (gbytearray_type)
-		     || type.type_symbol.is_subtype_of (gptrarray_type))) {
+		    && type.type_symbol != null && !is_reference_counting (type.type_symbol)
+		    && type.type_symbol.is_subtype_of (gstringbuilder_type)) {
 			ccall.add_argument (new CCodeConstant ("TRUE"));
 		} else if (context.profile == Profile.GOBJECT
 		    && type.type_symbol == gthreadpool_type) {
@@ -4203,33 +4260,17 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 	private CCodeExpression get_lock_expression (Statement stmt, Expression resource) {
 		CCodeExpression l = null;
-		var inner_node = ((MemberAccess)resource).inner;
 		var member = resource.symbol_reference;
 		var parent = (TypeSymbol)resource.symbol_reference.parent_symbol;
 
 		if (member.is_instance_member ()) {
-			if (inner_node  == null) {
-				l = new CCodeIdentifier ("self");
-			} else if (parent != current_type_symbol) {
-				l = generate_instance_cast (get_cvalue (inner_node), parent);
-			} else {
-				l = get_cvalue (inner_node);
-			}
-
+			l = get_cvalue (((MemberAccess) resource).inner);
 			l = new CCodeMemberAccess.pointer (new CCodeMemberAccess.pointer (l, "priv"), get_symbol_lock_name (get_ccode_name (member)));
 		} else if (member.is_class_member ()) {
-			CCodeExpression klass;
-
-			if (get_this_type () != null) {
-				var k = new CCodeFunctionCall (new CCodeIdentifier ("G_OBJECT_GET_CLASS"));
-				k.add_argument (new CCodeIdentifier ("self"));
-				klass = k;
-			} else {
-				klass = new CCodeIdentifier ("klass");
-			}
-
-			var get_class_private_call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_get_private_function ((Class) parent)));
-			get_class_private_call.add_argument (klass);
+			unowned Class cl = (Class) parent;
+			var cast = get_this_class_cexpression (cl);
+			var get_class_private_call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_get_private_function (cl)));
+			get_class_private_call.add_argument (cast);
 			l = new CCodeMemberAccess.pointer (get_class_private_call, get_symbol_lock_name (get_ccode_name (member)));
 		} else {
 			string lock_name = "%s_%s".printf (get_ccode_lower_case_name (parent), get_ccode_name (member));
