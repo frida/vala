@@ -173,6 +173,10 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			function.modifiers |= CCodeModifiers.INTERNAL;
 		}
 
+		if (m.entry_point) {
+			function.modifiers |= CCodeModifiers.STATIC;
+		}
+
 		if (m.version.deprecated) {
 			if (context.profile == Profile.GOBJECT) {
 				decl_space.add_include ("glib.h");
@@ -417,6 +421,10 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 
 		if (m.is_inline) {
 			function.modifiers |= CCodeModifiers.INLINE;
+		}
+
+		if (m.entry_point) {
+			function.modifiers |= CCodeModifiers.STATIC;
 		}
 
 		var cparam_map = new HashMap<int,CCodeParameter> (direct_hash, direct_equal);
@@ -830,8 +838,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 					ccode.add_expression (mem_profiler_init_call);
 				}
 			}
-
-			ccode.add_statement (new CCodeExpressionStatement.behind_ifdef ("GLIB_DYNAMIC_UNLOADING", new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
 
 			var main_call = new CCodeFunctionCall (new CCodeIdentifier (function.name));
 			if (m.get_parameters ().size == 1) {
