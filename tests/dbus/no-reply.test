@@ -5,8 +5,10 @@ Program: client
 
 [DBus (name = "org.example.Test")]
 interface Test : Object {
-	public abstract async string[] list_messages () throws IOError;
-	public abstract async void post_message (string message) throws IOError;
+	public abstract string[] list_messages () throws IOError;
+	public abstract void post_message (string message) throws IOError;
+	[DBus (no_reply = true)]
+	public abstract void post_message_no_reply (string message) throws IOError;
 }
 
 MainLoop main_loop;
@@ -30,18 +32,18 @@ async void run () {
 		return message;
 	});
 
-	string[] messages = yield test.list_messages ();
+	string[] messages = test.list_messages ();
 	assert (messages.length == 0);
 
-	yield test.post_message ("round-trip");
+	test.post_message ("round-trip");
 	assert (events.pop () == "G_DBUS_MESSAGE_FLAGS_NONE");
 	assert (events.try_pop () == null);
 
-	test.post_message.begin ("fire-and-forget");
+	test.post_message_no_reply ("fire-and-forget");
 	assert (events.pop () == "G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED");
 	assert (events.try_pop () == null);
 
-	messages = yield test.list_messages ();
+	messages = test.list_messages ();
 	assert (messages.length == 2);
 	assert (messages[0] == "round-trip");
 	assert (messages[1] == "fire-and-forget");
@@ -62,11 +64,16 @@ Program: server
 class Test : Object {
 	private string[] messages = new string[0];
 
-	public async string[] list_messages () {
+	public string[] list_messages () {
 		return messages;
 	}
 
-	public async void post_message (string message) {
+	public void post_message (string message) {
+		messages += message;
+	}
+
+	[DBus (no_reply = true)]
+	public void post_message_no_reply (string message) {
 		messages += message;
 	}
 }
@@ -87,7 +94,7 @@ void main () {
 	assert ((uint) request_result.get_child_value (0) == 1);
 
 	Pid client_pid;
-	Process.spawn_async (null, { "dbus_async_no_reply_client" }, null, SpawnFlags.DO_NOT_REAP_CHILD, null, out client_pid);
+	Process.spawn_async (null, { "dbus_no_reply_client" }, null, SpawnFlags.DO_NOT_REAP_CHILD, null, out client_pid);
 	ChildWatch.add (client_pid, client_exit);
 
 	main_loop = new MainLoop ();
