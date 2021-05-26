@@ -2119,8 +2119,8 @@ namespace GLib {
 		[CCode (cname = "G_SOURCE_REMOVE")]
 		public const bool REMOVE;
 
-		protected abstract bool prepare (out int timeout_);
-		protected abstract bool check ();
+		protected virtual bool prepare (out int timeout_);
+		protected virtual bool check ();
 		protected abstract bool dispatch (SourceFunc? _callback);
 	}
 
@@ -2138,10 +2138,10 @@ namespace GLib {
 
 	[CCode (has_type_id = false)]
 	public struct SourceFuncs {
-		public SourcePrepareFunc prepare;
-		public SourceCheckFunc check;
+		public SourcePrepareFunc? prepare;
+		public SourceCheckFunc? check;
 		public SourceDispatchFunc dispatch;
-		public SourceFinalizeFunc finalize;
+		public SourceFinalizeFunc? finalize;
 	}
 
 	[CCode (has_target = false)]
