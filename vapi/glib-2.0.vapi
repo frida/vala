@@ -2127,13 +2127,13 @@ namespace GLib {
 	[CCode (has_target = false)]
 	public delegate void SourceDummyMarshal ();
 
-	[CCode (has_target = false)]
+	[CCode (has_target = false, has_typedef = false)]
 	public delegate bool SourcePrepareFunc (Source source, out int timeout_);
-	[CCode (has_target = false)]
+	[CCode (has_target = false, has_typedef = false)]
 	public delegate bool SourceCheckFunc (Source source);
-	[CCode (has_target = false)]
+	[CCode (has_target = false, has_typedef = false)]
 	public delegate bool SourceDispatchFunc (Source source, SourceFunc? _callback);
-	[CCode (has_target = false)]
+	[CCode (has_target = false, has_typedef = false)]
 	public delegate void SourceFinalizeFunc (Source source);
 
 	[CCode (has_type_id = false)]
@@ -2211,8 +2211,6 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -3959,11 +3957,7 @@ namespace GLib {
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h", has_type_id = false)]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h", has_type_id = false)]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -4009,11 +4003,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
@@ -6746,11 +6736,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }
