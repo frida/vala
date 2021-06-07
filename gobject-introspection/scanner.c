@@ -24,9 +24,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#ifndef YY_NO_UNISTD_H
 #include <unistd.h>
-#endif
 #include <ctype.h>
 #include <errno.h>
 #include <glib.h>
@@ -1698,10 +1696,6 @@ main (int argc, char **argv)
 	"Other gidls to include", "IDL" },
       { NULL }
     };
-
-#ifdef GLIB_DYNAMIC_UNLOADING
-  glib_init ();
-#endif
 
   gopt_argc = 1;
   gopt_argv = (char**)g_malloc (argc * sizeof (char*));
