@@ -124,6 +124,16 @@ public class Vala.GIRWriter : CodeVisitor {
 		public bool equal (GIRNamespace g) {
 			return ((ns == g.ns) && (version == g.version));
 		}
+
+		public static GIRNamespace for_symbol (Symbol sym) {
+			while (sym.parent_symbol != null && sym.parent_symbol.name != null) {
+				sym = sym.parent_symbol;
+			}
+			assert (sym is Namespace);
+			string gir_namespace = sym.get_attribute_string ("CCode", "gir_namespace");
+			string gir_version = sym.get_attribute_string ("CCode", "gir_version");
+			return GIRNamespace (gir_namespace, gir_version);
+		}
 	}
 
 	private ArrayList<GIRNamespace?> externals = new ArrayList<GIRNamespace?> ((EqualFunc<GIRNamespace>) GIRNamespace.equal);
@@ -300,7 +310,12 @@ public class Vala.GIRWriter : CodeVisitor {
 			if (node is Namespace && ((Namespace) node).parent_symbol == context.root) {
 				var a = node.get_attribute ("CCode");
 				if (a != null && a.has_argument ("gir_namespace")) {
-					source_file.gir_namespace = a.get_string ("gir_namespace");
+					var new_gir = a.get_string ("gir_namespace");
+					var old_gir = source_file.gir_namespace;
+					if (old_gir != null && old_gir != new_gir) {
+						source_file.gir_ambiguous = true;
+					}
+					source_file.gir_namespace = new_gir;
 				}
 				if (a != null && a.has_argument ("gir_version")) {
 					source_file.gir_version = a.get_string ("gir_version");
@@ -429,6 +444,9 @@ public class Vala.GIRWriter : CodeVisitor {
 			}
 			if (cl.is_abstract) {
 				buffer.append_printf (" abstract=\"1\"");
+			}
+			if (cl.is_sealed) {
+				buffer.append_printf (" final=\"1\"");
 			}
 			write_symbol_attributes (cl);
 			buffer.append_printf (">\n");
@@ -591,6 +609,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		} else {
 			write_indent ();
 			buffer.append_printf ("<record name=\"%s\"", get_gir_name (cl));
+			write_ctype_attributes (cl);
 			write_symbol_attributes (cl);
 			buffer.append_printf (">\n");
 			indent++;
@@ -912,7 +931,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 
 		write_indent ();
-		buffer.append_printf ("<enumeration name=\"%s\"", edomain.name);
+		buffer.append_printf ("<enumeration name=\"%s\"", get_gir_name (edomain));
 		write_ctype_attributes (edomain);
 		buffer.append_printf (" glib:error-domain=\"%s\"", get_ccode_quark_name (edomain));
 		write_symbol_attributes (edomain);
@@ -977,7 +996,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		string value = literal_expression_to_value_string (initializer);
 
 		write_indent ();
-		buffer.append_printf ("<constant name=\"%s\" c:identifier=\"%s\"", c.name, get_ccode_name (c));
+		buffer.append_printf ("<constant name=\"%s\" c:identifier=\"%s\"", get_gir_name (c), get_ccode_name (c));
 		buffer.append_printf (" value=\"%s\"", value);
 		write_symbol_attributes (c);
 		buffer.append_printf (">\n");
@@ -1006,9 +1025,9 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 
 		write_indent ();
-		buffer.append_printf ("<field name=\"%s\"", get_ccode_name (f));
+		buffer.append_printf ("<field name=\"%s\" writable=\"1\"", get_ccode_name (f));
 		if (f.variable_type.nullable) {
-			buffer.append_printf (" allow-none=\"1\"");
+			buffer.append_printf (" nullable=\"1\"");
 		}
 		write_symbol_attributes (f);
 		buffer.append_printf (">\n");
@@ -1187,6 +1206,11 @@ public class Vala.GIRWriter : CodeVisitor {
 				}
 			}
 
+			if (constructor && ret_is_struct) {
+				// struct constructor has a caller-allocates / out-parameter as instance
+				write_param_or_return (return_type, "instance-parameter", ref index, false, "self", return_comment, ParameterDirection.OUT, constructor, true);
+			}
+
 			if (type_params != null) {
 				foreach (var p in type_params) {
 					write_type_parameter (p, "parameter");
@@ -1200,10 +1224,10 @@ public class Vala.GIRWriter : CodeVisitor {
 				write_implicit_params (param.variable_type, ref index, get_ccode_array_length (param), get_ccode_name (param), param.direction);
 			}
 
-			if (ret_is_struct) {
+			if (!constructor && ret_is_struct) {
 				// struct returns are converted to parameters
 				write_param_or_return (return_type, "parameter", ref index, false, "result", return_comment, ParameterDirection.OUT, constructor, true);
-			} else {
+			} else if (!constructor) {
 				write_implicit_params (return_type, ref index, return_array_length, "result", ParameterDirection.OUT);
 			}
 
@@ -1238,7 +1262,7 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 
 		write_indent ();
-		buffer.append_printf ("<callback name=\"%s\"", cb.name);
+		buffer.append_printf ("<callback name=\"%s\"", get_gir_name (cb));
 		buffer.append_printf (" c:type=\"%s\"", get_ccode_name (cb));
 		if (cb.tree_can_fail) {
 			buffer.append_printf (" throws=\"1\"");
@@ -1398,12 +1422,14 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		bool is_struct = m.parent_symbol is Struct;
 		// GI doesn't like constructors that return void type
-		string tag_name = is_struct ? "function" : "constructor";
+		string tag_name = is_struct ? "method" : "constructor";
 
 		if (m.parent_symbol is Class && m == ((Class)m.parent_symbol).default_construction_method ||
 			m.parent_symbol is Struct && m == ((Struct)m.parent_symbol).default_construction_method) {
 			string m_name = is_struct ? "init" : "new";
 			buffer.append_printf ("<%s name=\"%s\" c:identifier=\"%s\"", tag_name, m_name, get_ccode_name (m));
+		} else if (is_struct) {
+			buffer.append_printf ("<%s name=\"init_%s\" c:identifier=\"%s\"", tag_name, m.name, get_ccode_name (m));
 		} else {
 			buffer.append_printf ("<%s name=\"%s\" c:identifier=\"%s\"", tag_name, m.name, get_ccode_name (m));
 		}
@@ -1541,7 +1567,8 @@ public class Vala.GIRWriter : CodeVisitor {
 		unowned DelegateType? delegate_type = type as DelegateType;
 		unowned ArrayType? array_type = type as ArrayType;
 
-		if (type != null && ((type.value_owned && delegate_type == null) || (constructor && !type.type_symbol.is_subtype_of (ginitiallyunowned_type)))) {
+		if (type != null && ((type.value_owned && delegate_type == null) || (constructor
+		    && !(type.type_symbol is Struct || type.type_symbol.is_subtype_of (ginitiallyunowned_type))))) {
 			var any_owned = false;
 			foreach (var generic_arg in type.get_type_arguments ()) {
 				any_owned |= generic_arg.value_owned;
@@ -1560,7 +1587,12 @@ public class Vala.GIRWriter : CodeVisitor {
 			buffer.append_printf (" caller-allocates=\"1\"");
 		}
 		if (type != null && type.nullable) {
-			buffer.append_printf (" allow-none=\"1\"");
+			if (tag == "parameter"
+			    && (direction == ParameterDirection.OUT || direction == ParameterDirection.REF)) {
+				buffer.append_printf (" optional=\"1\"");
+			} else {
+				buffer.append_printf (" nullable=\"1\"");
+			}
 		}
 
 		if (delegate_type != null && delegate_type.delegate_symbol.has_target) {
@@ -1640,6 +1672,10 @@ public class Vala.GIRWriter : CodeVisitor {
 		} else if (type is PointerType) {
 			write_indent ();
 			buffer.append_printf ("<type name=\"gpointer\" c:type=\"%s%s\"/>\n", get_ccode_name (type), direction == ParameterDirection.IN ? "" : "*");
+		} else if (type is GenericType) {
+			// generic type parameters not supported in GIR
+			write_indent ();
+			buffer.append ("<type name=\"gpointer\" c:type=\"gpointer\"/>\n");
 		} else if (type is DelegateType) {
 			var deleg_type = (DelegateType) type;
 			write_indent ();
@@ -1668,10 +1704,6 @@ public class Vala.GIRWriter : CodeVisitor {
 				write_indent ();
 				buffer.append_printf ("</%s>\n", is_array ? "array" : "type");
 			}
-		} else if (type is GenericType) {
-			// generic type parameters not supported in GIR
-			write_indent ();
-			buffer.append ("<type name=\"gpointer\" c:type=\"gpointer\"/>\n");
 		} else {
 			write_indent ();
 			buffer.append_printf ("<type name=\"%s\"/>\n", type.to_string ());
@@ -1720,8 +1752,14 @@ public class Vala.GIRWriter : CodeVisitor {
 			Namespace ns = parent as Namespace;
 			var ns_gir_name = ns.get_attribute_string ("GIR", "name") ?? ns.name;
 			if (ns_gir_name != null) {
-				if (type_symbol.source_reference.file.gir_namespace != null) {
-					GIRNamespace external = GIRNamespace (type_symbol.source_reference.file.gir_namespace, type_symbol.source_reference.file.gir_version);
+				unowned SourceFile source_file = type_symbol.source_reference.file;
+				if (source_file.gir_namespace != null) {
+					GIRNamespace external;
+					if (source_file.gir_ambiguous) {
+						external = GIRNamespace.for_symbol (type_symbol);
+					} else {
+						external = GIRNamespace (source_file.gir_namespace, source_file.gir_version);
+					}
 					if (!externals.contains (external)) {
 						externals.add (external);
 					}
@@ -1730,7 +1768,7 @@ public class Vala.GIRWriter : CodeVisitor {
 						return gir_fullname;
 					}
 					var type_name = type_symbol.get_attribute_string ("GIR", "name") ?? type_symbol.name;
-					return "%s.%s".printf (type_symbol.source_reference.file.gir_namespace, type_name);
+					return "%s.%s".printf (external.ns, type_name);
 				} else {
 					unannotated_namespaces.add(ns);
 				}

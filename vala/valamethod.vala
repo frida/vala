@@ -136,7 +136,7 @@ public class Vala.Method : Subroutine, Callable {
 	/**
 	 * Specifies the generated `this` parameter for instance methods.
 	 */
-	public Parameter this_parameter { get; set; }
+	public Parameter? this_parameter { get; set; }
 
 	/**
 	 * Specifies whether this method expects printf-style format arguments.
@@ -832,10 +832,6 @@ public class Vala.Method : Subroutine, Callable {
 			source_reference.file.context.module_init_method = this;
 		}
 
-		if (return_type != null) {
-			return_type.check (context);
-		}
-
 		if (parameters.size == 1 && parameters[0].ellipsis && body != null && binding != MemberBinding.INSTANCE) {
 			// accept just `...' for external methods and instance methods
 			error = true;
@@ -849,6 +845,7 @@ public class Vala.Method : Subroutine, Callable {
 
 		var optional_param = false;
 		var params_array_param = false;
+		var ellipsis_param = false;
 		foreach (Parameter param in parameters) {
 			if (!param.check (context)) {
 				error = true;
@@ -873,11 +870,18 @@ public class Vala.Method : Subroutine, Callable {
 				optional_param = true;
 			}
 
+			// Disallow parameter after params array or ellipsis
 			if (params_array_param) {
 				Report.error (param.source_reference, "parameter follows params-array parameter");
 			} else if (param.params_array) {
 				params_array_param = true;
 			}
+			if (ellipsis_param) {
+				Report.error (param.source_reference, "parameter follows ellipsis parameter");
+			} else if (param.ellipsis) {
+				ellipsis_param = true;
+			}
+
 			// Add local variable to provide access to params arrays which will be constructed out of the given va-args
 			if (param.params_array && body != null) {
 				if (params_array_var != null) {
@@ -920,6 +924,10 @@ public class Vala.Method : Subroutine, Callable {
 
 		if (error_types != null) {
 			foreach (DataType error_type in error_types) {
+				if (!(error_type is ErrorType)) {
+					error = true;
+					Report.error (error_type.source_reference, "`%s' is not an error type", error_type.to_string ());
+				}
 				error_type.check (context);
 
 				// check whether error type is at least as accessible as the method
@@ -1239,12 +1247,12 @@ public class Vala.Method : Subroutine, Callable {
 			}
 		}
 
-		var callback_type = new DelegateType ((Delegate) glib_ns.scope.lookup ("AsyncReadyCallback"));
+		var callback_type = new DelegateType ((Delegate) glib_ns.scope.lookup ("AsyncReadyCallback"), source_reference);
 		callback_type.nullable = true;
 		callback_type.value_owned = true;
 		callback_type.is_called_once = true;
 
-		var callback_param = new Parameter ("_callback_", callback_type);
+		var callback_param = new Parameter ("_callback_", callback_type, source_reference);
 		callback_param.initializer = new NullLiteral (source_reference);
 		callback_param.initializer.target_type = callback_type.copy ();
 		callback_param.set_attribute_double ("CCode", "pos", -1);
@@ -1271,7 +1279,7 @@ public class Vala.Method : Subroutine, Callable {
 		var glib_ns = CodeContext.get ().root.scope.lookup ("GLib");
 		var result_type = new ObjectType ((ObjectTypeSymbol) glib_ns.scope.lookup ("AsyncResult"));
 
-		var result_param = new Parameter ("_res_", result_type);
+		var result_param = new Parameter ("_res_", result_type, source_reference);
 		result_param.set_attribute_double ("CCode", "pos", get_attribute_double ("CCode", "async_result_pos", 0.1));
 		scope.add (null, result_param);
 		async_end_parameters.add (result_param);

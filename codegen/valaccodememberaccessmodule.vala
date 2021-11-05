@@ -113,20 +113,11 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 				set_delegate_target (expr, delegate_target);
 			}
 		} else if (expr.symbol_reference is ArrayLengthField) {
-			if (expr.value_type is ArrayType && !(expr.parent_node is ElementAccess)) {
-				Report.error (expr.source_reference, "unsupported use of length field of multi-dimensional array");
-			}
 			set_cvalue (expr, get_array_length_cexpression (expr.inner, 1));
 		} else if (expr.symbol_reference is DelegateTargetField) {
-			if (!((DelegateType) expr.inner.value_type).delegate_symbol.has_target) {
-				Report.error (expr.source_reference, "unsupported use of target field of delegate without target");
-			}
 			CCodeExpression delegate_target_destroy_notify;
 			set_cvalue (expr, get_delegate_target_cexpression (expr.inner, out delegate_target_destroy_notify));
 		} else if (expr.symbol_reference is DelegateDestroyField) {
-			if (!((DelegateType) expr.inner.value_type).delegate_symbol.has_target) {
-				Report.error (expr.source_reference, "unsupported use of destroy field of delegate without target");
-			}
 			CCodeExpression delegate_target_destroy_notify;
 			get_delegate_target_cexpression (expr.inner, out delegate_target_destroy_notify);
 			set_cvalue (expr, delegate_target_destroy_notify);
@@ -248,8 +239,10 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 			    prop.base_property == null &&
 			    prop.base_interface_property == null &&
 			    !(prop.property_type is ArrayType || prop.property_type is DelegateType)) {
-				CCodeExpression inst;
-				inst = new CCodeMemberAccess.pointer (pub_inst, "priv");
+				CCodeExpression inst = pub_inst;
+				if (!((Class) current_type_symbol).is_compact) {
+					inst = new CCodeMemberAccess.pointer (inst, "priv");
+				}
 				set_cvalue (expr, new CCodeMemberAccess.pointer (inst, get_ccode_name (prop.field)));
 			} else if (!get_ccode_no_accessor_method (prop)) {
 				string getter_cname;
@@ -413,7 +406,8 @@ public abstract class Vala.CCodeMemberAccessModule : CCodeControlFlowModule {
 		// Add cast for narrowed type access of variables if needed
 		if (expr.symbol_reference is Variable) {
 			unowned GLibValue cvalue = (GLibValue) expr.target_value;
-			if (cvalue.value_type.type_symbol != null && cvalue.value_type.type_symbol != expr.value_type.type_symbol) {
+			if (!(cvalue.value_type is GenericType) && cvalue.value_type.type_symbol != null
+			    && cvalue.value_type.type_symbol != expr.value_type.type_symbol) {
 				cvalue.cvalue = new CCodeCastExpression (cvalue.cvalue, get_ccode_name (expr.value_type));
 			}
 		}

@@ -72,6 +72,11 @@ public class Vala.MemberAccess : Expression {
 	 */
 	public bool qualified { get; set; }
 
+	/**
+	 * Null-safe access.
+	 */
+	public bool null_safe_access { get; set; }
+
 	private Expression? _inner;
 	private List<DataType> type_argument_list = new ArrayList<DataType> ();
 	bool is_with_variable_access;
@@ -212,6 +217,11 @@ public class Vala.MemberAccess : Expression {
 		}
 
 		checked = true;
+
+		if (null_safe_access) {
+			error = !base.check (context);
+			return !error;
+		}
 
 		if (inner != null) {
 			inner.check (context);
@@ -408,8 +418,7 @@ public class Vala.MemberAccess : Expression {
 			}
 
 			if (inner is MemberAccess && inner.symbol_reference is TypeParameter) {
-				inner.value_type = new GenericType ((TypeParameter) inner.symbol_reference);
-				inner.value_type.source_reference = source_reference;
+				inner.value_type = new GenericType ((TypeParameter) inner.symbol_reference, source_reference);
 			}
 
 			if (symbol_reference == null && inner.value_type != null) {
@@ -448,7 +457,7 @@ public class Vala.MemberAccess : Expression {
 						}
 						var m = new DynamicMethod (inner.value_type, member_name, ret_type, source_reference);
 						m.invocation = invoc;
-						var err = new ErrorType (null, null);
+						var err = new ErrorType (null, null, m.source_reference);
 						err.dynamic_error = true;
 						m.add_error_type (err);
 						m.access = SymbolAccessibility.PUBLIC;
@@ -480,12 +489,19 @@ public class Vala.MemberAccess : Expression {
 							unowned MemberAccess? arg = s.handler as MemberAccess;
 							if (arg == null || !arg.check (context) || !(arg.symbol_reference is Method)) {
 								error = true;
-								Report.error (s.handler.source_reference, "Invalid handler for `%s'", s.get_full_name ());
+								if (s.handler is LambdaExpression) {
+									Report.error (s.handler.source_reference, "Lambdas are not allowed for dynamic signals");
+								} else {
+									Report.error (s.handler.source_reference, "Cannot infer call signature for dynamic signal `%s' from given expression", s.get_full_name ());
+								}
 							}
 						}
 						s.access = SymbolAccessibility.PUBLIC;
 						dynamic_object_type.type_symbol.scope.add (null, s);
 						symbol_reference = s;
+					} else if (ma.member_name == "disconnect") {
+						error = true;
+						Report.error (ma.source_reference, "Use SignalHandler.disconnect() to disconnect from dynamic signal");
 					}
 				}
 				if (symbol_reference == null) {
@@ -509,14 +525,20 @@ public class Vala.MemberAccess : Expression {
 				}
 			}
 
-			if (symbol_reference is ArrayResizeMethod && inner.symbol_reference is Variable) {
-				// require the real type with its original value_owned attritubte
-				var inner_type = context.analyzer.get_value_type_for_symbol (inner.symbol_reference, true) as ArrayType;
-				if (inner_type != null && inner_type.inline_allocated) {
-					Report.error (source_reference, "`resize' is not supported for arrays with fixed length");
-					error = true;
-				} else if (inner_type != null && !inner_type.value_owned) {
-					Report.error (source_reference, "`resize' is not allowed for unowned array references");
+			if (symbol_reference is ArrayResizeMethod) {
+				if (inner.symbol_reference is Variable) {
+					// require the real type with its original value_owned attritubte
+					var inner_type = context.analyzer.get_value_type_for_symbol (inner.symbol_reference, true) as ArrayType;
+					if (inner_type != null && inner_type.inline_allocated) {
+						Report.error (source_reference, "`resize' is not supported for arrays with fixed length");
+						error = true;
+					} else if (inner_type != null && !inner_type.value_owned) {
+						Report.error (source_reference, "`resize' is not allowed for unowned array references");
+						error = true;
+					}
+				} else if (inner.symbol_reference is Constant) {
+					// disallow resize() for const array
+					Report.error (source_reference, "`resize' is not allowed for constant arrays");
 					error = true;
 				}
 			}
@@ -931,10 +953,11 @@ public class Vala.MemberAccess : Expression {
 				// required when using instance methods as delegates in constants
 				// TODO replace by MethodPrototype
 				value_type = context.analyzer.get_value_type_for_symbol (symbol_reference, lvalue);
+				value_type.source_reference = source_reference;
 			} else if (symbol_reference is Field) {
-				value_type = new FieldPrototype ((Field) symbol_reference);
+				value_type = new FieldPrototype ((Field) symbol_reference, source_reference);
 			} else if (symbol_reference is Property) {
-				value_type = new PropertyPrototype ((Property) symbol_reference);
+				value_type = new PropertyPrototype ((Property) symbol_reference, source_reference);
 			} else {
 				error = true;
 				value_type = new InvalidType ();
@@ -984,7 +1007,7 @@ public class Vala.MemberAccess : Expression {
 			if (m != null && m.binding == MemberBinding.STATIC && m.parent_symbol is ObjectTypeSymbol &&
 			    inner != null && inner.value_type == null && inner_ma.type_argument_list.size > 0) {
 				// support static methods in generic classes
-				inner.value_type = new ObjectType ((ObjectTypeSymbol) m.parent_symbol);
+				inner.value_type = new ObjectType ((ObjectTypeSymbol) m.parent_symbol, source_reference);
 
 				foreach (var type_argument in inner_ma.type_argument_list) {
 					inner.value_type.add_type_argument (type_argument);
@@ -1023,6 +1046,23 @@ public class Vala.MemberAccess : Expression {
 
 		if (value_type != null) {
 			value_type.check (context);
+		}
+
+		if (symbol_reference is ArrayLengthField) {
+			if (inner.value_type is ArrayType && ((ArrayType) inner.value_type).rank > 1 && !(parent_node is ElementAccess)) {
+				Report.error (source_reference, "unsupported use of length field of multi-dimensional array");
+				error = true;
+			}
+		} else if (symbol_reference is DelegateTargetField) {
+			if (!((DelegateType) inner.value_type).delegate_symbol.has_target) {
+				Report.error (source_reference, "unsupported use of target field of delegate without target");
+				error = true;
+			}
+		} else if (symbol_reference is DelegateDestroyField) {
+			if (!((DelegateType) inner.value_type).delegate_symbol.has_target) {
+				Report.error (source_reference, "unsupported use of destroy field of delegate without target");
+				error = true;
+			}
 		}
 
 		// Provide some extra information for the code generator

@@ -190,12 +190,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				string class_prefix = get_ccode_lower_case_name (current_class);
 				string prepare_func = "NULL";
 				string check_func = "NULL";
-				string closure_callback_func = "NULL";
 				foreach (Method impl in current_class.get_methods ()) {
-					if (impl.name == "closure_callback" && impl.binding == MemberBinding.STATIC) {
-						closure_callback_func = "(GSourceFunc) %s_closure_callback".printf (class_prefix);
-						continue;
-					}
 					if (!impl.overrides) {
 						continue;
 					}
@@ -213,7 +208,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 				var funcs = new CCodeDeclaration ("const GSourceFuncs");
 				funcs.modifiers = CCodeModifiers.STATIC;
-				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize, %s }".printf (prepare_func, check_func, class_prefix, class_prefix, closure_callback_func))));
+				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize}".printf (prepare_func, check_func, class_prefix, class_prefix))));
 				ccode.add_statement (funcs);
 
 				ccall.add_argument (new CCodeCastExpression (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_source_funcs")), "GSourceFuncs *"));
@@ -802,6 +797,28 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			ccall.add_argument (new CCodeConstant ("\"%s\"".printf (message.replace ("\n", " ").escape (""))));
 			requires_assert = true;
 
+		}
+
+		// Transform and add free function argument to GLib.[List,Queue,SList].remove[_all] calls
+		unowned DataType? collection_type = null;
+		if (ma != null && ma.inner != null) {
+			collection_type = ma.inner.value_type;
+		}
+		if (collection_type != null
+		    && (collection_type.type_symbol == glist_type || collection_type.type_symbol == gslist_type || collection_type.type_symbol == gqueue_type)
+		    && (ma.member_name == "remove" || ma.member_name == "remove_all")
+		    //FIXME Perform stricter type argument check earlier
+		    && collection_type.check_type_arguments (context)) {
+			var remove_method = (Method) collection_type.type_symbol.scope.lookup (ma.member_name + "_full");
+			var type_arg = collection_type.get_type_arguments ()[0];
+			if (remove_method != null && requires_destroy (type_arg)) {
+				// only add them once per source file
+				if (add_generated_external_symbol (remove_method)) {
+					visit_method (remove_method);
+				}
+				ccall.call = new CCodeIdentifier (get_ccode_name (remove_method));
+				ccall.add_argument (get_destroy0_func_expression (type_arg));
+			}
 		}
 
 		if (return_result_via_out_param) {

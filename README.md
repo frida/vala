@@ -82,9 +82,9 @@ bootstrapping or cross-compiling) then a source tarball or the vala-bootstrap
 module contain pre-compiled C files from the Vala sources. These can be used
 to bootstrap `valac`.
 
-Source tarballs can be downloaded via:
+Current releases of source tarballs can be downloaded via:
 
-https://wiki.gnome.org/Projects/Vala/Release
+https://wiki.gnome.org/Projects/Vala
 
 or the vala-bootstrap module is available at:
 
@@ -92,10 +92,10 @@ https://gitlab.gnome.org/Archive/vala-bootstrap
 
 
 Here is an example on how to download and compile from a Vala release tarball.
-In this example it is release version 0.42.3:
+In this example it is release version 0.48.19:
 
 ```sh
-curl --silent --show-error --location https://download.gnome.org/sources/vala/0.42/vala-0.42.3.tar.xz --output vala-bootstrap.tar.xz
+curl --silent --show-error --location https://download.gnome.org/sources/vala/0.48/vala-0.48.19.tar.xz --output vala-bootstrap.tar.xz
 tar --extract --file vala-bootstrap.tar.xz
 cd vala-bootstrap
 ./configure --prefix=/opt/vala-bootstrap
@@ -134,7 +134,7 @@ To use `valac` from a bootstrapped build detailed in step two use:
 ```sh
 git clone https://gitlab.gnome.org/GNOME/vala
 cd vala
-VALAC=/opt/vala-bootstrap/bin/vala ./autogen.sh
+VALAC=/opt/vala-bootstrap/bin/valac ./autogen.sh
 make && sudo make install
 ```
 
@@ -149,10 +149,10 @@ git clean -dfx
 make && sudo make install
 ```
 
-If you wish to build a specific release, for example 0.40.11:
+If you wish to build a specific release, for example 0.54.1:
 
 ```sh
-git checkout 0.40.11
+git checkout 0.54.1
 git clean -dfx
 ./autogen.sh
 make && sudo make install

@@ -60,6 +60,11 @@ public class Vala.SliceExpression : Expression {
 		}
 	}
 
+	/**
+	 * Null-safe access.
+	 */
+	public bool null_safe_access { get; set; }
+
 	Expression _container;
 	Expression _start;
 	Expression _stop;
@@ -110,6 +115,11 @@ public class Vala.SliceExpression : Expression {
 		}
 
 		checked = true;
+
+		if (null_safe_access) {
+			error = !base.check (context);
+			return !error;
+		}
 
 		if (!container.check (context)) {
 			error = true;
@@ -168,7 +178,7 @@ public class Vala.SliceExpression : Expression {
 		} else {
 			var slice_method = container.value_type.get_member ("slice") as Method;
 			if (slice_method != null) {
-				var slice_call = new MethodCall (new MemberAccess (container, "slice"));
+				var slice_call = new MethodCall (new MemberAccess (container, "slice", source_reference), source_reference);
 				slice_call.add_argument (start);
 				slice_call.add_argument (stop);
 				slice_call.target_type = this.target_type;

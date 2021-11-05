@@ -28,13 +28,12 @@ using GLib;
 public class Vala.EnumValueType : ValueType {
 	private Method? to_string_method;
 
-	public EnumValueType (Enum type_symbol) {
-		base (type_symbol);
+	public EnumValueType (Enum type_symbol, SourceReference? source_reference = null) {
+		base (type_symbol, source_reference);
 	}
 
 	public override DataType copy () {
-		var result = new EnumValueType ((Enum) type_symbol);
-		result.source_reference = source_reference;
+		var result = new EnumValueType ((Enum) type_symbol, source_reference);
 		result.value_owned = value_owned;
 		result.nullable = nullable;
 
@@ -45,7 +44,7 @@ public class Vala.EnumValueType : ValueType {
 		if (to_string_method == null) {
 			var string_type = CodeContext.get ().analyzer.string_type.copy ();
 			string_type.value_owned = false;
-			to_string_method = new Method ("to_string", string_type);
+			to_string_method = new Method ("to_string", string_type, source_reference);
 			to_string_method.access = SymbolAccessibility.PUBLIC;
 			to_string_method.is_extern = true;
 			if (CodeContext.get ().profile == Profile.POSIX) {
@@ -54,7 +53,7 @@ public class Vala.EnumValueType : ValueType {
 				to_string_method.set_attribute_string ("CCode", "cheader_filename", "glib-object.h");
 			}
 			to_string_method.owner = type_symbol.scope;
-			to_string_method.this_parameter = new Parameter ("this", copy ());
+			to_string_method.this_parameter = new Parameter ("this", copy (), source_reference);
 			to_string_method.scope.add (to_string_method.this_parameter.name, to_string_method.this_parameter);
 		}
 		return to_string_method;

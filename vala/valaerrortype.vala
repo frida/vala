@@ -44,9 +44,8 @@ public class Vala.ErrorType : ReferenceType {
 	public bool dynamic_error { get; set; }
 
 	public ErrorType (ErrorDomain? error_domain, ErrorCode? error_code, SourceReference? source_reference = null) {
-		base ((Symbol) error_domain ?? CodeContext.get ().root.scope.lookup ("GLib").scope.lookup ("Error"));
+		base ((Symbol) error_domain ?? CodeContext.get ().root.scope.lookup ("GLib").scope.lookup ("Error"), source_reference);
 		this.error_code = error_code;
-		this.source_reference = source_reference;
 	}
 
 	public override bool compatible (DataType target_type) {
@@ -77,22 +76,6 @@ public class Vala.ErrorType : ReferenceType {
 		}
 
 		return et.error_code == error_code;
-	}
-
-	public override string to_qualified_string (Scope? scope) {
-		string result;
-
-		if (error_domain == null) {
-			result = "GLib.Error";
-		} else {
-			result = error_domain.get_full_name ();
-		}
-
-		if (nullable) {
-			result += "?";
-		}
-
-		return result;
 	}
 
 	public override DataType copy () {

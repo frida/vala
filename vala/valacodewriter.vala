@@ -1141,6 +1141,15 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	public override void visit_foreach_statement (ForeachStatement stmt) {
+		write_indent ();
+		write_string ("foreach (");
+		write_type (stmt.type_reference);
+		write_string (" ");
+		write_string (stmt.variable_name);
+		write_string (" in ");
+		stmt.collection.accept (this);
+		write_string (")");
+		stmt.body.accept (this);
 	}
 
 	public override void visit_break_statement (BreakStatement stmt) {
@@ -1208,9 +1217,12 @@ public class Vala.CodeWriter : CodeVisitor {
 	}
 
 	public override void visit_catch_clause (CatchClause clause) {
-		var type_name = clause.error_type == null ? "GLib.Error" : clause.error_type.to_string ();
-		var var_name = clause.variable_name == null ? "_" : clause.variable_name;
-		write_string (" catch (%s %s)".printf (type_name, var_name));
+		if (clause.variable_name != null) {
+			var type_name = clause.error_type == null ? "GLib.Error" : clause.error_type.to_string ();
+			write_string (" catch (%s %s)".printf (type_name, clause.variable_name));
+		} else {
+			write_string (" catch");
+		}
 		clause.body.accept (this);
 	}
 

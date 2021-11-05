@@ -37,6 +37,8 @@ public class Vala.Class : ObjectTypeSymbol {
 	 */
 	public bool is_abstract { get; set; }
 
+	public bool is_partial { get; set; }
+
 	/**
 	 * Specifies whether this class is sealed. Sealed classes may not be
 	 * sub-classed.
@@ -604,11 +606,6 @@ public class Vala.Class : ObjectTypeSymbol {
 			if (is_abstract) {
 				error = true;
 				Report.error (source_reference, "Sealed class `%s' cannot be abstract", get_full_name ());
-				return false;
-			}
-			if (!external_package) {
-				error = true;
-				Report.error (source_reference, "Sealed classes are not fully supported yet");
 				return false;
 			}
 		}

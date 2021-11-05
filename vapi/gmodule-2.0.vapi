@@ -10,6 +10,7 @@ namespace GLib {
 		[DestroysInstance]
 		public bool close ();
 		public static unowned string error ();
+		public static GLib.Quark error_quark ();
 		public void make_resident ();
 		public unowned string name ();
 		public static GLib.Module? open (string? file_name, GLib.ModuleFlags flags);
@@ -31,8 +32,25 @@ namespace GLib {
 		LOCAL,
 		MASK
 	}
+	[CCode (cheader_filename = "gmodule.h", cprefix = "G_MODULE_ERROR_")]
+	[Version (since = "2.70")]
+	public errordomain ModuleError {
+		FAILED,
+		CHECK_FAILED;
+		[Version (replacement = "Module.error_quark")]
+		public static GLib.Quark quark ();
+	}
 	[CCode (cheader_filename = "gmodule.h", has_target = false)]
 	public delegate unowned string ModuleCheckInit (GLib.Module module);
 	[CCode (cheader_filename = "gmodule.h", has_target = false)]
 	public delegate void ModuleUnload (GLib.Module module);
+	[CCode (cheader_filename = "gmodule.h")]
+	[Version (replacement = "Module.build_path")]
+	public static string module_build_path (string? directory, string module_name);
+	[CCode (cheader_filename = "gmodule.h")]
+	[Version (replacement = "Module.error")]
+	public static unowned string module_error ();
+	[CCode (cheader_filename = "gmodule.h")]
+	[Version (replacement = "Module.supported")]
+	public static bool module_supported ();
 }

@@ -1,3 +1,146 @@
+Vala 0.54.3
+===========
+ * Various improvements and bug fixes:
+  - codegen: Actually free data when using "remove(_all)"
+    on GLib.Queue/(S)List [#1238]
+  - vala:
+    + Parameter following ellipsis parameter is not allowed [#1237]
+    + More thorough check of ValueType and set CodeNode.error on failure
+    + Really check compatiblity of error types for delegate symbol
+    + Correctly output signature of callable throwing error
+    + Report error for non ErrorType in throws
+    + Implement CodeWriter.visit_foreach_statement()/visit_catch_clause()
+  - parser: Make sure ErrorCodes are accessible as needed
+  - girparser: Add support for "ref_/ref_sink_/unref_function"
+    metadata for classes [#1233]
+
+Vala 0.54.2
+===========
+ * Various improvements and bug fixes:
+  - vala:
+    + Multi-dimensional params-array not allowed [#1230]
+    + Accept NullType as generic type argument
+    + Set source references of created DataType instances in OCE
+
+ * Bindings:
+  - gio-2.0: Update to 2.71.0~a0d2efdc
+  - glib-2.0: Update 2.70 symbols
+  - gtk4: Update to 4.5.0~da5efea6
+
+Vala 0.54.1
+===========
+ * Regression and bug fixes:
+  - codegen:
+    + Add type declaration for implicit temporary local variable
+    + Sealed class in external package is not special [#1229]
+
+ * Bindings:
+  - gstreamer: Update from 1.19.0+ git master
+  - gtk4: Update to 4.5.0~3e20ecd6
+
+Vala 0.54.0
+===========
+ * Various improvements and bug fixes:
+  - vala: Warn about unsupported cast to void and drop it [#1070]
+  - vala: Don't restrict element type of GLib.Array [#1227]
+  - valadoc: Correctly format background of inline @link's [#1226]
+
+ * Bindings:
+  - gio-2.0: Unhide a few usable symbols which are marked not introspectable [#1222]
+
+Vala 0.53.2
+===========
+ * Various improvements and bug fixes:
+  - codegen:
+    + Fix property access inside opaque compact class
+    + Add missing cast to access base-class members in class/static ctor [#1221]
+
+ * Bindings:
+  - glib-2.0: Current constants in GLib.Math are part of glib.h [#1220]
+  - glib-2.0: Add RefString since 2.58 [#723]
+  - gstreamer: Update from 1.19.0+ git master
+  - gtk4: Update to 4.5.0~e681fdd9
+  - vapi: Update GIR-based bindings
+
+Vala 0.53.1
+===========
+ * Highlights:
+  - Support explicit nullable var-type declarations [#1146]
+  - Add support for variadic delegates [#160]
+  - Add support for sealed classes [#278]
+  - Add support for null-safe access operator [#522]
+  - Emit external creation methods in bindings
+  - Introduce VALA_EXPORT for public symbols to improve portability
+  - girwriter:
+    + Use "optional" and "nullable" instead of deprecated "allow-none"
+    + Improve struct creation method binding
+  - girparser:
+    + Improve instance method detection [#1210]
+    + Never skip "function" elements
+    + Add "move-to" value of functions as Version.replacement
+
+ * Various improvements and bug fixes:
+  - codegen:
+    + Use ssize_t for length variables in common array helper functions
+    + Fix support for public fields on GLib.Source subclasses
+  - vala:
+    + Add Profile.LIBC as synonym for POSIX and accept "libc" profile
+    + Improve semantic check of simple type structs
+    + Refactor UnresolvedSymbol/Type constructors
+    + Properly check GLib.Object naming convention for properties
+    + Add foreach statement support for GLib.GenericArray
+  - build: Add "test-asan" make target for convenience
+  - build: Add --enable-test-ubsan configure option and "test-ubsan" make target
+  - build: Use jing to verify generated GIR file, if available
+  - testrunner: Allow checking generated C sources
+
+ * Bindings:
+  - Remove gedit-2.20 and webkit-1.0 bindings
+  - gio-2.0,glib-2.0: Add new symbols from 2.69.0
+  - gio-2.0: Improve DatagramBased.create_source() binding
+  - glib-2.0: Wrap TimeZone.identifier() constuctor for proper error support
+  - gstreamer-rtp-1.0: Fix some bindings errors [#1177]
+  - gstreamer: Update from 1.19.0+ git master
+  - javascriptcoregtk-4.0: Fix JSC.Class.add_property() binding
+  - linux: Add SocketCAN bindings, and ISOTP constants and options
+  - webkit2gtk-4.0: Update to 2.33.3
+
+Vala 0.52.5
+===========
+ * Various improvements and bug fixes:
+  - codegen:
+    + Allow null to initialize non-null struct inside initializer list [#594]
+    + Implementing GLib.Source.prepare/check is optional since 2.36
+    + Fix variadic constructors for compact classes and structs [#1195]
+    + Use detroy_value() for delete statement [#1201]
+    + Fix params-array in constructor for struct [#1202]
+  - vala:
+    + Rely on DataType.to_qualified_string() for error-types [#1206]
+    + Disallow resize() for constant arrays [#944]
+  - Recognize multiple valid CCode.gir_namespace/_version in VAPI files [#1189]
+  - Slightly improve source_reference for get_dup_func_expression()
+  - girwriter:
+    + Respect GIR.name for constants, errordomains and delegates [#1196]
+    + Add explicit writable attribute to all field elements
+    + Fix position of "result" parameter for struct constructor
+    + Write missing c:type attribute of compact class record
+  - girparser: Add support for "final" class attribute
+  - tests/girwriter: Add missing [Flags] annotation
+  - testrunner: Add support for girwriter tests
+  - docs: Update bootstrap instructions in README.md
+
+ * Bindings:
+  - Partly revert "gstreamer: Update from 1.19.0+ git master" [#1210]
+  - glib-2.0: expected_type and return value of VariantDict.lookup_value()
+    is nullable
+  - glib-2.0: Add Uri.to_string/to_string_partial() (since 2.66)
+  - gobject-2.0: Fix the Closure.invoke() signature
+  - gstreamer: Update from 1.19.0+ git master
+  - gtk4: Update to 4.3.2+04f3c805
+  - linux: Substitute linux/if.h with net/if.h
+  - linux: Fix some bindings errors
+  - linux: Fix i2c-dev constants
+
 Vala 0.52.4
 ===========
  * Various improvements and bug fixes:

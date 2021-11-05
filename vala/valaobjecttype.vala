@@ -35,8 +35,8 @@ public class Vala.ObjectType : ReferenceType {
 		}
 	}
 
-	public ObjectType (ObjectTypeSymbol type_symbol) {
-		base (type_symbol);
+	public ObjectType (ObjectTypeSymbol type_symbol, SourceReference? source_reference = null) {
+		base (type_symbol, source_reference);
 	}
 
 	public override DataType copy () {
@@ -100,11 +100,13 @@ public class Vala.ObjectType : ReferenceType {
 
 	public override bool check (CodeContext context) {
 		if (!type_symbol.check (context)) {
+			error = true;
 			return false;
 		}
 
 		// check whether there is the expected amount of type-arguments
 		if (!check_type_arguments (context, true)) {
+			error = true;
 			return false;
 		}
 

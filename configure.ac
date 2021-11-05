@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip subdir-objects])
 AM_MAINTAINER_MODE([enable])
 
-API_VERSION=0.54
+API_VERSION=0.56
 PACKAGE_SUFFIX="-$API_VERSION"
 
 VALA_MAJOR_VERSION=`echo $PACKAGE_VERSION | cut -d. -f1 | sed s/[[a-zA-Z\-]].*//g`
@@ -44,10 +44,6 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 
 AC_CANONICAL_HOST
-
-VALA_HOST_OS=`echo $host_os | cut -f1 -d'-'`
-AC_SUBST(VALA_HOST_OS)
-AC_DEFINE_UNQUOTED(VALA_HOST_OS, "$VALA_HOST_OS", [Define to the host OS name])
 
 # Detect the target system
 build_linux=no
@@ -233,6 +229,9 @@ AM_CONDITIONAL(ENABLE_VALADOC, test x$enable_valadoc = xyes)
 
 AC_PATH_PROG([G_IR_COMPILER], [g-ir-compiler], :)
 AM_CONDITIONAL(HAVE_G_IR_COMPILER, test "$G_IR_COMPILER" != :)
+
+AC_PATH_PROG([JING], [jing], :)
+AM_CONDITIONAL(HAVE_JING, test "$JING" != :)
 
 AC_PATH_PROG([XSLTPROC], [xsltproc], :)
 AM_CONDITIONAL(HAVE_XSLTPROC, test "$XSLTPROC" != :)

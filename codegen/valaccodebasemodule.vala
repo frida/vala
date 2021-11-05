@@ -693,6 +693,10 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		if (sym is Constant && ((Constant) sym).value is InitializerList) {
 			return false;
 		}
+		// sealed classes are special
+		if (!sym.external_package && sym is Class && ((Class) sym).is_sealed) {
+			return false;
+		}
 		if (sym.external_package || in_generated_header
 		    || (sym.is_extern && get_ccode_header_filenames (sym).length > 0)) {
 			// add feature test macros
@@ -2618,7 +2622,13 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			cast = call;
 		} else {
 			// Accessing the member from a static or class constructor
-			cast = new CCodeIdentifier ("klass");
+			if (current_class == cl) {
+				cast = new CCodeIdentifier ("klass");
+			} else {
+				call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_class_type_function (cl)));
+				call.add_argument (new CCodeIdentifier ("klass"));
+				cast = call;
+			}
 		}
 		return cast;
 	}
@@ -3079,7 +3089,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				}
 			} else {
 				// duplicating non-reference counted objects may cause side-effects (and performance issues)
-				Report.error (source_reference, "duplicating %s instance, use unowned variable or explicitly invoke copy method", type.type_symbol.name);
+				Report.error (source_reference, "duplicating `%s' instance, use unowned variable or explicitly invoke copy method", type.type_symbol.name);
 				return new CCodeInvalidExpression();
 			}
 
@@ -3983,6 +3993,8 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 	}
 
 	public void emit_temp_var (LocalVariable local, bool on_error = false) {
+		generate_type_declaration (local.variable_type, cfile);
+
 		var init = (!local.name.has_prefix ("*") && local.init);
 		if (is_in_coroutine ()) {
 			closure_struct.add_field (get_ccode_name (local.variable_type), local.name, 0, get_ccode_declarator_suffix (local.variable_type));
@@ -4358,9 +4370,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			type = pointer_type.base_type;
 		}
 
-		var ccall = new CCodeFunctionCall (get_destroy_func_expression (type));
-		ccall.add_argument (get_cvalue (stmt.expression));
-		ccode.add_expression (ccall);
+		ccode.add_expression (destroy_value (new GLibValue (type, get_cvalue (stmt.expression))));
 	}
 
 	static bool is_compact_class_destructor_call (Expression expr) {
@@ -4917,7 +4927,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 			arg_map.set (get_param_pos (0.1 * type_param_index + 0.02), get_type_id_expression (type_arg, is_chainup));
 			if (requires_copy (type_arg)) {
-				var dup_func = get_dup_func_expression (type_arg, type_arg.source_reference, is_chainup);
+				var dup_func = get_dup_func_expression (type_arg, type_arg.source_reference ?? expr.source_reference, is_chainup);
 				if (dup_func == null) {
 					// type doesn't contain a copy function
 					expr.error = true;
@@ -5027,7 +5037,8 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			} else if (st != null && get_ccode_name (st) == "va_list") {
 				creation_call.add_argument (instance);
 				if (get_ccode_name (m) == "va_start") {
-					if (in_creation_method) {
+					unowned Class? parent = current_method.parent_symbol as Class;
+					if (in_creation_method && parent != null && !parent.is_compact) {
 						creation_call = new CCodeFunctionCall (new CCodeIdentifier ("va_copy"));
 						creation_call.add_argument (instance);
 						creation_call.add_argument (new CCodeIdentifier ("_vala_va_list"));
@@ -5890,7 +5901,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			return new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, instance_domain, type_domain);
 		} else {
 			CCodeFunctionCall ccheck;
-			if (type.type_symbol == null || type.type_symbol.external_package) {
+			if (type is GenericType || type.type_symbol == null || type.type_symbol.external_package) {
 				ccheck = new CCodeFunctionCall (new CCodeIdentifier ("G_TYPE_CHECK_INSTANCE_TYPE"));
 				ccheck.add_argument ((CCodeExpression) ccodenode);
 				ccheck.add_argument (get_type_id_expression (type));
@@ -6787,18 +6798,6 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 	}
 
 	public virtual string get_dynamic_signal_cname (DynamicSignal node) {
-		return "";
-	}
-
-	public virtual string get_dynamic_signal_connect_wrapper_name (DynamicSignal node) {
-		return "";
-	}
-
-	public virtual string get_dynamic_signal_connect_after_wrapper_name (DynamicSignal node) {
-		return "";
-	}
-
-	public virtual string get_dynamic_signal_disconnect_wrapper_name (DynamicSignal node) {
 		return "";
 	}
 

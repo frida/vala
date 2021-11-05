@@ -998,6 +998,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			return generic_type;
 		}
 		actual_type = actual_type.copy ();
+		actual_type.source_reference = generic_type.source_reference;
 		actual_type.value_owned = actual_type.value_owned && generic_type.value_owned;
 		return actual_type;
 	}
@@ -1289,6 +1290,12 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public void check_type (DataType type) {
+		// Allow any type-argument for GLib.Array
+		if (context != null && context.profile == Profile.GOBJECT
+		    && type.type_symbol == garray_type.type_symbol) {
+			return;
+		}
+
 		foreach (var type_arg in type.get_type_arguments ()) {
 			check_type (type_arg);
 			check_type_argument (type_arg);
@@ -1304,6 +1311,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	void check_type_argument (DataType type_arg) {
 		if (type_arg is GenericType
+		    || type_arg is NullType
 		    || type_arg is PointerType
 		    || type_arg is VoidType
 		    || is_reference_type_argument (type_arg)

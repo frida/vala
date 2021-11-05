@@ -31,6 +31,9 @@ namespace Gst {
 				public static uint8 get_level_idc (string level);
 				[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_codec_utils_h264_get_profile")]
 				public static unowned string get_profile ([CCode (array_length_cname = "len", array_length_pos = 1.1, array_length_type = "guint")] uint8[] sps);
+				[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_codec_utils_h264_get_profile_flags_level")]
+				[Version (since = "1.20")]
+				public static bool get_profile_flags_level ([CCode (array_length_cname = "len", array_length_pos = 1.5, array_length_type = "guint", type = "const guint8*")] uint8[] codec_data, out uint8 profile, out uint8 flags, out uint8 level);
 			}
 			namespace MPEG4Video {
 				[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_codec_utils_mpeg4video_caps_set_level_and_profile")]
@@ -98,6 +101,8 @@ namespace Gst {
 			[CCode (has_construct_function = false)]
 			protected DiscovererContainerInfo ();
 			public GLib.List<Gst.PbUtils.DiscovererStreamInfo> get_streams ();
+			[Version (since = "1.20")]
+			public unowned Gst.TagList get_tags ();
 		}
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "GstDiscovererInfo", lower_case_cprefix = "gst_discoverer_info_", type_id = "gst_discoverer_info_get_type ()")]
 		[GIR (name = "DiscovererInfo")]
@@ -123,6 +128,7 @@ namespace Gst {
 			public GLib.List<Gst.PbUtils.DiscovererStreamInfo> get_stream_list ();
 			public GLib.List<Gst.PbUtils.DiscovererStreamInfo> get_streams (GLib.Type streamtype);
 			public GLib.List<Gst.PbUtils.DiscovererStreamInfo> get_subtitle_streams ();
+			[Version (deprecated = true, deprecated_since = "1.20")]
 			public unowned Gst.TagList get_tags ();
 			public unowned Gst.Toc get_toc ();
 			public unowned string get_uri ();
@@ -141,6 +147,8 @@ namespace Gst {
 			public Gst.PbUtils.DiscovererStreamInfo get_next ();
 			public Gst.PbUtils.DiscovererStreamInfo get_previous ();
 			public unowned string get_stream_id ();
+			[Version (since = "1.20")]
+			public int get_stream_number ();
 			public unowned string get_stream_type_nick ();
 			public unowned Gst.TagList get_tags ();
 			public unowned Gst.Toc get_toc ();
@@ -323,7 +331,22 @@ namespace Gst {
 			STARTED_OK,
 			INTERNAL_FAILURE,
 			HELPER_MISSING,
-			INSTALL_IN_PROGRESS
+			INSTALL_IN_PROGRESS;
+			[CCode (cname = "gst_install_plugins_return_get_name")]
+			public unowned string get_name ();
+		}
+		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "GstPbUtilsCapsDescriptionFlags", cprefix = "GST_PBUTILS_CAPS_DESCRIPTION_FLAG_", type_id = "gst_pb_utils_caps_description_flags_get_type ()")]
+		[Flags]
+		[GIR (name = "PbUtilsCapsDescriptionFlags")]
+		[Version (since = "1.20")]
+		public enum PbUtilsCapsDescriptionFlags {
+			CONTAINER,
+			AUDIO,
+			VIDEO,
+			IMAGE,
+			SUBTITLE,
+			TAG,
+			GENERIC
 		}
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "GstAudioVisualizerShaderFunc", has_target = false)]
 		public delegate void AudioVisualizerShaderFunc (Gst.PbUtils.AudioVisualizer scope, Gst.Video.Frame s, Gst.Video.Frame d);
@@ -349,6 +372,9 @@ namespace Gst {
 		public const int PLUGINS_BASE_VERSION_NANO;
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
 		public static bool add_codec_description_to_tag_list (Gst.TagList taglist, string? codec_tag, Gst.Caps caps);
+		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_codec_utils_caps_get_mime_codec")]
+		[Version (since = "1.20")]
+		public static string codec_utils_caps_get_mime_codec (Gst.Caps caps);
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_codec_utils_h265_caps_set_level_tier_and_profile")]
 		[Version (since = "1.4")]
 		public static bool codec_utils_h265_caps_set_level_tier_and_profile (Gst.Caps caps, [CCode (array_length_cname = "len", array_length_pos = 2.1, array_length_type = "guint")] uint8[] profile_tier_level);
@@ -384,6 +410,9 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_encoding_list_available_categories")]
 		public static GLib.List<string> encoding_list_available_categories ();
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
+		[Version (since = "1.20")]
+		public static Gst.PbUtils.PbUtilsCapsDescriptionFlags get_caps_description_flags (Gst.Caps caps);
+		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
 		public static string get_codec_description (Gst.Caps caps);
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
 		public static string get_decoder_description (Gst.Caps caps);
@@ -391,6 +420,9 @@ namespace Gst {
 		public static string get_element_description (string factory_name);
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
 		public static string get_encoder_description (Gst.Caps caps);
+		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
+		[Version (since = "1.20")]
+		public static string? get_file_extension_from_caps (Gst.Caps caps);
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
 		public static string get_sink_description (string protocol);
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h")]
@@ -402,6 +434,7 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_install_plugins_installation_in_progress")]
 		public static bool install_plugins_installation_in_progress ();
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_install_plugins_return_get_name")]
+		[Version (replacement = "InstallPluginsReturn.get_name")]
 		public static unowned string install_plugins_return_get_name (Gst.PbUtils.InstallPluginsReturn ret);
 		[CCode (cheader_filename = "gst/pbutils/pbutils.h", cname = "gst_install_plugins_supported")]
 		public static bool install_plugins_supported ();

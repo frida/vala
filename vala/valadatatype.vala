@@ -71,8 +71,9 @@ public abstract class Vala.DataType : CodeNode {
 	private List<DataType> type_argument_list;
 	private static List<DataType> _empty_type_list;
 
-	protected DataType.with_symbol (Symbol? symbol) {
+	protected DataType.with_symbol (Symbol? symbol, SourceReference? source_reference = null) {
 		this.symbol = symbol;
+		this.source_reference = source_reference;
 	}
 
 	/**
@@ -524,9 +525,8 @@ public abstract class Vala.DataType : CodeNode {
 
 	public void replace_type_parameter (TypeParameter old_type_param, TypeParameter new_type_param) {
 		if (this is GenericType) {
-			unowned GenericType generic_type = (GenericType) this;
-			if (generic_type.type_parameter == old_type_param) {
-				generic_type.type_parameter = new_type_param;
+			if (symbol == old_type_param) {
+				symbol = new_type_param;
 			}
 			return;
 		}

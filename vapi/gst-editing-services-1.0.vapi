@@ -147,7 +147,7 @@ namespace GES {
 		[Version (since = "1.18")]
 		public Gst.ClockTime get_frame_time (GES.FrameNumber frame_number);
 		[Version (since = "1.18")]
-		public virtual bool get_natural_framerate (int framerate_n, int framerate_d);
+		public virtual bool get_natural_framerate (out int framerate_n, out int framerate_d);
 		public GES.TrackType get_supported_formats ();
 		public void set_supported_formats (GES.TrackType supportedformats);
 		public GES.TrackType supported_formats { get; set construct; }
@@ -156,8 +156,9 @@ namespace GES {
 	public class CommandLineFormatter : GES.Formatter, GES.Extractable {
 		[CCode (has_construct_function = false)]
 		protected CommandLineFormatter ();
-		public static string get_help (int nargs, string commands);
-		[Version (since = "1.20")]
+		[Version (since = "1.10")]
+		public static string get_help ([CCode (array_length_cname = "nargs", array_length_pos = 0.5)] string[] commands);
+		[Version (since = "1.10")]
 		public static string get_timeline_uri (GES.Timeline timeline);
 	}
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_container_get_type ()")]
@@ -201,7 +202,7 @@ namespace GES {
 	[CCode (cheader_filename = "ges/ges.h", type_id = "ges_effect_clip_get_type ()")]
 	public class EffectClip : GES.BaseEffectClip, GES.Extractable, GES.MetaContainer {
 		[CCode (has_construct_function = false)]
-		public EffectClip (string video_bin_description, string audio_bin_description);
+		public EffectClip (string? video_bin_description, string? audio_bin_description);
 		[NoAccessorMethod]
 		public string audio_bin_description { owned get; construct; }
 		[NoAccessorMethod]
@@ -304,6 +305,9 @@ namespace GES {
 		public bool move (GES.Marker marker, Gst.ClockTime position);
 		public bool remove (GES.Marker marker);
 		public uint size ();
+		[NoAccessorMethod]
+		[Version (since = "1.20")]
+		public GES.MarkerFlags flags { get; set construct; }
 		public signal void marker_added (uint64 position, GES.Marker marker);
 		public signal void marker_moved (uint64 previous_position, uint64 new_position, GES.Marker marker);
 		public signal void marker_removed (GES.Marker marker);
@@ -507,6 +511,8 @@ namespace GES {
 		public Timeline.audio_video ();
 		public bool commit ();
 		public bool commit_sync ();
+		[Version (since = "1.20")]
+		public void freeze_commit ();
 		[CCode (has_construct_function = false)]
 		public Timeline.from_uri (string uri) throws GLib.Error;
 		public bool get_auto_transition ();
@@ -533,6 +539,8 @@ namespace GES {
 		public bool save_to_uri (string uri, GES.Asset? formatter_asset, bool overwrite) throws GLib.Error;
 		public void set_auto_transition (bool auto_transition);
 		public void set_snapping_distance (Gst.ClockTime snapping_distance);
+		[Version (since = "1.20")]
+		public void thaw_commit ();
 		public bool auto_transition { get; set; }
 		public uint64 duration { get; }
 		public uint64 snapping_distance { get; set; }
@@ -802,7 +810,7 @@ namespace GES {
 		[CCode (has_construct_function = false)]
 		protected TrackElementAsset ();
 		[Version (since = "1.18")]
-		public virtual bool get_natural_framerate (int framerate_n, int framerate_d);
+		public virtual bool get_natural_framerate (out int framerate_n, out int framerate_d);
 		public GES.TrackType get_track_type ();
 		public void set_track_type (GES.TrackType type);
 		public GES.TrackType track_type { get; set construct; }
@@ -937,7 +945,7 @@ namespace GES {
 	[CCode (cheader_filename = "ges/ges.h", type_cname = "GESMetaContainerInterface", type_id = "ges_meta_container_get_type ()")]
 	public interface MetaContainer : GLib.Object {
 		public bool add_metas_from_string (string str);
-		public bool check_meta_registered (string meta_item, out GES.MetaFlag? flags, out GLib.Type? type);
+		public bool check_meta_registered (string meta_item, out GES.MetaFlag flags, out GLib.Type type);
 		public void @foreach (GES.MetaForeachFunc func);
 		public bool get_boolean (string meta_item, out bool dest);
 		public bool get_date (string meta_item, out GLib.Date dest);
@@ -1044,6 +1052,13 @@ namespace GES {
 		NOT_ENOUGH_INTERNAL_CONTENT,
 		INVALID_OVERLAP_IN_TRACK,
 		INVALID_EFFECT_BIN_DESCRIPTION
+	}
+	[CCode (cheader_filename = "ges/ges.h", cprefix = "GES_MARKER_FLAG_", type_id = "ges_marker_flags_get_type ()")]
+	[Flags]
+	[Version (since = "1.20")]
+	public enum MarkerFlags {
+		NONE,
+		SNAPPABLE
 	}
 	[CCode (cheader_filename = "ges/ges.h", cprefix = "GES_META_", type_id = "ges_meta_flag_get_type ()")]
 	[Flags]
@@ -1270,6 +1285,12 @@ namespace GES {
 	[CCode (cheader_filename = "ges/ges.h")]
 	public static void deinit ();
 	[CCode (cheader_filename = "ges/ges.h")]
+	[Version (replacement = "Edge.name", since = "1.16")]
+	public static unowned string edge_name (GES.Edge edge);
+	[CCode (cheader_filename = "ges/ges.h")]
+	[Version (replacement = "EditMode.name", since = "1.18")]
+	public static unowned string edit_mode_name (GES.EditMode mode);
+	[CCode (cheader_filename = "ges/ges.h")]
 	[Version (since = "1.18")]
 	public static unowned GES.Asset find_formatter_for_uri (string uri);
 	[CCode (cheader_filename = "ges/ges.h")]
@@ -1286,6 +1307,9 @@ namespace GES {
 	public static bool pspec_equal ([CCode (type = "gconstpointer")] GLib.ParamSpec key_spec_1, [CCode (type = "gconstpointer")] GLib.ParamSpec key_spec_2);
 	[CCode (cheader_filename = "ges/ges.h")]
 	public static uint pspec_hash (void* key_spec);
+	[CCode (cheader_filename = "ges/ges.h")]
+	[Version (replacement = "TrackType.name")]
+	public static unowned string track_type_name (GES.TrackType type);
 	[CCode (cheader_filename = "ges/ges.h")]
 	public static bool validate_register_action_types ();
 	[CCode (cheader_filename = "ges/ges.h")]

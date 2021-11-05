@@ -369,6 +369,8 @@ namespace Pk {
 		public Details ();
 		[Version (since = "0.8.12")]
 		public unowned string get_description ();
+		[Version (since = "1.2.4")]
+		public uint64 get_download_size ();
 		[Version (since = "0.8.12")]
 		public Pk.Group get_group ();
 		[Version (since = "0.8.12")]
@@ -384,6 +386,9 @@ namespace Pk {
 		[NoAccessorMethod]
 		[Version (since = "0.5.4")]
 		public string description { owned get; set; }
+		[NoAccessorMethod]
+		[Version (since = "1.2.4")]
+		public uint64 download_size { get; set; }
 		[NoAccessorMethod]
 		[Version (since = "0.5.4")]
 		public Pk.Group group { get; set; }
@@ -538,6 +543,8 @@ namespace Pk {
 		public unowned string get_name ();
 		[Version (since = "0.5.4")]
 		public unowned string get_summary ();
+		[Version (since = "1.2.4")]
+		public Pk.Info get_update_severity ();
 		[Version (since = "0.6.4")]
 		public unowned string get_version ();
 		[Version (since = "0.5.0")]
@@ -582,6 +589,8 @@ namespace Pk {
 		public void set_info (Pk.Info info);
 		[Version (since = "0.8.14")]
 		public void set_summary (string summary);
+		[Version (since = "1.2.4")]
+		public void set_update_severity (Pk.Info update_severity);
 		[NoAccessorMethod]
 		[Version (since = "0.5.4")]
 		public string description { owned get; set; }
@@ -621,6 +630,8 @@ namespace Pk {
 		[NoAccessorMethod]
 		[Version (since = "0.5.4")]
 		public Pk.Restart update_restart { get; set; }
+		[Version (since = "1.2.4")]
+		public Pk.Info update_severity { get; set; }
 		[NoAccessorMethod]
 		[Version (since = "0.5.4")]
 		public Pk.UpdateState update_state { get; set; }
@@ -1396,9 +1407,15 @@ namespace Pk {
 		SKIP_TRANSACTION,
 		REPAIR_REQUIRED,
 		LAST;
+		[CCode (cname = "pk_exit_enum_from_string")]
 		[Version (since = "0.5.0")]
+		public static Pk.Exit from_string (string exit);
+		[CCode (cname = "pk_exit_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "ExitEnum.from_string", since = "0.5.0")]
 		public static Pk.Exit enum_from_string (string exit);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "ExitEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkFilterEnum", cprefix = "PK_FILTER_ENUM_", type_id = "pk_filter_enum_get_type ()")]
@@ -1433,13 +1450,19 @@ namespace Pk {
 		DOWNLOADED,
 		NOT_DOWNLOADED,
 		LAST;
+		[CCode (cname = "pk_filter_enum_from_string")]
+		[Version (since = "0.5.0")]
+		public static Pk.Filter from_string (string filter);
+		[CCode (cname = "pk_filter_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
 		[Version (since = "0.5.2")]
 		public static Pk.Bitfield bitfield_from_string (string filters);
 		[Version (since = "0.5.2")]
 		public static string bitfield_to_string (Pk.Bitfield filters);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "FilterEnum.from_string", since = "0.5.0")]
 		public static Pk.Filter enum_from_string (string filter);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "FilterEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkGroupEnum", cprefix = "PK_GROUP_ENUM_", type_id = "pk_group_enum_get_type ()")]
@@ -1481,13 +1504,19 @@ namespace Pk {
 		VENDOR,
 		NEWEST,
 		LAST;
+		[CCode (cname = "pk_group_enum_from_string")]
+		[Version (since = "0.5.0")]
+		public static Pk.Group from_string (string group);
+		[CCode (cname = "pk_group_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
 		[Version (since = "0.5.2")]
 		public static Pk.Bitfield bitfield_from_string (string groups);
 		[Version (since = "0.5.2")]
 		public static string bitfield_to_string (Pk.Bitfield groups);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "GroupEnum.from_string", since = "0.5.0")]
 		public static Pk.Group enum_from_string (string group);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "GroupEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkInfoEnum", cprefix = "PK_INFO_ENUM_", type_id = "pk_info_enum_get_type ()")]
@@ -1519,14 +1548,27 @@ namespace Pk {
 		UNTRUSTED,
 		TRUSTED,
 		UNAVAILABLE,
+		CRITICAL,
 		LAST;
+		[CCode (cname = "pk_info_enum_from_string")]
 		[Version (since = "0.5.0")]
+		public static Pk.Info from_string (string info);
+		[CCode (cname = "pk_info_enum_to_localised_past")]
+		[Version (since = "0.7.2")]
+		public unowned string to_localised_past ();
+		[CCode (cname = "pk_info_enum_to_localised_present")]
+		[Version (since = "0.7.2")]
+		public unowned string to_localised_present ();
+		[CCode (cname = "pk_info_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "InfoEnum.from_string", since = "0.5.0")]
 		public static Pk.Info enum_from_string (string info);
-		[Version (since = "0.7.2")]
+		[Version (replacement = "InfoEnum.to_localised_past", since = "0.7.2")]
 		public unowned string enum_to_localised_past ();
-		[Version (since = "0.7.2")]
+		[Version (replacement = "InfoEnum.to_localised_present", since = "0.7.2")]
 		public unowned string enum_to_localised_present ();
-		[Version (since = "0.5.0")]
+		[Version (replacement = "InfoEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkMediaTypeEnum", cprefix = "PK_MEDIA_TYPE_ENUM_", type_id = "pk_media_type_enum_get_type ()")]
@@ -1537,9 +1579,15 @@ namespace Pk {
 		DVD,
 		DISC,
 		LAST;
+		[CCode (cname = "pk_media_type_enum_from_string")]
 		[Version (since = "0.5.0")]
+		public static Pk.MediaType from_string (string media_type);
+		[CCode (cname = "pk_media_type_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "MediaTypeEnum.from_string", since = "0.5.0")]
 		public static Pk.MediaType enum_from_string (string media_type);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "MediaTypeEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkNetworkEnum", cprefix = "PK_NETWORK_ENUM_", type_id = "pk_network_enum_get_type ()")]
@@ -1552,9 +1600,15 @@ namespace Pk {
 		WIFI,
 		MOBILE,
 		LAST;
+		[CCode (cname = "pk_network_enum_from_string")]
 		[Version (since = "0.5.0")]
+		public static Pk.Network from_string (string network);
+		[CCode (cname = "pk_network_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "NetworkEnum.from_string", since = "0.5.0")]
 		public static Pk.Network enum_from_string (string network);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "NetworkEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cprefix = "PK_OFFLINE_ACTION_", type_id = "pk_offline_action_get_type ()")]
@@ -1567,6 +1621,13 @@ namespace Pk {
 		public static Pk.OfflineAction from_string (string action);
 		[Version (since = "0.9.6")]
 		public unowned string to_string ();
+	}
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cprefix = "PK_OFFLINE_FLAGS_", type_id = "pk_offline_flags_get_type ()")]
+	[Flags]
+	[Version (since = "1.2.5")]
+	public enum OfflineFlags {
+		NONE,
+		INTERACTIVE
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cprefix = "PK_PACKAGE_SACK_SORT_TYPE_", type_id = "pk_package_sack_sort_type_get_type ()")]
 	public enum PackageSackSortType {
@@ -1606,9 +1667,15 @@ namespace Pk {
 		SECURITY_SESSION,
 		SECURITY_SYSTEM,
 		LAST;
+		[CCode (cname = "pk_restart_enum_from_string")]
 		[Version (since = "0.5.0")]
+		public static Pk.Restart from_string (string restart);
+		[CCode (cname = "pk_restart_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "RestartEnum.from_string", since = "0.5.0")]
 		public static Pk.Restart enum_from_string (string restart);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "RestartEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkRoleEnum", cprefix = "PK_ROLE_ENUM_", type_id = "pk_role_enum_get_type ()")]
@@ -1649,15 +1716,24 @@ namespace Pk {
 		REPO_REMOVE,
 		UPGRADE_SYSTEM,
 		LAST;
+		[CCode (cname = "pk_role_enum_from_string")]
+		[Version (since = "0.5.0")]
+		public static Pk.Role from_string (string role);
+		[CCode (cname = "pk_role_enum_to_localised_present")]
+		[Version (since = "0.7.2")]
+		public unowned string to_localised_present ();
+		[CCode (cname = "pk_role_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
 		[Version (since = "0.5.2")]
 		public static Pk.Bitfield bitfield_from_string (string roles);
 		[Version (since = "0.5.2")]
 		public static string bitfield_to_string (Pk.Bitfield roles);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "RoleEnum.from_string", since = "0.5.0")]
 		public static Pk.Role enum_from_string (string role);
-		[Version (since = "0.7.2")]
+		[Version (replacement = "RoleEnum.to_localised_present", since = "0.7.2")]
 		public unowned string enum_to_localised_present ();
-		[Version (since = "0.5.0")]
+		[Version (replacement = "RoleEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkSigTypeEnum", cprefix = "PK_SIGTYPE_ENUM_", type_id = "pk_sig_type_enum_get_type ()")]
@@ -1666,8 +1742,14 @@ namespace Pk {
 		UNKNOWN,
 		GPG,
 		LAST;
-		public static Pk.SigType enum_from_string (string sig_type);
+		[CCode (cname = "pk_sig_type_enum_from_string")]
+		public static Pk.SigType from_string (string sig_type);
+		[CCode (cname = "pk_sig_type_enum_to_string")]
 		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "SigTypeEnum.from_string")]
+		public static Pk.SigType enum_from_string (string sig_type);
+		[Version (replacement = "SigTypeEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkStatusEnum", cprefix = "PK_STATUS_ENUM_", type_id = "pk_status_enum_get_type ()")]
@@ -1711,10 +1793,19 @@ namespace Pk {
 		COPY_FILES,
 		RUN_HOOK,
 		LAST;
+		[CCode (cname = "pk_status_enum_from_string")]
 		[Version (since = "0.5.0")]
+		public static Pk.Status from_string (string status);
+		[CCode (cname = "pk_status_enum_to_localised_text")]
+		public unowned string to_localised_text ();
+		[CCode (cname = "pk_status_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "StatusEnum.from_string", since = "0.5.0")]
 		public static Pk.Status enum_from_string (string status);
+		[Version (replacement = "StatusEnum.to_localised_text")]
 		public unowned string enum_to_localised_text ();
-		[Version (since = "0.5.0")]
+		[Version (replacement = "StatusEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkTransactionFlagEnum", cprefix = "PK_TRANSACTION_FLAG_ENUM_", type_id = "pk_transaction_flag_enum_get_type ()")]
@@ -1728,13 +1819,19 @@ namespace Pk {
 		JUST_REINSTALL,
 		ALLOW_DOWNGRADE,
 		LAST;
+		[CCode (cname = "pk_transaction_flag_enum_from_string")]
+		[Version (since = "0.8.1")]
+		public static Pk.TransactionFlag from_string (string transaction_flag);
+		[CCode (cname = "pk_transaction_flag_enum_to_string")]
+		[Version (since = "0.8.1")]
+		public unowned string to_string ();
 		[Version (since = "0.8.1")]
 		public static Pk.Bitfield bitfield_from_string (string transaction_flags);
 		[Version (since = "0.8.1")]
 		public static string bitfield_to_string (Pk.Bitfield transaction_flags);
-		[Version (since = "0.8.1")]
+		[Version (replacement = "TransactionFlagEnum.from_string", since = "0.8.1")]
 		public static Pk.TransactionFlag enum_from_string (string transaction_flag);
-		[Version (since = "0.8.1")]
+		[Version (replacement = "TransactionFlagEnum.to_string", since = "0.8.1")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkUpdateStateEnum", cprefix = "PK_UPDATE_STATE_ENUM_", type_id = "pk_update_state_enum_get_type ()")]
@@ -1745,9 +1842,15 @@ namespace Pk {
 		UNSTABLE,
 		TESTING,
 		LAST;
+		[CCode (cname = "pk_update_state_enum_from_string")]
 		[Version (since = "0.5.0")]
+		public static Pk.UpdateState from_string (string update_state);
+		[CCode (cname = "pk_update_state_enum_to_string")]
+		[Version (since = "0.5.0")]
+		public unowned string to_string ();
+		[Version (replacement = "UpdateStateEnum.from_string", since = "0.5.0")]
 		public static Pk.UpdateState enum_from_string (string update_state);
-		[Version (since = "0.5.0")]
+		[Version (replacement = "UpdateStateEnum.to_string", since = "0.5.0")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkUpgradeKindEnum", cprefix = "PK_UPGRADE_KIND_ENUM_", type_id = "pk_upgrade_kind_enum_get_type ()")]
@@ -1758,9 +1861,15 @@ namespace Pk {
 		DEFAULT,
 		COMPLETE,
 		LAST;
+		[CCode (cname = "pk_upgrade_kind_enum_from_string")]
 		[Version (since = "0.6.11")]
+		public static Pk.UpgradeKind from_string (string upgrade_kind);
+		[CCode (cname = "pk_upgrade_kind_enum_to_string")]
+		[Version (since = "0.6.11")]
+		public unowned string to_string ();
+		[Version (replacement = "UpgradeKindEnum.from_string", since = "0.6.11")]
 		public static Pk.UpgradeKind enum_from_string (string upgrade_kind);
-		[Version (since = "0.6.11")]
+		[Version (replacement = "UpgradeKindEnum.to_string", since = "0.6.11")]
 		public unowned string enum_to_string ();
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cprefix = "PK_CLIENT_ERROR_")]
@@ -1775,6 +1884,7 @@ namespace Pk {
 		INVALID_FILE,
 		NOT_SUPPORTED,
 		DECLINED_SIMULATION,
+		DECLINED_INTERACTION,
 		LAST;
 		[Version (since = "0.5.2")]
 		public static GLib.Quark quark ();
@@ -1835,15 +1945,33 @@ namespace Pk {
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PK_SYSTEM_PACKAGE_LIST_FILENAME")]
 	public const string SYSTEM_PACKAGE_LIST_FILENAME;
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "ClientError.quark", since = "0.5.2")]
+	public static GLib.Quark client_error_quark ();
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "ControlError.quark", since = "0.5.2")]
+	public static GLib.Quark control_error_quark ();
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static void debug_add_log_domain (string log_domain);
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static bool debug_is_verbose ();
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static void debug_set_verbose (bool verbose);
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "DistroUpgradeEnum.from_string", since = "0.5.0")]
+	public static Pk.DistroUpgradeEnum distro_upgrade_enum_from_string (string upgrade);
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "DistroUpgradeEnum.to_string", since = "0.5.0")]
+	public static unowned string distro_upgrade_enum_to_string (Pk.DistroUpgradeEnum upgrade);
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static unowned string enum_find_string (Pk.EnumMatch table, uint value);
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static uint enum_find_value (Pk.EnumMatch table, string string);
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "ErrorEnum.from_string", since = "0.5.0")]
+	public static Pk.ErrorEnum error_enum_from_string (string code);
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "ErrorEnum.to_string", since = "0.5.0")]
+	public static unowned string error_enum_to_string (Pk.ErrorEnum code);
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static string get_distro_id ();
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
@@ -1852,6 +1980,12 @@ namespace Pk {
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	[Version (since = "0.5.2")]
 	public static string iso8601_present ();
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "OfflineAction.from_string", since = "0.9.6")]
+	public static Pk.OfflineAction offline_action_from_string (string action);
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "OfflineAction.to_string", since = "0.9.6")]
+	public static unowned string offline_action_to_string (Pk.OfflineAction action);
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static bool offline_auth_cancel () throws GLib.Error;
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
@@ -1874,8 +2008,17 @@ namespace Pk {
 	[Version (since = "0.9.6")]
 	public static bool offline_cancel (GLib.Cancellable? cancellable = null) throws GLib.Error;
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (since = "1.2.5")]
+	public static bool offline_cancel_with_flags (Pk.OfflineFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	[Version (since = "0.9.6")]
 	public static bool offline_clear_results (GLib.Cancellable? cancellable = null) throws GLib.Error;
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (since = "1.2.5")]
+	public static bool offline_clear_results_with_flags (Pk.OfflineFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (replacement = "OfflineError.quark", since = "0.9.6")]
+	public static GLib.Quark offline_error_quark ();
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	[Version (since = "0.9.6")]
 	public static Pk.OfflineAction offline_get_action () throws GLib.Error;
@@ -1912,6 +2055,12 @@ namespace Pk {
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	[Version (since = "1.0.12")]
 	public static bool offline_trigger_upgrade (Pk.OfflineAction action, GLib.Cancellable? cancellable = null) throws GLib.Error;
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (since = "1.2.5")]
+	public static bool offline_trigger_upgrade_with_flags (Pk.OfflineAction action, Pk.OfflineFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
+	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
+	[Version (since = "1.2.5")]
+	public static bool offline_trigger_with_flags (Pk.OfflineAction action, Pk.OfflineFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]
 	public static void polkit_agent_close ();
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h")]

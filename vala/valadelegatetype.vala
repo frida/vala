@@ -37,8 +37,8 @@ public class Vala.DelegateType : CallableType {
 	DelegateTargetField? target_field;
 	DelegateDestroyField? destroy_field;
 
-	public DelegateType (Delegate delegate_symbol) {
-		base (delegate_symbol);
+	public DelegateType (Delegate delegate_symbol, SourceReference? source_reference = null) {
+		base (delegate_symbol, source_reference);
 		this.is_called_once = (delegate_symbol.get_attribute_string ("CCode", "scope") == "async");
 	}
 
@@ -68,8 +68,7 @@ public class Vala.DelegateType : CallableType {
 	}
 
 	public override DataType copy () {
-		var result = new DelegateType (delegate_symbol);
-		result.source_reference = source_reference;
+		var result = new DelegateType (delegate_symbol, source_reference);
 		result.value_owned = value_owned;
 		result.nullable = nullable;
 
@@ -96,11 +95,13 @@ public class Vala.DelegateType : CallableType {
 		}
 
 		if (!delegate_symbol.check (context)) {
+			error = true;
 			return false;
 		}
 
 		// check whether there is the expected amount of type-arguments
 		if (!check_type_arguments (context, true)) {
+			error = true;
 			return false;
 		}
 
@@ -167,11 +168,11 @@ public class Vala.DelegateType : CallableType {
 
 		// target-delegate may throw less but not more errors than the delegate
 		var error_types = new ArrayList<DataType> ();
-		get_error_types (error_types);
+		delegate_symbol.get_error_types (error_types);
 		foreach (DataType error_type in error_types) {
 			bool match = false;
 			var delegate_error_types = new ArrayList<DataType> ();
-			dt_target.get_error_types (delegate_error_types);
+			dt_target.delegate_symbol.get_error_types (delegate_error_types);
 			foreach (DataType delegate_error_type in delegate_error_types) {
 				if (error_type.compatible (delegate_error_type)) {
 					match = true;

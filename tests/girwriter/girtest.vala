@@ -7,6 +7,11 @@ namespace GirTest {
 		public BoxedStruct () {
 		}
 
+		public BoxedStruct.foo (int param1, int param2) {
+			field_name = param1;
+			internal_field_name = param2;
+		}
+
 		public void inv () {
 		}
 	}
@@ -19,6 +24,11 @@ namespace GirTest {
 		public Struct () {
 		}
 
+		public Struct.foo (int param1, int param2) {
+			field_name = param1;
+			internal_field_name = param2;
+		}
+
 		public void inv () {
 		}
 	}
@@ -28,8 +38,15 @@ namespace GirTest {
 		public int field_name;
 	}
 
+	[GIR (name = "RenamedStruct")]
+	public struct NamedStruct {
+		public int field_name;
+	}
+
 	public const int CONSTANT_NUMBER = 42;
 	public const string CONSTANT_STRING = "const ♥ utf8";
+	[GIR (name = "RENAMED_CONSTANT")]
+	public const int NAMED_CONSTANT = 23;
 
 	public enum EnumTest {
 		VALUE1,
@@ -57,7 +74,19 @@ namespace GirTest {
 	}
 
 	[GIR (visible = false)]
+	[Flags]
 	public enum SkippedFlags {
+		VALUE1
+	}
+
+	[GIR (name = "RenamedEnumeration")]
+	public enum NamedEnumeration {
+		VALUE1
+	}
+
+	[GIR (name = "RenamedBitfield")]
+	[Flags]
+	public enum NamedBitfield {
 		VALUE1
 	}
 
@@ -65,6 +94,11 @@ namespace GirTest {
 		FAILED,
 		SMELLY,
 		FISHY = 23
+	}
+
+	[GIR (name = "RenamedError")]
+	public errordomain NamedError {
+		FAILED
 	}
 
 	public interface InterfaceTest : Object {
@@ -99,6 +133,10 @@ namespace GirTest {
 	public interface SkippedInterface {
 	}
 
+	[GIR (name = "RenamedInterface")]
+	public interface NamedInterface : Object {
+	}
+
 	public delegate bool DelegateTest (void* a, void* b);
 
 	public delegate bool DelegateErrorTest () throws ErrorTest;
@@ -107,6 +145,9 @@ namespace GirTest {
 
 	[GIR (visible = false)]
 	public delegate void SkippedDelegate ();
+
+	[GIR (name = "RenamedDelegate")]
+	public delegate void NamedDelegate ();
 
 	public class TypeTest {
 		public string some_property { get; set; }
@@ -255,7 +296,7 @@ namespace GirTest {
 			return new int[8];
 		}
 
-		public EqualFunc simple_delegate_return () {
+		public EqualFunc<string> simple_delegate_return () {
 			return str_equal;
 		}
 
@@ -330,6 +371,9 @@ namespace GirTest {
 		public abstract void method_implicit_params (int[] param1, owned DelegateTest param2);
 	}
 
+	public sealed class SealedObjectTest : Object {
+	}
+
 	public interface PrerequisiteTest : InterfaceTest {
 	}
 
@@ -352,6 +396,17 @@ namespace GirTest {
 	public class DeprecatedClassTest {
 	}
 
+	[GIR (name = "RenamedClass")]
+	public class NamedClass {
+	}
+
+	[GIR (name = "RenamedCompactClass")]
+	[Compact]
+	public class NamedCompactClass {
+		public string s;
+		public int i;
+	}
+
 	public class GenericsTest<G,T> {
 		public GenericsTest (owned DelegateTest cb) {
 		}
@@ -371,6 +426,31 @@ namespace GirTest {
 	namespace Nested {
 		public void function () {
 		}
+	}
+
+	public NamedClass use_renamed_class (NamedClass param) {
+		return param;
+	}
+	public unowned NamedCompactClass use_renamed_compact_class (NamedCompactClass param) {
+		return param;
+	}
+	public NamedInterface use_renamed_interface (NamedInterface param) {
+		return param;
+	}
+	public NamedStruct? use_renamed_struct (NamedStruct param) {
+		return param;
+	}
+	public NamedEnumeration use_renamed_enumeration (NamedEnumeration param) {
+		return param;
+	}
+	public NamedBitfield use_renamed_flags (NamedBitfield param) {
+		return param;
+	}
+	public unowned NamedDelegate use_renamed_delegate (NamedDelegate param) {
+		return param;
+	}
+	public NamedError use_renamed_error (NamedError param) {
+		return param;
 	}
 }
 

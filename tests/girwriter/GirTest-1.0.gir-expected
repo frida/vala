@@ -28,13 +28,22 @@
 	<enumeration name="SkippedEnum" c:type="GirTestSkippedEnum" glib:type-name="GirTestSkippedEnum" glib:get-type="gir_test_skipped_enum_get_type" introspectable="0">
 		<member name="value1" c:identifier="GIR_TEST_SKIPPED_ENUM_VALUE1" value="0"/>
 	</enumeration>
-	<enumeration name="SkippedFlags" c:type="GirTestSkippedFlags" glib:type-name="GirTestSkippedFlags" glib:get-type="gir_test_skipped_flags_get_type" introspectable="0">
-		<member name="value1" c:identifier="GIR_TEST_SKIPPED_FLAGS_VALUE1" value="0"/>
+	<bitfield name="SkippedFlags" c:type="GirTestSkippedFlags" glib:type-name="GirTestSkippedFlags" glib:get-type="gir_test_skipped_flags_get_type" introspectable="0">
+		<member name="value1" c:identifier="GIR_TEST_SKIPPED_FLAGS_VALUE1" value="1"/>
+	</bitfield>
+	<enumeration name="RenamedEnumeration" c:type="GirTestNamedEnumeration" glib:type-name="GirTestNamedEnumeration" glib:get-type="gir_test_named_enumeration_get_type">
+		<member name="value1" c:identifier="GIR_TEST_NAMED_ENUMERATION_VALUE1" value="0"/>
 	</enumeration>
+	<bitfield name="RenamedBitfield" c:type="GirTestNamedBitfield" glib:type-name="GirTestNamedBitfield" glib:get-type="gir_test_named_bitfield_get_type">
+		<member name="value1" c:identifier="GIR_TEST_NAMED_BITFIELD_VALUE1" value="1"/>
+	</bitfield>
 	<enumeration name="ErrorTest" c:type="GirTestErrorTest" glib:error-domain="gir-test-error-test-quark">
 		<member name="failed" c:identifier="GIR_TEST_ERROR_TEST_FAILED" value="0"/>
 		<member name="smelly" c:identifier="GIR_TEST_ERROR_TEST_SMELLY" value="1"/>
 		<member name="fishy" c:identifier="GIR_TEST_ERROR_TEST_FISHY" value="23"/>
+	</enumeration>
+	<enumeration name="RenamedError" c:type="GirTestNamedError" glib:error-domain="gir-test-named-error-quark">
+		<member name="failed" c:identifier="GIR_TEST_NAMED_ERROR_FAILED" value="0"/>
 	</enumeration>
 	<class name="TypeTest" c:type="GirTestTypeTest" c:symbol-prefix="typetest" glib:type-name="GirTestTypeTest" glib:get-type="gir_test_typetest_get_type" glib:type-struct="TypeTestClass" glib:fundamental="1" glib:ref-func="gir_test_typetest_ref" glib:unref-func="gir_test_typetest_unref" glib:set-value-func="gir_test_value_set_typetest" glib:get-value-func="gir_test_value_get_typetest">
 		<field name="parent_instance" readable="0" private="1">
@@ -88,7 +97,7 @@
 		<field name="priv" readable="0" private="1">
 			<type name="SubTypeTestPrivate" c:type="GirTestSubTypeTestPrivate*"/>
 		</field>
-		<field name="array_field">
+		<field name="array_field" writable="1">
 			<array c:type="gchar**">
 				<type name="utf8" c:type="gchar*"/>
 			</array>
@@ -96,7 +105,7 @@
 		<field name="array_field_length1">
 			<type name="gint" c:type="gint"/>
 		</field>
-		<field name="delegate_field">
+		<field name="delegate_field" writable="1">
 			<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 		</field>
 		<field name="delegate_field_target">
@@ -124,18 +133,18 @@
 		<field name="priv" readable="0" private="1">
 			<type name="ObjectTestPrivate" c:type="GirTestObjectTestPrivate*"/>
 		</field>
-		<field name="field">
+		<field name="field" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
-		<field name="internal_field">
+		<field name="internal_field" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
-		<field name="fixed_array_field">
+		<field name="fixed_array_field" writable="1">
 			<array fixed-size="23" c:type="gint*">
 				<type name="gint" c:type="gint"/>
 			</array>
 		</field>
-		<field name="nullable_field" allow-none="1">
+		<field name="nullable_field" writable="1" nullable="1">
 			<type name="utf8" c:type="gchar*"/>
 		</field>
 		<constructor name="new" c:identifier="gir_test_object_test_new">
@@ -529,7 +538,7 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
 				</instance-parameter>
-				<parameter name="result_target" direction="out" transfer-ownership="none" allow-none="1">
+				<parameter name="result_target" direction="out" transfer-ownership="none" optional="1">
 					<type name="gpointer" c:type="void**"/>
 				</parameter>
 				<parameter name="result_target_destroy_notify" direction="out" transfer-ownership="none" scope="call">
@@ -556,7 +565,7 @@
 				<parameter name="a_length1" direction="out" transfer-ownership="none">
 					<type name="gint" c:type="gint*"/>
 				</parameter>
-				<parameter name="result_target" direction="out" transfer-ownership="none" allow-none="1">
+				<parameter name="result_target" direction="out" transfer-ownership="none" optional="1">
 					<type name="gpointer" c:type="void**"/>
 				</parameter>
 				<parameter name="result_target_destroy_notify" direction="out" transfer-ownership="none" scope="call">
@@ -580,7 +589,7 @@
 				<parameter name="d" direction="out" transfer-ownership="none" closure="2" scope="notified" destroy="3">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest*"/>
 				</parameter>
-				<parameter name="d_target" direction="out" transfer-ownership="none" allow-none="1">
+				<parameter name="d_target" direction="out" transfer-ownership="none" optional="1">
 					<type name="gpointer" c:type="void**"/>
 				</parameter>
 				<parameter name="d_target_destroy_notify" direction="out" transfer-ownership="none" scope="call">
@@ -617,7 +626,7 @@
 			</parameters>
 		</method>
 		<method name="generic_array_container_return" c:identifier="gir_test_object_test_generic_array_container_return">
-			<return-value transfer-ownership="container" allow-none="1">
+			<return-value transfer-ownership="container" nullable="1">
 				<array name="GLib.PtrArray" c:type="GPtrArray*">
 					<type name="utf8" c:type="const gchar*"/>
 				</array>
@@ -636,10 +645,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -665,10 +674,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -694,10 +703,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -726,10 +735,10 @@
 				<parameter name="i1" transfer-ownership="none">
 					<type name="gint" c:type="gint"/>
 				</parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -761,10 +770,10 @@
 				<parameter name="i1" transfer-ownership="none">
 					<type name="gint" c:type="gint"/>
 				</parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -856,10 +865,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -896,7 +905,7 @@
 				<parameter name="param2" transfer-ownership="none" closure="3" scope="notified" destroy="4">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 				</parameter>
-				<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+				<parameter name="param2_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -923,7 +932,7 @@
 				<parameter name="param2" transfer-ownership="none" closure="3" scope="notified" destroy="4">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 				</parameter>
-				<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+				<parameter name="param2_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -1089,10 +1098,10 @@
 					<parameter name="self" transfer-ownership="none">
 						<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -1125,10 +1134,10 @@
 					<parameter name="i1" transfer-ownership="none">
 						<type name="gint" c:type="gint"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="3" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="3" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -1185,10 +1194,10 @@
 					<parameter name="self" transfer-ownership="none">
 						<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -1229,7 +1238,7 @@
 					<parameter name="param2" transfer-ownership="none" closure="4" scope="notified" destroy="5">
 						<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 					</parameter>
-					<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+					<parameter name="param2_target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 					<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -1403,10 +1412,10 @@
 				<parameter name="param" transfer-ownership="none">
 					<type name="gint" c:type="gint"/>
 				</parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -1435,10 +1444,10 @@
 				<parameter name="param" transfer-ownership="none">
 					<type name="gint" c:type="gint"/>
 				</parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -1500,10 +1509,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.AbstractObjectTest" c:type="GirTestAbstractObjectTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -1540,7 +1549,7 @@
 				<parameter name="param2" transfer-ownership="none" closure="3" scope="notified" destroy="4">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 				</parameter>
-				<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+				<parameter name="param2_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -1567,7 +1576,7 @@
 				<parameter name="param2" transfer-ownership="none" closure="3" scope="notified" destroy="4">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 				</parameter>
-				<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+				<parameter name="param2_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -1667,10 +1676,10 @@
 					<parameter name="param" transfer-ownership="none">
 						<type name="gint" c:type="gint"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="3" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="3" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -1727,10 +1736,10 @@
 					<parameter name="self" transfer-ownership="none">
 						<type name="GirTest.AbstractObjectTest" c:type="GirTestAbstractObjectTest*"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -1771,7 +1780,7 @@
 					<parameter name="param2" transfer-ownership="none" closure="4" scope="notified" destroy="5">
 						<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 					</parameter>
-					<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+					<parameter name="param2_target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 					<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -1782,6 +1791,25 @@
 		</field>
 	</record>
 	<record name="AbstractObjectTestPrivate" c:type="GirTestAbstractObjectTestPrivate" disguised="1"/>
+	<class name="SealedObjectTest" c:type="GirTestSealedObjectTest" c:symbol-prefix="sealed_object_test" glib:type-name="GirTestSealedObjectTest" glib:get-type="gir_test_sealed_object_test_get_type" glib:type-struct="SealedObjectTestClass" parent="GObject.Object" final="1">
+		<field name="parent_instance" readable="0" private="1">
+			<type name="GObject.Object" c:type="GObject"/>
+		</field>
+		<field name="priv" readable="0" private="1">
+			<type name="SealedObjectTestPrivate" c:type="GirTestSealedObjectTestPrivate*"/>
+		</field>
+		<constructor name="new" c:identifier="gir_test_sealed_object_test_new">
+			<return-value transfer-ownership="full">
+				<type name="GirTest.SealedObjectTest" c:type="GirTestSealedObjectTest*"/>
+			</return-value>
+		</constructor>
+	</class>
+	<record name="SealedObjectTestClass" c:type="GirTestSealedObjectTestClass" glib:is-gtype-struct-for="SealedObjectTest">
+		<field name="parent_class" readable="0" private="1">
+			<type name="GObject.ObjectClass" c:type="GObjectClass"/>
+		</field>
+	</record>
+	<record name="SealedObjectTestPrivate" c:type="GirTestSealedObjectTestPrivate" disguised="1"/>
 	<class name="ImplementionTest" c:type="GirTestImplementionTest" c:symbol-prefix="implemention_test" glib:type-name="GirTestImplementionTest" glib:get-type="gir_test_implemention_test_get_type" glib:type-struct="ImplementionTestClass" parent="GObject.Object">
 		<implements name="GirTest.InterfaceTest"/>
 		<field name="parent_instance" readable="0" private="1">
@@ -1802,11 +1830,11 @@
 		</field>
 	</record>
 	<record name="ImplementionTestPrivate" c:type="GirTestImplementionTestPrivate" disguised="1"/>
-	<record name="CompactClass">
-		<field name="s">
+	<record name="CompactClass" c:type="GirTestCompactClass">
+		<field name="s" writable="1">
 			<type name="utf8" c:type="gchar*"/>
 		</field>
-		<field name="i">
+		<field name="i" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
 		<constructor name="new" c:identifier="gir_test_compactclass_new">
@@ -1859,6 +1887,41 @@
 		</field>
 	</record>
 	<record name="DeprecatedClassTestPrivate" c:type="GirTestDeprecatedClassTestPrivate" disguised="1"/>
+	<class name="RenamedClass" c:type="GirTestNamedClass" c:symbol-prefix="namedclass" glib:type-name="GirTestNamedClass" glib:get-type="gir_test_namedclass_get_type" glib:type-struct="RenamedClassClass" glib:fundamental="1" glib:ref-func="gir_test_namedclass_ref" glib:unref-func="gir_test_namedclass_unref" glib:set-value-func="gir_test_value_set_namedclass" glib:get-value-func="gir_test_value_get_namedclass">
+		<field name="parent_instance" readable="0" private="1">
+			<type name="GObject.TypeInstance" c:type="GTypeInstance"/>
+		</field>
+		<field name="ref_count">
+			<type name="gint" c:type="volatile int"/>
+		</field>
+		<field name="priv" readable="0" private="1">
+			<type name="RenamedClassPrivate" c:type="GirTestNamedClassPrivate*"/>
+		</field>
+		<constructor name="new" c:identifier="gir_test_namedclass_new">
+			<return-value transfer-ownership="full">
+				<type name="GirTest.RenamedClass" c:type="GirTestNamedClass*"/>
+			</return-value>
+		</constructor>
+	</class>
+	<record name="RenamedClassClass" c:type="GirTestNamedClassClass" glib:is-gtype-struct-for="RenamedClass">
+		<field name="parent_class" readable="0" private="1">
+			<type name="GObject.TypeClass" c:type="GTypeClass"/>
+		</field>
+	</record>
+	<record name="RenamedClassPrivate" c:type="GirTestNamedClassPrivate" disguised="1"/>
+	<record name="RenamedCompactClass" c:type="GirTestNamedCompactClass">
+		<field name="s" writable="1">
+			<type name="utf8" c:type="gchar*"/>
+		</field>
+		<field name="i" writable="1">
+			<type name="gint" c:type="gint"/>
+		</field>
+		<constructor name="new" c:identifier="gir_test_named_compactclass_new">
+			<return-value transfer-ownership="full">
+				<type name="GirTest.RenamedCompactClass" c:type="GirTestNamedCompactClass*"/>
+			</return-value>
+		</constructor>
+	</record>
 	<class name="GenericsTest" c:type="GirTestGenericsTest" c:symbol-prefix="generics_test" glib:type-name="GirTestGenericsTest" glib:get-type="gir_test_generics_test_get_type" glib:type-struct="GenericsTestClass" glib:fundamental="1" glib:ref-func="gir_test_generics_test_ref" glib:unref-func="gir_test_generics_test_unref" glib:set-value-func="gir_test_value_set_generics_test" glib:get-value-func="gir_test_value_get_generics_test">
 		<field name="parent_instance" readable="0" private="1">
 			<type name="GObject.TypeInstance" c:type="GTypeInstance"/>
@@ -1898,7 +1961,7 @@
 				<parameter name="cb" transfer-ownership="none" closure="7" scope="notified" destroy="8">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 				</parameter>
-				<parameter name="cb_target" transfer-ownership="none" allow-none="1">
+				<parameter name="cb_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="cb_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -1935,7 +1998,7 @@
 				<parameter name="cb" transfer-ownership="none" closure="7" scope="notified" destroy="8">
 					<type name="GirTest.DelegateGenericsTest" c:type="GirTestDelegateGenericsTest"/>
 				</parameter>
-				<parameter name="cb_target" transfer-ownership="none" allow-none="1">
+				<parameter name="cb_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="cb_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -1954,7 +2017,7 @@
 						<type name="gpointer" c:type="gpointer"/>
 					</type>
 				</instance-parameter>
-				<parameter name="param" transfer-ownership="none" allow-none="1">
+				<parameter name="param" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="gpointer"/>
 				</parameter>
 			</parameters>
@@ -2092,10 +2155,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.InterfaceTest" c:type="GirTestInterfaceTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -2121,10 +2184,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.InterfaceTest" c:type="GirTestInterfaceTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -2185,10 +2248,10 @@
 				<parameter name="param" transfer-ownership="none">
 					<type name="gint" c:type="gint"/>
 				</parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -2217,10 +2280,10 @@
 				<parameter name="param" transfer-ownership="none">
 					<type name="gint" c:type="gint"/>
 				</parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -2276,10 +2339,10 @@
 				<instance-parameter name="self" transfer-ownership="none">
 					<type name="GirTest.InterfaceTest" c:type="GirTestInterfaceTest*"/>
 				</instance-parameter>
-				<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="1" scope="async">
+				<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="1" scope="async">
 					<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 				</parameter>
-				<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+				<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 			</parameters>
@@ -2316,7 +2379,7 @@
 				<parameter name="param2" transfer-ownership="none" closure="3" scope="notified" destroy="4">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 				</parameter>
-				<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+				<parameter name="param2_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -2343,7 +2406,7 @@
 				<parameter name="param2" transfer-ownership="none" closure="3" scope="notified" destroy="4">
 					<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 				</parameter>
-				<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+				<parameter name="param2_target" transfer-ownership="none" nullable="1">
 					<type name="gpointer" c:type="void*"/>
 				</parameter>
 				<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -2457,10 +2520,10 @@
 					<parameter name="self" transfer-ownership="none">
 						<type name="GirTest.InterfaceTest" c:type="GirTestInterfaceTest*"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -2511,10 +2574,10 @@
 					<parameter name="param" transfer-ownership="none">
 						<type name="gint" c:type="gint"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="3" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="3" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -2568,10 +2631,10 @@
 					<parameter name="self" transfer-ownership="none">
 						<type name="GirTest.InterfaceTest" c:type="GirTestInterfaceTest*"/>
 					</parameter>
-					<parameter name="_callback_" transfer-ownership="none" allow-none="1" closure="2" scope="async">
+					<parameter name="_callback_" transfer-ownership="none" nullable="1" closure="2" scope="async">
 						<type name="Gio.AsyncReadyCallback" c:type="GAsyncReadyCallback"/>
 					</parameter>
-					<parameter name="_callback__target" transfer-ownership="none" allow-none="1">
+					<parameter name="_callback__target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 				</parameters>
@@ -2612,7 +2675,7 @@
 					<parameter name="param2" transfer-ownership="none" closure="4" scope="notified" destroy="5">
 						<type name="GirTest.DelegateTest" c:type="GirTestDelegateTest"/>
 					</parameter>
-					<parameter name="param2_target" transfer-ownership="none" allow-none="1">
+					<parameter name="param2_target" transfer-ownership="none" nullable="1">
 						<type name="gpointer" c:type="void*"/>
 					</parameter>
 					<parameter name="param2_target_destroy_notify" transfer-ownership="none" scope="call">
@@ -2683,6 +2746,14 @@
 			<type name="GObject.TypeInterface" c:type="GTypeInterface"/>
 		</field>
 	</record>
+	<interface name="RenamedInterface" c:type="GirTestNamedInterface" c:symbol-prefix="named_interface" glib:type-name="GirTestNamedInterface" glib:get-type="gir_test_named_interface_get_type" glib:type-struct="RenamedInterfaceIface">
+		<prerequisite name="GObject.Object"/>
+	</interface>
+	<record name="RenamedInterfaceIface" c:type="GirTestNamedInterfaceIface" glib:is-gtype-struct-for="RenamedInterface">
+		<field name="parent_iface" readable="0" private="1">
+			<type name="GObject.TypeInterface" c:type="GTypeInterface"/>
+		</field>
+	</record>
 	<interface name="PrerequisiteTest" c:type="GirTestPrerequisiteTest" c:symbol-prefix="prerequisite_test" glib:type-name="GirTestPrerequisiteTest" glib:get-type="gir_test_prerequisite_test_get_type" glib:type-struct="PrerequisiteTestIface">
 		<prerequisite name="GirTest.InterfaceTest"/>
 	</interface>
@@ -2692,63 +2763,100 @@
 		</field>
 	</record>
 	<record name="BoxedStruct" c:type="GirTestBoxedStruct" c:symbol-prefix="boxed_struct" glib:type-name="GirTestBoxedStruct" glib:get-type="gir_test_boxed_struct_get_type">
-		<field name="field_name">
+		<field name="field_name" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
-		<field name="internal_field_name">
+		<field name="internal_field_name" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
-		<function name="init" c:identifier="gir_test_boxed_struct_init">
+		<method name="init" c:identifier="gir_test_boxed_struct_init">
 			<return-value transfer-ownership="none">
 				<type name="none" c:type="void"/>
 			</return-value>
 			<parameters>
-				<parameter name="result" direction="out" transfer-ownership="full" caller-allocates="1">
+				<instance-parameter name="self" direction="out" transfer-ownership="none" caller-allocates="1">
 					<type name="GirTest.BoxedStruct" c:type="GirTestBoxedStruct*"/>
+				</instance-parameter>
+			</parameters>
+		</method>
+		<method name="init_foo" c:identifier="gir_test_boxed_struct_init_foo">
+			<return-value transfer-ownership="none">
+				<type name="none" c:type="void"/>
+			</return-value>
+			<parameters>
+				<instance-parameter name="self" direction="out" transfer-ownership="none" caller-allocates="1">
+					<type name="GirTest.BoxedStruct" c:type="GirTestBoxedStruct*"/>
+				</instance-parameter>
+				<parameter name="param1" transfer-ownership="none">
+					<type name="gint" c:type="gint"/>
+				</parameter>
+				<parameter name="param2" transfer-ownership="none">
+					<type name="gint" c:type="gint"/>
 				</parameter>
 			</parameters>
-		</function>
+		</method>
 		<method name="inv" c:identifier="gir_test_boxed_struct_inv">
 			<return-value transfer-ownership="full">
 				<type name="none" c:type="void"/>
 			</return-value>
 			<parameters>
-				<instance-parameter name="self" transfer-ownership="none" allow-none="1">
+				<instance-parameter name="self" transfer-ownership="none" nullable="1">
 					<type name="GirTest.BoxedStruct" c:type="GirTestBoxedStruct*"/>
 				</instance-parameter>
 			</parameters>
 		</method>
 	</record>
 	<record name="Struct" c:type="GirTestStruct" c:symbol-prefix="struct">
-		<field name="field_name">
+		<field name="field_name" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
-		<field name="internal_field_name">
+		<field name="internal_field_name" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
-		<function name="init" c:identifier="gir_test_struct_init">
+		<method name="init" c:identifier="gir_test_struct_init">
 			<return-value transfer-ownership="none">
 				<type name="none" c:type="void"/>
 			</return-value>
 			<parameters>
-				<parameter name="result" direction="out" transfer-ownership="full" caller-allocates="1">
+				<instance-parameter name="self" direction="out" transfer-ownership="none" caller-allocates="1">
 					<type name="GirTest.Struct" c:type="GirTestStruct*"/>
+				</instance-parameter>
+			</parameters>
+		</method>
+		<method name="init_foo" c:identifier="gir_test_struct_init_foo">
+			<return-value transfer-ownership="none">
+				<type name="none" c:type="void"/>
+			</return-value>
+			<parameters>
+				<instance-parameter name="self" direction="out" transfer-ownership="none" caller-allocates="1">
+					<type name="GirTest.Struct" c:type="GirTestStruct*"/>
+				</instance-parameter>
+				<parameter name="param1" transfer-ownership="none">
+					<type name="gint" c:type="gint"/>
+				</parameter>
+				<parameter name="param2" transfer-ownership="none">
+					<type name="gint" c:type="gint"/>
 				</parameter>
 			</parameters>
-		</function>
+		</method>
 		<method name="inv" c:identifier="gir_test_struct_inv">
 			<return-value transfer-ownership="full">
 				<type name="none" c:type="void"/>
 			</return-value>
 			<parameters>
-				<instance-parameter name="self" transfer-ownership="none" allow-none="1">
+				<instance-parameter name="self" transfer-ownership="none" nullable="1">
 					<type name="GirTest.Struct" c:type="GirTestStruct*"/>
 				</instance-parameter>
 			</parameters>
 		</method>
 	</record>
 	<record name="SkippedStruct" c:type="GirTestSkippedStruct" c:symbol-prefix="skipped_struct" glib:type-name="GirTestSkippedStruct" glib:get-type="gir_test_skipped_struct_get_type" introspectable="0">
-		<field name="field_name">
+		<field name="field_name" writable="1">
+			<type name="gint" c:type="gint"/>
+		</field>
+	</record>
+	<record name="RenamedStruct" c:type="GirTestNamedStruct" c:symbol-prefix="named_struct" glib:type-name="GirTestNamedStruct" glib:get-type="gir_test_named_struct_get_type">
+		<field name="field_name" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
 	</record>
@@ -2757,10 +2865,10 @@
 			<type name="gboolean" c:type="gboolean"/>
 		</return-value>
 		<parameters>
-			<parameter name="a" transfer-ownership="none" allow-none="1">
+			<parameter name="a" transfer-ownership="none" nullable="1">
 				<type name="gpointer" c:type="void*"/>
 			</parameter>
-			<parameter name="b" transfer-ownership="none" allow-none="1">
+			<parameter name="b" transfer-ownership="none" nullable="1">
 				<type name="gpointer" c:type="void*"/>
 			</parameter>
 			<parameter name="user_data" transfer-ownership="none" closure="2">
@@ -2796,10 +2904,10 @@
 			<parameter name="t_destroy_func" transfer-ownership="none">
 				<type name="GLib.DestroyNotify" c:type="GDestroyNotify"/>
 			</parameter>
-			<parameter name="g" transfer-ownership="none" allow-none="1">
+			<parameter name="g" transfer-ownership="none" nullable="1">
 				<type name="gpointer" c:type="gpointer"/>
 			</parameter>
-			<parameter name="t" transfer-ownership="none" allow-none="1">
+			<parameter name="t" transfer-ownership="none" nullable="1">
 				<type name="gpointer" c:type="gpointer"/>
 			</parameter>
 			<parameter name="user_data" transfer-ownership="none" closure="8">
@@ -2812,11 +2920,105 @@
 			<type name="none" c:type="void"/>
 		</return-value>
 	</callback>
+	<callback name="RenamedDelegate" c:type="GirTestNamedDelegate">
+		<return-value transfer-ownership="full">
+			<type name="none" c:type="void"/>
+		</return-value>
+	</callback>
 	<constant name="CONSTANT_NUMBER" c:identifier="GIR_TEST_CONSTANT_NUMBER" value="42">
 		<type name="gint" c:type="gint"/>
 	</constant>
 	<constant name="CONSTANT_STRING" c:identifier="GIR_TEST_CONSTANT_STRING" value="const ♥ utf8">
 		<type name="utf8" c:type="const gchar*"/>
 	</constant>
+	<constant name="RENAMED_CONSTANT" c:identifier="GIR_TEST_NAMED_CONSTANT" value="23">
+		<type name="gint" c:type="gint"/>
+	</constant>
+	<function name="use_renamed_class" c:identifier="gir_test_use_renamed_class">
+		<return-value transfer-ownership="full">
+			<type name="GirTest.RenamedClass" c:type="GirTestNamedClass*"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none">
+				<type name="GirTest.RenamedClass" c:type="GirTestNamedClass*"/>
+			</parameter>
+		</parameters>
+	</function>
+	<function name="use_renamed_compact_class" c:identifier="gir_test_use_renamed_compact_class">
+		<return-value transfer-ownership="none">
+			<type name="GirTest.RenamedCompactClass" c:type="GirTestNamedCompactClass*"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none">
+				<type name="GirTest.RenamedCompactClass" c:type="GirTestNamedCompactClass*"/>
+			</parameter>
+		</parameters>
+	</function>
+	<function name="use_renamed_interface" c:identifier="gir_test_use_renamed_interface">
+		<return-value transfer-ownership="full">
+			<type name="GirTest.RenamedInterface" c:type="GirTestNamedInterface*"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none">
+				<type name="GirTest.RenamedInterface" c:type="GirTestNamedInterface*"/>
+			</parameter>
+		</parameters>
+	</function>
+	<function name="use_renamed_struct" c:identifier="gir_test_use_renamed_struct">
+		<return-value transfer-ownership="full" nullable="1">
+			<type name="GirTest.RenamedStruct" c:type="GirTestNamedStruct*"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none">
+				<type name="GirTest.RenamedStruct" c:type="GirTestNamedStruct"/>
+			</parameter>
+		</parameters>
+	</function>
+	<function name="use_renamed_enumeration" c:identifier="gir_test_use_renamed_enumeration">
+		<return-value transfer-ownership="full">
+			<type name="GirTest.RenamedEnumeration" c:type="GirTestNamedEnumeration"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none">
+				<type name="GirTest.RenamedEnumeration" c:type="GirTestNamedEnumeration"/>
+			</parameter>
+		</parameters>
+	</function>
+	<function name="use_renamed_flags" c:identifier="gir_test_use_renamed_flags">
+		<return-value transfer-ownership="full">
+			<type name="GirTest.RenamedBitfield" c:type="GirTestNamedBitfield"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none">
+				<type name="GirTest.RenamedBitfield" c:type="GirTestNamedBitfield"/>
+			</parameter>
+		</parameters>
+	</function>
+	<function name="use_renamed_delegate" c:identifier="gir_test_use_renamed_delegate">
+		<return-value transfer-ownership="none" closure="2" scope="call">
+			<type name="GirTest.RenamedDelegate" c:type="GirTestNamedDelegate"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none" closure="1" scope="call">
+				<type name="GirTest.RenamedDelegate" c:type="GirTestNamedDelegate"/>
+			</parameter>
+			<parameter name="param_target" transfer-ownership="none" nullable="1">
+				<type name="gpointer" c:type="void*"/>
+			</parameter>
+			<parameter name="result_target" direction="out" transfer-ownership="none" optional="1">
+				<type name="gpointer" c:type="void**"/>
+			</parameter>
+		</parameters>
+	</function>
+	<function name="use_renamed_error" c:identifier="gir_test_use_renamed_error">
+		<return-value transfer-ownership="full">
+			<type name="GirTest.RenamedError" c:type="GError*"/>
+		</return-value>
+		<parameters>
+			<parameter name="param" transfer-ownership="none">
+				<type name="GirTest.RenamedError" c:type="GError*"/>
+			</parameter>
+		</parameters>
+	</function>
 </namespace>
 </repository>

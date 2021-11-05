@@ -32,8 +32,8 @@ public abstract class Vala.CallableType : DataType {
 		}
 	}
 
-	protected CallableType (Symbol symbol) {
-		base.with_symbol (symbol);
+	protected CallableType (Symbol symbol, SourceReference? source_reference = null) {
+		base.with_symbol (symbol, source_reference);
 	}
 
 	public override bool is_invokable () {
@@ -127,7 +127,7 @@ public abstract class Vala.CallableType : DataType {
 
 		// Append error-types
 		var error_types = new ArrayList<DataType> ();
-		get_error_types (error_types);
+		callable_symbol.get_error_types (error_types);
 		if (error_types.size > 0) {
 			builder.append (" throws ");
 

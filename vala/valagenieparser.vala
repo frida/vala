@@ -506,6 +506,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 		bool is_dynamic = accept (TokenType.DYNAMIC);
 		bool value_owned = owned_by_default;
+		bool is_nullable = false;
 
 		if (owned_by_default) {
 			if (accept (TokenType.UNOWNED)) {
@@ -562,6 +563,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 				sym = parse_symbol_name ();
 			}
 
+			is_nullable = accept (TokenType.INTERR);
+
 			type_arg_list = parse_type_argument_list (false);
 
 			type = new UnresolvedType.from_symbol (sym, get_src (begin));
@@ -577,7 +580,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 		}
 
 		if (!(type is PointerType)) {
-			type.nullable = accept (TokenType.INTERR);
+			type.nullable = is_nullable;
 		}
 
 		if (is_array) {
@@ -2476,7 +2479,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 		TokenType cur = current ();
 		TokenType pre =  tokens[index-1].type;
 
-		throw new ParseError.SYNTAX ("expected declaration  but got %s with previous %s", cur.to_string (), pre.to_string());
+		throw new ParseError.SYNTAX ("expected a declaration after %s, but got %s", pre.to_string (), cur.to_string());
 	}
 
 	void parse_declarations (Symbol parent, bool root = false) throws ParseError {
@@ -3139,6 +3142,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 					if (accept_block ()) {
 						block = parse_block ();
 						prop.external = false;
+					} else {
+						accept (TokenType.EOL);
 					}
 					prop.get_accessor = new PropertyAccessor (true, false, false, value_type, block, get_src (accessor_begin));
 					set_attributes (prop.get_accessor, attribs);
@@ -3164,6 +3169,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 					if (accept_block ()) {
 						block = parse_block ();
 						prop.external = false;
+					} else {
+						accept (TokenType.EOL);
 					}
 					prop.set_accessor = new PropertyAccessor (false, !readonly, _construct, value_type, block, get_src (accessor_begin));
 					set_attributes (prop.set_accessor, attribs);
@@ -3515,6 +3522,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 			string id = parse_identifier ();
 			comment = scanner.pop_comment ();
 			var ec = new ErrorCode (id, get_src (code_begin), comment);
+			ec.access = SymbolAccessibility.PUBLIC;
 			set_attributes (ec, code_attrs);
 			if (accept (TokenType.ASSIGN)) {
 				ec.value = parse_expression ();

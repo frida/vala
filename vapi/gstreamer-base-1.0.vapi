@@ -76,6 +76,8 @@ namespace Gst {
 			public virtual Gst.FlowReturn flush ();
 			public void get_allocator (out Gst.Allocator? allocator, out unowned Gst.AllocationParams @params);
 			public Gst.BufferPool? get_buffer_pool ();
+			[Version (since = "1.20")]
+			public bool get_ignore_inactive_pads ();
 			public Gst.ClockTime get_latency ();
 			[NoWrapper]
 			public virtual Gst.ClockTime get_next_time ();
@@ -89,6 +91,8 @@ namespace Gst {
 			public virtual bool propose_allocation (Gst.Base.AggregatorPad pad, Gst.Query decide_query, Gst.Query query);
 			[Version (since = "1.18")]
 			public void selected_samples (Gst.ClockTime pts, Gst.ClockTime dts, Gst.ClockTime duration, Gst.Structure? info);
+			[Version (since = "1.20")]
+			public void set_ignore_inactive_pads (bool ignore);
 			public void set_latency (Gst.ClockTime min_latency, Gst.ClockTime max_latency);
 			public void set_src_caps (Gst.Caps caps);
 			[Version (since = "1.16")]
@@ -143,6 +147,8 @@ namespace Gst {
 			[Version (since = "1.14.1")]
 			public bool has_buffer ();
 			public bool is_eos ();
+			[Version (since = "1.20")]
+			public bool is_inactive ();
 			public Gst.Buffer? peek_buffer ();
 			public Gst.Buffer? pop_buffer ();
 			[NoWrapper]
@@ -366,6 +372,12 @@ namespace Gst {
 			public void init_with_data ([CCode (array_length_cname = "size", array_length_pos = 1.5, array_length_type = "guint")] uint8[] data, bool initialized);
 			[CCode (cname = "gst_byte_writer_init_with_size")]
 			public void init_with_size (uint size, bool fixed);
+			[CCode (cname = "gst_byte_writer_new")]
+			public static Gst.Base.ByteWriter @new ();
+			[CCode (cname = "gst_byte_writer_new_with_data")]
+			public static Gst.Base.ByteWriter new_with_data (uint8 data, uint size, bool initialized);
+			[CCode (cname = "gst_byte_writer_new_with_size")]
+			public static Gst.Base.ByteWriter new_with_size (uint size, bool fixed);
 			[CCode (cname = "gst_byte_writer_put_buffer")]
 			public bool put_buffer (Gst.Buffer buffer, size_t offset, ssize_t size);
 			[CCode (cname = "gst_byte_writer_put_data")]
@@ -801,7 +813,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool filter_meta (Gst.Query query, GLib.Type api, Gst.Structure @params);
 			[NoWrapper]
-			public virtual Gst.Caps fixate_caps (Gst.PadDirection direction, Gst.Caps caps, Gst.Caps othercaps);
+			public virtual Gst.Caps fixate_caps (Gst.PadDirection direction, Gst.Caps caps, owned Gst.Caps othercaps);
 			[NoWrapper]
 			public virtual Gst.FlowReturn generate_output (out Gst.Buffer outbuf);
 			public void get_allocator (out Gst.Allocator? allocator, out unowned Gst.AllocationParams @params);
@@ -830,9 +842,9 @@ namespace Gst {
 			public void set_prefer_passthrough (bool prefer_passthrough);
 			public void set_qos_enabled (bool enabled);
 			[NoWrapper]
-			public virtual bool sink_event (Gst.Event event);
+			public virtual bool sink_event (owned Gst.Event event);
 			[NoWrapper]
-			public virtual bool src_event (Gst.Event event);
+			public virtual bool src_event (owned Gst.Event event);
 			[NoWrapper]
 			public virtual bool start ();
 			[NoWrapper]

@@ -553,6 +553,8 @@ namespace Gst {
 			[CCode (has_construct_function = false)]
 			public Session (string sessionid);
 			public void allow_expire ();
+			[Version (since = "1.20")]
+			public Gst.RTSPServer.SessionMedia? dup_media (string path, out int matched);
 			public GLib.List<Gst.RTSPServer.SessionMedia> filter (Gst.RTSPServer.SessionFilterFunc? func);
 			public string? get_header ();
 			public unowned Gst.RTSPServer.SessionMedia? get_media (string path, out int matched);
@@ -731,6 +733,8 @@ namespace Gst {
 			public void set_ulpfec_pt (uint pt);
 			public GLib.List<Gst.RTSPServer.StreamTransport> transport_filter (Gst.RTSPServer.StreamTransportFilterFunc? func);
 			public bool unblock_linked ();
+			[Version (since = "1.20")]
+			public void unblock_rtcp ();
 			public bool update_crypto (uint ssrc, Gst.Caps? crypto);
 			[Version (since = "1.16")]
 			public bool verify_mcast_ttl (uint ttl);
@@ -844,6 +848,8 @@ namespace Gst {
 			public weak Gst.RTSPServer.Stream stream;
 			public weak Gst.RTSP.Message response;
 			public weak Gst.RTSPServer.StreamTransport trans;
+			[CCode (cname = "gst_rtsp_context_get_current")]
+			public static unowned Gst.RTSPServer.Context? get_current ();
 			[CCode (cname = "gst_rtsp_context_pop_current")]
 			public void pop_current ();
 			[CCode (cname = "gst_rtsp_context_push_current")]

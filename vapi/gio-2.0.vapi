@@ -82,8 +82,35 @@ namespace GLib {
 		[Version (since = "2.26")]
 		public static GLib.IOStream address_get_stream_sync (string address, out string? out_guid, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		[CCode (cheader_filename = "gio/gio.h")]
-		[Version (since = "2.26")]
+		[Version (replacement = "DBusAnnotationInfo.lookup", since = "2.26")]
 		public static unowned string? annotation_info_lookup ([CCode (array_length = false, array_null_terminated = true)] GLib.DBusAnnotationInfo[]? annotations, string name);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.encode_gerror", since = "2.26")]
+		public static string error_encode_gerror (GLib.Error error);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.get_remote_error", since = "2.26")]
+		public static string? error_get_remote_error (GLib.Error error);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.is_remote_error", since = "2.26")]
+		public static bool error_is_remote_error (GLib.Error error);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.new_for_dbus_error", since = "2.26")]
+		public static GLib.Error error_new_for_dbus_error (string dbus_error_name, string dbus_error_message);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.quark")]
+		public static GLib.Quark error_quark ();
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.register_error", since = "2.26")]
+		public static bool error_register_error (GLib.Quark error_domain, int error_code, string dbus_error_name);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.register_error_domain", since = "2.26")]
+		public static void error_register_error_domain (string error_domain_quark_name, size_t quark_volatile, [CCode (array_length_cname = "num_entries", array_length_pos = 3.1, array_length_type = "guint")] GLib.DBusErrorEntry[] entries);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.strip_remote_error", since = "2.26")]
+		public static bool error_strip_remote_error (GLib.Error error);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (replacement = "DBusError.unregister_error", since = "2.26")]
+		public static bool error_unregister_error (GLib.Quark error_domain, int error_code, string dbus_error_name);
 		[CCode (cheader_filename = "gio/gio.h")]
 		[Version (since = "2.68")]
 		public static string escape_object_path (string s);
@@ -102,6 +129,9 @@ namespace GLib {
 		[CCode (cheader_filename = "gio/gio.h")]
 		[Version (since = "2.26")]
 		public static bool is_address (string string);
+		[CCode (cheader_filename = "gio/gio.h")]
+		[Version (since = "2.70")]
+		public static bool is_error_name (string string);
 		[CCode (cheader_filename = "gio/gio.h")]
 		[Version (since = "2.26")]
 		public static bool is_guid (string string);
@@ -349,6 +379,8 @@ namespace GLib {
 		[HasEmitter]
 		[Version (since = "2.36")]
 		public virtual signal void launch_failed (string startup_notify_id);
+		[Version (since = "2.72")]
+		public virtual signal void launch_started (GLib.AppInfo info, GLib.Variant? platform_data);
 		[Version (since = "2.36")]
 		public virtual signal void launched (GLib.AppInfo info, GLib.Variant platform_data);
 	}
@@ -629,6 +661,7 @@ namespace GLib {
 		public string key;
 		public int ref_count;
 		public string value;
+		public static unowned string? lookup ([CCode (array_length = false, array_null_terminated = true)] GLib.DBusAnnotationInfo[]? annotations, string name);
 		public unowned GLib.DBusAnnotationInfo @ref ();
 		public void unref ();
 	}
@@ -970,7 +1003,7 @@ namespace GLib {
 		public DBusObjectManagerServer (string object_path);
 		public void export (GLib.DBusObjectSkeleton object);
 		public void export_uniquely (GLib.DBusObjectSkeleton object);
-		public GLib.DBusConnection get_connection ();
+		public GLib.DBusConnection? get_connection ();
 		[Version (since = "2.34")]
 		public bool is_exported (GLib.DBusObjectSkeleton object);
 		public void set_connection (GLib.DBusConnection? connection);
@@ -1044,7 +1077,7 @@ namespace GLib {
 		public GLib.DBusProxyFlags get_flags ();
 		public unowned GLib.DBusInterfaceInfo? get_interface_info ();
 		public unowned string get_interface_name ();
-		public unowned string get_name ();
+		public unowned string? get_name ();
 		public string? get_name_owner ();
 		public unowned string get_object_path ();
 		[CCode (cname = "g_dbus_proxy_new", finish_name = "g_dbus_proxy_new_finish")]
@@ -1452,6 +1485,7 @@ namespace GLib {
 		public unowned string get_name ();
 		public int get_priority ();
 		public GLib.Type get_type ();
+		public GLib.TypeClass ref_class ();
 	}
 	[CCode (cheader_filename = "gio/gio.h", has_type_id = false)]
 	[Compact]
@@ -1467,6 +1501,9 @@ namespace GLib {
 		[CCode (cheader_filename = "gio/gio.h", cname = "G_NETWORK_MONITOR_EXTENSION_POINT_NAME")]
 		[Version (since = "2.30")]
 		public const string NETWORK_MONITOR;
+		[CCode (cheader_filename = "gio/gio.h", cname = "G_POWER_PROFILE_MONITOR_EXTENSION_POINT_NAME")]
+		[Version (since = "2.70")]
+		public const string POWER_PROFILE_MONITOR;
 		[CCode (cheader_filename = "gio/gio.h", cname = "G_PROXY_EXTENSION_POINT_NAME")]
 		[Version (since = "2.26")]
 		public const string PROXY;
@@ -1483,11 +1520,8 @@ namespace GLib {
 		public unowned GLib.IOExtension get_extension_by_name (string name);
 		public unowned GLib.List<GLib.IOExtension> get_extensions ();
 		public GLib.Type get_required_type ();
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static unowned GLib.IOExtension implement (string extension_point_name, GLib.Type type, string extension_name, int priority);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static unowned GLib.IOExtensionPoint lookup (string name);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static unowned GLib.IOExtensionPoint register (string name);
 		public void set_required_type (GLib.Type type);
 	}
@@ -1495,7 +1529,6 @@ namespace GLib {
 	public class IOModule : GLib.TypeModule, GLib.TypePlugin {
 		[CCode (has_construct_function = false)]
 		public IOModule (string filename);
-		public void load ();
 		[CCode (cheader_filename = "gio/gio.h", cname = "g_io_modules_load_all_in_directory")]
 		public static GLib.List<GLib.IOModule> load_all_in_directory (string dirname);
 		[CCode (cheader_filename = "gio/gio.h", cname = "g_io_modules_load_all_in_directory_with_scope")]
@@ -1510,7 +1543,6 @@ namespace GLib {
 		[CCode (cheader_filename = "gio/gio.h", cname = "g_io_modules_scan_all_in_directory_with_scope")]
 		[Version (since = "2.30")]
 		public static void scan_all_in_directory_with_scope (string dirname, GLib.IOModuleScope scope);
-		public void unload ();
 	}
 	[CCode (cheader_filename = "gio/gio.h", has_type_id = false)]
 	[Compact]
@@ -1824,6 +1856,8 @@ namespace GLib {
 		[Version (since = "2.34")]
 		public MenuItem.from_model (GLib.MenuModel model, int item_index);
 		[Version (since = "2.34")]
+		public bool get_attribute (string attribute, string format_string, ...);
+		[Version (since = "2.34")]
 		public GLib.Variant? get_attribute_value (string attribute, GLib.VariantType? expected_type);
 		[Version (since = "2.34")]
 		public GLib.MenuModel? get_link (string link);
@@ -1984,9 +2018,13 @@ namespace GLib {
 		[CCode (has_construct_function = false)]
 		public Notification (string title);
 		public void add_button (string label, string detailed_action);
+		public void add_button_with_target (string label, string action, string? target_format, ...);
 		public void add_button_with_target_value (string label, string action, GLib.Variant? target);
 		public void set_body (string? body);
+		[Version (since = "2.70")]
+		public void set_category (string? category);
 		public void set_default_action (string detailed_action);
+		public void set_default_action_and_target (string action, string? target_format, ...);
 		public void set_default_action_and_target_value (string action, GLib.Variant? target);
 		public void set_icon (GLib.Icon icon);
 		public void set_priority (GLib.NotificationPriority priority);
@@ -2008,9 +2046,15 @@ namespace GLib {
 		public bool is_closed ();
 		[Version (since = "2.24")]
 		public bool is_closing ();
+		[CCode (error_pos = 2.8, sentinel = "")]
+		[Version (since = "2.40")]
+		public bool printf (out size_t bytes_written, GLib.Cancellable? cancellable, string format, ...) throws GLib.Error;
 		public bool set_pending () throws GLib.Error;
 		public virtual ssize_t splice (GLib.InputStream source, GLib.OutputStreamSpliceFlags flags, GLib.Cancellable? cancellable = null) throws GLib.IOError;
 		public virtual async ssize_t splice_async (GLib.InputStream source, GLib.OutputStreamSpliceFlags flags, int io_priority = GLib.Priority.DEFAULT, GLib.Cancellable? cancellable = null) throws GLib.IOError;
+		[CCode (error_pos = 2.8)]
+		[Version (since = "2.40")]
+		public bool vprintf (out size_t bytes_written, GLib.Cancellable? cancellable, string format, va_list args) throws GLib.Error;
 		[CCode (vfunc_name = "write_fn")]
 		public abstract ssize_t write ([CCode (array_length_cname = "count", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, GLib.Cancellable? cancellable = null) throws GLib.IOError;
 		public bool write_all ([CCode (array_length_cname = "count", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, out size_t bytes_written, GLib.Cancellable? cancellable = null) throws GLib.IOError;
@@ -2158,15 +2202,16 @@ namespace GLib {
 	[Version (since = "2.32")]
 	public class Resource {
 		[CCode (cname = "g_resources_register")]
+		[Version (replacement = "resources_register", since = "2.32")]
 		public void _register ();
 		[CCode (cname = "g_resources_unregister")]
+		[Version (replacement = "resources_unregister", since = "2.32")]
 		public void _unregister ();
 		[CCode (array_length = false, array_null_terminated = true)]
 		public string[] enumerate_children (string path, GLib.ResourceLookupFlags lookup_flags) throws GLib.Error;
 		[CCode (has_construct_function = false)]
 		public Resource.from_data (GLib.Bytes data) throws GLib.Error;
 		public bool get_info (string path, GLib.ResourceLookupFlags lookup_flags, out size_t size, out uint32 flags) throws GLib.Error;
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static GLib.Resource load (string filename) throws GLib.Error;
 		public GLib.Bytes lookup_data (string path, GLib.ResourceLookupFlags lookup_flags) throws GLib.Error;
 		public GLib.InputStream open_stream (string path, GLib.ResourceLookupFlags lookup_flags) throws GLib.Error;
@@ -2318,6 +2363,9 @@ namespace GLib {
 		public static GLib.SettingsBackend get_default ();
 		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		[NoWrapper]
+		public virtual GLib.Permission get_permission (string path);
+		[CCode (cheader_filename = "gio/gsettingsbackend.h", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
+		[NoWrapper]
 		public virtual bool get_writable (string key);
 		[CCode (cheader_filename = "gio/gsettingsbackend.h", cname = "g_keyfile_settings_backend_new", feature_test_macro = "G_SETTINGS_ENABLE_BACKEND")]
 		public static GLib.SettingsBackend keyfile_settings_backend_new (string filename, string root_path, string? root_group);
@@ -2411,7 +2459,6 @@ namespace GLib {
 	public class SettingsSchemaSource {
 		[CCode (has_construct_function = false)]
 		public SettingsSchemaSource.from_directory (string directory, GLib.SettingsSchemaSource? parent, bool trusted) throws GLib.Error;
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static unowned GLib.SettingsSchemaSource? get_default ();
 		[Version (since = "2.40")]
 		public void list_schemas (bool recursive, [CCode (array_length = false, array_null_terminated = true)] out string[] non_relocatable, [CCode (array_length = false, array_null_terminated = true)] out string[] relocatable);
@@ -2522,9 +2569,9 @@ namespace GLib {
 	[Version (since = "2.36")]
 	public class SimpleProxyResolver : GLib.Object, GLib.ProxyResolver {
 		[CCode (has_construct_function = false, type = "GProxyResolver*")]
-		public SimpleProxyResolver (string? default_proxy, string? ignore_hosts);
+		public SimpleProxyResolver (string? default_proxy, [CCode (array_length = false, array_null_terminated = true)] string[]? ignore_hosts);
 		public void set_default_proxy (string default_proxy);
-		public void set_ignore_hosts (string ignore_hosts);
+		public void set_ignore_hosts ([CCode (array_length = false, array_null_terminated = true)] string[] ignore_hosts);
 		public void set_uri_proxy (string uri_scheme, string proxy);
 		[NoAccessorMethod]
 		public string default_proxy { owned get; set; }
@@ -2814,7 +2861,7 @@ namespace GLib {
 		[Version (since = "2.22")]
 		public uint16 get_weight ();
 		[CCode (cheader_filename = "gio/gio.h")]
-		[Version (since = "2.22")]
+		[Version (replacement = "SrvTarget.list_sort", since = "2.22")]
 		public static GLib.List<GLib.SrvTarget> list_sort (owned GLib.List<GLib.SrvTarget> targets);
 	}
 	[CCode (cheader_filename = "gio/gio.h", type_id = "g_subprocess_get_type ()")]
@@ -2866,6 +2913,8 @@ namespace GLib {
 		public void set_stdin_file_path (string path);
 		public void set_stdout_file_path (string? path);
 		public void setenv (string variable, string value, bool overwrite);
+		[CCode (error_pos = 0.8)]
+		public GLib.Subprocess spawn (string argv0, ...) throws GLib.Error;
 		public GLib.Subprocess spawnv ([CCode (array_length = false, array_null_terminated = true)] string[] argv) throws GLib.Error;
 		public void take_fd (int source_fd, int target_fd);
 		public void take_stderr_fd (int fd);
@@ -3028,7 +3077,19 @@ namespace GLib {
 		[CCode (has_construct_function = false)]
 		[Version (since = "2.68")]
 		public TlsCertificate.from_pkcs11_uris (string pkcs11_uri, string? private_key_pkcs11_uri) throws GLib.Error;
+		[Version (since = "2.70")]
+		public GLib.GenericArray<weak GLib.Bytes>? get_dns_names ();
+		[Version (since = "2.70")]
+		public GLib.GenericArray<weak GLib.InetAddress>? get_ip_addresses ();
 		public unowned GLib.TlsCertificate? get_issuer ();
+		[Version (since = "2.70")]
+		public string? get_issuer_name ();
+		[Version (since = "2.70")]
+		public GLib.DateTime? get_not_valid_after ();
+		[Version (since = "2.70")]
+		public GLib.DateTime? get_not_valid_before ();
+		[Version (since = "2.70")]
+		public string? get_subject_name ();
 		[Version (since = "2.34")]
 		public bool is_same (GLib.TlsCertificate cert_two);
 		public static GLib.List<GLib.TlsCertificate> list_new_from_file (string file) throws GLib.Error;
@@ -3037,17 +3098,29 @@ namespace GLib {
 		public GLib.ByteArray certificate { owned get; construct; }
 		[NoAccessorMethod]
 		public string certificate_pem { owned get; construct; }
+		[Version (since = "2.70")]
+		public GLib.GenericArray<void*> dns_names { owned get; }
+		[Version (since = "2.70")]
+		public GLib.GenericArray<void*> ip_addresses { owned get; }
 		public GLib.TlsCertificate issuer { get; construct; }
+		[Version (since = "2.70")]
+		public string issuer_name { owned get; }
+		[Version (since = "2.70")]
+		public GLib.DateTime not_valid_after { owned get; }
+		[Version (since = "2.70")]
+		public GLib.DateTime not_valid_before { owned get; }
 		[NoAccessorMethod]
 		[Version (since = "2.68")]
 		public string pkcs11_uri { owned get; construct; }
 		[NoAccessorMethod]
-		public GLib.ByteArray private_key { construct; }
+		public GLib.ByteArray private_key { owned get; construct; }
 		[NoAccessorMethod]
-		public string private_key_pem { construct; }
+		public string private_key_pem { owned get; construct; }
 		[NoAccessorMethod]
 		[Version (since = "2.68")]
 		public string private_key_pkcs11_uri { owned get; construct; }
+		[Version (since = "2.70")]
+		public string subject_name { owned get; }
 	}
 	[CCode (cheader_filename = "gio/gio.h", type_id = "g_tls_connection_get_type ()")]
 	[Version (since = "2.28")]
@@ -3059,14 +3132,18 @@ namespace GLib {
 		[CCode (vfunc_name = "get_binding_data")]
 		[Version (since = "2.66")]
 		public virtual bool get_channel_binding_data (GLib.TlsChannelBindingType type, out unowned GLib.ByteArray data) throws GLib.TlsChannelBindingError;
+		[Version (since = "2.70")]
+		public string? get_ciphersuite_name ();
 		[Version (since = "2.30")]
 		public unowned GLib.TlsDatabase? get_database ();
 		[Version (since = "2.30")]
 		public unowned GLib.TlsInteraction? get_interaction ();
 		[Version (since = "2.60")]
-		public unowned string? get_negotiated_protocol ();
+		public virtual unowned string? get_negotiated_protocol ();
 		public unowned GLib.TlsCertificate? get_peer_certificate ();
 		public GLib.TlsCertificateFlags get_peer_certificate_errors ();
+		[Version (since = "2.70")]
+		public GLib.TlsProtocolVersion get_protocol_version ();
 		[Version (deprecated = true, deprecated_since = "2.60.", since = "2.28")]
 		public GLib.TlsRehandshakeMode get_rehandshake_mode ();
 		public bool get_require_close_notify ();
@@ -3093,6 +3170,8 @@ namespace GLib {
 		[NoAccessorMethod]
 		public GLib.IOStream base_io_stream { owned get; construct; }
 		public GLib.TlsCertificate certificate { get; set; }
+		[Version (since = "2.70")]
+		public string ciphersuite_name { owned get; }
 		[Version (since = "2.30")]
 		public GLib.TlsDatabase database { get; set; }
 		[Version (since = "2.30")]
@@ -3101,6 +3180,8 @@ namespace GLib {
 		public string negotiated_protocol { get; }
 		public GLib.TlsCertificate peer_certificate { get; }
 		public GLib.TlsCertificateFlags peer_certificate_errors { get; }
+		[Version (since = "2.70")]
+		public GLib.TlsProtocolVersion protocol_version { get; }
 		[Version (deprecated = true, deprecated_since = "2.60", since = "2.28")]
 		public GLib.TlsRehandshakeMode rehandshake_mode { get; set construct; }
 		public bool require_close_notify { get; set construct; }
@@ -3191,6 +3272,8 @@ namespace GLib {
 		protected Vfs ();
 		[NoWrapper]
 		public virtual void add_writable_namespaces (GLib.FileAttributeInfoList list);
+		[NoWrapper]
+		public virtual GLib.Icon deserialize_icon (GLib.Variant value);
 		public static unowned GLib.Vfs get_default ();
 		public virtual GLib.File get_file_for_path (string path);
 		public virtual GLib.File get_file_for_uri (string uri);
@@ -3449,9 +3532,9 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gio.h", type_id = "g_dbus_object_manager_get_type ()")]
 	public interface DBusObjectManager : GLib.Object {
 		[Version (since = "2.30")]
-		public abstract GLib.DBusInterface get_interface (string object_path, string interface_name);
+		public abstract GLib.DBusInterface? get_interface (string object_path, string interface_name);
 		[Version (since = "2.30")]
-		public abstract GLib.DBusObject get_object (string object_path);
+		public abstract GLib.DBusObject? get_object (string object_path);
 		[Version (since = "2.30")]
 		public abstract unowned string get_object_path ();
 		[Version (since = "2.30")]
@@ -3558,12 +3641,16 @@ namespace GLib {
 		[CCode (vfunc_name = "get_binding_data")]
 		[Version (since = "2.66")]
 		public virtual bool get_channel_binding_data (GLib.TlsChannelBindingType type, out unowned GLib.ByteArray data) throws GLib.TlsChannelBindingError;
+		[Version (since = "2.70")]
+		public string? get_ciphersuite_name ();
 		public unowned GLib.TlsDatabase? get_database ();
 		public unowned GLib.TlsInteraction? get_interaction ();
 		[Version (since = "2.60")]
 		public abstract unowned string? get_negotiated_protocol ();
 		public unowned GLib.TlsCertificate? get_peer_certificate ();
 		public GLib.TlsCertificateFlags get_peer_certificate_errors ();
+		[Version (since = "2.70")]
+		public GLib.TlsProtocolVersion get_protocol_version ();
 		[Version (deprecated = true, deprecated_since = "2.64.", since = "2.48")]
 		public GLib.TlsRehandshakeMode get_rehandshake_mode ();
 		public bool get_require_close_notify ();
@@ -3588,6 +3675,9 @@ namespace GLib {
 		[ConcreteAccessor]
 		public abstract GLib.TlsCertificate certificate { get; set; }
 		[ConcreteAccessor]
+		[Version (since = "2.70")]
+		public abstract string ciphersuite_name { owned get; }
+		[ConcreteAccessor]
 		public abstract GLib.TlsDatabase database { get; set; }
 		[ConcreteAccessor]
 		public abstract GLib.TlsInteraction interaction { get; set; }
@@ -3597,6 +3687,9 @@ namespace GLib {
 		public abstract GLib.TlsCertificate peer_certificate { get; }
 		[ConcreteAccessor]
 		public abstract GLib.TlsCertificateFlags peer_certificate_errors { get; }
+		[ConcreteAccessor]
+		[Version (since = "2.70")]
+		public abstract GLib.TlsProtocolVersion protocol_version { get; }
 		[ConcreteAccessor]
 		[Version (deprecated = true, deprecated_since = "2.60", since = "2.48")]
 		public abstract GLib.TlsRehandshakeMode rehandshake_mode { get; set construct; }
@@ -3893,6 +3986,14 @@ namespace GLib {
 		[Version (since = "2.60")]
 		public abstract GLib.PollableReturn writev_nonblocking_fn ([CCode (array_length_cname = "n_vectors", array_length_pos = 1.5, array_length_type = "gsize")] GLib.OutputVector[] vectors, out size_t bytes_written) throws GLib.Error;
 	}
+	[CCode (cheader_filename = "gio/gio.h", type_cname = "GPowerProfileMonitorInterface", type_id = "g_power_profile_monitor_get_type ()")]
+	[Version (since = "2.70")]
+	public interface PowerProfileMonitor : GLib.Initable, GLib.Object {
+		public static GLib.PowerProfileMonitor dup_default ();
+		public bool get_power_saver_enabled ();
+		[ConcreteAccessor]
+		public abstract bool power_saver_enabled { get; }
+	}
 	[CCode (cheader_filename = "gio/gio.h", type_cname = "GProxyInterface", type_id = "g_proxy_get_type ()")]
 	[Version (since = "2.26")]
 	public interface Proxy : GLib.Object {
@@ -4166,7 +4267,7 @@ namespace GLib {
 		SYSTEM,
 		SESSION;
 		[CCode (cheader_filename = "gio/gio.h", cname = "g_dbus_address_get_for_bus_sync")]
-		public static string get_address_sync (GLib.BusType bus_type, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public string get_address_sync (GLib.Cancellable? cancellable = null) throws GLib.Error;
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_CONVERTER_", type_id = "g_converter_flags_get_type ()")]
 	[Flags]
@@ -4707,7 +4808,22 @@ namespace GLib {
 		NONE,
 		RETRY,
 		MANY_TRIES,
-		FINAL_TRY
+		FINAL_TRY,
+		PKCS11_USER,
+		PKCS11_SECURITY_OFFICER,
+		PKCS11_CONTEXT_SPECIFIC
+	}
+	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_PROTOCOL_VERSION_", type_id = "g_tls_protocol_version_get_type ()")]
+	[Version (since = "2.70")]
+	public enum TlsProtocolVersion {
+		UNKNOWN,
+		SSL_3_0,
+		TLS_1_0,
+		TLS_1_1,
+		TLS_1_2,
+		TLS_1_3,
+		DTLS_1_0,
+		DTLS_1_2
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_REHANDSHAKE_", type_id = "g_tls_rehandshake_mode_get_type ()")]
 	[Version (deprecated = true, deprecated_since = "2.60.", since = "2.28")]
@@ -4780,23 +4896,18 @@ namespace GLib {
 		UNKNOWN_INTERFACE,
 		UNKNOWN_PROPERTY,
 		PROPERTY_READ_ONLY;
-		[CCode (cheader_filename = "gio/gio.h")]
+		[CCode (error_pos = 0.8, sentinel = "")]
+		public static void set_dbus_error (string dbus_error_name, string dbus_error_message, string? format, ...) throws GLib.DBusError;
+		[CCode (error_pos = 0.8)]
+		public static void set_dbus_error_valist (string dbus_error_name, string dbus_error_message, string? format, va_list var_args) throws GLib.DBusError;
 		public static string encode_gerror (GLib.Error error);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static string? get_remote_error (GLib.Error error);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static bool is_remote_error (GLib.Error error);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static GLib.Error new_for_dbus_error (string dbus_error_name, string dbus_error_message);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static GLib.Quark quark ();
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static bool register_error (GLib.Quark error_domain, int error_code, string dbus_error_name);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static void register_error_domain (string error_domain_quark_name, size_t quark_volatile, [CCode (array_length_cname = "num_entries", array_length_pos = 3.1, array_length_type = "guint")] GLib.DBusErrorEntry[] entries);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static bool strip_remote_error (GLib.Error error);
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static bool unregister_error (GLib.Quark error_domain, int error_code, string dbus_error_name);
 	}
 	[CCode (cheader_filename = "gio/gio.h", cname = "GIOErrorEnum", cprefix = "G_IO_ERROR_")]
@@ -4871,7 +4982,6 @@ namespace GLib {
 		NOT_FOUND,
 		TEMPORARY_FAILURE,
 		INTERNAL;
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static GLib.Quark quark ();
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_RESOURCE_ERROR_")]
@@ -4879,7 +4989,6 @@ namespace GLib {
 	public errordomain ResourceError {
 		NOT_FOUND,
 		INTERNAL;
-		[CCode (cheader_filename = "gio/gio.h")]
 		public static GLib.Quark quark ();
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_CHANNEL_BINDING_ERROR_")]
@@ -4889,7 +4998,8 @@ namespace GLib {
 		INVALID_STATE,
 		NOT_AVAILABLE,
 		NOT_SUPPORTED,
-		GENERAL_ERROR
+		GENERAL_ERROR;
+		public static GLib.Quark quark ();
 	}
 	[CCode (cheader_filename = "gio/gio.h", cprefix = "G_TLS_ERROR_")]
 	[Version (since = "2.28")]
@@ -4901,7 +5011,8 @@ namespace GLib {
 		HANDSHAKE,
 		CERTIFICATE_REQUIRED,
 		EOF,
-		INAPPROPRIATE_FALLBACK
+		INAPPROPRIATE_FALLBACK;
+		public static GLib.Quark quark ();
 	}
 	[CCode (cheader_filename = "gio/gio.h", instance_pos = 2.9)]
 	public delegate void AsyncReadyCallback (GLib.Object? source_object, GLib.AsyncResult res);
@@ -5008,22 +5119,31 @@ namespace GLib {
 	[Version (since = "2.58")]
 	public const string DRIVE_IDENTIFIER_KIND_UNIX_DEVICE;
 	[CCode (cheader_filename = "gio/gio.h")]
-	[Version (since = "2.38")]
+	[Version (replacement = "Action.name_is_valid", since = "2.38")]
 	public static bool action_name_is_valid (string action_name);
 	[CCode (cheader_filename = "gio/gio.h")]
-	[Version (since = "2.38")]
+	[Version (replacement = "Action.parse_detailed_name", since = "2.38")]
 	public static bool action_parse_detailed_name (string detailed_name, out string action_name, out GLib.Variant target_value) throws GLib.Error;
 	[CCode (cheader_filename = "gio/gio.h")]
-	[Version (since = "2.38")]
+	[Version (replacement = "Action.print_detailed_name", since = "2.38")]
 	public static string action_print_detailed_name (string action_name, GLib.Variant? target_value);
 	[CCode (cheader_filename = "gio/gio.h")]
-	[Version (since = "2.48")]
+	[Version (replacement = "DtlsClientConnection.new", since = "2.48")]
 	public static GLib.DtlsClientConnection dtls_client_connection_new (GLib.DatagramBased base_socket, GLib.SocketConnectable? server_identity) throws GLib.Error;
 	[CCode (cheader_filename = "gio/gio.h")]
-	[Version (since = "2.48")]
+	[Version (replacement = "DtlsServerConnection.new", since = "2.48")]
 	public static GLib.DtlsServerConnection dtls_server_connection_new (GLib.DatagramBased base_socket, GLib.TlsCertificate? certificate) throws GLib.Error;
 	[CCode (cheader_filename = "gio/gio.h")]
-	[Version (since = "2.64")]
+	[Version (replacement = "IOExtensionPoint.implement")]
+	public static unowned GLib.IOExtension io_extension_point_implement (string extension_point_name, GLib.Type type, string extension_name, int priority);
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "IOExtensionPoint.lookup")]
+	public static unowned GLib.IOExtensionPoint io_extension_point_lookup (string name);
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "IOExtensionPoint.register")]
+	public static unowned GLib.IOExtensionPoint io_extension_point_register (string name);
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "MemoryMonitor.dup_default", since = "2.64")]
 	public static GLib.MemoryMonitor memory_monitor_dup_default ();
 	[CCode (cheader_filename = "gio/gio.h")]
 	[Version (since = "2.36")]
@@ -5037,6 +5157,18 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gio.h")]
 	[Version (since = "2.34")]
 	public static bool pollable_stream_write_all (GLib.OutputStream stream, [CCode (array_length_cname = "count", array_length_pos = 2.5, array_length_type = "gsize")] uint8[] buffer, bool blocking, out size_t bytes_written, GLib.Cancellable? cancellable = null) throws GLib.Error;
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "PowerProfileMonitor.dup_default", since = "2.70")]
+	public static GLib.PowerProfileMonitor power_profile_monitor_dup_default ();
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "ResolverError.quark", since = "2.22")]
+	public static GLib.Quark resolver_error_quark ();
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "ResourceError.quark", since = "2.32")]
+	public static GLib.Quark resource_error_quark ();
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "Resource.load", since = "2.32")]
+	public static GLib.Resource resource_load (string filename) throws GLib.Error;
 	[CCode (array_length = false, array_null_terminated = true, cheader_filename = "gio/gio.h")]
 	[Version (since = "2.32")]
 	public static string[] resources_enumerate_children (string path, GLib.ResourceLookupFlags lookup_flags) throws GLib.Error;
@@ -5055,11 +5187,7 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gio.h")]
 	[Version (since = "2.32")]
 	public static void resources_unregister (GLib.Resource resource);
-}
-
-[CCode (cheader_filename = "gio/gio.h", lower_case_cprefix = "gio_")]
-namespace GIOFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
+	[CCode (cheader_filename = "gio/gio.h")]
+	[Version (replacement = "SettingsSchemaSource.get_default", since = "2.32")]
+	public static unowned GLib.SettingsSchemaSource? settings_schema_source_get_default ();
 }
