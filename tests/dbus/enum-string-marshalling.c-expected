@@ -582,11 +582,22 @@ _dbus_test_test1 (Test* self,
 {
 	GVariantIter _arguments_iter;
 	TestTest1ReadyData* _ready_data;
+	gboolean _fire_and_forget;
+	GAsyncReadyCallback _callback_func;
+	gpointer _callback_data;
 	GVariant* _tmp0_;
 	GError* error = NULL;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	_ready_data = g_slice_new0 (TestTest1ReadyData);
 	_ready_data->_invocation_ = invocation;
+	_fire_and_forget = FALSE;
+	_callback_func = (GAsyncReadyCallback) _dbus_test_test1_ready;
+	_callback_data = _ready_data;
+	if ((g_dbus_message_get_flags (g_dbus_method_invocation_get_message (invocation)) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) && G_IS_DBUS_PROXY (self)) {
+		_fire_and_forget = TRUE;
+		_callback_func = NULL;
+		_callback_data = NULL;
+	}
 	_tmp0_ = g_variant_iter_next_value (&_arguments_iter);
 	_ready_data->e = foo_enum_from_string (g_variant_get_string (_tmp0_, NULL), &error);
 	g_variant_unref (_tmp0_);
@@ -595,7 +606,10 @@ _dbus_test_test1 (Test* self,
 		g_error_free (error);
 		return;
 	}
-	test_test1 (self, _ready_data->e, (GAsyncReadyCallback) _dbus_test_test1_ready, _ready_data);
+	test_test1 (self, _ready_data->e, _callback_func, _callback_data);
+	if (_fire_and_forget) {
+		g_slice_free (TestTest1ReadyData, _ready_data);
+	}
 }
 
 static void
@@ -606,6 +620,7 @@ _dbus_test_test1_ready (GObject * source_object,
 	TestTest1ReadyData* _ready_data;
 	GDBusMethodInvocation* invocation;
 	GError* error = NULL;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -615,16 +630,21 @@ _dbus_test_test1_ready (GObject * source_object,
 	if (error) {
 		g_dbus_method_invocation_return_gerror (invocation, error);
 		g_error_free (error);
-		goto _error;
+		goto _return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		goto _return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_error:
+	_return:
 	g_slice_free (TestTest1ReadyData, _ready_data);
 }
 
@@ -637,6 +657,7 @@ _dbus_test_test2 (Test* self,
 	GVariantIter _arguments_iter;
 	FooEnum e = 0;
 	GVariant* _tmp1_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -655,7 +676,12 @@ _dbus_test_test2 (Test* self,
 		g_error_free (error);
 		return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);
@@ -677,6 +703,7 @@ _dbus_test_test3 (Test* self,
 	GVariant* _tmp3_;
 	FooEnum e2 = 0;
 	GVariant* _tmp4_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -706,7 +733,12 @@ _dbus_test_test3 (Test* self,
 		g_error_free (error);
 		return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);
@@ -724,6 +756,7 @@ _dbus_test_test4 (Test* self,
 	GVariantIter _arguments_iter;
 	FooEnum e = 0;
 	GVariant* _tmp5_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -737,7 +770,12 @@ _dbus_test_test4 (Test* self,
 		return;
 	}
 	test_test4 (self, e);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);
@@ -753,11 +791,22 @@ _dbus_test_test5 (Test* self,
 {
 	GVariantIter _arguments_iter;
 	TestTest5ReadyData* _ready_data;
+	gboolean _fire_and_forget;
+	GAsyncReadyCallback _callback_func;
+	gpointer _callback_data;
 	GVariant* _tmp6_;
 	GError* error = NULL;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	_ready_data = g_slice_new0 (TestTest5ReadyData);
 	_ready_data->_invocation_ = invocation;
+	_fire_and_forget = FALSE;
+	_callback_func = (GAsyncReadyCallback) _dbus_test_test5_ready;
+	_callback_data = _ready_data;
+	if ((g_dbus_message_get_flags (g_dbus_method_invocation_get_message (invocation)) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) && G_IS_DBUS_PROXY (self)) {
+		_fire_and_forget = TRUE;
+		_callback_func = NULL;
+		_callback_data = NULL;
+	}
 	_tmp6_ = g_variant_iter_next_value (&_arguments_iter);
 	_ready_data->e = foo_enum_from_string (g_variant_get_string (_tmp6_, NULL), &error);
 	g_variant_unref (_tmp6_);
@@ -766,7 +815,10 @@ _dbus_test_test5 (Test* self,
 		g_error_free (error);
 		return;
 	}
-	test_test5 (self, _ready_data->e, (GAsyncReadyCallback) _dbus_test_test5_ready, _ready_data);
+	test_test5 (self, _ready_data->e, _callback_func, _callback_data);
+	if (_fire_and_forget) {
+		g_slice_free (TestTest5ReadyData, _ready_data);
+	}
 }
 
 static void
@@ -777,20 +829,26 @@ _dbus_test_test5_ready (GObject * source_object,
 	TestTest5ReadyData* _ready_data;
 	GDBusMethodInvocation* invocation;
 	GError* error = NULL;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	_ready_data = _user_data_;
 	invocation = _ready_data->_invocation_;
 	test_test5_finish ((Test*) source_object, _res_);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		goto _return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_error:
+	_return:
 	g_slice_free (TestTest5ReadyData, _ready_data);
 }
 

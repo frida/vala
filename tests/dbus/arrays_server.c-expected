@@ -482,6 +482,7 @@ _dbus_test_test_int (Test* self,
 	gint _tmp1__length1;
 	GVariantIter _tmp2_;
 	GVariant* _tmp3_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -514,7 +515,12 @@ _dbus_test_test_int (Test* self,
 	i = _tmp1_;
 	g_variant_unref (_tmp0_);
 	result = test_test_int (self, i, i_length1, &j, &j_length1, &result_length1);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp4_ = j;
 	g_variant_builder_init (&_tmp5_, G_VARIANT_TYPE ("ai"));
@@ -556,6 +562,7 @@ _dbus_test_test_string (Test* self,
 	gint _tmp11__length1;
 	GVariantIter _tmp12_;
 	GVariant* _tmp13_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -589,7 +596,12 @@ _dbus_test_test_string (Test* self,
 	s = _tmp11_;
 	g_variant_unref (_tmp10_);
 	result = test_test_string (self, s, s_length1, &t, &t_length1, &result_length1);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp14_ = t;
 	g_variant_builder_init (&_tmp15_, G_VARIANT_TYPE ("as"));

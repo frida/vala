@@ -479,6 +479,7 @@ _dbus_test_test_method (Test* self,
 	GVariant* _tmp4_;
 	gint k = 0;
 	GVariant* _tmp5_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -496,7 +497,12 @@ _dbus_test_test_method (Test* self,
 		g_error_free (error);
 		return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -844,6 +850,7 @@ _dbus_test_raw_test_method (TestRaw* self,
 	GVariantIter _arguments_iter;
 	GVariant* j = NULL;
 	GVariant* k = NULL;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -855,9 +862,14 @@ _dbus_test_raw_test_method (TestRaw* self,
 	if (error) {
 		g_dbus_method_invocation_return_gerror (invocation, error);
 		g_error_free (error);
-		goto _error;
+		goto _return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		goto _return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, result);
 	_g_variant_unref0 (result);
@@ -866,7 +878,7 @@ _dbus_test_raw_test_method (TestRaw* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_error:
+	_return:
 	_g_variant_unref0 (j);
 	_g_variant_unref0 (k);
 	;
