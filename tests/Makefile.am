@@ -862,7 +862,9 @@ TESTS = \
 	dbus/async-bus.test \
 	dbus/async-connection.test \
 	dbus/async-errors.test \
-	dbus/async-no-reply.test \
+	dbus/async-no-reply-request.test \
+	dbus/async-no-reply-response.test \
+	dbus/async-no-reply-relay.test \
 	dbus/connection.test \
 	dbus/dbus-name-missing.test \
 	dbus/dynamic-method.test \
