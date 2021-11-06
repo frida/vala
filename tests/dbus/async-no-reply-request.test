@@ -87,7 +87,7 @@ void main () {
 	assert ((uint) request_result.get_child_value (0) == 1);
 
 	Pid client_pid;
-	Process.spawn_async (null, { "dbus_async_no_reply_client" }, null, SpawnFlags.DO_NOT_REAP_CHILD, null, out client_pid);
+	Process.spawn_async (null, { "dbus_async_no_reply_request_client" }, null, SpawnFlags.DO_NOT_REAP_CHILD, null, out client_pid);
 	ChildWatch.add (client_pid, client_exit);
 
 	main_loop = new MainLoop ();
