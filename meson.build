@@ -55,7 +55,11 @@ pkgconf.set('pkgdatadir', '${datarootdir}/vala@0@'.format(vala_version_suffix))
 pkgconf.set('pkglibdir', '${exec_prefix}/@0@'.format(get_option('libdir'), 'vala@0@'.format(vala_version_suffix)))
 pkgconf.set('PACKAGE_SUFFIX', vala_version_suffix)
 pkgconf.set('VERSION', vala_version)
-pkg_install_dir = '@0@/pkgconfig'.format(get_option('libdir'))
+if host_machine.system() == 'freebsd'
+	pkg_install_dir = join_paths('libdata', 'pkgconfig')
+else
+	pkg_install_dir = join_paths(get_option('libdir'), 'pkgconfig')
+endif
 
 configure_file(
 	input: 'libvala.pc.in',
