@@ -480,6 +480,10 @@ public class Vala.GDBusServerModule : GDBusClientModule {
 
 		if (ready_data_expr != null && !ready) {
 			ccode.open_if (new CCodeIdentifier ("_fire_and_forget"));
+
+			var unref_call = new CCodeFunctionCall (new CCodeIdentifier ("g_object_unref"));
+			unref_call.add_argument (new CCodeMemberAccess.pointer (ready_data_expr, "_invocation_"));
+			ccode.add_expression (unref_call);
 		}
 
 		foreach (Parameter param in m.get_parameters ()) {
