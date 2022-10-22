@@ -384,7 +384,7 @@ gidl_bindings = [
 gir_bindings = [
 	# vapi-name, gir-namespace, custom.vala-exists, dependencies
 	['atk', 'Atk-1.0', true, []],
-	['atspi-2', 'Atspi-2.0', true, []],
+	['atspi-2', 'Atspi-2.0', false, []],
 	['clutter-1.0', 'Clutter-1.0', true, ['atk', 'cairo', 'pango', 'cogl-1.0', 'cogl-pango-1.0', 'json-glib-1.0']],
 	['clutter-gdk-1.0', 'ClutterGdk-1.0', false, ['clutter-1.0', 'gdk-3.0']],
 	['clutter-gtk-1.0', 'ClutterGtk-1.0', true, []],
