@@ -134,7 +134,9 @@ if libgvc_dep.found()
 	subdir('libvaladoc')
 	subdir('valadoc')
 endif
-subdir('vapi')
+if get_option('vapi').enabled()
+	subdir('vapi')
+endif
 subdir('doc')
 subdir('tests')
 
