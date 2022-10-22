@@ -1,5 +1,0 @@
-option('vapi',
-  type: 'feature',
-  value: 'auto',
-  description: 'Whether to generate vapi files'
-)
