@@ -452,7 +452,7 @@ gir_bindings += [
 #	['gstreamer-rtsp-server-1.0', 'GstRtspServer-1.0', false, ['gstreamer-1.0', 'gstreamer-base-1.0', 'gstreamer-rtsp-1.0']],
 ]
 
-gobject_introspection_dep = dependency('gobject-introspection-1.0', required: false)
+gobject_introspection_dep = dependency('gobject-introspection-1.0', required: get_option('gir'))
 if gobject_introspection_dep.found()
 	girdir = gobject_introspection_dep.get_pkgconfig_variable('girdir')
 
