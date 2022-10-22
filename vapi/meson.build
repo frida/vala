@@ -464,12 +464,13 @@ if gobject_introspection_dep.found()
 		foreach pkg : gir_vapi[3]
 			pkg_args += ['--pkg', pkg]
 		endforeach
+		input_files = [join_paths(girdir, '@0@.gir'.format(gir_vapi[1]))]
+		if gir_vapi[2]
+			input_files += join_paths(metadatadir, '@0@-custom.vala'.format(gir_vapi[1]))
+		endif
 		custom_target(gir_vapi[0],
 			output: '@0@.vapi'.format(gir_vapi[0]),
-			input: [
-				join_paths(girdir, '@0@.gir'.format(gir_vapi[1])),
-				gir_vapi[2] ? join_paths(metadatadir, '@0@-custom.vala'.format(gir_vapi[1])) : '',
-			],
+			input: input_files,
 			command: [vapigen_exe,
 				'--library', gir_vapi[0],
 				vapigen_args,
