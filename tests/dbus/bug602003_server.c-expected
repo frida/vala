@@ -144,7 +144,7 @@ test_test_string (Test* self)
 	gint _tmp2__length1;
 	GVariant* _tmp6_;
 	GVariant* _tmp7_;
-	GVariant* result = NULL;
+	GVariant* result;
 	g_return_val_if_fail (IS_TEST (self), NULL);
 	_tmp0_ = g_strdup ("hello");
 	_tmp1_ = g_new0 (gchar*, 1 + 1);
@@ -201,13 +201,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 static void
@@ -217,19 +217,13 @@ _dbus_test_test_string (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	GVariant* result;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_test_string (self);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_variant (result));
 	_g_variant_unref0 (result);

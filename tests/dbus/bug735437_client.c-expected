@@ -49,6 +49,7 @@ VALA_EXTERN guint test_register_object (void* object,
                             const gchar* path,
                             GError** error);
 VALA_EXTERN GType test_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Test, g_object_unref)
 VALA_EXTERN gdouble* test_array (Test* self,
                      gint* result_length1,
                      GError** error);
@@ -206,13 +207,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 G_DEFINE_TYPE_EXTENDED (TestProxy, test_proxy, G_TYPE_DBUS_PROXY, 0, G_IMPLEMENT_INTERFACE (TYPE_TEST, test_proxy_test_interface_init) )
@@ -471,7 +472,6 @@ _dbus_test_array (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -483,16 +483,10 @@ _dbus_test_array (Test* self,
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_array (self, &result_length1, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
+		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp18_ = result;
 	g_variant_builder_init (&_tmp19_, G_VARIANT_TYPE ("ad"));
@@ -516,7 +510,6 @@ _dbus_test_multi_array (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -529,16 +522,10 @@ _dbus_test_multi_array (Test* self,
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_multi_array (self, &result_length1, &result_length2, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
+		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp21_ = result;
 	g_variant_builder_init (&_tmp22_, G_VARIANT_TYPE ("aad"));
@@ -568,7 +555,6 @@ _dbus_test_multi_array2 (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -582,16 +568,10 @@ _dbus_test_multi_array2 (Test* self,
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_multi_array2 (self, &result_length1, &result_length2, &result_length3, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
+		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp26_ = result;
 	g_variant_builder_init (&_tmp27_, G_VARIANT_TYPE ("aaas"));

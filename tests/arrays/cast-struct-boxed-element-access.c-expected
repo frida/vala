@@ -58,6 +58,7 @@ VALA_EXTERN void bar_free (Bar* self);
 VALA_EXTERN void bar_copy (const Bar* self,
                Bar* dest);
 VALA_EXTERN void bar_destroy (Bar* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (Bar, bar_destroy)
 VALA_EXTERN Bar** bar_array_owned (gint* result_length1);
 VALA_EXTERN Bar** bar_array_unowned (gint* result_length1);
 VALA_EXTERN void test_with_destroy (void);
@@ -95,13 +96,13 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static gpointer
@@ -122,7 +123,7 @@ foo_array_owned (gint* result_length1)
 	Foo** _tmp6_;
 	Foo** _tmp7_;
 	gint _tmp7__length1;
-	Foo** result = NULL;
+	Foo** result;
 	memset (&_tmp0_, 0, sizeof (Foo));
 	_tmp0_.i = 23;
 	_tmp1_ = _foo_dup0 (&_tmp0_);
@@ -159,7 +160,7 @@ foo_array_unowned (gint* result_length1)
 	gint _tmp7__length1;
 	Foo** _tmp8_;
 	gint _tmp8__length1;
-	Foo** result = NULL;
+	Foo** result;
 	memset (&_tmp0_, 0, sizeof (Foo));
 	_tmp0_.i = 23;
 	_tmp1_ = _foo_dup0 (&_tmp0_);
@@ -396,13 +397,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 static gpointer
@@ -431,7 +432,7 @@ bar_array_owned (gint* result_length1)
 	gint _tmp13__length1;
 	Bar** _tmp14_;
 	gint _tmp14__length1;
-	Bar** result = NULL;
+	Bar** result;
 	_tmp0_ = g_strdup ("foo");
 	memset (&_tmp1_, 0, sizeof (Bar));
 	_g_free0 (_tmp1_.s);
@@ -488,7 +489,7 @@ bar_array_unowned (gint* result_length1)
 	gint _tmp13__length1;
 	Bar** _tmp14_;
 	gint _tmp14__length1;
-	Bar** result = NULL;
+	Bar** result;
 	_tmp0_ = g_strdup ("foo");
 	memset (&_tmp1_, 0, sizeof (Bar));
 	_g_free0 (_tmp1_.s);

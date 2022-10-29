@@ -73,21 +73,19 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 void
 bar_init (Bar *self)
 {
-	Foo _tmp0_ = {0};
-	memset (self, 0, sizeof (Bar));
-	foo_init_foo (&_tmp0_);
+	foo_init_foo (self);
 	(*self).j = 1;
 }
 
@@ -117,13 +115,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 static void
@@ -131,9 +129,12 @@ _vala_main (void)
 {
 	Bar bar = {0};
 	Bar _tmp0_;
+	Bar _tmp1_;
 	bar_init (&bar);
 	_tmp0_ = bar;
-	_vala_assert (_tmp0_.j == 1, "bar.j == 1");
+	_vala_assert (_tmp0_.i == 1, "bar.i == 1");
+	_tmp1_ = bar;
+	_vala_assert (_tmp1_.j == 1, "bar.j == 1");
 }
 
 int

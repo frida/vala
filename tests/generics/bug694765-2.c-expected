@@ -218,13 +218,13 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static inline gpointer
@@ -250,7 +250,7 @@ bar_construct (GType object_type,
                GDestroyNotify g_destroy_func)
 {
 	Bar * self = NULL;
-	self = (Bar*) g_object_new (object_type, NULL);
+	self = (Bar*) g_object_new (object_type, "g-type", g_type, "g-dup-func", g_dup_func, "g-destroy-func", g_destroy_func, NULL);
 	self->priv->g_type = g_type;
 	self->priv->g_dup_func = g_dup_func;
 	self->priv->g_destroy_func = g_destroy_func;
@@ -325,13 +325,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 static void
@@ -423,7 +423,7 @@ baz_construct (GType object_type,
                GDestroyNotify g_destroy_func)
 {
 	Baz * self = NULL;
-	self = (Baz*) g_object_new (object_type, NULL);
+	self = (Baz*) g_object_new (object_type, "g-type", g_type, "g-dup-func", g_dup_func, "g-destroy-func", g_destroy_func, NULL);
 	self->priv->g_type = g_type;
 	self->priv->g_dup_func = g_dup_func;
 	self->priv->g_destroy_func = g_destroy_func;
@@ -500,13 +500,13 @@ baz_get_type_once (void)
 GType
 baz_get_type (void)
 {
-	static volatile gsize baz_type_id__volatile = 0;
-	if (g_once_init_enter (&baz_type_id__volatile)) {
+	static volatile gsize baz_type_id__once = 0;
+	if (g_once_init_enter (&baz_type_id__once)) {
 		GType baz_type_id;
 		baz_type_id = baz_get_type_once ();
-		g_once_init_leave (&baz_type_id__volatile, baz_type_id);
+		g_once_init_leave (&baz_type_id__once, baz_type_id);
 	}
-	return baz_type_id__volatile;
+	return baz_type_id__once;
 }
 
 static void

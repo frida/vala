@@ -382,7 +382,8 @@ namespace GI {
 		INVALID,
 		CALL,
 		ASYNC,
-		NOTIFIED
+		NOTIFIED,
+		FOREVER
 	}
 	[CCode (cheader_filename = "girepository.h", cprefix = "GI_TRANSFER_", has_type_id = false)]
 	public enum Transfer {
@@ -425,7 +426,7 @@ namespace GI {
 		MUST_NOT_OVERRIDE,
 		THROWS
 	}
-	[CCode (cheader_filename = "girepository.h", cname = "GInvokeError", cprefix = "G_INVOKE_ERROR_")]
+	[CCode (cheader_filename = "girepository.h", cname = "GInvokeError", cprefix = "G_INVOKE_ERROR_", has_type_id = false)]
 	[GIR (name = "nvokeError")]
 	public errordomain InvokeError {
 		FAILED,
@@ -433,7 +434,7 @@ namespace GI {
 		ARGUMENT_MISMATCH;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "girepository.h", cprefix = "G_IREPOSITORY_ERROR_")]
+	[CCode (cheader_filename = "girepository.h", cprefix = "G_IREPOSITORY_ERROR_", has_type_id = false)]
 	public errordomain RepositoryError {
 		TYPELIB_NOT_FOUND,
 		NAMESPACE_MISMATCH,
@@ -470,4 +471,10 @@ namespace GI {
 	[CCode (cheader_filename = "girepository.h", cname = "gi_get_minor_version")]
 	[Version (since = "1.60")]
 	public static uint get_minor_version ();
+	[CCode (cheader_filename = "girepository.h", cname = "gi_type_tag_argument_from_hash_pointer")]
+	[Version (since = "1.72")]
+	public static void type_tag_argument_from_hash_pointer (GI.TypeTag storage_type, void* hash_pointer, GI.Argument arg);
+	[CCode (cheader_filename = "girepository.h", cname = "gi_type_tag_hash_pointer_from_argument")]
+	[Version (since = "1.72")]
+	public static void* type_tag_hash_pointer_from_argument (GI.TypeTag storage_type, GI.Argument arg);
 }

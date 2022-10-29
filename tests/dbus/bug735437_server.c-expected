@@ -145,7 +145,7 @@ test_array (Test* self,
 	gdouble* _tmp0_;
 	gdouble* _tmp1_;
 	gint _tmp1__length1;
-	gdouble* result = NULL;
+	gdouble* result;
 	g_return_val_if_fail (IS_TEST (self), NULL);
 	_tmp0_ = g_new0 (gdouble, 2);
 	_tmp0_[0] = 2.0;
@@ -168,7 +168,7 @@ test_multi_array (Test* self,
 	gdouble* _tmp1_;
 	gint _tmp1__length1;
 	gint _tmp1__length2;
-	gdouble* result = NULL;
+	gdouble* result;
 	g_return_val_if_fail (IS_TEST (self), NULL);
 	_tmp0_ = g_new0 (gdouble, 2 * 2);
 	_tmp0_[0] = 2.0;
@@ -207,7 +207,7 @@ test_multi_array2 (Test* self,
 	gint _tmp9__length1;
 	gint _tmp9__length2;
 	gint _tmp9__length3;
-	gchar** result = NULL;
+	gchar** result;
 	g_return_val_if_fail (IS_TEST (self), NULL);
 	_tmp0_ = g_strdup ("foo");
 	_tmp1_ = g_strdup ("bar");
@@ -283,13 +283,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 static void
@@ -299,7 +299,6 @@ _dbus_test_array (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -310,12 +309,7 @@ _dbus_test_array (Test* self,
 	gint _tmp2_;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_array (self, &result_length1);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp0_ = result;
 	g_variant_builder_init (&_tmp1_, G_VARIANT_TYPE ("ad"));
@@ -339,7 +333,6 @@ _dbus_test_multi_array (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -351,12 +344,7 @@ _dbus_test_multi_array (Test* self,
 	gint _tmp5_;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_multi_array (self, &result_length1, &result_length2);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp3_ = result;
 	g_variant_builder_init (&_tmp4_, G_VARIANT_TYPE ("aad"));
@@ -386,7 +374,6 @@ _dbus_test_multi_array2 (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -399,12 +386,7 @@ _dbus_test_multi_array2 (Test* self,
 	gint _tmp10_;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_multi_array2 (self, &result_length1, &result_length2, &result_length3);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp8_ = result;
 	g_variant_builder_init (&_tmp9_, G_VARIANT_TYPE ("aaas"));

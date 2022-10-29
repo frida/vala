@@ -216,7 +216,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool open ();
 			[NoWrapper]
-			public virtual Gst.FlowReturn parse (Gst.Base.Adapter adapter, int offset, int length);
+			public virtual Gst.FlowReturn parse (Gst.Base.Adapter adapter, out int offset, out int length);
 			[NoWrapper]
 			public virtual Gst.FlowReturn pre_push (Gst.Buffer buffer);
 			[NoWrapper]
@@ -375,6 +375,9 @@ namespace Gst {
 			public bool is_equal (Gst.Audio.Info other);
 			public void set_format (Gst.Audio.Format format, int rate, int channels, [CCode (array_length = false)] Gst.Audio.ChannelPosition position[64]);
 			public Gst.Caps to_caps ();
+			[CCode (cname = "gst_audio_info_new_from_caps", has_construct_function = false)]
+			[Version (since = "1.20")]
+			public Info.with_caps (Gst.Caps caps);
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", has_type_id = false)]
 		[Compact]
@@ -424,7 +427,7 @@ namespace Gst {
 			public void clear (int segment);
 			public virtual void clear_all ();
 			public virtual bool close_device ();
-			public virtual uint commit (uint64 sample, [CCode (array_length_cname = "in_samples", array_length_pos = 2.5)] uint8[] data, int out_samples, ref int accum);
+			public virtual uint commit (ref uint64 sample, [CCode (array_length_cname = "in_samples", array_length_pos = 2.5)] uint8[] data, int out_samples, ref int accum);
 			public bool convert (Gst.Format src_fmt, int64 src_val, Gst.Format dest_fmt, out int64 dest_val);
 			public static void debug_spec_buff (Gst.Audio.RingBufferSpec spec);
 			public static void debug_spec_caps (Gst.Audio.RingBufferSpec spec);
@@ -480,7 +483,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool unprepare ();
 			[NoWrapper]
-			public virtual int write ([CCode (array_length_cname = "length", array_length_pos = 1.1, array_length_type = "guint", type = "gpointer")] uint8[] data);
+			public virtual int write ([CCode (array_length_cname = "length", array_length_pos = 1.1, array_length_type = "guint")] uint8[] data);
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", type_id = "gst_audio_src_get_type ()")]
 		[GIR (name = "AudioSrc")]
@@ -496,7 +499,7 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool prepare (Gst.Audio.RingBufferSpec spec);
 			[NoWrapper]
-			public virtual uint read ([CCode (array_length_cname = "length", array_length_pos = 1.5, array_length_type = "guint", type = "gpointer")] uint8[] data, Gst.ClockTime timestamp);
+			public virtual uint read ([CCode (array_length_cname = "length", array_length_pos = 1.5, array_length_type = "guint")] uint8[] data, out Gst.ClockTime timestamp);
 			[NoWrapper]
 			public virtual void reset ();
 			[NoWrapper]
@@ -902,7 +905,7 @@ namespace Gst {
 		}
 		[CCode (cheader_filename = "gst/audio/audio.h", instance_pos = 5.9)]
 		[Version (since = "1.6")]
-		public delegate void BaseSinkCustomSlavingCallback (Gst.Audio.BaseSink sink, Gst.ClockTime etime, Gst.ClockTime itime, Gst.ClockTimeDiff requested_skew, Gst.Audio.BaseSinkDiscontReason discont_reason);
+		public delegate void BaseSinkCustomSlavingCallback (Gst.Audio.BaseSink sink, Gst.ClockTime etime, Gst.ClockTime itime, out Gst.ClockTimeDiff requested_skew, Gst.Audio.BaseSinkDiscontReason discont_reason);
 		[CCode (cheader_filename = "gst/audio/audio.h", instance_pos = 1.9)]
 		public delegate Gst.ClockTime ClockGetTimeFunc (Gst.Clock clock);
 		[CCode (cheader_filename = "gst/audio/audio.h", has_target = false)]
@@ -915,6 +918,9 @@ namespace Gst {
 		public const string CHANNELS_RANGE;
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "GST_AUDIO_CONVERTER_OPT_DITHER_METHOD")]
 		public const string CONVERTER_OPT_DITHER_METHOD;
+		[CCode (cheader_filename = "gst/audio/audio.h", cname = "GST_AUDIO_CONVERTER_OPT_DITHER_THRESHOLD")]
+		[Version (since = "1.22")]
+		public const string CONVERTER_OPT_DITHER_THRESHOLD;
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "GST_AUDIO_CONVERTER_OPT_MIX_MATRIX")]
 		public const string CONVERTER_OPT_MIX_MATRIX;
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "GST_AUDIO_CONVERTER_OPT_NOISE_SHAPING_METHOD")]
@@ -1071,7 +1077,7 @@ namespace Gst {
 		[Version (since = "1.8")]
 		public static unowned Gst.Audio.ClippingMeta? buffer_add_audio_clipping_meta (Gst.Buffer buffer, Gst.Format format, uint64 start, uint64 end);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_buffer_add_audio_downmix_meta")]
-		public static unowned Gst.Audio.DownmixMeta? buffer_add_audio_downmix_meta (Gst.Buffer buffer, [CCode (array_length_cname = "from_channels", array_length_pos = 2.5)] Gst.Audio.ChannelPosition[] from_position, [CCode (array_length_cname = "to_channels", array_length_pos = 3.5)] Gst.Audio.ChannelPosition[] to_position, float matrix);
+		public static unowned Gst.Audio.DownmixMeta? buffer_add_audio_downmix_meta (Gst.Buffer buffer, [CCode (array_length_cname = "from_channels", array_length_pos = 2.5)] Gst.Audio.ChannelPosition[] from_position, [CCode (array_length_cname = "to_channels", array_length_pos = 3.5)] Gst.Audio.ChannelPosition[] to_position, [CCode (array_length = false, type = "const gfloat**")] float*[] matrix);
 		[CCode (cheader_filename = "gst/audio/audio.h", cname = "gst_buffer_add_audio_level_meta")]
 		[Version (since = "1.20")]
 		public static unowned Gst.Audio.LevelMeta? buffer_add_audio_level_meta (Gst.Buffer buffer, uint8 level, bool voice_activity);

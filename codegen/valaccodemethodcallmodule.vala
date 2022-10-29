@@ -160,6 +160,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			}
 
 			if (!current_class.is_compact) {
+				int type_param_index = 0;
 				if (current_class != m.parent_symbol) {
 					// chain up to base class
 					foreach (DataType base_type in current_class.get_base_types ()) {
@@ -168,6 +169,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 							if (get_ccode_real_name (m) == "g_object_new") {
 								// gobject-style chainup
 								type_parameters = ((Class) base_type.type_symbol).get_type_parameters ();
+								type_param_index += type_parameters.size;
 							}
 							add_generic_type_arguments (m, in_arg_map, base_type.get_type_arguments (), expr, true, type_parameters);
 							break;
@@ -175,12 +177,24 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 					}
 				} else {
 					// chain up to other constructor in same class
-					int type_param_index = 0;
 					var cl = (Class) m.parent_symbol;
 					foreach (TypeParameter type_param in cl.get_type_parameters ()) {
 						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.01), new CCodeIdentifier (get_ccode_type_id (type_param)));
 						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.02), new CCodeIdentifier (get_ccode_copy_function (type_param)));
 						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.03), new CCodeIdentifier (get_ccode_destroy_function (type_param)));
+						type_param_index++;
+					}
+				}
+				if (current_class.has_type_parameters () && get_ccode_real_name (m) == "g_object_new") {
+					// gobject-style construction
+					foreach (var type_param in current_class.get_type_parameters ()) {
+						var type_param_name = type_param.name.ascii_down ().replace ("_", "-");
+						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.01), new CCodeConstant ("\"%s-type\"".printf (type_param_name)));
+						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.02), new CCodeIdentifier (get_ccode_type_id (type_param)));
+						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.03), new CCodeConstant ("\"%s-dup-func\"".printf (type_param_name)));
+						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.04), new CCodeIdentifier (get_ccode_copy_function (type_param)));
+						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.05), new CCodeConstant ("\"%s-destroy-func\"".printf (type_param_name)));
+						in_arg_map.set (get_param_pos (0.1 * type_param_index + 0.06), new CCodeIdentifier (get_ccode_destroy_function (type_param)));
 						type_param_index++;
 					}
 				}
@@ -190,12 +204,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				string class_prefix = get_ccode_lower_case_name (current_class);
 				string prepare_func = "NULL";
 				string check_func = "NULL";
-				string closure_callback_func = "NULL";
 				foreach (Method impl in current_class.get_methods ()) {
-					if (impl.name == "closure_callback" && impl.binding == MemberBinding.STATIC) {
-						closure_callback_func = "(GSourceFunc) %s_closure_callback".printf (class_prefix);
-						continue;
-					}
 					if (!impl.overrides) {
 						continue;
 					}
@@ -213,7 +222,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 				var funcs = new CCodeDeclaration ("const GSourceFuncs");
 				funcs.modifiers = CCodeModifiers.STATIC;
-				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize, %s }".printf (prepare_func, check_func, class_prefix, class_prefix, closure_callback_func))));
+				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize}".printf (prepare_func, check_func, class_prefix, class_prefix))));
 				ccode.add_statement (funcs);
 
 				ccall.add_argument (new CCodeCastExpression (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_source_funcs")), "GSourceFuncs *"));
@@ -366,6 +375,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				ccode.add_assignment (new CCodeMemberAccess.pointer (get_variable_cexpression ("_data%d_".printf (get_block_id (current_method.body))), "self"), ref_call);
 			}
 
+			//FIXME Only needed for non-"g_object_new" calls, if there is no property clash
 			if (!current_class.is_compact && current_class.has_type_parameters ()) {
 				/* type, dup func, and destroy func fields for generic types */
 				var priv_access = new CCodeMemberAccess.pointer (new CCodeIdentifier ("self"), "priv");
@@ -427,7 +437,12 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 									closure_new.add_argument (new CCodeCastExpression (cexpr, "GCallback"));
 									closure_new.add_argument (delegate_target);
 									closure_new.add_argument (new CCodeCastExpression (delegate_target_destroy_notify, "GClosureNotify"));
-									cexpr = new CCodeConditionalExpression (new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, cexpr, new CCodeConstant ("NULL")), new CCodeConstant ("NULL"), closure_new);
+									//TODO Use get_non_null (arg.target_value)
+									if (arg.is_non_null ()) {
+										cexpr = closure_new;
+									} else {
+										cexpr = new CCodeConditionalExpression (new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, cexpr, new CCodeConstant ("NULL")), new CCodeConstant ("NULL"), closure_new);
+									}
 								} else {
 									// Override previously given target/destroy only if it was NULL
 									// TODO https://gitlab.gnome.org/GNOME/vala/issues/59
@@ -531,7 +546,11 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				}
 			}
 
-			arg_pos = get_param_pos (param != null && !ellipsis ? get_ccode_pos (param) : i, ellipsis);
+			if (itype is SignalType && ((SignalType) itype).signal_symbol is DynamicSignal) {
+				arg_pos = get_param_pos (i, false);
+			} else {
+				arg_pos = get_param_pos (param != null && !ellipsis ? get_ccode_pos (param) : i, ellipsis);
+			}
 			carg_map.set (arg_pos, cexpr);
 
 			if (m is ArrayResizeMethod && context.profile == Profile.POSIX) {
@@ -705,7 +724,9 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		if (ellipsis) {
 			/* ensure variable argument list ends with NULL
 			 * except when using printf-style arguments */
-			if (m == null) {
+			if (itype is SignalType) {
+				// g_signal_emit*() does not require more
+			} else if (m == null) {
 				in_arg_map.set (get_param_pos (-1, true), new CCodeConstant ("NULL"));
 			} else if (!m.printf_format && !m.scanf_format && get_ccode_sentinel (m) != "" && !expr.is_constructv_chainup) {
 				in_arg_map.set (get_param_pos (-1, true), new CCodeConstant (get_ccode_sentinel (m)));
@@ -1071,11 +1092,11 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		ccode.add_declaration ("va_list", new CCodeVariableDeclarator ("ap"));
 		ccode.add_declaration ("char*", new CCodeVariableDeclarator ("result"));
 
-		var va_start = new CCodeFunctionCall (new CCodeIdentifier ("va_start"));
-		va_start.add_argument (new CCodeIdentifier ("ap"));
-		va_start.add_argument (new CCodeIdentifier ("format"));
+		var vastart = new CCodeFunctionCall (new CCodeIdentifier ("va_start"));
+		vastart.add_argument (new CCodeIdentifier ("ap"));
+		vastart.add_argument (new CCodeIdentifier ("format"));
 
-		ccode.add_expression (va_start);
+		ccode.add_expression (vastart);
 
 		if (context.profile == Profile.POSIX) {
 			cfile.add_include ("stdio.h");
@@ -1099,11 +1120,11 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 		ccode.add_assignment (new CCodeIdentifier ("result"), malloc);
 
-		va_start = new CCodeFunctionCall (new CCodeIdentifier ("va_start"));
-		va_start.add_argument (new CCodeIdentifier ("ap"));
-		va_start.add_argument (new CCodeIdentifier ("format"));
+		vastart = new CCodeFunctionCall (new CCodeIdentifier ("va_start"));
+		vastart.add_argument (new CCodeIdentifier ("ap"));
+		vastart.add_argument (new CCodeIdentifier ("format"));
 
-		ccode.add_expression (va_start);
+		ccode.add_expression (vastart);
 
 		vsnprintf = new CCodeFunctionCall (new CCodeIdentifier ("vsnprintf"));
 		vsnprintf.add_argument (new CCodeIdentifier ("result"));

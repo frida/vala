@@ -31,10 +31,6 @@ public class Vala.MethodCall : Expression, CallableExpression {
 	 */
 	public Expression call {
 		get { return _call; }
-		private set {
-			_call = value;
-			_call.parent_node = this;
-		}
 	}
 
 	public bool is_yield_expression { get; set; }
@@ -46,7 +42,7 @@ public class Vala.MethodCall : Expression, CallableExpression {
 	 */
 	public bool is_constructv_chainup { get; private set; }
 
-	public bool is_chainup { get; private set; }
+	public bool is_chainup { get; set; }
 
 	private Expression _call;
 
@@ -61,7 +57,8 @@ public class Vala.MethodCall : Expression, CallableExpression {
 	 */
 	public MethodCall (Expression call, SourceReference? source_reference = null) {
 		this.source_reference = source_reference;
-		this.call = call;
+		this._call = call;
+		this._call.parent_node = this;
 	}
 
 	/**
@@ -99,7 +96,7 @@ public class Vala.MethodCall : Expression, CallableExpression {
 
 	public override void replace_expression (Expression old_node, Expression new_node) {
 		if (call == old_node) {
-			call = new_node;
+			_call = new_node;
 		}
 
 		int index = argument_list.index_of (old_node);
@@ -152,7 +149,7 @@ public class Vala.MethodCall : Expression, CallableExpression {
 			if (!(m.coroutine && !is_yield_expression && ((MemberAccess) call).member_name != "end")) {
 				m.get_error_types (collection, source_reference);
 			}
-		} else if (mtype is ObjectType) {
+		} else if (mtype is ObjectType && mtype.type_symbol is Class) {
 			// constructor
 			unowned Class cl = (Class) ((ObjectType) mtype).type_symbol;
 			unowned Method m = cl.default_construction_method;
@@ -319,6 +316,7 @@ public class Vala.MethodCall : Expression, CallableExpression {
 
 			var struct_creation_expression = new ObjectCreationExpression ((MemberAccess) call, source_reference);
 			struct_creation_expression.struct_creation = true;
+			struct_creation_expression.is_chainup = is_chainup;
 			foreach (Expression arg in argument_list) {
 				struct_creation_expression.add_argument (arg);
 			}

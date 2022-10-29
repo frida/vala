@@ -193,13 +193,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 static void
@@ -213,7 +213,6 @@ _dbus_test_test (Test* self,
 	gint _fd_index = 0;
 	gint _fd;
 	GUnixOutputStream* output_stream = NULL;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -229,22 +228,15 @@ _dbus_test_test (Test* self,
 		g_set_error_literal (&error, G_IO_ERROR, G_IO_ERROR_FAILED, "FD List is NULL");
 	}
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
-		goto _return;
+		g_dbus_method_invocation_take_error (invocation, error);
+		goto _error;
 	}
 	test_test (self, output_stream, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
-		goto _return;
+		g_dbus_method_invocation_take_error (invocation, error);
+		goto _error;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		goto _return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_fd_list = g_unix_fd_list_new ();
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -254,7 +246,7 @@ _dbus_test_test (Test* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_return:
+	_error:
 	_g_object_unref0 (output_stream);
 	;
 }

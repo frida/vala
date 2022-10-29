@@ -66,6 +66,7 @@ static gpointer foo_parent_class = NULL;
 static IBarIface * foo_ibar_parent_iface = NULL;
 
 VALA_EXTERN GType ibar_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (IBar, g_object_unref)
 static GType ibar_get_type_once (void);
 VALA_EXTERN GType foo_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Foo, g_object_unref)
@@ -105,13 +106,13 @@ ibar_get_type_once (void)
 GType
 ibar_get_type (void)
 {
-	static volatile gsize ibar_type_id__volatile = 0;
-	if (g_once_init_enter (&ibar_type_id__volatile)) {
+	static volatile gsize ibar_type_id__once = 0;
+	if (g_once_init_enter (&ibar_type_id__once)) {
 		GType ibar_type_id;
 		ibar_type_id = ibar_get_type_once ();
-		g_once_init_leave (&ibar_type_id__volatile, ibar_type_id);
+		g_once_init_leave (&ibar_type_id__once, ibar_type_id);
 	}
-	return ibar_type_id__volatile;
+	return ibar_type_id__once;
 }
 
 Foo*
@@ -193,20 +194,20 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static Foo*
 __lambda4_ (void)
 {
 	Foo* _tmp0_;
-	Foo* result = NULL;
+	Foo* result;
 	_tmp0_ = foo_new ();
 	result = _tmp0_;
 	return result;
@@ -225,7 +226,7 @@ static IBar*
 __lambda5_ (void)
 {
 	Foo* _tmp0_;
-	IBar* result = NULL;
+	IBar* result;
 	_tmp0_ = foo_new ();
 	result = G_TYPE_CHECK_INSTANCE_CAST (_tmp0_, TYPE_IBAR, IBar);
 	return result;

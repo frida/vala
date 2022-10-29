@@ -36,6 +36,7 @@ VALA_EXTERN void test_free (Test* self);
 VALA_EXTERN void test_copy (const Test* self,
                 Test* dest);
 VALA_EXTERN void test_destroy (Test* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (Test, test_destroy)
 VALA_EXTERN void test_init (Test *self);
 
 static void
@@ -115,12 +116,12 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 

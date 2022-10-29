@@ -5,6 +5,7 @@
 #include <glib.h>
 #include <stdio.h>
 
+#define MAMAN_FOOISH_FOO 2
 #if !defined(VALA_EXTERN)
 #if defined(_MSC_VER)
 #define VALA_EXTERN __declspec(dllexport) extern
@@ -60,7 +61,6 @@ static gpointer maman_bar_parent_class = NULL;
 VALA_EXTERN GType maman_foo_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN GType maman_fooish_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN gint maman_fooish_something (MamanFooish self);
-#define MAMAN_FOOISH_FOO 2
 VALA_EXTERN GType maman_bar_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (MamanBar, g_object_unref)
 VALA_EXTERN void maman_bar_run (MamanBar* self);
@@ -83,19 +83,19 @@ maman_foo_get_type_once (void)
 GType
 maman_foo_get_type (void)
 {
-	static volatile gsize maman_foo_type_id__volatile = 0;
-	if (g_once_init_enter (&maman_foo_type_id__volatile)) {
+	static volatile gsize maman_foo_type_id__once = 0;
+	if (g_once_init_enter (&maman_foo_type_id__once)) {
 		GType maman_foo_type_id;
 		maman_foo_type_id = maman_foo_get_type_once ();
-		g_once_init_leave (&maman_foo_type_id__volatile, maman_foo_type_id);
+		g_once_init_leave (&maman_foo_type_id__once, maman_foo_type_id);
 	}
-	return maman_foo_type_id__volatile;
+	return maman_foo_type_id__once;
 }
 
 gint
 maman_fooish_something (MamanFooish self)
 {
-	gint result = 0;
+	gint result;
 	result = (gint) self;
 	return result;
 }
@@ -112,13 +112,13 @@ maman_fooish_get_type_once (void)
 GType
 maman_fooish_get_type (void)
 {
-	static volatile gsize maman_fooish_type_id__volatile = 0;
-	if (g_once_init_enter (&maman_fooish_type_id__volatile)) {
+	static volatile gsize maman_fooish_type_id__once = 0;
+	if (g_once_init_enter (&maman_fooish_type_id__once)) {
 		GType maman_fooish_type_id;
 		maman_fooish_type_id = maman_fooish_get_type_once ();
-		g_once_init_leave (&maman_fooish_type_id__volatile, maman_fooish_type_id);
+		g_once_init_leave (&maman_fooish_type_id__once, maman_fooish_type_id);
 	}
-	return maman_fooish_type_id__volatile;
+	return maman_fooish_type_id__once;
 }
 
 void
@@ -166,7 +166,7 @@ maman_bar_main (void)
 	MamanBar* bar = NULL;
 	MamanBar* _tmp1_;
 	FILE* _tmp2_;
-	gint result = 0;
+	gint result;
 	_tmp0_ = stdout;
 	fprintf (_tmp0_, "Enum Test: 1");
 	_tmp1_ = maman_bar_new ();
@@ -227,12 +227,12 @@ maman_bar_get_type_once (void)
 GType
 maman_bar_get_type (void)
 {
-	static volatile gsize maman_bar_type_id__volatile = 0;
-	if (g_once_init_enter (&maman_bar_type_id__volatile)) {
+	static volatile gsize maman_bar_type_id__once = 0;
+	if (g_once_init_enter (&maman_bar_type_id__once)) {
 		GType maman_bar_type_id;
 		maman_bar_type_id = maman_bar_get_type_once ();
-		g_once_init_leave (&maman_bar_type_id__volatile, maman_bar_type_id);
+		g_once_init_leave (&maman_bar_type_id__once, maman_bar_type_id);
 	}
-	return maman_bar_type_id__volatile;
+	return maman_bar_type_id__once;
 }
 

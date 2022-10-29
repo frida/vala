@@ -100,7 +100,7 @@ static void _vala_main (void);
 gint
 foo_destroy (Foo* self)
 {
-	gint result = 0;
+	gint result;
 	g_return_val_if_fail (self != NULL, 0);
 	g_slice_free1 ((gsize) sizeof (gint), self);
 	result = 42;
@@ -136,7 +136,7 @@ Foo*
 get_foo (void)
 {
 	Foo* _tmp0_;
-	Foo* result = NULL;
+	Foo* result;
 	_tmp0_ = foo_new ();
 	result = _tmp0_;
 	return result;
@@ -380,13 +380,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 gpointer

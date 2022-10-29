@@ -1,12 +1,12 @@
 #!/bin/sh
 # Print a version string.
-scriptversion=2017-09-13.06; # UTC
+scriptversion=2022-01-27.18; # UTC
 
-# Copyright (C) 2007-2017 Free Software Foundation, Inc.
+# Copyright (C) 2007-2022 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -65,19 +65,21 @@ scriptversion=2017-09-13.06; # UTC
 # EXTRA_DIST = $(top_srcdir)/.version
 # BUILT_SOURCES = $(top_srcdir)/.version
 # $(top_srcdir)/.version:
-#	echo $(VERSION) > $@-t && mv $@-t $@
+#	echo '$(VERSION)' > $@-t
+#	mv $@-t $@
 # dist-hook:
-#	echo $(VERSION) > $(distdir)/.tarball-version
+#	echo '$(VERSION)' > $(distdir)/.tarball-version
 
 
 me=$0
 
+year=`expr "$scriptversion" : '\([^-]*\)'`
 version="git-version-gen $scriptversion
 
-Copyright 2011 Free Software Foundation, Inc.
-There is NO warranty.  You may redistribute this software
-under the terms of the GNU General Public License.
-For more information about these matters, see the files named COPYING."
+Copyright (C) ${year} Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law."
 
 usage="\
 Usage: $me [OPTION]... \$srcdir/.tarball-version [TAG-NORMALIZATION-SED-SCRIPT]
@@ -141,11 +143,9 @@ then
     v=`cat $tarball_version_file` || v=
     case $v in
         *$nl*) v= ;; # reject multi-line output
-        [0-9]*) ;;
-        *) v= ;;
     esac
     test "x$v" = x \
-        && echo "$0: WARNING: $tarball_version_file is missing or damaged" 1>&2
+        && echo "$0: WARNING: $tarball_version_file is damaged" 1>&2
 fi
 
 if test "x$v" != x
@@ -219,7 +219,7 @@ fi
 printf %s "$v"
 
 # Local variables:
-# eval: (add-hook 'write-file-hooks 'time-stamp)
+# eval: (add-hook 'before-save-hook 'time-stamp)
 # time-stamp-start: "scriptversion="
 # time-stamp-format: "%:y-%02m-%02d.%02H"
 # time-stamp-time-zone: "UTC0"

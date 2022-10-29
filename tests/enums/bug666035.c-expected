@@ -64,13 +64,13 @@ foo_enum_get_type_once (void)
 GType
 foo_enum_get_type (void)
 {
-	static volatile gsize foo_enum_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_enum_type_id__volatile)) {
+	static volatile gsize foo_enum_type_id__once = 0;
+	if (g_once_init_enter (&foo_enum_type_id__once)) {
 		GType foo_enum_type_id;
 		foo_enum_type_id = foo_enum_get_type_once ();
-		g_once_init_leave (&foo_enum_type_id__volatile, foo_enum_type_id);
+		g_once_init_leave (&foo_enum_type_id__once, foo_enum_type_id);
 	}
-	return foo_enum_type_id__volatile;
+	return foo_enum_type_id__once;
 }
 
 static GType
@@ -85,13 +85,13 @@ foo_flag_get_type_once (void)
 GType
 foo_flag_get_type (void)
 {
-	static volatile gsize foo_flag_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_flag_type_id__volatile)) {
+	static volatile gsize foo_flag_type_id__once = 0;
+	if (g_once_init_enter (&foo_flag_type_id__once)) {
 		GType foo_flag_type_id;
 		foo_flag_type_id = foo_flag_get_type_once ();
-		g_once_init_leave (&foo_flag_type_id__volatile, foo_flag_type_id);
+		g_once_init_leave (&foo_flag_type_id__once, foo_flag_type_id);
 	}
-	return foo_flag_type_id__volatile;
+	return foo_flag_type_id__once;
 }
 
 FooStruct*
@@ -120,19 +120,19 @@ foo_struct_get_type_once (void)
 GType
 foo_struct_get_type (void)
 {
-	static volatile gsize foo_struct_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_struct_type_id__volatile)) {
+	static volatile gsize foo_struct_type_id__once = 0;
+	if (g_once_init_enter (&foo_struct_type_id__once)) {
 		GType foo_struct_type_id;
 		foo_struct_type_id = foo_struct_get_type_once ();
-		g_once_init_leave (&foo_struct_type_id__volatile, foo_struct_type_id);
+		g_once_init_leave (&foo_struct_type_id__once, foo_struct_type_id);
 	}
-	return foo_struct_type_id__volatile;
+	return foo_struct_type_id__once;
 }
 
 FooEnum
 takes_enum (FooEnum foo)
 {
-	FooEnum result = 0;
+	FooEnum result;
 	result = foo;
 	return result;
 }
@@ -140,7 +140,7 @@ takes_enum (FooEnum foo)
 FooEnum
 gives_enum (void)
 {
-	FooEnum result = 0;
+	FooEnum result;
 	result = FOO_ENUM_MAM;
 	return result;
 }
@@ -148,7 +148,7 @@ gives_enum (void)
 FooFlag
 takes_flag (FooFlag foo)
 {
-	FooFlag result = 0U;
+	FooFlag result;
 	result = foo;
 	return result;
 }
@@ -156,7 +156,7 @@ takes_flag (FooFlag foo)
 FooFlag
 gives_flag (void)
 {
-	FooFlag result = 0U;
+	FooFlag result;
 	result = FOO_FLAG_MAM | FOO_FLAG_BAR;
 	return result;
 }
@@ -176,9 +176,7 @@ _vala_main (void)
 	FooStruct foo_struct = {0};
 	FooStruct _tmp4_ = {0};
 	FooStruct _tmp5_;
-	FooEnum _tmp6_;
 	FooEnum foo_enum = 0;
-	FooEnum _tmp7_;
 	if (takes_enum (FOO_ENUM_BAR) == FOO_ENUM_BAR) {
 		return;
 	}
@@ -202,11 +200,9 @@ _vala_main (void)
 	_tmp4_.f = FOO_ENUM_BAR;
 	foo_struct = _tmp4_;
 	_tmp5_ = foo_struct;
-	_tmp6_ = _tmp5_.f;
-	_vala_assert (_tmp6_ == FOO_ENUM_BAR, "foo_struct.f == BAR");
+	_vala_assert (_tmp5_.f == FOO_ENUM_BAR, "foo_struct.f == BAR");
 	foo_enum = FOO_ENUM_BAR;
-	_tmp7_ = foo_enum;
-	switch (_tmp7_) {
+	switch (foo_enum) {
 		default:
 		case FOO_ENUM_FOO:
 		{

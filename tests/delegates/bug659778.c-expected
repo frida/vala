@@ -120,7 +120,7 @@ static TestEnum
 __lambda4_ (TestEnum self,
             TestEnum x)
 {
-	TestEnum result = 0;
+	TestEnum result;
 	switch (self) {
 		case TEST_ENUM_T:
 		{
@@ -173,7 +173,7 @@ __lambda5_ (Block1Data* _data1_,
             TestEnum x)
 {
 	TestEnum self;
-	TestEnum result = 0;
+	TestEnum result;
 	self = _data1_->self;
 	switch (self) {
 		case TEST_ENUM_T:
@@ -226,13 +226,13 @@ test_enum_get_type_once (void)
 GType
 test_enum_get_type (void)
 {
-	static volatile gsize test_enum_type_id__volatile = 0;
-	if (g_once_init_enter (&test_enum_type_id__volatile)) {
+	static volatile gsize test_enum_type_id__once = 0;
+	if (g_once_init_enter (&test_enum_type_id__once)) {
 		GType test_enum_type_id;
 		test_enum_type_id = test_enum_get_type_once ();
-		g_once_init_leave (&test_enum_type_id__volatile, test_enum_type_id);
+		g_once_init_leave (&test_enum_type_id__once, test_enum_type_id);
 	}
-	return test_enum_type_id__volatile;
+	return test_enum_type_id__once;
 }
 
 static gpointer
@@ -265,7 +265,7 @@ static TestEnum
 test_g (TestEnum i,
         Test* self)
 {
-	TestEnum result = 0;
+	TestEnum result;
 	g_return_val_if_fail (IS_TEST (self), 0);
 	result = i;
 	return result;
@@ -275,7 +275,7 @@ static gint
 test_h (gint i,
         Test* self)
 {
-	gint result = 0;
+	gint result;
 	g_return_val_if_fail (IS_TEST (self), 0);
 	result = i;
 	return result;
@@ -465,13 +465,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 gpointer
@@ -500,7 +500,7 @@ _vala_main (void)
 	TestEnum t = 0;
 	Test* t2 = NULL;
 	Test* _tmp0_;
-	gint result = 0;
+	gint result;
 	t = TEST_ENUM_T;
 	test_enum_f (t);
 	test_enum_g (t, 0);

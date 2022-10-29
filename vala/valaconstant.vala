@@ -31,7 +31,7 @@ public class Vala.Constant : Symbol {
 	 */
 	public DataType type_reference {
 		get { return _data_type; }
-		set {
+		private set {
 			_data_type = value;
 			_data_type.parent_node = this;
 		}
@@ -42,7 +42,7 @@ public class Vala.Constant : Symbol {
 	 */
 	public Expression? value {
 		get { return _value; }
-		set {
+		private set {
 			_value = value;
 			if (_value != null) {
 				_value.parent_node = this;
@@ -121,6 +121,12 @@ public class Vala.Constant : Symbol {
 			return false;
 		}
 
+		// check whether constant type is at least as accessible as the constant
+		if (!type_reference.is_accessible (this)) {
+			error = true;
+			Report.error (source_reference, "constant type `%s' is less accessible than constant `%s'", type_reference.to_string (), get_full_name ());
+		}
+
 		if (!external) {
 			if (value == null) {
 				// constants from fast-vapi files are special
@@ -162,6 +168,12 @@ public class Vala.Constant : Symbol {
 					Report.error (value.source_reference, "Value must be constant");
 					return false;
 				}
+
+				// check whether initializer is at least as accessible as the constant
+				if (!value.is_accessible (this)) {
+					error = true;
+					Report.error (value.source_reference, "value is less accessible than constant `%s'", get_full_name ());
+				}
 			}
 		} else {
 			if (value != null) {
@@ -190,6 +202,9 @@ public class Vala.Constant : Symbol {
 		} else if (type is ArrayType) {
 			unowned ArrayType array_type = (ArrayType) type;
 			return check_const_type (array_type.element_type, context);
+		} else if (type is DelegateType) {
+			unowned DelegateType delegate_type = (DelegateType) type;
+			return !delegate_type.type_symbol.get_attribute_bool ("CCode", "has_target", true);
 		} else if (type.type_symbol != null) {
 			return type.type_symbol.is_subtype_of (context.analyzer.string_type.type_symbol);
 		} else {

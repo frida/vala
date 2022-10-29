@@ -64,7 +64,7 @@ VALA_EXTERN guint test_register_object (void* object,
                             GError** error);
 VALA_EXTERN GUnixInputStream* test_test_in (Test* self,
                                 GUnixInputStream* i,
-                                GUnixInputStream* * j,
+                                GUnixInputStream** j,
                                 GError** error);
 VALA_EXTERN Test* test_new (void);
 VALA_EXTERN Test* test_construct (GType object_type);
@@ -125,7 +125,7 @@ static const GDBusInterfaceVTable _test_dbus_interface_vtable = {test_dbus_inter
 GUnixInputStream*
 test_test_in (Test* self,
               GUnixInputStream* i,
-              GUnixInputStream* * j,
+              GUnixInputStream** j,
               GError** error)
 {
 	GUnixInputStream* _vala_j = NULL;
@@ -168,7 +168,7 @@ test_test_in (Test* self,
 	gint _tmp19_;
 	GUnixInputStream* _tmp20_;
 	GError* _inner_error0_ = NULL;
-	GUnixInputStream* result = NULL;
+	GUnixInputStream* result;
 	g_return_val_if_fail (IS_TEST (self), NULL);
 	g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (i, G_TYPE_UNIX_INPUT_STREAM), NULL);
 	_tmp0_ = g_new0 (guint8, 1);
@@ -287,13 +287,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 static void
@@ -307,7 +307,6 @@ _dbus_test_test_in (Test* self,
 	gint _fd_index = 0;
 	gint _fd;
 	GUnixInputStream* i = NULL;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -325,22 +324,15 @@ _dbus_test_test_in (Test* self,
 		g_set_error_literal (&error, G_IO_ERROR, G_IO_ERROR_FAILED, "FD List is NULL");
 	}
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
-		goto _return;
+		g_dbus_method_invocation_take_error (invocation, error);
+		goto _error;
 	}
 	result = test_test_in (self, i, &j, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
-		goto _return;
+		g_dbus_method_invocation_take_error (invocation, error);
+		goto _error;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		goto _return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_fd_list = g_unix_fd_list_new ();
 	g_variant_builder_add (&_reply_builder, "h", g_unix_fd_list_append (_fd_list, g_unix_input_stream_get_fd (j), NULL));
@@ -353,7 +345,7 @@ _dbus_test_test_in (Test* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_return:
+	_error:
 	_g_object_unref0 (i);
 	_g_object_unref0 (j);
 	;

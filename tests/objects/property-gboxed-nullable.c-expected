@@ -101,6 +101,7 @@ VALA_EXTERN void bar_free (Bar* self);
 VALA_EXTERN void bar_copy (const Bar* self,
                Bar* dest);
 VALA_EXTERN void bar_destroy (Bar* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (Bar, bar_destroy)
 VALA_EXTERN GType foo_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Foo, g_object_unref)
 VALA_EXTERN Foo* foo_new (Bar* bar);
@@ -185,13 +186,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 static inline gpointer
@@ -308,13 +309,13 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static void
@@ -448,13 +449,13 @@ faz_get_type_once (void)
 GType
 faz_get_type (void)
 {
-	static volatile gsize faz_type_id__volatile = 0;
-	if (g_once_init_enter (&faz_type_id__volatile)) {
+	static volatile gsize faz_type_id__once = 0;
+	if (g_once_init_enter (&faz_type_id__once)) {
 		GType faz_type_id;
 		faz_type_id = faz_get_type_once ();
-		g_once_init_leave (&faz_type_id__volatile, faz_type_id);
+		g_once_init_leave (&faz_type_id__once, faz_type_id);
 	}
-	return faz_type_id__volatile;
+	return faz_type_id__once;
 }
 
 static void

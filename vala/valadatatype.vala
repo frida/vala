@@ -324,6 +324,9 @@ public abstract class Vala.DataType : CodeNode {
 
 		if (type_symbol is Enum && target_type.type_symbol is Struct && ((Struct) target_type.type_symbol).is_integer_type ()) {
 			return true;
+		} else if (target_type.type_symbol is Enum && type_symbol is Struct && ((Struct) type_symbol).is_integer_type ()) {
+			//FIXME Drop this unsafe direction in the future?
+			return true;
 		}
 
 		// check for matching ownership of type-arguments
@@ -469,6 +472,9 @@ public abstract class Vala.DataType : CodeNode {
 	public bool is_non_null_simple_type () {
 		unowned Struct? s = type_symbol as Struct;
 		if (s != null && s.is_simple_type ()) {
+			return !nullable;
+		}
+		if (type_symbol is Enum) {
 			return !nullable;
 		}
 		return false;

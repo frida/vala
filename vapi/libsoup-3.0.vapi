@@ -70,7 +70,6 @@ namespace Soup {
 		public void remove_path (string path);
 		public void set_filter (owned Soup.AuthDomainFilter filter);
 		public void set_generic_auth_callback (owned Soup.AuthDomainGenericAuthCallback auth_callback);
-		public bool try_generic_auth_callback (Soup.ServerMessage msg, string username);
 		[NoAccessorMethod]
 		public Soup.AuthDomainFilter filter { get; set; }
 		[NoAccessorMethod]
@@ -110,7 +109,6 @@ namespace Soup {
 		protected AuthManager ();
 		public void clear_cached_credentials ();
 		public void use_auth (GLib.Uri uri, Soup.Auth auth);
-		public signal void authenticate (Soup.Message msg, Soup.Auth auth, bool retrying);
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_auth_ntlm_get_type ()")]
 	public sealed class AuthNTLM : Soup.Auth {
@@ -139,14 +137,6 @@ namespace Soup {
 		public string cache_dir { owned get; construct; }
 		[NoAccessorMethod]
 		public Soup.CacheType cache_type { get; construct; }
-	}
-	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
-	[Compact]
-	public class ClientMessageIO {
-	}
-	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
-	[Compact]
-	public class Connection {
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_content_decoder_get_type ()")]
 	public sealed class ContentDecoder : GLib.Object, Soup.SessionFeature {
@@ -280,7 +270,7 @@ namespace Soup {
 		public void set_response_filter (owned Soup.LoggerFilter response_filter);
 		[NoAccessorMethod]
 		public Soup.LoggerLogLevel level { get; set; }
-		public int max_body_size { get; set; }
+		public int max_body_size { get; set construct; }
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_message_get_type ()")]
 	public sealed class Message : GLib.Object {
@@ -305,7 +295,7 @@ namespace Soup {
 		public unowned string get_method ();
 		public unowned Soup.MessageMetrics? get_metrics ();
 		public Soup.MessagePriority get_priority ();
-		public unowned string get_reason_phrase ();
+		public unowned string? get_reason_phrase ();
 		public unowned GLib.SocketAddress? get_remote_address ();
 		public unowned Soup.MessageHeaders get_request_headers ();
 		public unowned Soup.MessageHeaders get_response_headers ();
@@ -449,14 +439,6 @@ namespace Soup {
 		public uint64 get_response_start ();
 		public uint64 get_tls_start ();
 	}
-	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
-	[Compact]
-	public class MessageQueue {
-	}
-	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
-	[Compact]
-	public class MessageQueueItem {
-	}
 	[CCode (cheader_filename = "libsoup/soup.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "soup_multipart_get_type ()")]
 	[Compact]
 	public class Multipart {
@@ -530,7 +512,7 @@ namespace Soup {
 		public Soup.HTTPVersion get_http_version ();
 		public unowned GLib.SocketAddress? get_local_address ();
 		public unowned string get_method ();
-		public unowned string get_reason_phrase ();
+		public unowned string? get_reason_phrase ();
 		public unowned GLib.SocketAddress? get_remote_address ();
 		public unowned string? get_remote_host ();
 		public unowned Soup.MessageBody get_request_body ();
@@ -539,6 +521,10 @@ namespace Soup {
 		public unowned Soup.MessageHeaders get_response_headers ();
 		public unowned GLib.Socket? get_socket ();
 		public uint get_status ();
+		[Version (since = "3.2")]
+		public unowned GLib.TlsCertificate? get_tls_peer_certificate ();
+		[Version (since = "3.2")]
+		public GLib.TlsCertificateFlags get_tls_peer_certificate_errors ();
 		public unowned GLib.Uri get_uri ();
 		public bool is_options_ping ();
 		public void set_http_version (Soup.HTTPVersion version);
@@ -546,6 +532,10 @@ namespace Soup {
 		public void set_response (string? content_type, Soup.MemoryUse resp_use, [CCode (array_length_cname = "resp_length", array_length_pos = 3.1, array_length_type = "gsize")] uint8[]? resp_body);
 		public void set_status (uint status_code, string? reason_phrase);
 		public GLib.IOStream steal_connection ();
+		[Version (since = "3.2")]
+		public GLib.TlsCertificate tls_peer_certificate { get; }
+		[Version (since = "3.2")]
+		public GLib.TlsCertificateFlags tls_peer_certificate_errors { get; }
 		public signal bool accept_certificate (GLib.TlsCertificate tls_peer_certificate, GLib.TlsCertificateFlags tls_peer_errors);
 		public signal void disconnected ();
 		public signal void finished ();
@@ -613,10 +603,6 @@ namespace Soup {
 		public string user_agent { get; set; }
 		public virtual signal void request_queued (Soup.Message msg);
 		public virtual signal void request_unqueued (Soup.Message msg);
-	}
-	[CCode (cheader_filename = "libsoup/soup.h", has_type_id = false)]
-	[Compact]
-	public class Socket {
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", type_id = "soup_websocket_connection_get_type ()")]
 	public sealed class WebsocketConnection : GLib.Object {
@@ -686,12 +672,6 @@ namespace Soup {
 	public struct Range {
 		public int64 start;
 		public int64 end;
-	}
-	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_CACHE_RESPONSE_", type_id = "soup_cache_response_get_type ()")]
-	public enum CacheResponse {
-		FRESH,
-		NEEDS_VALIDATION,
-		STALE
 	}
 	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_CACHE_", type_id = "soup_cache_type_get_type ()")]
 	public enum CacheType {
@@ -891,7 +871,7 @@ namespace Soup {
 		CLOSING,
 		CLOSED
 	}
-	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_SESSION_ERROR_")]
+	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_SESSION_ERROR_", type_id = "soup_session_error_get_type ()")]
 	public errordomain SessionError {
 		PARSING,
 		ENCODING,
@@ -902,7 +882,7 @@ namespace Soup {
 		MESSAGE_ALREADY_IN_QUEUE;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_TLD_ERROR_")]
+	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_TLD_ERROR_", type_id = "soup_tld_error_get_type ()")]
 	public errordomain TLDError {
 		INVALID_HOSTNAME,
 		IS_IP_ADDRESS,
@@ -911,7 +891,7 @@ namespace Soup {
 		NO_PSL_DATA;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_WEBSOCKET_ERROR_")]
+	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_WEBSOCKET_ERROR_", type_id = "soup_websocket_error_get_type ()")]
 	public errordomain WebsocketError {
 		FAILED,
 		NOT_WEBSOCKET,

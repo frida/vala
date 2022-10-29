@@ -181,7 +181,10 @@ public class Vala.ForeachStatement : Block {
 
 			return check_without_iterator (context, collection_type, array_type.element_type);
 		} else if (context.profile == Profile.GOBJECT && (collection_type.compatible (context.analyzer.glist_type)
-		    || collection_type.compatible (context.analyzer.gslist_type) || collection_type.compatible (context.analyzer.genericarray_type))) {
+		    || collection_type.compatible (context.analyzer.gslist_type)
+		    || collection_type.compatible (context.analyzer.genericarray_type)
+		    || collection_type.compatible (context.analyzer.garray_type)
+		    || collection_type.compatible (context.analyzer.gsequence_type))) {
 			if (collection_type.get_type_arguments ().size != 1) {
 				error = true;
 				Report.error (collection.source_reference, "missing type argument for collection");
@@ -339,6 +342,7 @@ public class Vala.ForeachStatement : Block {
 			// var type
 			bool nullable = type_reference.nullable;
 			bool value_owned = type_reference.value_owned;
+			bool is_dynamic = type_reference.is_dynamic;
 			type_reference = element_type.copy ();
 			// FIXME Only follows "unowned var" otherwise inherit ownership of element-type
 			if (!value_owned) {
@@ -346,6 +350,9 @@ public class Vala.ForeachStatement : Block {
 			}
 			if (nullable) {
 				type_reference.nullable = true;
+			}
+			if (is_dynamic) {
+				type_reference.is_dynamic = true;
 			}
 		} else if (!element_type.compatible (type_reference)) {
 			error = true;
@@ -366,6 +373,7 @@ public class Vala.ForeachStatement : Block {
 			// var type
 			bool nullable = type_reference.nullable;
 			bool value_owned = type_reference.value_owned;
+			bool is_dynamic = type_reference.is_dynamic;
 			type_reference = element_type.copy ();
 			// FIXME Only follows "unowned var" otherwise inherit ownership of element-type
 			if (!value_owned) {
@@ -373,6 +381,9 @@ public class Vala.ForeachStatement : Block {
 			}
 			if (nullable) {
 				type_reference.nullable = true;
+			}
+			if (is_dynamic) {
+				type_reference.is_dynamic = true;
 			}
 		} else if (!element_type.compatible (type_reference)) {
 			error = true;

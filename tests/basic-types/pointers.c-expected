@@ -41,7 +41,7 @@ static const gint SIMPLE_STRUCT_array[1] = {42};
 gint
 simple_struct_test (SimpleStruct *self)
 {
-	gint result = 0;
+	gint result;
 	result = (*self).field;
 	return result;
 }
@@ -85,7 +85,7 @@ simple_struct_test_pointers_element_access (void)
 static gint*
 simple_struct_return_pointer (void)
 {
-	gint* result = NULL;
+	gint* result;
 	result = SIMPLE_STRUCT_array;
 	return result;
 }
@@ -128,12 +128,12 @@ simple_struct_get_type_once (void)
 GType
 simple_struct_get_type (void)
 {
-	static volatile gsize simple_struct_type_id__volatile = 0;
-	if (g_once_init_enter (&simple_struct_type_id__volatile)) {
+	static volatile gsize simple_struct_type_id__once = 0;
+	if (g_once_init_enter (&simple_struct_type_id__once)) {
 		GType simple_struct_type_id;
 		simple_struct_type_id = simple_struct_get_type_once ();
-		g_once_init_leave (&simple_struct_type_id__volatile, simple_struct_type_id);
+		g_once_init_leave (&simple_struct_type_id__once, simple_struct_type_id);
 	}
-	return simple_struct_type_id__volatile;
+	return simple_struct_type_id__once;
 }
 

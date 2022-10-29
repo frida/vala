@@ -164,6 +164,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	public DataType garray_type;
 	public DataType gvaluearray_type;
 	public DataType genericarray_type;
+	public DataType gsequence_type;
 	public Class gerror_type;
 	public DataType list_type;
 	public DataType tuple_type;
@@ -230,6 +231,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			garray_type = new ObjectType ((Class) glib_ns.scope.lookup ("Array"));
 			gvaluearray_type = new ObjectType ((Class) glib_ns.scope.lookup ("ValueArray"));
 			genericarray_type = new ObjectType ((Class) glib_ns.scope.lookup ("GenericArray"));
+			gsequence_type = new ObjectType ((Class) glib_ns.scope.lookup ("Sequence"));
 
 			gerror_type = (Class) glib_ns.scope.lookup ("Error");
 			regex_type = new ObjectType ((Class) root_symbol.scope.lookup ("GLib").scope.lookup ("Regex"));
@@ -254,6 +256,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		context.root.check (context);
 		context.accept (this);
 
+		current_symbol = null;
 		this.context = null;
 	}
 
@@ -261,11 +264,8 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		current_source_file = file;
 
 		file.check (context);
-	}
 
-	// check whether type is at least as accessible as the specified symbol
-	public bool is_type_accessible (Symbol sym, DataType type) {
-		return type.is_accessible (sym);
+		current_source_file = null;
 	}
 
 	public DataType? get_value_type_for_symbol (Symbol sym, bool lvalue) {
@@ -491,6 +491,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			} else if (!st.get_attribute_bool ("CCode", "has_type_id", true)) {
 				return false;
 			}
+		}
+
+		if (property_type is EnumValueType) {
+			return !property_type.nullable;
 		}
 
 		if (property_type is ArrayType && ((ArrayType) property_type).element_type.type_symbol != string_type.type_symbol) {

@@ -33,7 +33,14 @@ public class Vala.SourceFile {
 
 	public string? relative_filename {
 		set {
-			this._relative_filename = value;
+			if (Path.DIR_SEPARATOR != '/') {
+				// don't use backslashes internally,
+				// to avoid problems in #line / #include directives
+				string[] components = value.split ("\\");
+				_relative_filename = string.joinv ("/", components);
+			} else {
+				_relative_filename = value;
+			}
 		}
 	}
 
@@ -360,6 +367,10 @@ public class Vala.SourceFile {
 	public size_t get_mapped_length () {
 		if (content != null) {
 			return content.length;
+		}
+
+		if (mapped_file == null) {
+			return 0;
 		}
 
 		return mapped_file.get_length ();

@@ -48,6 +48,7 @@ VALA_EXTERN guint test_register_object (void* object,
                             const gchar* path,
                             GError** error);
 VALA_EXTERN GType test_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Test, g_object_unref)
 VALA_EXTERN gint* test_test_int (Test* self,
                      gint* i,
                      gint i_length1,
@@ -237,13 +238,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 G_DEFINE_TYPE_EXTENDED (TestProxy, test_proxy, G_TYPE_DBUS_PROXY, 0, G_IMPLEMENT_INTERFACE (TYPE_TEST, test_proxy_test_interface_init) )
@@ -580,7 +581,6 @@ _dbus_test_test_int (Test* self,
 	gint _tmp29__length1;
 	GVariantIter _tmp30_;
 	GVariant* _tmp31_;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -614,16 +614,10 @@ _dbus_test_test_int (Test* self,
 	g_variant_unref (_tmp28_);
 	result = test_test_int (self, i, i_length1, &j, &j_length1, &result_length1, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
-		goto _return;
+		g_dbus_method_invocation_take_error (invocation, error);
+		goto _error;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		goto _return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp32_ = j;
 	g_variant_builder_init (&_tmp33_, G_VARIANT_TYPE ("ai"));
@@ -645,7 +639,7 @@ _dbus_test_test_int (Test* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_return:
+	_error:
 	i = (g_free (i), NULL);
 	j = (g_free (j), NULL);
 	;
@@ -667,7 +661,6 @@ _dbus_test_test_string (Test* self,
 	gint _tmp39__length1;
 	GVariantIter _tmp40_;
 	GVariant* _tmp41_;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -702,16 +695,10 @@ _dbus_test_test_string (Test* self,
 	g_variant_unref (_tmp38_);
 	result = test_test_string (self, s, s_length1, &t, &t_length1, &result_length1, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
-		goto _return;
+		g_dbus_method_invocation_take_error (invocation, error);
+		goto _error;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		goto _return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp42_ = t;
 	g_variant_builder_init (&_tmp43_, G_VARIANT_TYPE ("as"));
@@ -733,7 +720,7 @@ _dbus_test_test_string (Test* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_return:
+	_error:
 	s = (_vala_array_free (s, s_length1, (GDestroyNotify) g_free), NULL);
 	t = (_vala_array_free (t, t_length1, (GDestroyNotify) g_free), NULL);
 	;

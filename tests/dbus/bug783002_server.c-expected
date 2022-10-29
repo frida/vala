@@ -251,7 +251,7 @@ static gboolean
 __lambda4_ (Block1Data* _data1_)
 {
 	Test* self;
-	gboolean result = FALSE;
+	gboolean result;
 	self = _data1_->self;
 	test_test_array_lifetime_co (_data1_->_async_data_);
 	result = FALSE;
@@ -365,13 +365,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 static void
@@ -381,9 +381,6 @@ _dbus_test_test_array_lifetime (Test* self,
 {
 	GVariantIter _arguments_iter;
 	TestTestArrayLifetimeReadyData* _ready_data;
-	gboolean _fire_and_forget;
-	GAsyncReadyCallback _callback_func;
-	gpointer _callback_data;
 	GVariant* _tmp0_;
 	gchar** _tmp1_;
 	gint _tmp1__length;
@@ -394,14 +391,6 @@ _dbus_test_test_array_lifetime (Test* self,
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	_ready_data = g_slice_new0 (TestTestArrayLifetimeReadyData);
 	_ready_data->_invocation_ = invocation;
-	_fire_and_forget = FALSE;
-	_callback_func = (GAsyncReadyCallback) _dbus_test_test_array_lifetime_ready;
-	_callback_data = _ready_data;
-	if ((g_dbus_message_get_flags (g_dbus_method_invocation_get_message (invocation)) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) && G_IS_DBUS_PROXY (self)) {
-		_fire_and_forget = TRUE;
-		_callback_func = NULL;
-		_callback_data = NULL;
-	}
 	_tmp0_ = g_variant_iter_next_value (&_arguments_iter);
 	_tmp1_ = g_new (gchar*, 5);
 	_tmp1__length = 0;
@@ -420,12 +409,9 @@ _dbus_test_test_array_lifetime (Test* self,
 	_tmp1_[_tmp1__length] = NULL;
 	_ready_data->items = _tmp1_;
 	g_variant_unref (_tmp0_);
-	test_test_array_lifetime (self, _ready_data->items, _ready_data->items_length1, _callback_func, _callback_data);
-	_return:
-	if (_fire_and_forget) {
-		_ready_data->items = (_vala_array_free (_ready_data->items, _ready_data->items_length1, (GDestroyNotify) g_free), NULL);
-		g_slice_free (TestTestArrayLifetimeReadyData, _ready_data);
-	}
+	test_test_array_lifetime (self, _ready_data->items, _ready_data->items_length1, (GAsyncReadyCallback) _dbus_test_test_array_lifetime_ready, _ready_data);
+	_error:
+	;
 }
 
 static void
@@ -436,7 +422,6 @@ _dbus_test_test_array_lifetime_ready (GObject * source_object,
 	TestTestArrayLifetimeReadyData* _ready_data;
 	GDBusMethodInvocation* invocation;
 	GError* error = NULL;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -445,16 +430,10 @@ _dbus_test_test_array_lifetime_ready (GObject * source_object,
 	invocation = _ready_data->_invocation_;
 	result = test_test_array_lifetime_finish ((Test*) source_object, _res_, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
-		goto _return;
+		g_dbus_method_invocation_take_error (invocation, error);
+		goto _error;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		goto _return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
 	_g_free0 (result);
@@ -463,7 +442,7 @@ _dbus_test_test_array_lifetime_ready (GObject * source_object,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_return:
+	_error:
 	_ready_data->items = (_vala_array_free (_ready_data->items, _ready_data->items_length1, (GDestroyNotify) g_free), NULL);
 	g_slice_free (TestTestArrayLifetimeReadyData, _ready_data);
 }

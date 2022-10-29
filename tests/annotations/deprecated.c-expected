@@ -148,6 +148,7 @@ static gint afoo_real_fooa (AFoo* self) G_GNUC_DEPRECATED ;
 VALA_EXTERN AFoo* afoo_construct (GType object_type);
 static GType afoo_get_type_once (void);
 VALA_EXTERN GType ifoo_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (IFoo, g_object_unref)
 VALA_EXTERN gint ifoo_foo (IFoo* self) G_GNUC_DEPRECATED ;
 VALA_EXTERN void ifoo_fooa (IFoo* self) G_GNUC_DEPRECATED ;
 static GType ifoo_get_type_once (void);
@@ -187,13 +188,13 @@ foo_struct_get_type_once (void)
 GType
 foo_struct_get_type (void)
 {
-	static volatile gsize foo_struct_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_struct_type_id__volatile)) {
+	static volatile gsize foo_struct_type_id__once = 0;
+	if (g_once_init_enter (&foo_struct_type_id__once)) {
 		GType foo_struct_type_id;
 		foo_struct_type_id = foo_struct_get_type_once ();
-		g_once_init_leave (&foo_struct_type_id__volatile, foo_struct_type_id);
+		g_once_init_leave (&foo_struct_type_id__once, foo_struct_type_id);
 	}
-	return foo_struct_type_id__volatile;
+	return foo_struct_type_id__once;
 }
 
 void
@@ -222,7 +223,7 @@ fooclass_get_instance_private (FooClass* self)
 gint
 fooclass_foo (FooClass* self)
 {
-	gint result = 0;
+	gint result;
 	g_return_val_if_fail (IS_FOOCLASS (self), 0);
 	result = 42;
 	return result;
@@ -231,7 +232,7 @@ fooclass_foo (FooClass* self)
 static gint
 fooclass_real_foov (FooClass* self)
 {
-	gint result = 0;
+	gint result;
 	result = 42;
 	return result;
 }
@@ -326,13 +327,13 @@ fooclass_get_type_once (void)
 GType
 fooclass_get_type (void)
 {
-	static volatile gsize fooclass_type_id__volatile = 0;
-	if (g_once_init_enter (&fooclass_type_id__volatile)) {
+	static volatile gsize fooclass_type_id__once = 0;
+	if (g_once_init_enter (&fooclass_type_id__once)) {
 		GType fooclass_type_id;
 		fooclass_type_id = fooclass_get_type_once ();
-		g_once_init_leave (&fooclass_type_id__volatile, fooclass_type_id);
+		g_once_init_leave (&fooclass_type_id__once, fooclass_type_id);
 	}
-	return fooclass_type_id__volatile;
+	return fooclass_type_id__once;
 }
 
 static void
@@ -378,7 +379,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 gint
 afoo_foo (AFoo* self)
 {
-	gint result = 0;
+	gint result;
 	g_return_val_if_fail (IS_AFOO (self), 0);
 	result = 42;
 	return result;
@@ -438,19 +439,19 @@ afoo_get_type_once (void)
 GType
 afoo_get_type (void)
 {
-	static volatile gsize afoo_type_id__volatile = 0;
-	if (g_once_init_enter (&afoo_type_id__volatile)) {
+	static volatile gsize afoo_type_id__once = 0;
+	if (g_once_init_enter (&afoo_type_id__once)) {
 		GType afoo_type_id;
 		afoo_type_id = afoo_get_type_once ();
-		g_once_init_leave (&afoo_type_id__volatile, afoo_type_id);
+		g_once_init_leave (&afoo_type_id__once, afoo_type_id);
 	}
-	return afoo_type_id__volatile;
+	return afoo_type_id__once;
 }
 
 gint
 ifoo_foo (IFoo* self)
 {
-	gint result = 0;
+	gint result;
 	result = 42;
 	return result;
 }
@@ -485,13 +486,13 @@ ifoo_get_type_once (void)
 GType
 ifoo_get_type (void)
 {
-	static volatile gsize ifoo_type_id__volatile = 0;
-	if (g_once_init_enter (&ifoo_type_id__volatile)) {
+	static volatile gsize ifoo_type_id__once = 0;
+	if (g_once_init_enter (&ifoo_type_id__once)) {
 		GType ifoo_type_id;
 		ifoo_type_id = ifoo_get_type_once ();
-		g_once_init_leave (&ifoo_type_id__volatile, ifoo_type_id);
+		g_once_init_leave (&ifoo_type_id__once, ifoo_type_id);
 	}
-	return ifoo_type_id__volatile;
+	return ifoo_type_id__once;
 }
 
 void
@@ -528,13 +529,13 @@ foo_enum_get_type_once (void)
 GType
 foo_enum_get_type (void)
 {
-	static volatile gsize foo_enum_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_enum_type_id__volatile)) {
+	static volatile gsize foo_enum_type_id__once = 0;
+	if (g_once_init_enter (&foo_enum_type_id__once)) {
 		GType foo_enum_type_id;
 		foo_enum_type_id = foo_enum_get_type_once ();
-		g_once_init_leave (&foo_enum_type_id__volatile, foo_enum_type_id);
+		g_once_init_leave (&foo_enum_type_id__once, foo_enum_type_id);
 	}
-	return foo_enum_type_id__volatile;
+	return foo_enum_type_id__once;
 }
 
 void

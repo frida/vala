@@ -15,6 +15,8 @@
 #endif
 #endif
 
+#define TYPE_FOO_ERROR (foo_error_get_type ())
+
 #define TYPE_BAR (bar_get_type ())
 typedef struct _Bar Bar;
 
@@ -50,6 +52,7 @@ typedef enum  {
 	FOO_ERROR_BAD
 } FooError;
 #define FOO_ERROR foo_error_quark ()
+
 struct _Bar {
 	gint i;
 };
@@ -66,6 +69,7 @@ struct _FooClass {
 static gpointer foo_parent_class = NULL;
 
 VALA_EXTERN GQuark foo_error_quark (void);
+GType foo_error_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN GType bar_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN Bar* bar_dup (const Bar* self);
 VALA_EXTERN void bar_free (Bar* self);
@@ -101,6 +105,27 @@ foo_error_quark (void)
 	return g_quark_from_static_string ("foo-error-quark");
 }
 
+static GType
+foo_error_get_type_once (void)
+{
+	static const GEnumValue values[] = {{FOO_ERROR_BAD, "FOO_ERROR_BAD", "bad"}, {0, NULL, NULL}};
+	GType foo_error_type_id;
+	foo_error_type_id = g_enum_register_static ("FooError", values);
+	return foo_error_type_id;
+}
+
+GType
+foo_error_get_type (void)
+{
+	static volatile gsize foo_error_type_id__once = 0;
+	if (g_once_init_enter (&foo_error_type_id__once)) {
+		GType foo_error_type_id;
+		foo_error_type_id = foo_error_get_type_once ();
+		g_once_init_leave (&foo_error_type_id__once, foo_error_type_id);
+	}
+	return foo_error_type_id__once;
+}
+
 Bar*
 bar_dup (const Bar* self)
 {
@@ -127,13 +152,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 static void
@@ -256,13 +281,13 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static void

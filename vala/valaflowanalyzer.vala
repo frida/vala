@@ -171,10 +171,6 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		    && !(m is CreationMethod)) {
 			if (!m.is_private_symbol () && (context.internal_header_filename != null || context.use_fast_vapi)) {
 				// do not warn if internal member may be used outside this compilation unit
-			} else if (m.name == "closure_callback" && m.binding == MemberBinding.STATIC
-			    && m.parent_symbol != null && m.parent_symbol is ObjectTypeSymbol
-			    && ((ObjectTypeSymbol) m.parent_symbol).is_subtype_of (context.analyzer.gsource_type)) {
-				// do not warn if method is a custom GSource closure_callback
 			} else if (m.parent_symbol != null && m.parent_symbol.get_attribute ("DBus") != null
 			    && m.get_attribute_bool ("DBus", "visible", true)) {
 				// do not warn if internal member is a visible DBus method
@@ -1013,13 +1009,14 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 
 			stmt.finally_body.accept (this);
 
+			jump_stack.remove_at (jump_stack.size - 1);
+
 			if (invalid_block.get_predecessors ().size > 0) {
 				// don't allow finally blocks with e.g. return statements
-				Report.error (stmt.source_reference, "jump out of finally block not permitted");
+				Report.error (stmt.finally_body.source_reference, "jump out of finally block not permitted");
 				stmt.error = true;
 				return;
 			}
-			jump_stack.remove_at (jump_stack.size - 1);
 
 			jump_stack.add (new JumpTarget.finally_clause (finally_block, current_block));
 		}

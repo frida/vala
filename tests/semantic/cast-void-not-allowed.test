@@ -1,0 +1,9 @@
+Invalid Code
+
+bool foo () {
+	return true;
+}
+
+void main () {
+	(void) foo ();
+}

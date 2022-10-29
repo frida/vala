@@ -94,6 +94,7 @@ VALA_EXTERN GType maman_delegate_struct_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN MamanDelegateStruct* maman_delegate_struct_dup (const MamanDelegateStruct* self);
 VALA_EXTERN void maman_delegate_struct_free (MamanDelegateStruct* self);
 VALA_EXTERN GType maman_foo_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (MamanFoo, g_object_unref)
 VALA_EXTERN void maman_foo_foo_method (MamanFoo* self,
                            gint i);
 static GType maman_foo_get_type_once (void);
@@ -144,13 +145,13 @@ parameter_enum_get_type_once (void)
 GType
 parameter_enum_get_type (void)
 {
-	static volatile gsize parameter_enum_type_id__volatile = 0;
-	if (g_once_init_enter (&parameter_enum_type_id__volatile)) {
+	static volatile gsize parameter_enum_type_id__once = 0;
+	if (g_once_init_enter (&parameter_enum_type_id__once)) {
 		GType parameter_enum_type_id;
 		parameter_enum_type_id = parameter_enum_get_type_once ();
-		g_once_init_leave (&parameter_enum_type_id__volatile, parameter_enum_type_id);
+		g_once_init_leave (&parameter_enum_type_id__once, parameter_enum_type_id);
 	}
-	return parameter_enum_type_id__volatile;
+	return parameter_enum_type_id__once;
 }
 
 MamanDelegateStruct*
@@ -179,13 +180,13 @@ maman_delegate_struct_get_type_once (void)
 GType
 maman_delegate_struct_get_type (void)
 {
-	static volatile gsize maman_delegate_struct_type_id__volatile = 0;
-	if (g_once_init_enter (&maman_delegate_struct_type_id__volatile)) {
+	static volatile gsize maman_delegate_struct_type_id__once = 0;
+	if (g_once_init_enter (&maman_delegate_struct_type_id__once)) {
 		GType maman_delegate_struct_type_id;
 		maman_delegate_struct_type_id = maman_delegate_struct_get_type_once ();
-		g_once_init_leave (&maman_delegate_struct_type_id__volatile, maman_delegate_struct_type_id);
+		g_once_init_leave (&maman_delegate_struct_type_id__once, maman_delegate_struct_type_id);
 	}
-	return maman_delegate_struct_type_id__volatile;
+	return maman_delegate_struct_type_id__once;
 }
 
 void
@@ -219,13 +220,13 @@ maman_foo_get_type_once (void)
 GType
 maman_foo_get_type (void)
 {
-	static volatile gsize maman_foo_type_id__volatile = 0;
-	if (g_once_init_enter (&maman_foo_type_id__volatile)) {
+	static volatile gsize maman_foo_type_id__once = 0;
+	if (g_once_init_enter (&maman_foo_type_id__once)) {
 		GType maman_foo_type_id;
 		maman_foo_type_id = maman_foo_get_type_once ();
-		g_once_init_leave (&maman_foo_type_id__volatile, maman_foo_type_id);
+		g_once_init_leave (&maman_foo_type_id__once, maman_foo_type_id);
 	}
-	return maman_foo_type_id__volatile;
+	return maman_foo_type_id__once;
 }
 
 static inline gpointer
@@ -265,7 +266,7 @@ maman_bar_do_void_action (void)
 static gint
 maman_bar_do_action (void)
 {
-	gint result = 0;
+	gint result;
 	result = 4;
 	return result;
 }
@@ -434,7 +435,7 @@ ___lambda4__maman_void_callback (void)
 static MamanVoidCallback
 maman_bar_test_unowned_delegate_return (void)
 {
-	MamanVoidCallback result = NULL;
+	MamanVoidCallback result;
 	result = ___lambda4__maman_void_callback;
 	return result;
 }
@@ -478,7 +479,7 @@ maman_bar_main (void)
 	FILE* _tmp10_;
 	MamanVoidCallback baz = NULL;
 	MamanVoidCallback _tmp11_;
-	gint result = 0;
+	gint result;
 	_tmp0_ = stdout;
 	fprintf (_tmp0_, "Delegate Test: 1");
 	void_cb = _maman_bar_do_void_action_maman_void_callback;
@@ -582,12 +583,12 @@ maman_bar_get_type_once (void)
 GType
 maman_bar_get_type (void)
 {
-	static volatile gsize maman_bar_type_id__volatile = 0;
-	if (g_once_init_enter (&maman_bar_type_id__volatile)) {
+	static volatile gsize maman_bar_type_id__once = 0;
+	if (g_once_init_enter (&maman_bar_type_id__once)) {
 		GType maman_bar_type_id;
 		maman_bar_type_id = maman_bar_get_type_once ();
-		g_once_init_leave (&maman_bar_type_id__volatile, maman_bar_type_id);
+		g_once_init_leave (&maman_bar_type_id__once, maman_bar_type_id);
 	}
-	return maman_bar_type_id__volatile;
+	return maman_bar_type_id__once;
 }
 

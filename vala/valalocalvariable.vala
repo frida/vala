@@ -156,11 +156,15 @@ public class Vala.LocalVariable : Variable {
 
 			bool nullable = variable_type.nullable;
 			bool value_owned = variable_type.value_owned;
+			bool is_dynamic = variable_type.is_dynamic;
 			variable_type = initializer.value_type.copy ();
 			variable_type.value_owned = value_owned;
 			variable_type.floating_reference = false;
 			if (nullable) {
 				variable_type.nullable = true;
+			}
+			if (is_dynamic) {
+				variable_type.is_dynamic = true;
 			}
 
 			initializer.target_type = variable_type;
@@ -209,12 +213,20 @@ public class Vala.LocalVariable : Variable {
 					Report.error (source_reference, "expression type not allowed as initializer");
 					return false;
 				}
+			} else if (initializer.value_type == null) {
+				error = true;
+				Report.error (source_reference, "expression type not allowed as initializer");
+				return false;
 			}
 
 			if (!initializer.value_type.compatible (variable_type)) {
 				error = true;
 				Report.error (source_reference, "Assignment: Cannot convert from `%s' to `%s'", initializer.value_type.to_string (), variable_type.to_string ());
 				return false;
+			} else if (variable_type is EnumValueType && initializer.value_type is IntegerType
+			    && (!(initializer is IntegerLiteral) || ((IntegerLiteral) initializer).value != "0")) {
+				//FIXME This will have to be an error in the future?
+				Report.notice (source_reference, "Assignment: Unsafe conversion from `%s' to `%s'", initializer.value_type.to_string (), variable_type.to_string ());
 			}
 
 			if (variable_array_type != null && variable_array_type.inline_allocated && !variable_array_type.fixed_length && is_initializer_list) {

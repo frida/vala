@@ -49,7 +49,7 @@ public abstract class Vala.TypeRegisterFunction {
 		CCodeDeclaration cdecl;
 		if (!plugin) {
 			cdecl = new CCodeDeclaration ("gsize");
-			cdecl.add_declarator (new CCodeVariableDeclarator (type_id_name + "__volatile", new CCodeConstant ("0")));
+			cdecl.add_declarator (new CCodeVariableDeclarator (type_id_name + "__once", new CCodeConstant ("0")));
 			if (context.require_glib_version (2, 68)) {
 				cdecl.modifiers = CCodeModifiers.STATIC;
 			} else {
@@ -155,6 +155,8 @@ public abstract class Vala.TypeRegisterFunction {
 			} else {
 				reg_call = new CCodeFunctionCall (new CCodeIdentifier ("g_enum_register_static"));
 			}
+		} else if (type_symbol is ErrorDomain) {
+			reg_call = new CCodeFunctionCall (new CCodeIdentifier ("g_enum_register_static"));
 		} else if (fundamental) {
 			reg_call = new CCodeFunctionCall (new CCodeIdentifier ("g_type_register_fundamental"));
 			reg_call.add_argument (new CCodeFunctionCall (new CCodeIdentifier ("g_type_fundamental_next")));
@@ -199,6 +201,34 @@ public abstract class Vala.TypeRegisterFunction {
 			}
 
 			cdecl.add_declarator (enum_decl);
+			cdecl.modifiers = CCodeModifiers.STATIC;
+
+			type_init.add_statement (cdecl);
+
+			reg_call.add_argument (new CCodeIdentifier ("values"));
+		} else if (type_symbol is ErrorDomain) {
+			unowned ErrorDomain edomain = (ErrorDomain) type_symbol;
+			var clist = new CCodeInitializerList (); /* or during visit time? */
+
+			CCodeInitializerList clist_ec = null;
+			foreach (ErrorCode ec in edomain.get_codes ()) {
+				clist_ec = new CCodeInitializerList ();
+				clist_ec.append (new CCodeConstant (get_ccode_name (ec)));
+				clist_ec.append (new CCodeConstant ("\"%s\"".printf (get_ccode_name (ec))));
+				clist_ec.append (new CCodeConstant ("\"%s\"".printf (ec.nick)));
+				clist.append (clist_ec);
+			}
+
+			clist_ec = new CCodeInitializerList ();
+			clist_ec.append (new CCodeConstant ("0"));
+			clist_ec.append (new CCodeConstant ("NULL"));
+			clist_ec.append (new CCodeConstant ("NULL"));
+			clist.append (clist_ec);
+
+			var edomain_decl = new CCodeVariableDeclarator ("values[]", clist);
+
+			cdecl = new CCodeDeclaration ("const GEnumValue");
+			cdecl.add_declarator (edomain_decl);
 			cdecl.modifiers = CCodeModifiers.STATIC;
 
 			type_init.add_statement (cdecl);
@@ -251,16 +281,16 @@ public abstract class Vala.TypeRegisterFunction {
 		if (!plugin) {
 			// the condition that guards the type initialisation
 			var enter = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_enter"));
-			enter.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (type_id_name + "__volatile")));
+			enter.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (type_id_name + "__once")));
 
 			var leave = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_leave"));
-			leave.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (type_id_name + "__volatile")));
+			leave.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier (type_id_name + "__once")));
 			leave.add_argument (new CCodeIdentifier (type_id_name));
 			once_call_block.add_statement (new CCodeExpressionStatement (leave));
 
 			var cif = new CCodeIfStatement (enter, once_call_block);
 			type_block.add_statement (cif);
-			type_block.add_statement (new CCodeReturnStatement (new CCodeIdentifier (type_id_name + "__volatile")));
+			type_block.add_statement (new CCodeReturnStatement (new CCodeIdentifier (type_id_name + "__once")));
 
 			type_once_block = type_init;
 			type_once_block.add_statement (new CCodeReturnStatement (new CCodeIdentifier (type_id_name)));

@@ -20,6 +20,7 @@ enumerate_printers skip
 // Causes vapigen issues, not sure why -- <union> without name
 
 // G-I doesn't support structs
+BitsetIter struct
 Border struct
 ExpressionWatch compact=false
 Requisition struct
@@ -79,7 +80,9 @@ ShortcutTrigger
 // G-I cannot handle variadic functions
 *.*_valist skip=false
 Accessible
-  .* skip=false
+  .update_property skip=false sentinel="-1"
+  .update_relation skip=false sentinel="-1"
+  .update_state skip=false sentinel="-1"
 BuilderCScope
   .* skip=false
 CellArea
@@ -337,6 +340,8 @@ TreeModel
   .get_value return_void
   .rows_reordered skip
 show_about_dialog skip=false
+show_uri_full parent="Gtk.Window" symbol_type="method" instance_idx=0 finish_name="gtk_show_uri_full_finish"
+show_uri_full_finish parent="Gtk.Window" symbol_type="method" instance_idx=0
 test_init skip=false
 
 test_init.argvp unowned
@@ -351,8 +356,6 @@ Notebook
   .create_window skip=false
 PrintOperation
   .create_custom_widget skip=false
-Snapshot
-  .push_shadow.shadow array array_length_idx=1
 
 // Not completely sure
 Button

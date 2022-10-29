@@ -62,12 +62,14 @@ VALA_EXTERN void bar_free (Bar* self);
 VALA_EXTERN void bar_copy (const Bar* self,
                Bar* dest);
 VALA_EXTERN void bar_destroy (Bar* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (Bar, bar_destroy)
 VALA_EXTERN GType manam_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN Manam* manam_dup (const Manam* self);
 VALA_EXTERN void manam_free (Manam* self);
 VALA_EXTERN void manam_copy (const Manam* self,
                  Manam* dest);
 VALA_EXTERN void manam_destroy (Manam* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (Manam, manam_destroy)
 VALA_EXTERN GType baz_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN Baz* baz_dup (const Baz* self);
 VALA_EXTERN void baz_free (Baz* self);
@@ -102,13 +104,13 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static gpointer
@@ -165,13 +167,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 void
@@ -224,13 +226,13 @@ manam_get_type_once (void)
 GType
 manam_get_type (void)
 {
-	static volatile gsize manam_type_id__volatile = 0;
-	if (g_once_init_enter (&manam_type_id__volatile)) {
+	static volatile gsize manam_type_id__once = 0;
+	if (g_once_init_enter (&manam_type_id__once)) {
 		GType manam_type_id;
 		manam_type_id = manam_get_type_once ();
-		g_once_init_leave (&manam_type_id__volatile, manam_type_id);
+		g_once_init_leave (&manam_type_id__once, manam_type_id);
 	}
-	return manam_type_id__volatile;
+	return manam_type_id__once;
 }
 
 Baz*
@@ -259,13 +261,13 @@ baz_get_type_once (void)
 GType
 baz_get_type (void)
 {
-	static volatile gsize baz_type_id__volatile = 0;
-	if (g_once_init_enter (&baz_type_id__volatile)) {
+	static volatile gsize baz_type_id__once = 0;
+	if (g_once_init_enter (&baz_type_id__once)) {
 		GType baz_type_id;
 		baz_type_id = baz_get_type_once ();
-		g_once_init_leave (&baz_type_id__volatile, baz_type_id);
+		g_once_init_leave (&baz_type_id__once, baz_type_id);
 	}
-	return baz_type_id__volatile;
+	return baz_type_id__once;
 }
 
 static gpointer

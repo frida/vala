@@ -32,6 +32,11 @@ public abstract class Vala.CCodeStructModule : CCodeBaseModule {
 
 		if (st.base_struct != null) {
 			generate_struct_declaration (st.base_struct, decl_space);
+		} else if (!st.external_package) {
+			// custom simple type structs cannot have a type id which depends on head-allocation
+			if (st.get_attribute ("SimpleType") != null && !st.has_attribute_argument ("CCode", "type_id")) {
+				st.set_attribute_bool ("CCode", "has_type_id", false);
+			}
 		}
 
 		if (st.is_boolean_type () || st.is_integer_type () || st.is_floating_type ()) {
@@ -151,17 +156,28 @@ public abstract class Vala.CCodeStructModule : CCodeBaseModule {
 			function.add_parameter (new CCodeParameter ("self", get_ccode_name (st) + "*"));
 			decl_space.add_function_declaration (function);
 		}
+
+		if (context.profile == Profile.GOBJECT) {
+			generate_auto_cleanup_clear (st, decl_space);
+		}
+	}
+
+	void generate_auto_cleanup_clear (Struct st, CCodeFile decl_space) {
+		if (st.is_disposable ()
+		    && (context.header_filename == null|| decl_space.file_type == CCodeFileType.PUBLIC_HEADER
+		        || (decl_space.file_type == CCodeFileType.INTERNAL_HEADER && st.is_internal_symbol ()))) {
+			string auto_cleanup_clear_func = get_ccode_destroy_function (st);
+			if (auto_cleanup_clear_func == null || auto_cleanup_clear_func == "") {
+				Report.error (st.source_reference, "internal error: auto_cleanup_clear_func not available");
+			}
+			decl_space.add_type_member_declaration (new CCodeIdentifier ("G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (%s, %s)".printf (get_ccode_name (st), auto_cleanup_clear_func)));
+			decl_space.add_type_member_declaration (new CCodeNewline ());
+		}
 	}
 
 	public override void visit_struct (Struct st) {
 		push_context (new EmitContext (st));
 		push_line (st.source_reference);
-
-		if (get_ccode_has_type_id (st) && get_ccode_name (st).length < 3) {
-			st.error = true;
-			Report.error (st.source_reference, "Name `%s' is too short for struct using GType", get_ccode_name (st));
-			return;
-		}
 
 		var old_instance_finalize_context = instance_finalize_context;
 		instance_finalize_context = new EmitContext ();

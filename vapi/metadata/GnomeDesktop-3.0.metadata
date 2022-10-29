@@ -1,4 +1,9 @@
 BG cheader_filename="libgnome-desktop/gnome-bg.h"
+	.get_image_size.width out
+	.get_image_size.height out
+	.get_rgba.type out
+	.get_rgba.primary out
+	.get_rgba.secondary out
 BGCrossfade cheader_filename="libgnome-desktop/gnome-bg-crossfade.h"
 BGSlideShow cheader_filename="libgnome-desktop/gnome-bg-slide-show.h"
 BGSlideShow
@@ -7,6 +12,9 @@ BGSlideShow
 
 DesktopThumbnail* cheader_filename="libgnome-desktop/gnome-desktop-thumbnail.h"
 desktop_thumbnail_* parent="Gnome.DesktopThumbnail" name="desktop_thumbnail_(.+)" cheader_filename="libgnome-desktop/gnome-desktop-thumbnail.h"
+
+DESKTOP_PLATFORM_VERSION cheader_filename="libgnome-desktop/gnome-desktop-version.h"
+get_platform_version cheader_filename="libgnome-desktop/gnome-desktop-version.h"
 
 get_language_from_locale parent="Gnome.Languages" cheader_filename="libgnome-desktop/gnome-languages.h"
 get_country_from_locale parent="Gnome.Languages" cheader_filename="libgnome-desktop/gnome-languages.h"

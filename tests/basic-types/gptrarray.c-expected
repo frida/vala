@@ -140,20 +140,20 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 gint
 compare_foo (Foo* a,
              Foo* b)
 {
-	gint result = 0;
+	gint result;
 	g_return_val_if_fail (IS_FOO (a), 0);
 	g_return_val_if_fail (IS_FOO (b), 0);
 	result = b->i - a->i;
@@ -220,7 +220,7 @@ __lambda1_ (Block1Data* _data1_,
             gconstpointer** b)
 {
 	GPtrArray* self;
-	gint result = 0;
+	gint result;
 	self = _data1_->self;
 	result = _data1_->compare_func ((gconstpointer**) (*a), (gconstpointer**) (*b));
 	return result;
@@ -286,7 +286,7 @@ __lambda2_ (Block2Data* _data2_,
             gconstpointer** b)
 {
 	GPtrArray* self;
-	gint result = 0;
+	gint result;
 	self = _data2_->self;
 	result = _data2_->compare_func ((gconstpointer**) (*a), (gconstpointer**) (*b), _data2_->compare_func_target);
 	return result;

@@ -91,13 +91,13 @@ namespace Atspi {
 		[CCode (has_construct_function = false)]
 		protected Application ();
 	}
-	[CCode (cheader_filename = "atspi/atspi.h", type_id = "atspi_device_get_type ()")]
+	[CCode (cheader_filename = "atspi/atspi-device.h", type_id = "atspi_device_get_type ()")]
 	public class Device : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public Device ();
 		[NoWrapper]
 		public virtual void add_key_grab (Atspi.KeyDefinition kd);
-		public void add_key_watcher ();
+		public void add_key_watcher (owned Atspi.KeyCallback? callback);
 		public Atspi.KeyDefinition get_grab_by_id (uint id);
 		public virtual uint get_locked_modifiers ();
 		public virtual uint get_modifier (int keycode);
@@ -108,7 +108,7 @@ namespace Atspi {
 		public virtual void ungrab_keyboard ();
 		public virtual void unmap_modifier (int keycode);
 	}
-	[CCode (cheader_filename = "atspi/atspi.h", type_id = "atspi_device_legacy_get_type ()")]
+	[CCode (cheader_filename = "atspi/atspi-device-legacy.h", type_id = "atspi_device_legacy_get_type ()")]
 	public class DeviceLegacy : Atspi.Device {
 		[CCode (has_construct_function = false)]
 		public DeviceLegacy ();
@@ -126,7 +126,7 @@ namespace Atspi {
 		[CCode (has_construct_function = false)]
 		public DeviceListener.simple ([CCode (destroy_notify_pos = 1.1)] owned Atspi.DeviceListenerSimpleCB callback);
 	}
-	[CCode (cheader_filename = "atspi/atspi.h", type_id = "atspi_device_x11_get_type ()")]
+	[CCode (cheader_filename = "atspi/atspi-device-x11.h", type_id = "atspi_device_x11_get_type ()")]
 	public class DeviceX11 : Atspi.Device {
 		[CCode (has_construct_function = false)]
 		public DeviceX11 ();
@@ -145,9 +145,8 @@ namespace Atspi {
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", type_id = "atspi_event_listener_get_type ()")]
 	public class EventListener : GLib.Object {
-		public weak Atspi.EventListenerCB callback;
-		public weak GLib.DestroyNotify cb_destroyed;
-		public void* user_data;
+		[CCode (delegate_target_cname = "user_data", destroy_notify_cname = "cb_destroyed")]
+		public Atspi.EventListenerCB callback;
 		[CCode (has_construct_function = false)]
 		public EventListener (owned Atspi.EventListenerCB callback);
 		public bool deregister (string event_type) throws GLib.Error;
@@ -156,8 +155,10 @@ namespace Atspi {
 		public bool register (string event_type) throws GLib.Error;
 		public static bool register_from_callback ([CCode (delegate_target_pos = 1.33333, destroy_notify_pos = 1.66667)] owned Atspi.EventListenerCB callback, string event_type) throws GLib.Error;
 		public static bool register_from_callback_full ([CCode (delegate_target_pos = 1.33333, destroy_notify_pos = 1.66667)] owned Atspi.EventListenerCB? callback, string event_type, GLib.Array<string> properties) throws GLib.Error;
+		public static bool register_from_callback_with_app ([CCode (delegate_target_pos = 1.33333, destroy_notify_pos = 1.66667)] owned Atspi.EventListenerCB? callback, string event_type, GLib.Array<string> properties, Atspi.Accessible? app) throws GLib.Error;
 		public bool register_full (string event_type, GLib.Array<string>? properties) throws GLib.Error;
 		public static bool register_no_data ([CCode (destroy_notify_pos = 1.5)] owned Atspi.EventListenerSimpleCB callback, string event_type) throws GLib.Error;
+		public bool register_with_app (string event_type, GLib.Array<string>? properties, Atspi.Accessible? app) throws GLib.Error;
 		[CCode (has_construct_function = false)]
 		public EventListener.simple ([CCode (destroy_notify_pos = 1.1)] owned Atspi.EventListenerSimpleCB callback);
 	}
@@ -421,6 +422,8 @@ namespace Atspi {
 		public double get_maximum_value () throws GLib.Error;
 		public double get_minimum_increment () throws GLib.Error;
 		public double get_minimum_value () throws GLib.Error;
+		[Version (since = "2.46")]
+		public string get_text () throws GLib.Error;
 		public bool set_current_value (double new_value) throws GLib.Error;
 	}
 	[CCode (cheader_filename = "atspi/atspi.h")]
@@ -457,9 +460,12 @@ namespace Atspi {
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", has_type_id = false)]
 	public struct KeySet {
-		public uint keysyms;
-		public ushort keycodes;
-		public weak string keystrings;
+		[CCode (array_length_cname = "len", array_length_type = "gshort")]
+		public weak uint[] keysyms;
+		[CCode (array_length_cname = "len", array_length_type = "gshort")]
+		public weak ushort[] keycodes;
+		[CCode (array_length_cname = "len", array_length_type = "gshort")]
+		public weak string[] keystrings;
 		public short len;
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", cprefix = "ATSPI_CACHE_", type_id = "atspi_cache_get_type ()")]
@@ -818,9 +824,9 @@ namespace Atspi {
 		PARAGRAPH
 	}
 	[CCode (cheader_filename = "atspi/atspi.h", instance_pos = 1.9)]
-	public delegate bool DeviceListenerCB (owned Atspi.DeviceEvent stroke);
+	public delegate bool DeviceListenerCB (Atspi.DeviceEvent stroke);
 	[CCode (cheader_filename = "atspi/atspi.h", has_target = false)]
-	public delegate bool DeviceListenerSimpleCB (owned Atspi.DeviceEvent stroke);
+	public delegate bool DeviceListenerSimpleCB (Atspi.DeviceEvent stroke);
 	[CCode (cheader_filename = "atspi/atspi.h", instance_pos = 1.9)]
 	public delegate void EventListenerCB (owned Atspi.Event event);
 	[CCode (cheader_filename = "atspi/atspi.h", has_target = false)]

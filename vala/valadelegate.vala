@@ -319,6 +319,12 @@ public class Vala.Delegate : TypeSymbol, Callable {
 		}
 
 		return_type.check (context);
+		if (!external_package) {
+			context.analyzer.check_type (return_type);
+			if (return_type is DelegateType) {
+				return_type.check_type_arguments (context);
+			}
+		}
 
 		if (return_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
 			error = true;
@@ -341,7 +347,7 @@ public class Vala.Delegate : TypeSymbol, Callable {
 				error_type.check (context);
 
 				// check whether error type is at least as accessible as the delegate
-				if (!context.analyzer.is_type_accessible (this, error_type)) {
+				if (!error_type.is_accessible (this)) {
 					error = true;
 					Report.error (source_reference, "error type `%s' is less accessible than delegate `%s'", error_type.to_string (), get_full_name ());
 					return false;

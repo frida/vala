@@ -210,7 +210,9 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 		var splicelen = new CCodeBinaryExpression (CCodeBinaryOperator.MINUS, cstop, cstart);
 
 		set_cvalue (expr, cstartpointer);
-		append_array_length (expr, splicelen);
+		((GLibValue) expr.target_value).non_null = get_non_null (expr.container.target_value);
+		// Make sure no previous length values are preserved
+		set_array_length (expr, splicelen);
 	}
 
 	void append_struct_array_free_loop (Struct st) {
@@ -850,23 +852,21 @@ public class Vala.CCodeArrayModule : CCodeMethodCallModule {
 	}
 
 	public override CCodeParameter generate_parameter (Parameter param, CCodeFile decl_space, Map<int,CCodeParameter> cparam_map, Map<int,CCodeExpression>? carg_map) {
-		if (param.params_array || !(param.variable_type is ArrayType)) {
+		unowned ArrayType? array_type = param.variable_type as ArrayType;
+		if (array_type == null || param.params_array) {
 			return base.generate_parameter (param, decl_space, cparam_map, carg_map);
 		}
 
-		string ctypename = get_ccode_name (param.variable_type);
-		string name = get_ccode_name (param);
-		var array_type = (ArrayType) param.variable_type;
+		string? ctypename = get_ccode_type (param);
+		if (ctypename == null) {
+			ctypename = get_ccode_name (param.variable_type);
 
-		if (array_type.fixed_length) {
-			ctypename += "*";
+			if (param.direction != ParameterDirection.IN) {
+				ctypename += "*";
+			}
 		}
 
-		if (param.direction != ParameterDirection.IN) {
-			ctypename += "*";
-		}
-
-		var main_cparam = new CCodeParameter (name, ctypename);
+		var main_cparam = new CCodeParameter.with_declarator (ctypename, new CCodeVariableDeclarator (get_ccode_name (param), null, get_ccode_declarator_suffix (array_type)));
 
 		generate_type_declaration (array_type.element_type, decl_space);
 

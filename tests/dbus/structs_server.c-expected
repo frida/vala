@@ -74,6 +74,7 @@ VALA_EXTERN void foo_struct_free (FooStruct* self);
 VALA_EXTERN void foo_struct_copy (const FooStruct* self,
                       FooStruct* dest);
 VALA_EXTERN void foo_struct_destroy (FooStruct* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (FooStruct, foo_struct_destroy)
 VALA_EXTERN void foo_struct_init (FooStruct *self,
                       gint i,
                       const gchar* s);
@@ -222,13 +223,13 @@ foo_struct_get_type_once (void)
 GType
 foo_struct_get_type (void)
 {
-	static volatile gsize foo_struct_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_struct_type_id__volatile)) {
+	static volatile gsize foo_struct_type_id__once = 0;
+	if (g_once_init_enter (&foo_struct_type_id__once)) {
 		GType foo_struct_type_id;
 		foo_struct_type_id = foo_struct_get_type_once ();
-		g_once_init_leave (&foo_struct_type_id__volatile, foo_struct_type_id);
+		g_once_init_leave (&foo_struct_type_id__once, foo_struct_type_id);
 	}
-	return foo_struct_type_id__volatile;
+	return foo_struct_type_id__once;
 }
 
 static inline gpointer
@@ -381,13 +382,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 static void
@@ -444,7 +445,6 @@ _dbus_test_test_struct (Test* self,
 	GVariantIter _tmp2_;
 	GVariant* _tmp3_;
 	GVariant* _tmp4_;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -464,12 +464,7 @@ _dbus_test_test_struct (Test* self,
 	f = _tmp1_;
 	g_variant_unref (_tmp0_);
 	test_test_struct (self, &f, &g, &result);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_init (&_tmp5_, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_tmp5_, g_variant_new_int32 (g.i));

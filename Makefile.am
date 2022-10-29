@@ -56,6 +56,10 @@ test-asan:
 test-ubsan:
 	cd tests && $(MAKE) $(AM_MAKEFLAGS) check TEST_CFLAGS="$(TEST_CFLAGS) -g3 -fsanitize=undefined"
 
+.PHONY: test-update
+test-update:
+	cd tests && $(MAKE) $(AM_MAKEFLAGS) check UPDATE_EXPECTED=1
+
 #if ENABLE_COVERAGE
 .PHONY: coverage coverage-report
 coverage:
@@ -83,7 +87,7 @@ gen-version:
 	  echo "$$V" > $(top_srcdir)/.version;								\
 	fi
 dist-hook: gen-ChangeLog
-	echo $(VERSION) > $(distdir)/.tarball-version
+	echo '$(VERSION)' > $(distdir)/.tarball-version
 
 gen_start_date = 2009-02-25
 .PHONY: gen-ChangeLog

@@ -36,7 +36,7 @@ foo_bar (Foo self)
 {
 	GEnumValue* _tmp0_;
 	gchar* _tmp1_;
-	gchar* result = NULL;
+	gchar* result;
 	_tmp0_ = g_enum_get_value (g_type_class_ref (TYPE_FOO), self);
 	_tmp1_ = g_strdup ((_tmp0_ != NULL) ? _tmp0_->value_name : NULL);
 	result = _tmp1_;
@@ -55,13 +55,13 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static void

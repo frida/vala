@@ -286,6 +286,11 @@ public class Vala.CodeContext {
 		}
 
 		context_stack->remove_at (context_stack->size - 1);
+
+		if (context_stack->size == 0) {
+			delete context_stack;
+			context_stack_key.set (null, null);
+		}
 	}
 
 	/**
@@ -582,8 +587,6 @@ public class Vala.CodeContext {
 		for (int i = 16; i <= target_glib_minor; i += 2) {
 			defines.add ("GLIB_2_%d".printf (i));
 		}
-
-		add_define ("VALA_OS_" + Config.VALA_HOST_OS.up ());
 	}
 
 	/**

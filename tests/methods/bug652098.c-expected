@@ -169,9 +169,11 @@ static gpointer concrete_parent_class = NULL;
 static IfaceIface * concrete_iface_parent_iface = NULL;
 
 VALA_EXTERN GType iface1_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Iface1, g_object_unref)
 VALA_EXTERN gint iface1_foo (Iface1* self);
 static GType iface1_get_type_once (void);
 VALA_EXTERN GType iface2_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Iface2, g_object_unref)
 VALA_EXTERN gint iface2_foo (Iface2* self);
 static GType iface2_get_type_once (void);
 VALA_EXTERN GType obj1_get_type (void) G_GNUC_CONST ;
@@ -195,6 +197,7 @@ VALA_EXTERN Base* base_new (void);
 VALA_EXTERN Base* base_construct (GType object_type);
 static GType base_get_type_once (void);
 VALA_EXTERN GType iface_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Iface, g_object_unref)
 VALA_EXTERN gint iface_foo (Iface* self);
 static GType iface_get_type_once (void);
 VALA_EXTERN GType concrete_get_type (void) G_GNUC_CONST ;
@@ -235,13 +238,13 @@ iface1_get_type_once (void)
 GType
 iface1_get_type (void)
 {
-	static volatile gsize iface1_type_id__volatile = 0;
-	if (g_once_init_enter (&iface1_type_id__volatile)) {
+	static volatile gsize iface1_type_id__once = 0;
+	if (g_once_init_enter (&iface1_type_id__once)) {
 		GType iface1_type_id;
 		iface1_type_id = iface1_get_type_once ();
-		g_once_init_leave (&iface1_type_id__volatile, iface1_type_id);
+		g_once_init_leave (&iface1_type_id__once, iface1_type_id);
 	}
-	return iface1_type_id__volatile;
+	return iface1_type_id__once;
 }
 
 gint
@@ -275,20 +278,20 @@ iface2_get_type_once (void)
 GType
 iface2_get_type (void)
 {
-	static volatile gsize iface2_type_id__volatile = 0;
-	if (g_once_init_enter (&iface2_type_id__volatile)) {
+	static volatile gsize iface2_type_id__once = 0;
+	if (g_once_init_enter (&iface2_type_id__once)) {
 		GType iface2_type_id;
 		iface2_type_id = iface2_get_type_once ();
-		g_once_init_leave (&iface2_type_id__volatile, iface2_type_id);
+		g_once_init_leave (&iface2_type_id__once, iface2_type_id);
 	}
-	return iface2_type_id__volatile;
+	return iface2_type_id__once;
 }
 
 static gint
 obj1_real_iface1_foo (Iface1* base)
 {
 	Obj1 * self;
-	gint result = 0;
+	gint result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_OBJ1, Obj1);
 	result = 1;
 	return result;
@@ -298,7 +301,7 @@ static gint
 obj1_real_iface2_foo (Iface2* base)
 {
 	Obj1 * self;
-	gint result = 0;
+	gint result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_OBJ1, Obj1);
 	result = 2;
 	return result;
@@ -363,20 +366,20 @@ obj1_get_type_once (void)
 GType
 obj1_get_type (void)
 {
-	static volatile gsize obj1_type_id__volatile = 0;
-	if (g_once_init_enter (&obj1_type_id__volatile)) {
+	static volatile gsize obj1_type_id__once = 0;
+	if (g_once_init_enter (&obj1_type_id__once)) {
 		GType obj1_type_id;
 		obj1_type_id = obj1_get_type_once ();
-		g_once_init_leave (&obj1_type_id__volatile, obj1_type_id);
+		g_once_init_leave (&obj1_type_id__once, obj1_type_id);
 	}
-	return obj1_type_id__volatile;
+	return obj1_type_id__once;
 }
 
 static gint
 obj2_real_iface1_foo (Iface1* base)
 {
 	Obj2 * self;
-	gint result = 0;
+	gint result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_OBJ2, Obj2);
 	result = 1;
 	return result;
@@ -386,7 +389,7 @@ static gint
 obj2_real_foo (Iface2* base)
 {
 	Obj2 * self;
-	gint result = 0;
+	gint result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_OBJ2, Obj2);
 	result = 2;
 	return result;
@@ -451,19 +454,19 @@ obj2_get_type_once (void)
 GType
 obj2_get_type (void)
 {
-	static volatile gsize obj2_type_id__volatile = 0;
-	if (g_once_init_enter (&obj2_type_id__volatile)) {
+	static volatile gsize obj2_type_id__once = 0;
+	if (g_once_init_enter (&obj2_type_id__once)) {
 		GType obj2_type_id;
 		obj2_type_id = obj2_get_type_once ();
-		g_once_init_leave (&obj2_type_id__volatile, obj2_type_id);
+		g_once_init_leave (&obj2_type_id__once, obj2_type_id);
 	}
-	return obj2_type_id__volatile;
+	return obj2_type_id__once;
 }
 
 gint
 base_foo (Base* self)
 {
-	gint result = 0;
+	gint result;
 	g_return_val_if_fail (IS_BASE (self), 0);
 	result = 42;
 	return result;
@@ -508,13 +511,13 @@ base_get_type_once (void)
 GType
 base_get_type (void)
 {
-	static volatile gsize base_type_id__volatile = 0;
-	if (g_once_init_enter (&base_type_id__volatile)) {
+	static volatile gsize base_type_id__once = 0;
+	if (g_once_init_enter (&base_type_id__once)) {
 		GType base_type_id;
 		base_type_id = base_get_type_once ();
-		g_once_init_leave (&base_type_id__volatile, base_type_id);
+		g_once_init_leave (&base_type_id__once, base_type_id);
 	}
-	return base_type_id__volatile;
+	return base_type_id__once;
 }
 
 gint
@@ -548,13 +551,13 @@ iface_get_type_once (void)
 GType
 iface_get_type (void)
 {
-	static volatile gsize iface_type_id__volatile = 0;
-	if (g_once_init_enter (&iface_type_id__volatile)) {
+	static volatile gsize iface_type_id__once = 0;
+	if (g_once_init_enter (&iface_type_id__once)) {
 		GType iface_type_id;
 		iface_type_id = iface_get_type_once ();
-		g_once_init_leave (&iface_type_id__volatile, iface_type_id);
+		g_once_init_leave (&iface_type_id__once, iface_type_id);
 	}
-	return iface_type_id__volatile;
+	return iface_type_id__once;
 }
 
 Concrete*
@@ -606,13 +609,13 @@ concrete_get_type_once (void)
 GType
 concrete_get_type (void)
 {
-	static volatile gsize concrete_type_id__volatile = 0;
-	if (g_once_init_enter (&concrete_type_id__volatile)) {
+	static volatile gsize concrete_type_id__once = 0;
+	if (g_once_init_enter (&concrete_type_id__once)) {
 		GType concrete_type_id;
 		concrete_type_id = concrete_get_type_once ();
-		g_once_init_leave (&concrete_type_id__volatile, concrete_type_id);
+		g_once_init_leave (&concrete_type_id__once, concrete_type_id);
 	}
-	return concrete_type_id__volatile;
+	return concrete_type_id__once;
 }
 
 static gpointer

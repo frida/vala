@@ -145,6 +145,7 @@ VALA_EXTERN guint test_interface_bar_register_object (void* object,
                                           const gchar* path,
                                           GError** error);
 VALA_EXTERN GType test_interface_bar_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (TestInterfaceBar, g_object_unref)
 VALA_EXTERN GHashTable* test_interface_bar_foo (TestInterfaceBar* self,
                                     GError** error);
 static GType test_interface_bar_get_type_once (void);
@@ -263,7 +264,7 @@ test_test_dict (Test* self)
 	GHashTable* _tmp3_;
 	gchar* _tmp4_;
 	GVariant* _tmp8_;
-	GHashTable* result = NULL;
+	GHashTable* result;
 	g_return_val_if_fail (IS_TEST (self), NULL);
 	_tmp0_ = g_strdup ("hello");
 	_tmp1_ = g_new0 (gchar*, 1 + 1);
@@ -322,13 +323,13 @@ test_get_type_once (void)
 GType
 test_get_type (void)
 {
-	static volatile gsize test_type_id__volatile = 0;
-	if (g_once_init_enter (&test_type_id__volatile)) {
+	static volatile gsize test_type_id__once = 0;
+	if (g_once_init_enter (&test_type_id__once)) {
 		GType test_type_id;
 		test_type_id = test_get_type_once ();
-		g_once_init_leave (&test_type_id__volatile, test_type_id);
+		g_once_init_leave (&test_type_id__once, test_type_id);
 	}
-	return test_type_id__volatile;
+	return test_type_id__once;
 }
 
 static void
@@ -338,7 +339,6 @@ _dbus_test_test_dict (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -349,12 +349,7 @@ _dbus_test_test_dict (Test* self,
 	gpointer _tmp3_;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_test_dict (self);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_hash_table_iter_init (&_tmp1_, result);
 	g_variant_builder_init (&_tmp0_, G_VARIANT_TYPE ("a{sv}"));
@@ -494,13 +489,13 @@ test_interface_bar_get_type_once (void)
 GType
 test_interface_bar_get_type (void)
 {
-	static volatile gsize test_interface_bar_type_id__volatile = 0;
-	if (g_once_init_enter (&test_interface_bar_type_id__volatile)) {
+	static volatile gsize test_interface_bar_type_id__once = 0;
+	if (g_once_init_enter (&test_interface_bar_type_id__once)) {
 		GType test_interface_bar_type_id;
 		test_interface_bar_type_id = test_interface_bar_get_type_once ();
-		g_once_init_leave (&test_interface_bar_type_id__volatile, test_interface_bar_type_id);
+		g_once_init_leave (&test_interface_bar_type_id__once, test_interface_bar_type_id);
 	}
-	return test_interface_bar_type_id__volatile;
+	return test_interface_bar_type_id__once;
 }
 
 G_DEFINE_TYPE_EXTENDED (TestInterfaceBarProxy, test_interface_bar_proxy, G_TYPE_DBUS_PROXY, 0, G_IMPLEMENT_INTERFACE (TEST_INTERFACE_TYPE_BAR, test_interface_bar_proxy_test_interface_bar_interface_init) )
@@ -581,7 +576,6 @@ _dbus_test_interface_bar_foo (TestInterfaceBar* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -593,16 +587,10 @@ _dbus_test_interface_bar_foo (TestInterfaceBar* self,
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_interface_bar_foo (self, &error);
 	if (error) {
-		g_dbus_method_invocation_return_gerror (invocation, error);
-		g_error_free (error);
+		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_hash_table_iter_init (&_tmp10_, result);
 	g_variant_builder_init (&_tmp9_, G_VARIANT_TYPE ("a{sv}"));
@@ -714,7 +702,7 @@ test_interface_foo_real_foo (TestInterfaceBar* base,
 	GHashFunc _tmp0_;
 	GEqualFunc _tmp1_;
 	GHashTable* _tmp2_;
-	GHashTable* result = NULL;
+	GHashTable* result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TEST_INTERFACE_TYPE_FOO, TestInterfaceFoo);
 	_tmp0_ = g_str_hash;
 	_tmp1_ = g_str_equal;
@@ -772,13 +760,13 @@ test_interface_foo_get_type_once (void)
 GType
 test_interface_foo_get_type (void)
 {
-	static volatile gsize test_interface_foo_type_id__volatile = 0;
-	if (g_once_init_enter (&test_interface_foo_type_id__volatile)) {
+	static volatile gsize test_interface_foo_type_id__once = 0;
+	if (g_once_init_enter (&test_interface_foo_type_id__once)) {
 		GType test_interface_foo_type_id;
 		test_interface_foo_type_id = test_interface_foo_get_type_once ();
-		g_once_init_leave (&test_interface_foo_type_id__volatile, test_interface_foo_type_id);
+		g_once_init_leave (&test_interface_foo_type_id__once, test_interface_foo_type_id);
 	}
-	return test_interface_foo_type_id__volatile;
+	return test_interface_foo_type_id__once;
 }
 
 void

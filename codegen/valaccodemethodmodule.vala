@@ -662,7 +662,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 							var vardecl = new CCodeVariableDeclarator ("self", default_value_for_type (creturn_type, true));
 							vardecl.init0 = true;
 							ccode.add_declaration (get_ccode_name (creturn_type), vardecl);
-						} else {
+						} else if (!((CreationMethod) m).chain_up) {
 							// memset needs string.h
 							cfile.add_include ("string.h");
 							var czero = new CCodeFunctionCall (new CCodeIdentifier ("memset"));
@@ -814,8 +814,13 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		}
 
 		if (current_method_return && !(m.return_type is VoidType) && !m.return_type.is_real_non_null_struct_type () && !m.coroutine) {
-			var vardecl = new CCodeVariableDeclarator ("result", default_value_for_type (m.return_type, true));
-			vardecl.init0 = true;
+			CCodeVariableDeclarator vardecl;
+			if (m.is_abstract) {
+				vardecl = new CCodeVariableDeclarator ("result", default_value_for_type (m.return_type, true));
+				vardecl.init0 = true;
+			} else {
+				vardecl = new CCodeVariableDeclarator ("result");
+			}
 			ccode.add_declaration (get_ccode_name (m.return_type), vardecl);
 		}
 
@@ -835,6 +840,42 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 
 		if (m.entry_point) {
 			// m is possible entry point, add appropriate startup code
+
+			if (m.coroutine) {
+				// add callback for async main
+				var asyncmain_callback = new CCodeFunction (real_name + "_callback");
+				asyncmain_callback.add_parameter (new CCodeParameter ("source_object", "GObject*"));
+				asyncmain_callback.add_parameter (new CCodeParameter ("res", "GAsyncResult*"));
+				asyncmain_callback.add_parameter (new CCodeParameter ("user_data", "gpointer"));
+				asyncmain_callback.modifiers |= CCodeModifiers.STATIC;
+
+				push_function (asyncmain_callback);
+				ccode.add_declaration ("GMainLoop*", new CCodeVariableDeclarator.zero ("loop", new CCodeIdentifier ("user_data")));
+
+				// get the return value
+				var finish_call = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_finish_real_name (m)));
+				finish_call.add_argument (new CCodeIdentifier ("res"));
+				if (m.return_type is VoidType) {
+					ccode.add_expression (finish_call);
+				} else {
+					// save the return value
+					var asyncmain_result = new CCodeIdentifier (real_name + "_result");
+					var asyncmain_result_decl = new CCodeDeclaration (get_ccode_name (int_type));
+					asyncmain_result_decl.add_declarator (new CCodeVariableDeclarator (asyncmain_result.name));
+					asyncmain_result_decl.modifiers = CCodeModifiers.STATIC;
+					cfile.add_type_member_declaration (asyncmain_result_decl);
+					ccode.add_assignment (asyncmain_result, finish_call);
+				}
+
+				// quit the main loop
+				var loop_quit_call = new CCodeFunctionCall (new CCodeIdentifier ("g_main_loop_quit"));
+				loop_quit_call.add_argument (new CCodeIdentifier ("loop"));
+				ccode.add_expression (loop_quit_call);
+
+				pop_function ();
+				cfile.add_function (asyncmain_callback);
+			}
+
 			var cmain = new CCodeFunction ("main", "int");
 			cmain.line = function.line;
 			cmain.add_parameter (new CCodeParameter ("argc", "int"));
@@ -850,19 +891,47 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				}
 			}
 
-			ccode.add_statement (new CCodeExpressionStatement.behind_ifdef ("GLIB_DYNAMIC_UNLOADING", new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
-
-			var main_call = new CCodeFunctionCall (new CCodeIdentifier (function.name));
+			var main_call = new CCodeFunctionCall (new CCodeIdentifier (m.coroutine ? real_name : function.name));
 			if (m.get_parameters ().size == 1) {
 				main_call.add_argument (new CCodeIdentifier ("argv"));
 				main_call.add_argument (new CCodeIdentifier ("argc"));
 			}
-			if (m.return_type is VoidType) {
-				// method returns void, always use 0 as exit code
+
+			if (m.coroutine) {
+				// main method is asynchronous, so we have to setup GMainLoop and run it
+				var main_loop_new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_main_loop_new"));
+				main_loop_new_call.add_argument (new CCodeConstantIdentifier ("NULL"));
+				main_loop_new_call.add_argument (new CCodeConstantIdentifier ("FALSE"));
+				ccode.add_declaration ("GMainLoop*", new CCodeVariableDeclarator.zero ("loop", main_loop_new_call));
+
+				// add some more arguments to main_call
+				main_call.add_argument (new CCodeIdentifier (real_name + "_callback"));
+				main_call.add_argument (new CCodeIdentifier ("loop"));
 				ccode.add_expression (main_call);
-				ccode.add_return (new CCodeConstant ("0"));
+
+				var main_loop_run_call = new CCodeFunctionCall (new CCodeIdentifier ("g_main_loop_run"));
+				main_loop_run_call.add_argument (new CCodeIdentifier ("loop"));
+				ccode.add_expression (main_loop_run_call);
+
+				var main_loop_unref_call = new CCodeFunctionCall (new CCodeIdentifier ("g_main_loop_unref"));
+				main_loop_unref_call.add_argument (new CCodeIdentifier ("loop"));
+				ccode.add_expression (main_loop_unref_call);
+
+				if (m.return_type is VoidType) {
+					// method returns void, always use 0 as exit code
+					ccode.add_return (new CCodeConstant ("0"));
+				} else {
+					// get the saved return value
+					ccode.add_return (new CCodeIdentifier (real_name + "_result"));
+				}
 			} else {
-				ccode.add_return (main_call);
+				if (m.return_type is VoidType) {
+					// method returns void, always use 0 as exit code
+					ccode.add_expression (main_call);
+					ccode.add_return (new CCodeConstant ("0"));
+				} else {
+					ccode.add_return (main_call);
+				}
 			}
 			pop_function ();
 			cfile.add_function (cmain);
@@ -874,26 +943,29 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 	public virtual CCodeParameter generate_parameter (Parameter param, CCodeFile decl_space, Map<int,CCodeParameter> cparam_map, Map<int,CCodeExpression>? carg_map) {
 		CCodeParameter cparam;
 		if (!param.ellipsis && !param.params_array) {
-			string ctypename = get_ccode_name (param.variable_type);
-
 			generate_type_declaration (param.variable_type, decl_space);
 
-			// pass non-simple structs always by reference
-			unowned Struct? st = param.variable_type.type_symbol as Struct;
-			if (st != null) {
-				if (!st.is_simple_type () && param.direction == ParameterDirection.IN) {
-					if (st.is_immutable && !param.variable_type.value_owned) {
-						ctypename = "const " + ctypename;
-					}
+			string? ctypename = get_ccode_type (param);
+			if (ctypename == null) {
+				ctypename = get_ccode_name (param.variable_type);
 
-					if (!param.variable_type.nullable) {
-						ctypename += "*";
+				// pass non-simple structs always by reference
+				unowned Struct? st = param.variable_type.type_symbol as Struct;
+				if (st != null) {
+					if (!st.is_simple_type () && param.direction == ParameterDirection.IN) {
+						if (st.is_immutable && !param.variable_type.value_owned) {
+							ctypename = "const " + ctypename;
+						}
+
+						if (!param.variable_type.nullable) {
+							ctypename += "*";
+						}
 					}
 				}
-			}
 
-			if (param.direction != ParameterDirection.IN) {
-				ctypename += "*";
+				if (param.direction != ParameterDirection.IN) {
+					ctypename += "*";
+				}
 			}
 
 			cparam = new CCodeParameter (get_ccode_name (param), ctypename);
@@ -1119,8 +1191,13 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 
 		if (m.return_type.is_non_null_simple_type () && default_value_for_type (m.return_type, false) == null) {
 			// the type check will use the result variable
-			var vardecl = new CCodeVariableDeclarator ("result", default_value_for_type (m.return_type, true));
-			vardecl.init0 = true;
+			CCodeVariableDeclarator vardecl;
+			if (m.is_abstract) {
+				vardecl = new CCodeVariableDeclarator ("result", default_value_for_type (m.return_type, true));
+				vardecl.init0 = true;
+			} else {
+				vardecl = new CCodeVariableDeclarator ("result");
+			}
 			ccode.add_declaration (get_ccode_name (m.return_type), vardecl);
 		}
 
@@ -1322,12 +1399,12 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				vcall.add_argument (carg);
 			}
 
-			var va_start = new CCodeFunctionCall (new CCodeIdentifier ("va_start"));
-			va_start.add_argument (new CCodeIdentifier ("_vala_va_list_obj"));
-			va_start.add_argument (carg);
+			var vastart = new CCodeFunctionCall (new CCodeIdentifier ("va_start"));
+			vastart.add_argument (new CCodeIdentifier ("_vala_va_list_obj"));
+			vastart.add_argument (carg);
 
 			ccode.add_declaration ("va_list", new CCodeVariableDeclarator ("_vala_va_list_obj"));
-			ccode.add_expression (va_start);
+			ccode.add_expression (vastart);
 
 			vcall.add_argument (new CCodeIdentifier("_vala_va_list_obj"));
 		}

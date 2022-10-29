@@ -110,9 +110,11 @@ VALA_EXTERN Base* base_new (void);
 VALA_EXTERN Base* base_construct (GType object_type);
 static GType base_get_type_once (void);
 VALA_EXTERN GType ifoo_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (IFoo, g_object_unref)
 VALA_EXTERN gchar* ifoo_foo (IFoo* self);
 static GType ifoo_get_type_once (void);
 VALA_EXTERN GType ibar_get_type (void) G_GNUC_CONST ;
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (IBar, g_object_unref)
 VALA_EXTERN gint ibar_foo (IBar* self);
 static GType ibar_get_type_once (void);
 VALA_EXTERN GType manam_get_type (void) G_GNUC_CONST ;
@@ -169,13 +171,13 @@ base_get_type_once (void)
 GType
 base_get_type (void)
 {
-	static volatile gsize base_type_id__volatile = 0;
-	if (g_once_init_enter (&base_type_id__volatile)) {
+	static volatile gsize base_type_id__once = 0;
+	if (g_once_init_enter (&base_type_id__once)) {
 		GType base_type_id;
 		base_type_id = base_get_type_once ();
-		g_once_init_leave (&base_type_id__volatile, base_type_id);
+		g_once_init_leave (&base_type_id__once, base_type_id);
 	}
-	return base_type_id__volatile;
+	return base_type_id__once;
 }
 
 gchar*
@@ -209,13 +211,13 @@ ifoo_get_type_once (void)
 GType
 ifoo_get_type (void)
 {
-	static volatile gsize ifoo_type_id__volatile = 0;
-	if (g_once_init_enter (&ifoo_type_id__volatile)) {
+	static volatile gsize ifoo_type_id__once = 0;
+	if (g_once_init_enter (&ifoo_type_id__once)) {
 		GType ifoo_type_id;
 		ifoo_type_id = ifoo_get_type_once ();
-		g_once_init_leave (&ifoo_type_id__volatile, ifoo_type_id);
+		g_once_init_leave (&ifoo_type_id__once, ifoo_type_id);
 	}
-	return ifoo_type_id__volatile;
+	return ifoo_type_id__once;
 }
 
 gint
@@ -249,20 +251,20 @@ ibar_get_type_once (void)
 GType
 ibar_get_type (void)
 {
-	static volatile gsize ibar_type_id__volatile = 0;
-	if (g_once_init_enter (&ibar_type_id__volatile)) {
+	static volatile gsize ibar_type_id__once = 0;
+	if (g_once_init_enter (&ibar_type_id__once)) {
 		GType ibar_type_id;
 		ibar_type_id = ibar_get_type_once ();
-		g_once_init_leave (&ibar_type_id__volatile, ibar_type_id);
+		g_once_init_leave (&ibar_type_id__once, ibar_type_id);
 	}
-	return ibar_type_id__volatile;
+	return ibar_type_id__once;
 }
 
 static gint
 manam_real_ibar_foo (IBar* base)
 {
 	Manam * self;
-	gint result = 0;
+	gint result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_MANAM, Manam);
 	result = 23;
 	return result;
@@ -273,7 +275,7 @@ manam_real_ifoo_foo (IFoo* base)
 {
 	Manam * self;
 	gchar* _tmp0_;
-	gchar* result = NULL;
+	gchar* result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_MANAM, Manam);
 	_tmp0_ = g_strdup ("foo");
 	result = _tmp0_;
@@ -339,13 +341,13 @@ manam_get_type_once (void)
 GType
 manam_get_type (void)
 {
-	static volatile gsize manam_type_id__volatile = 0;
-	if (g_once_init_enter (&manam_type_id__volatile)) {
+	static volatile gsize manam_type_id__once = 0;
+	if (g_once_init_enter (&manam_type_id__once)) {
 		GType manam_type_id;
 		manam_type_id = manam_get_type_once ();
-		g_once_init_leave (&manam_type_id__volatile, manam_type_id);
+		g_once_init_leave (&manam_type_id__once, manam_type_id);
 	}
-	return manam_type_id__volatile;
+	return manam_type_id__once;
 }
 
 static void

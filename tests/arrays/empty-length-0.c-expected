@@ -50,6 +50,7 @@ VALA_EXTERN void manam_free (Manam* self);
 VALA_EXTERN void manam_copy (const Manam* self,
                  Manam* dest);
 VALA_EXTERN void manam_destroy (Manam* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (Manam, manam_destroy)
 VALA_EXTERN gchar** get_foo (gint* result_length1);
 static gchar** _vala_array_dup1 (gchar** self,
                           gssize length);
@@ -116,13 +117,13 @@ manam_get_type_once (void)
 GType
 manam_get_type (void)
 {
-	static volatile gsize manam_type_id__volatile = 0;
-	if (g_once_init_enter (&manam_type_id__volatile)) {
+	static volatile gsize manam_type_id__once = 0;
+	if (g_once_init_enter (&manam_type_id__once)) {
 		GType manam_type_id;
 		manam_type_id = manam_get_type_once ();
-		g_once_init_leave (&manam_type_id__volatile, manam_type_id);
+		g_once_init_leave (&manam_type_id__once, manam_type_id);
 	}
-	return manam_type_id__volatile;
+	return manam_type_id__once;
 }
 
 static gchar**
@@ -152,7 +153,7 @@ get_foo (gint* result_length1)
 	gint _tmp1__length1;
 	gchar** _tmp2_;
 	gint _tmp2__length1;
-	gchar** result = NULL;
+	gchar** result;
 	_tmp0_ = foo;
 	_tmp0__length1 = foo_length1;
 	_tmp1_ = (_tmp0_ != NULL) ? _vala_array_dup1 (_tmp0_, _tmp0__length1) : _tmp0_;
@@ -185,7 +186,7 @@ get_bar (gint* result_length1)
 	gint _tmp1__length1;
 	gint* _tmp2_;
 	gint _tmp2__length1;
-	gint* result = NULL;
+	gint* result;
 	_tmp0_ = bar;
 	_tmp0__length1 = bar_length1;
 	_tmp1_ = (_tmp0_ != NULL) ? _vala_array_dup2 (_tmp0_, _tmp0__length1) : _tmp0_;
@@ -228,7 +229,7 @@ get_manam (gint* result_length1)
 	gint _tmp1__length1;
 	Manam* _tmp2_;
 	gint _tmp2__length1;
-	Manam* result = NULL;
+	Manam* result;
 	_tmp0_ = manam;
 	_tmp0__length1 = manam_length1;
 	_tmp1_ = (_tmp0_ != NULL) ? _vala_array_dup3 (_tmp0_, _tmp0__length1) : _tmp0_;

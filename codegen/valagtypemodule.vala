@@ -31,10 +31,13 @@ public class Vala.GTypeModule : GErrorModule {
 
 		generate_type_declaration (param.variable_type, decl_space);
 
-		string ctypename = get_ccode_name (param.variable_type);
+		string? ctypename = get_ccode_type (param);
+		if (ctypename == null) {
+			ctypename = get_ccode_name (param.variable_type);
 
-		if (param.direction != ParameterDirection.IN) {
-			ctypename = "%s *".printf (ctypename);
+			if (param.direction != ParameterDirection.IN) {
+				ctypename = "%s*".printf (ctypename);
+			}
 		}
 
 		var cparam = new CCodeParameter (get_ccode_name (param), ctypename);
@@ -224,19 +227,23 @@ public class Vala.GTypeModule : GErrorModule {
 		}
 		// Custom unref-methods need to be emitted before G_DEFINE_AUTOPTR_CLEANUP_FUNC,
 		// so we guard against that special case and handle it in generate_method_declaration.
-		if (!(base_class.is_compact && is_reference_counting (base_class))
+		generate_autoptr_cleanup (cl, base_class, decl_space);
+	}
+
+	void generate_autoptr_cleanup (ObjectTypeSymbol sym, Class cl, CCodeFile decl_space) {
+		if (!(cl.is_compact && is_reference_counting (cl))
 		    && (context.header_filename == null|| decl_space.file_type == CCodeFileType.PUBLIC_HEADER
-		        || (decl_space.file_type == CCodeFileType.INTERNAL_HEADER && base_class.is_internal_symbol()))) {
+		        || (decl_space.file_type == CCodeFileType.INTERNAL_HEADER && cl.is_internal_symbol ()))) {
 			string autoptr_cleanup_func;
-			if (is_reference_counting (base_class)) {
-				autoptr_cleanup_func = get_ccode_unref_function (base_class);
+			if (is_reference_counting (cl)) {
+				autoptr_cleanup_func = get_ccode_unref_function (cl);
 			} else {
-				autoptr_cleanup_func = get_ccode_free_function (base_class);
+				autoptr_cleanup_func = get_ccode_free_function (cl);
 			}
 			if (autoptr_cleanup_func == null || autoptr_cleanup_func == "") {
 				Report.error (cl.source_reference, "internal error: autoptr_cleanup_func not available");
 			}
-			decl_space.add_type_member_declaration (new CCodeIdentifier ("G_DEFINE_AUTOPTR_CLEANUP_FUNC (%s, %s)".printf (get_ccode_name (cl), autoptr_cleanup_func)));
+			decl_space.add_type_member_declaration (new CCodeIdentifier ("G_DEFINE_AUTOPTR_CLEANUP_FUNC (%s, %s)".printf (get_ccode_name (sym), autoptr_cleanup_func)));
 			decl_space.add_type_member_declaration (new CCodeNewline ());
 		}
 	}
@@ -2141,8 +2148,9 @@ public class Vala.GTypeModule : GErrorModule {
 		decl_space.add_type_declaration (new CCodeTypeDefinition ("struct _%s".printf (get_ccode_name (iface)), new CCodeVariableDeclarator (get_ccode_name (iface))));
 		decl_space.add_type_declaration (new CCodeTypeDefinition ("struct %s".printf (type_struct.name), new CCodeVariableDeclarator (get_ccode_type_name (iface))));
 
+		unowned Class? prereq_cl = null;
 		foreach (DataType prerequisite in iface.get_prerequisites ()) {
-			unowned Class? prereq_cl = prerequisite.type_symbol as Class;
+			prereq_cl = prerequisite.type_symbol as Class;
 			unowned Interface? prereq_iface = prerequisite.type_symbol as Interface;
 			if (prereq_cl != null) {
 				generate_class_declaration (prereq_cl, decl_space);
@@ -2209,6 +2217,16 @@ public class Vala.GTypeModule : GErrorModule {
 		decl_space.add_type_member_declaration (type_fun.get_declaration ());
 
 		requires_vala_extern = true;
+
+		if (prereq_cl != null) {
+			var base_class = prereq_cl;
+			while (base_class.base_class != null) {
+				base_class = base_class.base_class;
+			}
+			// Custom unref-methods need to be emitted before G_DEFINE_AUTOPTR_CLEANUP_FUNC,
+			// so we guard against that special case and handle it in generate_method_declaration.
+			generate_autoptr_cleanup (iface, base_class, decl_space);
+		}
 	}
 
 	public override void visit_interface (Interface iface) {
@@ -2358,6 +2376,12 @@ public class Vala.GTypeModule : GErrorModule {
 		}
 
 		if (get_ccode_has_type_id (st)) {
+			if (get_ccode_name (st).length < 3) {
+				st.error = true;
+				Report.error (st.source_reference, "Struct name `%s' is too short", get_ccode_name (st));
+				return;
+			}
+
 			push_line (st.source_reference);
 			var type_fun = new StructRegisterFunction (st);
 			type_fun.init_from_type (context, false, false);
@@ -2370,8 +2394,26 @@ public class Vala.GTypeModule : GErrorModule {
 		base.visit_enum (en);
 
 		if (get_ccode_has_type_id (en)) {
+			if (get_ccode_name (en).length < 3) {
+				en.error = true;
+				Report.error (en.source_reference, "Enum name `%s' is too short", get_ccode_name (en));
+				return;
+			}
+
 			push_line (en.source_reference);
 			var type_fun = new EnumRegisterFunction (en);
+			type_fun.init_from_type (context, false, false);
+			cfile.add_type_member_definition (type_fun.get_definition ());
+			pop_line ();
+		}
+	}
+
+	public override void visit_error_domain (ErrorDomain edomain) {
+		base.visit_error_domain (edomain);
+
+		if (get_ccode_has_type_id (edomain)) {
+			push_line (edomain.source_reference);
+			var type_fun = new ErrorDomainRegisterFunction (edomain);
 			type_fun.init_from_type (context, false, false);
 			cfile.add_type_member_definition (type_fun.get_definition ());
 			pop_line ();

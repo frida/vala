@@ -510,6 +510,12 @@ public class Vala.Struct : TypeSymbol {
 				Report.error (source_reference, "The base type `%s' of struct `%s' is not a struct", base_type.to_string (), get_full_name ());
 				return false;
 			}
+
+			// check whether base type is at least as accessible as the struct
+			if (!base_type.is_accessible (this)) {
+				error = true;
+				Report.error (source_reference, "base type `%s' is less accessible than struct `%s'", base_type.to_string (), get_full_name ());
+			}
 		}
 
 		foreach (TypeParameter p in type_parameters) {

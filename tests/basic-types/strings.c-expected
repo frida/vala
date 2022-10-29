@@ -23,6 +23,7 @@
 #define _vala_warn_if_fail(expr, msg) if G_LIKELY (expr) ; else g_warn_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 
 VALA_EXTERN void test_string (void);
+VALA_EXTERN void test_string_concat (void);
 VALA_EXTERN void test_string_joinv (void);
 VALA_EXTERN void test_string_printf (void);
 VALA_EXTERN void test_string_replace (void);
@@ -48,7 +49,7 @@ string_slice (const gchar* self,
 	gboolean _tmp2_ = FALSE;
 	gboolean _tmp3_ = FALSE;
 	gchar* _tmp4_;
-	gchar* result = NULL;
+	gchar* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	_tmp0_ = strlen (self);
 	_tmp1_ = _tmp0_;
@@ -82,7 +83,7 @@ string_get (const gchar* self,
             glong index)
 {
 	gchar _tmp0_;
-	gchar result = '\0';
+	gchar result;
 	g_return_val_if_fail (self != NULL, '\0');
 	_tmp0_ = ((gchar*) self)[index];
 	result = _tmp0_;
@@ -240,13 +241,24 @@ test_string (void)
 	_g_free0 (s);
 }
 
+void
+test_string_concat (void)
+{
+	gchar* s = NULL;
+	gchar* _tmp0_;
+	_tmp0_ = g_strdup ("hello" "world");
+	s = _tmp0_;
+	_vala_assert (g_strcmp0 (s, "helloworld") == 0, "s == \"helloworld\"");
+	_g_free0 (s);
+}
+
 static gchar*
 _vala_g_strjoinv (const gchar* separator,
                   gchar** str_array,
                   gint str_array_length1)
 {
 	gboolean _tmp0_ = FALSE;
-	gchar* result = NULL;
+	gchar* result;
 	if (separator == NULL) {
 		separator = "";
 	}
@@ -276,11 +288,12 @@ _vala_g_strjoinv (const gchar* separator,
 		gint _tmp17_;
 		const gchar* res = NULL;
 		void* _tmp18_;
-		void* ptr = NULL;
-		const gchar* _tmp19_;
+		const gchar* _tmp19_ = NULL;
 		const gchar* _tmp20_;
-		void* _tmp21_;
-		const gchar* _tmp31_;
+		void* ptr = NULL;
+		const gchar* _tmp22_;
+		void* _tmp23_;
+		const gchar* _tmp33_;
 		len = (gsize) 1;
 		{
 			gboolean _tmp4_ = FALSE;
@@ -345,54 +358,61 @@ _vala_g_strjoinv (const gchar* separator,
 		len += (gsize) (_tmp17_ * (i - 1));
 		_tmp18_ = g_malloc (len);
 		res = _tmp18_;
-		_tmp19_ = res;
 		_tmp20_ = str_array[0];
-		_tmp21_ = g_stpcpy ((void*) _tmp19_, (const gchar*) _tmp20_);
-		ptr = _tmp21_;
+		if (_tmp20_ != NULL) {
+			const gchar* _tmp21_;
+			_tmp21_ = str_array[0];
+			_tmp19_ = (const gchar*) _tmp21_;
+		} else {
+			_tmp19_ = "";
+		}
+		_tmp22_ = res;
+		_tmp23_ = g_stpcpy ((void*) _tmp22_, _tmp19_);
+		ptr = _tmp23_;
 		{
-			gboolean _tmp22_ = FALSE;
+			gboolean _tmp24_ = FALSE;
 			i = 1;
-			_tmp22_ = TRUE;
+			_tmp24_ = TRUE;
 			while (TRUE) {
-				void* _tmp24_;
-				void* _tmp25_;
-				const gchar* _tmp26_ = NULL;
-				const gchar* _tmp27_;
-				void* _tmp29_;
-				void* _tmp30_;
-				if (!_tmp22_) {
-					gint _tmp23_;
-					_tmp23_ = i;
-					i = _tmp23_ + 1;
+				void* _tmp26_;
+				void* _tmp27_;
+				const gchar* _tmp28_ = NULL;
+				const gchar* _tmp29_;
+				void* _tmp31_;
+				void* _tmp32_;
+				if (!_tmp24_) {
+					gint _tmp25_;
+					_tmp25_ = i;
+					i = _tmp25_ + 1;
 				}
-				_tmp22_ = FALSE;
+				_tmp24_ = FALSE;
 				if (!(i < str_array_length1)) {
 					break;
 				}
-				_tmp24_ = ptr;
-				_tmp25_ = g_stpcpy (_tmp24_, (const gchar*) separator);
-				ptr = _tmp25_;
-				_tmp27_ = str_array[i];
-				if (_tmp27_ != NULL) {
-					const gchar* _tmp28_;
-					_tmp28_ = str_array[i];
-					_tmp26_ = (const gchar*) _tmp28_;
+				_tmp26_ = ptr;
+				_tmp27_ = g_stpcpy (_tmp26_, (const gchar*) separator);
+				ptr = _tmp27_;
+				_tmp29_ = str_array[i];
+				if (_tmp29_ != NULL) {
+					const gchar* _tmp30_;
+					_tmp30_ = str_array[i];
+					_tmp28_ = (const gchar*) _tmp30_;
 				} else {
-					_tmp26_ = "";
+					_tmp28_ = "";
 				}
-				_tmp29_ = ptr;
-				_tmp30_ = g_stpcpy (_tmp29_, _tmp26_);
-				ptr = _tmp30_;
+				_tmp31_ = ptr;
+				_tmp32_ = g_stpcpy (_tmp31_, _tmp28_);
+				ptr = _tmp32_;
 			}
 		}
-		_tmp31_ = res;
+		_tmp33_ = res;
 		res = NULL;
-		result = (gchar*) _tmp31_;
+		result = (gchar*) _tmp33_;
 		return result;
 	} else {
-		gchar* _tmp32_;
-		_tmp32_ = g_strdup ("");
-		result = _tmp32_;
+		gchar* _tmp34_;
+		_tmp34_ = g_strdup ("");
+		result = _tmp34_;
 		return result;
 	}
 }
@@ -414,6 +434,11 @@ test_string_joinv (void)
 	const gchar* _tmp7_;
 	gchar* _tmp8_;
 	const gchar* _tmp9_;
+	gchar** _tmp10_;
+	gchar** _tmp11_;
+	gint _tmp11__length1;
+	gchar* _tmp12_;
+	const gchar* _tmp13_;
 	_tmp0_ = g_strdup ("hello");
 	_tmp1_ = g_strdup ("my");
 	_tmp2_ = g_strdup ("world");
@@ -439,6 +464,16 @@ test_string_joinv (void)
 	s = _tmp8_;
 	_tmp9_ = s;
 	_vala_assert (g_strcmp0 (_tmp9_, "") == 0, "s == \"\"");
+	_tmp10_ = g_new0 (gchar*, 1 + 1);
+	_tmp10_[0] = NULL;
+	_tmp11_ = _tmp10_;
+	_tmp11__length1 = 1;
+	_tmp12_ = _vala_g_strjoinv ("-", _tmp11_, (gint) 1);
+	_g_free0 (s);
+	s = _tmp12_;
+	_tmp11_ = (_vala_array_free (_tmp11_, _tmp11__length1, (GDestroyNotify) g_free), NULL);
+	_tmp13_ = s;
+	_vala_assert (g_strcmp0 (_tmp13_, "") == 0, "s == \"\"");
 	sa_length1 = 3;
 	_g_free0 (s);
 	sa = (_vala_array_free (sa, sa_length1, (GDestroyNotify) g_free), NULL);
@@ -463,7 +498,7 @@ string_replace (const gchar* self,
 	gboolean _tmp0_ = FALSE;
 	gboolean _tmp1_ = FALSE;
 	GError* _inner_error0_ = NULL;
-	gchar* result = NULL;
+	gchar* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (old != NULL, NULL);
 	g_return_val_if_fail (replacement != NULL, NULL);
@@ -623,7 +658,7 @@ string_splice (const gchar* self,
 	gchar* _tmp9_;
 	gchar* _tmp12_;
 	const gchar* _tmp13_;
-	gchar* result = NULL;
+	gchar* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	_tmp0_ = strlen (self);
 	_tmp1_ = _tmp0_;
@@ -756,7 +791,7 @@ string_strnlen (gchar* str,
 	gchar* end = NULL;
 	gchar* _tmp0_;
 	gchar* _tmp1_;
-	glong result = 0L;
+	glong result;
 	_tmp0_ = memchr (str, 0, (gsize) maxlen);
 	end = _tmp0_;
 	_tmp1_ = end;
@@ -779,7 +814,7 @@ string_substring (const gchar* self,
 	glong string_length = 0L;
 	gboolean _tmp0_ = FALSE;
 	gchar* _tmp3_;
-	gchar* result = NULL;
+	gchar* result;
 	g_return_val_if_fail (self != NULL, NULL);
 	if (offset >= ((glong) 0)) {
 		_tmp0_ = len >= ((glong) 0);
@@ -853,6 +888,7 @@ static void
 _vala_main (void)
 {
 	test_string ();
+	test_string_concat ();
 	test_string_joinv ();
 	test_string_printf ();
 	test_string_replace ();

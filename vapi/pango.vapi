@@ -90,6 +90,8 @@ namespace Pango {
 		public bool equal (Pango.AttrList other_list);
 		[Version (since = "1.2")]
 		public Pango.AttrList? filter (Pango.AttrFilterFunc func);
+		[Version (since = "1.50")]
+		public static Pango.AttrList? from_string (string text);
 		[Version (since = "1.44")]
 		public GLib.SList<Pango.Attribute> get_attributes ();
 		public Pango.AttrIterator get_iterator ();
@@ -98,6 +100,8 @@ namespace Pango {
 		[Version (since = "1.10")]
 		public unowned Pango.AttrList @ref ();
 		public void splice (Pango.AttrList other, int pos, int len);
+		[Version (since = "1.50")]
+		public string to_string ();
 		public void unref ();
 		[Version (since = "1.44")]
 		public void update (int pos, int remove, int add);
@@ -160,6 +164,7 @@ namespace Pango {
 		public unowned Pango.AttrShape? as_shape ();
 		[Version (since = "1.50")]
 		public unowned Pango.AttrSize? as_size ();
+		[Version (since = "1.50")]
 		public unowned Pango.AttrString? as_string ();
 		public Pango.Attribute copy ();
 		[DestroysInstance]
@@ -218,10 +223,12 @@ namespace Pango {
 		public Pango.CoverageLevel @get (int index_);
 		[Version (deprecated = true, deprecated_since = "1.44")]
 		public void max (Pango.Coverage other);
+		[Version (deprecated = true, deprecated_since = "1.52")]
 		public unowned Pango.Coverage @ref ();
 		public void @set (int index_, Pango.CoverageLevel level);
 		[Version (deprecated = true, deprecated_since = "1.44")]
 		public void to_bytes ([CCode (array_length_cname = "n_bytes", array_length_pos = 1.1)] out uint8[] bytes);
+		[Version (deprecated = true, deprecated_since = "1.52")]
 		public void unref ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", type_id = "pango_font_get_type ()")]
@@ -236,6 +243,8 @@ namespace Pango {
 		[Version (since = "1.14")]
 		public Pango.FontDescription describe_with_absolute_size ();
 		public static void descriptions_free ([CCode (array_length_cname = "n_descs", array_length_pos = 1.1)] owned Pango.FontDescription[]? descs);
+		[Version (since = "1.50")]
+		public static Pango.Font? deserialize (Pango.Context context, GLib.Bytes bytes) throws GLib.Error;
 		public virtual Pango.Coverage get_coverage (Pango.Language language);
 		[Version (since = "1.46")]
 		public unowned Pango.FontFace get_face ();
@@ -244,11 +253,14 @@ namespace Pango {
 		[Version (since = "1.10")]
 		public virtual unowned Pango.FontMap? get_font_map ();
 		public virtual void get_glyph_extents (Pango.Glyph glyph, out Pango.Rectangle ink_rect, out Pango.Rectangle logical_rect);
+		[CCode (array_length = false, array_null_terminated = true)]
 		[Version (since = "1.50")]
-		public unowned Pango.Language? get_languages ();
+		public unowned Pango.Language[]? get_languages ();
 		public virtual Pango.FontMetrics get_metrics (Pango.Language? language);
 		[Version (since = "1.44")]
 		public bool has_char (unichar wc);
+		[Version (since = "1.50")]
+		public GLib.Bytes serialize ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "pango_font_description_get_type ()")]
 	[Compact]
@@ -288,7 +300,7 @@ namespace Pango {
 		public void set_style (Pango.Style style);
 		public void set_variant (Pango.Variant variant);
 		[Version (since = "1.42")]
-		public void set_variations (string variations);
+		public void set_variations (string? variations);
 		[Version (since = "1.42")]
 		public void set_variations_static (string variations);
 		public void set_weight (Pango.Weight weight);
@@ -310,7 +322,7 @@ namespace Pango {
 		public virtual void list_sizes ([CCode (array_length_cname = "n_sizes", array_length_pos = 1.1)] out int[]? sizes);
 	}
 	[CCode (cheader_filename = "pango/pango.h", type_id = "pango_font_family_get_type ()")]
-	public abstract class FontFamily : GLib.Object {
+	public abstract class FontFamily : GLib.Object, GLib.ListModel {
 		[CCode (has_construct_function = false)]
 		protected FontFamily ();
 		[Version (since = "1.46")]
@@ -321,9 +333,13 @@ namespace Pango {
 		[Version (since = "1.44")]
 		public virtual bool is_variable ();
 		public virtual void list_faces ([CCode (array_length_cname = "n_faces", array_length_pos = 1.1)] out (unowned Pango.FontFace)[] faces);
+		[NoAccessorMethod]
+		public GLib.Type item_type { get; }
+		[NoAccessorMethod]
+		public uint n_items { get; }
 	}
 	[CCode (cheader_filename = "pango/pango.h", type_id = "pango_font_map_get_type ()")]
-	public abstract class FontMap : GLib.Object {
+	public abstract class FontMap : GLib.Object, GLib.ListModel {
 		[CCode (has_construct_function = false)]
 		protected FontMap ();
 		[Version (since = "1.34")]
@@ -337,6 +353,10 @@ namespace Pango {
 		public virtual void list_families ([CCode (array_length_cname = "n_families", array_length_pos = 1.1)] out (unowned Pango.FontFamily)[] families);
 		public virtual Pango.Font? load_font (Pango.Context context, Pango.FontDescription desc);
 		public virtual Pango.Fontset? load_fontset (Pango.Context context, Pango.FontDescription desc, Pango.Language language);
+		[NoAccessorMethod]
+		public GLib.Type item_type { get; }
+		[NoAccessorMethod]
+		public uint n_items { get; }
 	}
 	[CCode (cheader_filename = "pango/pango.h", ref_function = "pango_font_metrics_ref", type_id = "pango_font_metrics_get_type ()", unref_function = "pango_font_metrics_unref")]
 	[Compact]
@@ -373,7 +393,7 @@ namespace Pango {
 	public class FontsetSimple : Pango.Fontset {
 		[CCode (has_construct_function = false)]
 		public FontsetSimple (Pango.Language language);
-		public void append (Pango.Font font);
+		public void append (owned Pango.Font font);
 		public int size ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "pango_glyph_item_get_type ()")]
@@ -459,6 +479,8 @@ namespace Pango {
 		public Layout (Pango.Context context);
 		public void context_changed ();
 		public Pango.Layout copy ();
+		[Version (since = "1.50")]
+		public static Pango.Layout? deserialize (Pango.Context context, GLib.Bytes bytes, Pango.LayoutDeserializeFlags flags) throws GLib.Error;
 		public Pango.Alignment get_alignment ();
 		public unowned Pango.AttrList? get_attributes ();
 		[Version (since = "1.4")]
@@ -518,6 +540,8 @@ namespace Pango {
 		[Version (since = "1.16")]
 		public bool is_wrapped ();
 		public void move_cursor_visually (bool strong, int old_index, int old_trailing, int direction, out int new_index, out int new_trailing);
+		[Version (since = "1.50")]
+		public GLib.Bytes serialize (Pango.LayoutSerializeFlags flags);
 		public void set_alignment (Pango.Alignment alignment);
 		public void set_attributes (Pango.AttrList? attrs);
 		[Version (since = "1.4")]
@@ -541,6 +565,8 @@ namespace Pango {
 		public void set_text (string text, int length);
 		public void set_width (int width);
 		public void set_wrap (Pango.WrapMode wrap);
+		[Version (since = "1.50")]
+		public bool write_to_file (Pango.LayoutSerializeFlags flags, string filename) throws GLib.Error;
 		public bool xy_to_index (int x, int y, out int index_, out int trailing);
 	}
 	[CCode (cheader_filename = "pango/pango.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "pango_layout_iter_get_type ()")]
@@ -563,6 +589,7 @@ namespace Pango {
 		public unowned Pango.LayoutLine get_line_readonly ();
 		public void get_line_yrange (out int y0_, out int y1_);
 		public unowned Pango.LayoutRun? get_run ();
+		[Version (since = "1.50")]
 		public int get_run_baseline ();
 		public void get_run_extents (out Pango.Rectangle ink_rect, out Pango.Rectangle logical_rect);
 		[Version (since = "1.16")]
@@ -661,12 +688,24 @@ namespace Pango {
 		public TabArray (int initial_size, bool positions_in_pixels);
 		public Pango.TabArray copy ();
 		public void free ();
+		[Version (since = "1.50")]
+		public static Pango.TabArray? from_string (string text);
+		[Version (since = "1.50")]
+		public unichar get_decimal_point (int tab_index);
 		public bool get_positions_in_pixels ();
 		public int get_size ();
 		public void get_tab (int tab_index, out Pango.TabAlign alignment, out int location);
 		public void get_tabs (out Pango.TabAlign alignments, [CCode (array_length = false)] out int[] locations);
 		public void resize (int new_size);
+		[Version (since = "1.50")]
+		public void set_decimal_point (int tab_index, unichar decimal_point);
+		[Version (since = "1.50")]
+		public void set_positions_in_pixels (bool positions_in_pixels);
 		public void set_tab (int tab_index, Pango.TabAlign alignment, int location);
+		[Version (since = "1.50")]
+		public void sort ();
+		[Version (since = "1.50")]
+		public string to_string ();
 		[CCode (has_construct_function = false)]
 		public TabArray.with_positions (int size, bool positions_in_pixels, Pango.TabAlign first_alignment, ...);
 	}
@@ -755,6 +794,7 @@ namespace Pango {
 		public uint is_word_boundary;
 		public uint break_inserts_hyphen;
 		public uint break_removes_preceding;
+		public uint reserved;
 	}
 	[CCode (cheader_filename = "pango/pango.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "pango_matrix_get_type ()")]
 	[Version (since = "1.6")]
@@ -772,6 +812,8 @@ namespace Pango {
 		public double get_font_scale_factor ();
 		[Version (since = "1.38")]
 		public void get_font_scale_factors (out double xscale, out double yscale);
+		[Version (since = "1.50")]
+		public double get_slant_ratio ();
 		public void rotate (double degrees);
 		public void scale (double scale_x, double scale_y);
 		[Version (since = "1.16")]
@@ -913,10 +955,12 @@ namespace Pango {
 		VARIATIONS
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_FONT_SCALE_", type_id = "pango_font_scale_get_type ()")]
+	[Version (since = "1.50")]
 	public enum FontScale {
 		NONE,
 		SUPERSCRIPT,
-		SUBSCRIPT
+		SUBSCRIPT,
+		SMALL_CAPS
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_GRAVITY_", type_id = "pango_gravity_get_type ()")]
 	[Version (since = "1.16")]
@@ -938,6 +982,21 @@ namespace Pango {
 		NATURAL,
 		STRONG,
 		LINE
+	}
+	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_LAYOUT_DESERIALIZE_", type_id = "pango_layout_deserialize_flags_get_type ()")]
+	[Flags]
+	[Version (since = "1.50")]
+	public enum LayoutDeserializeFlags {
+		DEFAULT,
+		CONTEXT
+	}
+	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_LAYOUT_SERIALIZE_", type_id = "pango_layout_serialize_flags_get_type ()")]
+	[Flags]
+	[Version (since = "1.50")]
+	public enum LayoutSerializeFlags {
+		DEFAULT,
+		CONTEXT,
+		OUTPUT
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_OVERLINE_", type_id = "pango_overline_get_type ()")]
 	[Version (since = "1.46")]
@@ -1081,6 +1140,7 @@ namespace Pango {
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_SHAPE_", type_id = "pango_shape_flags_get_type ()")]
 	[Flags]
+	[Version (since = "1.44")]
 	public enum ShapeFlags {
 		NONE,
 		ROUND_POSITIONS
@@ -1114,7 +1174,10 @@ namespace Pango {
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_TAB_", type_id = "pango_tab_align_get_type ()")]
 	public enum TabAlign {
-		LEFT
+		LEFT,
+		RIGHT,
+		CENTER,
+		DECIMAL
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_TEXT_TRANSFORM_", type_id = "pango_text_transform_get_type ()")]
 	[Version (since = "1.50")]
@@ -1138,7 +1201,12 @@ namespace Pango {
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_VARIANT_", type_id = "pango_variant_get_type ()")]
 	public enum Variant {
 		NORMAL,
-		SMALL_CAPS
+		SMALL_CAPS,
+		ALL_SMALL_CAPS,
+		PETITE_CAPS,
+		ALL_PETITE_CAPS,
+		UNICASE,
+		TITLE_CAPS
 	}
 	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_WEIGHT_", type_id = "pango_weight_get_type ()")]
 	public enum Weight {
@@ -1160,6 +1228,14 @@ namespace Pango {
 		WORD,
 		CHAR,
 		WORD_CHAR
+	}
+	[CCode (cheader_filename = "pango/pango.h", cprefix = "PANGO_LAYOUT_DESERIALIZE_", type_id = "pango_layout_deserialize_error_get_type ()")]
+	[Version (since = "1.50")]
+	public errordomain LayoutDeserializeError {
+		INVALID,
+		INVALID_VALUE,
+		MISSING_VALUE;
+		public static GLib.Quark quark ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", has_target = false)]
 	public delegate T AttrDataCopyFunc<T> (T data);
@@ -1248,6 +1324,9 @@ namespace Pango {
 	[CCode (cheader_filename = "pango/pango.h")]
 	[Version (since = "1.50")]
 	public static Pango.Attribute attr_line_height_new_absolute (int height);
+	[CCode (cheader_filename = "pango/pango.h")]
+	[Version (replacement = "AttrList.from_string", since = "1.50")]
+	public static Pango.AttrList? attr_list_from_string (string text);
 	[CCode (cheader_filename = "pango/pango.h")]
 	[Version (since = "1.46")]
 	public static Pango.Attribute attr_overline_color_new (uint16 red, uint16 green, uint16 blue);
@@ -1348,6 +1427,9 @@ namespace Pango {
 	[Version (replacement = "Language.get_preferred", since = "1.48")]
 	public static unowned Pango.Language? language_get_preferred ();
 	[CCode (cheader_filename = "pango/pango.h")]
+	[Version (replacement = "LayoutDeserializeError.quark")]
+	public static GLib.Quark layout_deserialize_error_quark ();
+	[CCode (cheader_filename = "pango/pango.h")]
 	[Version (since = "1.4")]
 	public static uint8 log2vis_get_embedding_levels (string text, int length, ref Pango.Direction pbase_dir);
 	[CCode (cheader_filename = "pango/pango.h")]
@@ -1409,6 +1491,9 @@ namespace Pango {
 	[CCode (array_length = false, array_null_terminated = true, cheader_filename = "pango/pango.h")]
 	[Version (deprecated = true, deprecated_since = "1.38")]
 	public static string[] split_file_list (string str);
+	[CCode (cheader_filename = "pango/pango.h")]
+	[Version (replacement = "TabArray.from_string", since = "1.50")]
+	public static Pango.TabArray? tab_array_from_string (string text);
 	[CCode (cheader_filename = "pango/pango.h")]
 	[Version (since = "1.44")]
 	public static void tailor_break (string text, int length, Pango.Analysis analysis, int offset, [CCode (array_length_cname = "attrs_len", array_length_pos = 5.1)] Pango.LogAttr[] attrs);

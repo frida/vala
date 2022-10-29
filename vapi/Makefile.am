@@ -54,6 +54,8 @@ dist_vapi_DATA = \
 	gconf-2.0.vapi \
 	geocode-glib-1.0.deps \
 	geocode-glib-1.0.vapi \
+	geocode-glib-2.0.deps \
+	geocode-glib-2.0.vapi \
 	glib-2.0.vapi \
 	gdesktopenums-3.0.vapi \
 	gdk-2.0.deps \
@@ -80,10 +82,16 @@ dist_vapi_DATA = \
 	gmodule-2.0.vapi \
 	gnet-2.0.deps \
 	gnet-2.0.vapi \
+	gnome-bg-4.deps \
+	gnome-bg-4.vapi \
 	gnome-desktop-2.0.deps \
 	gnome-desktop-2.0.vapi \
 	gnome-desktop-3.0.deps \
 	gnome-desktop-3.0.vapi \
+	gnome-desktop-4.deps \
+	gnome-desktop-4.vapi \
+	gnome-rr-4.deps \
+	gnome-rr-4.vapi \
 	gnome-vfs-2.0.vapi \
 	gnu.deps \
 	gnu.vapi \
@@ -157,6 +165,10 @@ dist_vapi_DATA = \
 	gtk4.vapi \
 	gtk4-unix-print.deps \
 	gtk4-unix-print.vapi \
+	gtk4-wayland.deps \
+	gtk4-wayland.vapi \
+	gtk4-x11.deps \
+	gtk4-x11.vapi \
 	gtkmozembed.deps \
 	gtkmozembed.vapi \
 	gtksourceview-2.0.deps \
@@ -172,6 +184,7 @@ dist_vapi_DATA = \
 	hildon-fm-2.deps \
 	hildon-fm-2.vapi \
 	javascriptcoregtk-4.0.vapi \
+	javascriptcoregtk-4.1.vapi \
 	javascriptcoregtk-5.0.vapi \
 	json-glib-1.0.deps \
 	json-glib-1.0.vapi \
@@ -260,6 +273,10 @@ dist_vapi_DATA = \
 	rest-0.7.vapi \
 	rest-extras-0.7.deps \
 	rest-extras-0.7.vapi \
+	rest-1.0.deps \
+	rest-1.0.vapi \
+	rest-extras-1.0.deps \
+	rest-extras-1.0.vapi \
 	sdl2-android.deps \
 	sdl2-android.vapi \
 	SDL2_gfx.deps \
@@ -288,12 +305,17 @@ dist_vapi_DATA = \
 	unique-1.0.deps \
 	unique-1.0.vapi \
 	v4l2.vapi \
+	wayland-client.vapi \
 	webkit2gtk-4.0.vapi \
 	webkit2gtk-4.0.deps \
+	webkit2gtk-4.1.vapi \
+	webkit2gtk-4.1.deps \
 	webkit2gtk-5.0.vapi \
 	webkit2gtk-5.0.deps \
 	webkit2gtk-web-extension-4.0.vapi \
 	webkit2gtk-web-extension-4.0.deps \
+	webkit2gtk-web-extension-4.1.vapi \
+	webkit2gtk-web-extension-4.1.deps \
 	webkit2gtk-web-extension-5.0.vapi \
 	webkit2gtk-web-extension-5.0.deps \
 	x11.vapi \
@@ -323,7 +345,6 @@ GIDL_BINDINGS = \
 	gtk+-2.0 \
 	gtk+-unix-print-2.0 \
 	gtk+-unix-print-3.0 \
-	gtk4-unix-print \
 	gtksourceview-2.0 \
 	hildon-1 \
 	hildon-fm-2 \
@@ -381,17 +402,25 @@ GIR_BINDINGS = \
 	gdk-pixbuf-2.0 \
 	gdl-3.0 \
 	geocode-glib-1.0 \
+	geocode-glib-2.0 \
 	gio-2.0 \
 	gmodule-2.0 \
+	gnome-bg-4 \
 	gnome-desktop-3.0 \
+	gnome-desktop-4 \
+	gnome-rr-4 \
 	gobject-introspection-1.0 \
 	goocanvas-2.0 \
 	graphene-gobject-1.0 \
 	gtk+-3.0 \
 	gtk4 \
+	gtk4-unix-print \
+	gtk4-wayland \
+	gtk4-x11 \
 	gudev-1.0 \
 	harfbuzz-gobject \
 	javascriptcoregtk-4.0 \
+	javascriptcoregtk-4.1 \
 	javascriptcoregtk-5.0 \
 	json-glib-1.0 \
 	libgeoclue-2.0 \
@@ -412,10 +441,14 @@ GIR_BINDINGS = \
 	poppler-glib \
 	rest-0.7 \
 	rest-extras-0.7 \
+	rest-1.0 \
+	rest-extras-1.0 \
 	udisks2 \
 	webkit2gtk-4.0 \
+	webkit2gtk-4.1 \
 	webkit2gtk-5.0 \
 	webkit2gtk-web-extension-4.0 \
+	webkit2gtk-web-extension-4.1 \
 	webkit2gtk-web-extension-5.0 \
 	$(GSTREAMER_1_0_BINDINGS) \
 	$(NULL)
@@ -478,6 +511,9 @@ gconf-2.0:
 geocode-glib-1.0:
 	$(GENVAPI) --library $(srcdir)/geocode-glib-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GeocodeGlib-1.0.gir
 
+geocode-glib-2.0:
+	$(GENVAPI) --library $(srcdir)/geocode-glib-2.0 --pkg gio-2.0 --pkg json-glib-1.0 --pkg libsoup-3.0 --metadatadir $(METADATADIR) $(GIRDIR)/GeocodeGlib-2.0.gir
+
 gdesktopenums-3.0:
 	$(GENVAPI) --library $(srcdir)/gdesktopenums-3.0 --metadatadir $(METADATADIR) $(GIRDIR)/GDesktopEnums-3.0.gir
 
@@ -511,11 +547,20 @@ gio-unix-2.0:
 gmodule-2.0:
 	$(GENVAPI) --library $(srcdir)/gmodule-2.0 --metadatadir $(METADATADIR) $(METADATADIR)/GModule-2.0-custom.vala $(GIRDIR)/GModule-2.0.gir
 
+gnome-bg-4:
+	$(GENVAPI) --library $(srcdir)/gnome-bg-4 --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gnome-desktop-4 --pkg gtk4 --metadatadir $(METADATADIR) $(METADATADIR)/GnomeBG-4.0-custom.vala $(GIRDIR)/GnomeBG-4.0.gir
+
 gnome-desktop-2.0:
 	$(GENVAPI) --library $(srcdir)/gnome-desktop-2.0 $(PACKAGESDIR)/gnome-desktop-2.0/gnome-desktop-2.0.gi
 
 gnome-desktop-3.0:
 	$(GENVAPI) --library $(srcdir)/gnome-desktop-3.0 --pkg gtk+-3.0 --metadatadir $(METADATADIR) $(METADATADIR)/GnomeDesktop-3.0-custom.vala $(GIRDIR)/GnomeDesktop-3.0.gir
+
+gnome-desktop-4:
+	$(GENVAPI) --library $(srcdir)/gnome-desktop-4 --pkg gio-2.0 --pkg gdesktopenums-3.0 --pkg gdk-pixbuf-2.0 --metadatadir $(METADATADIR) $(GIRDIR)/GnomeDesktop-4.0.gir
+
+gnome-rr-4:
+	$(GENVAPI) --library $(srcdir)/gnome-rr-4 --pkg gnome-desktop-4 --pkg gtk4 --metadatadir $(METADATADIR) $(GIRDIR)/GnomeRR-4.0.gir
 
 gnome-vfs-2.0:
 	$(GENVAPI) --library $(srcdir)/gnome-vfs-2.0 $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0-custom.vala $(PACKAGESDIR)/gnome-vfs-2.0/gnome-vfs-2.0.gi
@@ -596,7 +641,7 @@ gstreamer-webrtc-1.0:
 	$(GENVAPI) --library $(srcdir)/gstreamer-webrtc-1.0 --pkg gstreamer-base-1.0 --pkg gstreamer-sdp-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GstWebRTC-1.0.gir
 
 gst-editing-services-1.0:
-	$(GENVAPI) --library $(srcdir)/gst-editing-services-1.0 --pkg gstreamer-pbutils-1.0 --pkg gstreamer-video-1.0 --metadatadir $(METADATADIR) $(GIRDIR)/GES-1.0.gir
+	$(GENVAPI) --library $(srcdir)/gst-editing-services-1.0 --pkg gstreamer-pbutils-1.0 --pkg gstreamer-video-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GES-1.0-custom.vala $(GIRDIR)/GES-1.0.gir
 
 gtk+-2.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-2.0 $(PACKAGESDIR)/gtk+-2.0/gtk+-2.0-custom.vala $(PACKAGESDIR)/gtk+-2.0/gtk+-2.0.gi
@@ -605,13 +650,17 @@ gtk+-3.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-3.0 --pkg atk --pkg gdk-3.0 --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg pango --pkg cairo --metadatadir $(METADATADIR) $(METADATADIR)/Gtk-3.0-custom.vala $(GIRDIR)/Gtk-3.0.gir
 
 gtk4:
-	$(GENVAPI) --library $(srcdir)/gtk4 --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg pangocairo --pkg x11 \
+	$(GENVAPI) --library $(srcdir)/gtk4 --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg pangocairo \
 		--metadatadir $(METADATADIR) \
-		$(METADATADIR)/GdkWayland-4.0-custom.vala $(GIRDIR)/GdkWayland-4.0.gir \
-		$(METADATADIR)/GdkX11-4.0-custom.vala $(GIRDIR)/GdkX11-4.0.gir \
 		$(METADATADIR)/Gdk-4.0-custom.vala $(GIRDIR)/Gdk-4.0.gir \
 		$(METADATADIR)/Gsk-4.0-custom.vala $(GIRDIR)/Gsk-4.0.gir \
 		$(METADATADIR)/Gtk-4.0-custom.vala $(GIRDIR)/Gtk-4.0.gir
+
+gtk4-wayland:
+	$(GENVAPI) --library $(srcdir)/gtk4-wayland --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg pangocairo --pkg gtk4 --pkg wayland-client --metadatadir $(METADATADIR) $(METADATADIR)/GdkWayland-4.0-custom.vala $(GIRDIR)/GdkWayland-4.0.gir
+
+gtk4-x11:
+	$(GENVAPI) --library $(srcdir)/gtk4-x11 --pkg cairo --pkg gdk-pixbuf-2.0 --pkg gio-2.0 --pkg graphene-gobject-1.0 --pkg pango --pkg pangocairo --pkg gtk4 --pkg x11 --metadatadir $(METADATADIR) $(METADATADIR)/GdkX11-4.0-custom.vala $(GIRDIR)/GdkX11-4.0.gir
 
 gtk+-unix-print-2.0:
 	$(GENVAPI) --library $(srcdir)/gtk+-unix-print-2.0 $(PACKAGESDIR)/gtk+-unix-print-2.0/gtk+-unix-print-2.0-custom.vala $(PACKAGESDIR)/gtk+-unix-print-2.0/gtk+-unix-print-2.0.gi
@@ -641,6 +690,9 @@ hildon-fm-2:
 
 javascriptcoregtk-4.0:
 	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-4.0 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-4.0-custom.vala $(GIRDIR)/JavaScriptCore-4.0.gir
+
+javascriptcoregtk-4.1:
+	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-4.1 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-4.1-custom.vala $(GIRDIR)/JavaScriptCore-4.1.gir
 
 javascriptcoregtk-5.0:
 	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-5.0 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-5.0-custom.vala $(GIRDIR)/JavaScriptCore-5.0.gir
@@ -732,6 +784,12 @@ rest-0.7:
 rest-extras-0.7:
 	$(GENVAPI) --library $(srcdir)/rest-extras-0.7 --metadatadir $(METADATADIR) --pkg rest-0.7 $(GIRDIR)/RestExtras-0.7.gir
 
+rest-1.0:
+	$(GENVAPI) --library $(srcdir)/rest-1.0 --metadatadir $(METADATADIR) --pkg gio-2.0 --pkg libsoup-3.0 $(GIRDIR)/Rest-1.0.gir
+
+rest-extras-1.0:
+	$(GENVAPI) --library $(srcdir)/rest-extras-1.0 --metadatadir $(METADATADIR) --pkg rest-1.0 $(GIRDIR)/RestExtras-1.0.gir
+
 udisks2:
 	$(GENVAPI) --library $(srcdir)/udisks2 --metadatadir $(METADATADIR) --pkg gio-2.0 $(GIRDIR)/UDisks-2.0.gir
 
@@ -741,11 +799,17 @@ unique-1.0:
 webkit2gtk-4.0:
 	$(GENVAPI) --library $(srcdir)/webkit2gtk-4.0 --metadatadir $(METADATADIR) --pkg gtk+-3.0 --pkg libsoup-2.4 $(GIRDIR)/WebKit2-4.0.gir
 
+webkit2gtk-4.1:
+	$(GENVAPI) --library $(srcdir)/webkit2gtk-4.1 --metadatadir $(METADATADIR) --pkg gtk+-3.0 --pkg libsoup-3.0 $(GIRDIR)/WebKit2-4.1.gir
+
 webkit2gtk-5.0:
 	$(GENVAPI) --library $(srcdir)/webkit2gtk-5.0 --metadatadir $(METADATADIR) --pkg gtk4 --pkg libsoup-3.0 $(GIRDIR)/WebKit2-5.0.gir
 
 webkit2gtk-web-extension-4.0:
 	$(GENVAPI) --library $(srcdir)/webkit2gtk-web-extension-4.0 --metadatadir $(METADATADIR) --pkg gtk+-3.0 $(METADATADIR)/WebKit2WebExtension-4.0-custom.vala $(GIRDIR)/WebKit2WebExtension-4.0.gir
+
+webkit2gtk-web-extension-4.1:
+	$(GENVAPI) --library $(srcdir)/webkit2gtk-web-extension-4.1 --metadatadir $(METADATADIR) --pkg gtk+-3.0 $(METADATADIR)/WebKit2WebExtension-4.1-custom.vala $(GIRDIR)/WebKit2WebExtension-4.1.gir
 
 webkit2gtk-web-extension-5.0:
 	$(GENVAPI) --library $(srcdir)/webkit2gtk-web-extension-5.0 --metadatadir $(METADATADIR) --pkg gtk4 $(METADATADIR)/WebKit2WebExtension-5.0-custom.vala $(GIRDIR)/WebKit2WebExtension-5.0.gir

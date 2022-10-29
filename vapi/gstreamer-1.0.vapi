@@ -54,6 +54,9 @@ namespace Gst {
 		[Version (since = "1.18")]
 		public static string log_get_line (Gst.DebugCategory category, Gst.DebugLevel level, string file, string function, int line, GLib.Object? object, Gst.DebugMessage message);
 		[CCode (cheader_filename = "gst/gst.h")]
+		[Version (since = "1.20")]
+		public static void log_literal (Gst.DebugCategory category, Gst.DebugLevel level, string file, string function, int line, GLib.Object? object, string message_string);
+		[CCode (cheader_filename = "gst/gst.h")]
 		public static void log_valist (Gst.DebugCategory category, Gst.DebugLevel level, string file, string function, int line, GLib.Object? object, string format, va_list args);
 		[CCode (cheader_filename = "gst/gst.h")]
 		public static void print_stack_trace ();
@@ -1067,7 +1070,7 @@ namespace Gst {
 		public unowned Gst.Context @ref ();
 		public static bool replace (ref Gst.Context old_context, Gst.Context? new_context);
 		public void unref ();
-		public Gst.Structure writable_structure ();
+		public unowned Gst.Structure writable_structure ();
 	}
 	[CCode (cheader_filename = "gst/gst.h", type_id = "gst_control_binding_get_type ()")]
 	public abstract class ControlBinding : Gst.Object {
@@ -1395,6 +1398,8 @@ namespace Gst {
 		public virtual void state_changed (Gst.State oldstate, Gst.State newstate, Gst.State pending);
 		public static unowned string state_get_name (Gst.State state);
 		public bool sync_state_with_parent ();
+		[Version (since = "1.20")]
+		public static void type_set_skip_documentation (GLib.Type type);
 		public void unlink (Gst.Element dest);
 		public void unlink_many (params Gst.Element[] elements);
 		public void unlink_pads (string srcpadname, Gst.Element dest, string destpadname);
@@ -1413,16 +1418,23 @@ namespace Gst {
 		public bool can_src_any_caps (Gst.Caps caps);
 		[CCode (returns_floating_reference = true)]
 		public Gst.Element? create (string? name);
+		[CCode (returns_floating_reference = true)]
 		[Version (since = "1.20")]
-		public unowned Gst.Element? create_valist (string? first, va_list? properties);
+		public Gst.Element? create_full (string? first, ...);
+		[CCode (returns_floating_reference = true)]
 		[Version (since = "1.20")]
-		public unowned Gst.Element? create_with_properties (uint n, string? names, GLib.Value? values);
+		public Gst.Element? create_valist (string? first, va_list? properties);
+		[CCode (returns_floating_reference = true)]
+		[Version (since = "1.20")]
+		public Gst.Element? create_with_properties ([CCode (array_length_cname = "n", array_length_pos = 0.5, array_length_type = "guint")] string[]? names, [CCode (array_length_cname = "n", array_length_pos = 0.5, array_length_type = "guint")] GLib.Value[]? values);
 		public static Gst.ElementFactory? find (string name);
 		public GLib.Type get_element_type ();
 		public unowned string? get_metadata (string key);
 		[CCode (array_length = false, array_null_terminated = true)]
 		public string[]? get_metadata_keys ();
 		public uint get_num_pad_templates ();
+		[Version (since = "1.20")]
+		public bool get_skip_documentation ();
 		public unowned GLib.List<Gst.StaticPadTemplate?> get_static_pad_templates ();
 		[CCode (array_length = false, array_null_terminated = true)]
 		public unowned string[] get_uri_protocols ();
@@ -1433,10 +1445,15 @@ namespace Gst {
 		public bool list_is_type (Gst.ElementFactoryListType type);
 		[CCode (returns_floating_reference = true)]
 		public static Gst.Element? make (string factoryname, string? name);
+		[CCode (returns_floating_reference = true)]
 		[Version (since = "1.20")]
-		public static unowned Gst.Element? make_valist (string factoryname, string? first, va_list? properties);
+		public static Gst.Element? make_full (string factoryname, string? first, ...);
+		[CCode (returns_floating_reference = true)]
 		[Version (since = "1.20")]
-		public static unowned Gst.Element? make_with_properties (string factoryname, uint n, string? names, GLib.Value? values);
+		public static Gst.Element? make_valist (string factoryname, string? first, va_list? properties);
+		[CCode (returns_floating_reference = true)]
+		[Version (since = "1.20")]
+		public static Gst.Element? make_with_properties (string factoryname, [CCode (array_length_cname = "n", array_length_pos = 1.5, array_length_type = "guint")] string[]? names, [CCode (array_length_cname = "n", array_length_pos = 1.5, array_length_type = "guint")] GLib.Value[]? values);
 	}
 	[CCode (cheader_filename = "gst/gst.h", ref_function = "gst_event_ref", type_id = "gst_event_get_type ()", unref_function = "gst_event_unref")]
 	[Compact]
@@ -2296,6 +2313,8 @@ namespace Gst {
 		public void parse_scheduling (out Gst.SchedulingFlags flags, out int minsize, out int maxsize, out int align);
 		public void parse_seeking (out Gst.Format format, out bool seekable, out int64 segment_start, out int64 segment_end);
 		public void parse_segment (out double rate, out Gst.Format format, out int64 start_value, out int64 stop_value);
+		[Version (since = "1.22")]
+		public void parse_selectable (out bool selectable);
 		public void parse_uri (out string uri);
 		[Version (since = "1.2")]
 		public void parse_uri_redirection (out string uri);
@@ -2315,6 +2334,9 @@ namespace Gst {
 		public Query.seeking (Gst.Format format);
 		[CCode (has_construct_function = false)]
 		public Query.segment (Gst.Format format);
+		[CCode (has_construct_function = false)]
+		[Version (since = "1.22")]
+		public Query.selectable ();
 		public void set_accept_caps_result (bool result);
 		[Version (since = "1.16")]
 		public void set_bitrate (uint nominal_bitrate);
@@ -2336,6 +2358,8 @@ namespace Gst {
 		public void set_scheduling (Gst.SchedulingFlags flags, int minsize, int maxsize, int align);
 		public void set_seeking (Gst.Format format, bool seekable, int64 segment_start, int64 segment_end);
 		public void set_segment (double rate, Gst.Format format, int64 start_value, int64 stop_value);
+		[Version (since = "1.22")]
+		public void set_selectable (bool selectable);
 		public void set_uri (string uri);
 		[Version (since = "1.2")]
 		public void set_uri_redirection (string uri);
@@ -2516,6 +2540,8 @@ namespace Gst {
 		public bool get_double (string fieldname, out double value);
 		public bool get_enum (string fieldname, GLib.Type enumtype, out int value);
 		public GLib.Type get_field_type (string fieldname);
+		[Version (since = "1.22")]
+		public bool get_flags (string fieldname, GLib.Type flags_type, out uint value);
 		[Version (since = "1.6")]
 		public bool get_flagset (string fieldname, out uint value_flags, out uint value_mask);
 		public bool get_fraction (string fieldname, out int value_numerator, out int value_denominator);
@@ -3716,7 +3742,9 @@ namespace Gst {
 		CAPS,
 		DRAIN,
 		CONTEXT,
-		BITRATE;
+		BITRATE,
+		[Version (since = "1.22")]
+		SELECTABLE;
 		public Gst.QueryTypeFlags get_flags ();
 		public unowned string get_name ();
 		public GLib.Quark to_quark ();
@@ -3947,7 +3975,7 @@ namespace Gst {
 		SINK,
 		SRC
 	}
-	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_CORE_ERROR_")]
+	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_CORE_ERROR_", type_id = "gst_core_error_get_type ()")]
 	public errordomain CoreError {
 		FAILED,
 		TOO_LAZY,
@@ -3966,7 +3994,7 @@ namespace Gst {
 		NUM_ERRORS;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_LIBRARY_ERROR_")]
+	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_LIBRARY_ERROR_", type_id = "gst_library_error_get_type ()")]
 	public errordomain LibraryError {
 		FAILED,
 		TOO_LAZY,
@@ -3977,7 +4005,7 @@ namespace Gst {
 		NUM_ERRORS;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_PARSE_ERROR_")]
+	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_PARSE_ERROR_", type_id = "gst_parse_error_get_type ()")]
 	public errordomain ParseError {
 		SYNTAX,
 		NO_SUCH_ELEMENT,
@@ -3989,14 +4017,14 @@ namespace Gst {
 		DELAYED_LINK;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_PLUGIN_ERROR_")]
+	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_PLUGIN_ERROR_", type_id = "gst_plugin_error_get_type ()")]
 	public errordomain PluginError {
 		MODULE,
 		DEPENDENCIES,
 		NAME_MISMATCH;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_RESOURCE_ERROR_")]
+	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_RESOURCE_ERROR_", type_id = "gst_resource_error_get_type ()")]
 	public errordomain ResourceError {
 		FAILED,
 		TOO_LAZY,
@@ -4016,7 +4044,7 @@ namespace Gst {
 		NUM_ERRORS;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_STREAM_ERROR_")]
+	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_STREAM_ERROR_", type_id = "gst_stream_error_get_type ()")]
 	public errordomain StreamError {
 		FAILED,
 		TOO_LAZY,
@@ -4034,7 +4062,7 @@ namespace Gst {
 		NUM_ERRORS;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_URI_ERROR_")]
+	[CCode (cheader_filename = "gst/gst.h", cprefix = "GST_URI_ERROR_", type_id = "gst_uri_error_get_type ()")]
 	public errordomain URIError {
 		UNSUPPORTED_PROTOCOL,
 		BAD_URI,

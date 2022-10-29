@@ -97,6 +97,12 @@ public class Vala.CreationMethod : Method {
 			this_parameter.check (context);
 		}
 
+		if (coroutine && !external_package && !context.has_package ("gio-2.0")) {
+			error = true;
+			Report.error (source_reference, "gio-2.0 package required for async constructors");
+			return false;
+		}
+
 		var old_source_file = context.analyzer.current_source_file;
 		var old_symbol = context.analyzer.current_symbol;
 
@@ -147,7 +153,7 @@ public class Vala.CreationMethod : Method {
 				error_type.check (context);
 
 				// check whether error type is at least as accessible as the creation method
-				if (!context.analyzer.is_type_accessible (this, error_type)) {
+				if (!error_type.is_accessible (this)) {
 					error = true;
 					Report.error (source_reference, "error type `%s' is less accessible than creation method `%s'", error_type.to_string (), get_full_name ());
 					return false;
@@ -194,7 +200,11 @@ public class Vala.CreationMethod : Method {
 					context.analyzer.current_symbol = body;
 					context.analyzer.insert_block = body;
 
-					var stmt = new ExpressionStatement (new MethodCall (new BaseAccess (source_reference), source_reference), source_reference);
+					var base_call = new MethodCall (new BaseAccess (source_reference), source_reference);
+					if (coroutine && cl.base_class.default_construction_method.coroutine) {
+						base_call.is_yield_expression = true;
+					}
+					var stmt = new ExpressionStatement (base_call, source_reference);
 					body.insert_statement (0, stmt);
 					stmt.check (context);
 
@@ -206,12 +216,6 @@ public class Vala.CreationMethod : Method {
 
 		context.analyzer.current_source_file = old_source_file;
 		context.analyzer.current_symbol = old_symbol;
-
-		if (is_abstract || is_virtual || overrides) {
-			error = true;
-			Report.error (source_reference, "The creation method `%s' cannot be marked as override, virtual, or abstract", get_full_name ());
-			return false;
-		}
 
 		// check that all errors that can be thrown in the method body are declared
 		if (body != null && !body.error) {

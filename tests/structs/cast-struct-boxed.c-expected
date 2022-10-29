@@ -54,6 +54,7 @@ VALA_EXTERN void bar_free (Bar* self);
 VALA_EXTERN void bar_copy (const Bar* self,
                Bar* dest);
 VALA_EXTERN void bar_destroy (Bar* self);
+G_DEFINE_AUTO_CLEANUP_CLEAR_FUNC (Bar, bar_destroy)
 VALA_EXTERN Bar* bar_heap_owned (void);
 VALA_EXTERN Bar* bar_heap_unowned (void);
 VALA_EXTERN void test_with_destroy (void);
@@ -85,13 +86,13 @@ foo_get_type_once (void)
 GType
 foo_get_type (void)
 {
-	static volatile gsize foo_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_type_id__volatile)) {
+	static volatile gsize foo_type_id__once = 0;
+	if (g_once_init_enter (&foo_type_id__once)) {
 		GType foo_type_id;
 		foo_type_id = foo_get_type_once ();
-		g_once_init_leave (&foo_type_id__volatile, foo_type_id);
+		g_once_init_leave (&foo_type_id__once, foo_type_id);
 	}
-	return foo_type_id__volatile;
+	return foo_type_id__once;
 }
 
 static gpointer
@@ -107,7 +108,7 @@ foo_heap_owned (void)
 	Foo* _tmp1_;
 	Foo* _tmp2_;
 	Foo* _tmp3_;
-	Foo* result = NULL;
+	Foo* result;
 	_tmp0_.i = 23;
 	_tmp1_ = _foo_dup0 (&_tmp0_);
 	_foo_free0 (foo);
@@ -124,7 +125,7 @@ foo_heap_unowned (void)
 	Foo _tmp0_ = {0};
 	Foo* _tmp1_;
 	Foo* _tmp2_;
-	Foo* result = NULL;
+	Foo* result;
 	_tmp0_.i = 42;
 	_tmp1_ = _foo_dup0 (&_tmp0_);
 	_foo_free0 (foo);
@@ -243,13 +244,13 @@ bar_get_type_once (void)
 GType
 bar_get_type (void)
 {
-	static volatile gsize bar_type_id__volatile = 0;
-	if (g_once_init_enter (&bar_type_id__volatile)) {
+	static volatile gsize bar_type_id__once = 0;
+	if (g_once_init_enter (&bar_type_id__once)) {
 		GType bar_type_id;
 		bar_type_id = bar_get_type_once ();
-		g_once_init_leave (&bar_type_id__volatile, bar_type_id);
+		g_once_init_leave (&bar_type_id__once, bar_type_id);
 	}
-	return bar_type_id__volatile;
+	return bar_type_id__once;
 }
 
 static gpointer
@@ -267,7 +268,7 @@ bar_heap_owned (void)
 	Bar* _tmp3_;
 	Bar* _tmp4_;
 	Bar* _tmp5_;
-	Bar* result = NULL;
+	Bar* result;
 	_tmp0_ = g_strdup ("bar");
 	_g_free0 (_tmp1_.s);
 	_tmp1_.s = _tmp0_;
@@ -290,7 +291,7 @@ bar_heap_unowned (void)
 	Bar _tmp2_;
 	Bar* _tmp3_;
 	Bar* _tmp4_;
-	Bar* result = NULL;
+	Bar* result;
 	_tmp0_ = g_strdup ("manam");
 	_g_free0 (_tmp1_.s);
 	_tmp1_.s = _tmp0_;

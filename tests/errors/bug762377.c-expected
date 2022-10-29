@@ -92,7 +92,7 @@ foo_output_stream_real_close (GOutputStream* base,
                               GError** error)
 {
 	FooOutputStream * self;
-	gboolean result = FALSE;
+	gboolean result;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_FOO_OUTPUT_STREAM, FooOutputStream);
 	g_return_val_if_fail ((cancellable == NULL) || G_TYPE_CHECK_INSTANCE_TYPE (cancellable, g_cancellable_get_type ()), FALSE);
 	result = TRUE;
@@ -140,13 +140,13 @@ foo_output_stream_get_type_once (void)
 GType
 foo_output_stream_get_type (void)
 {
-	static volatile gsize foo_output_stream_type_id__volatile = 0;
-	if (g_once_init_enter (&foo_output_stream_type_id__volatile)) {
+	static volatile gsize foo_output_stream_type_id__once = 0;
+	if (g_once_init_enter (&foo_output_stream_type_id__once)) {
 		GType foo_output_stream_type_id;
 		foo_output_stream_type_id = foo_output_stream_get_type_once ();
-		g_once_init_leave (&foo_output_stream_type_id__volatile, foo_output_stream_type_id);
+		g_once_init_leave (&foo_output_stream_type_id__once, foo_output_stream_type_id);
 	}
-	return foo_output_stream_type_id__volatile;
+	return foo_output_stream_type_id__once;
 }
 
 static guint8*

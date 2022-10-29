@@ -27,14 +27,14 @@ namespace Soup {
 		public static Soup.Message request_new_from_multipart (string uri, Soup.Multipart multipart);
 	}
 	namespace XMLRPC {
-		[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_XMLRPC_ERROR_")]
+		[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_XMLRPC_ERROR_", type_id = "soup_xmlrpc_error_get_type ()")]
 		[GIR (name = "XMLRPCError")]
 		public errordomain Error {
 			ARGUMENTS,
 			RETVAL;
 			public static GLib.Quark quark ();
 		}
-		[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_XMLRPC_FAULT_")]
+		[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_XMLRPC_FAULT_", type_id = "soup_xmlrpc_fault_get_type ()")]
 		[GIR (name = "XMLRPCFault")]
 		public errordomain Fault {
 			PARSE_ERROR_NOT_WELL_FORMED,
@@ -131,7 +131,7 @@ namespace Soup {
 		public unowned string? get_name ();
 		public unowned string? get_physical ();
 		public uint get_port ();
-		public void* get_sockaddr (int len);
+		public void* get_sockaddr (out int len);
 		[Version (since = "2.26")]
 		public uint hash_by_ip ();
 		[Version (since = "2.26")]
@@ -1089,7 +1089,7 @@ namespace Soup {
 		public bool is_ssl ();
 		public bool listen ();
 		public Soup.SocketIOStatus read ([CCode (array_length_cname = "len", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, out size_t nread, GLib.Cancellable? cancellable = null) throws GLib.Error;
-		public Soup.SocketIOStatus read_until ([CCode (array_length_cname = "len", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, void* boundary, size_t boundary_len, out size_t nread, bool got_boundary, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public Soup.SocketIOStatus read_until ([CCode (array_length_cname = "len", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, void* boundary, size_t boundary_len, out size_t nread, out bool got_boundary, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public bool start_proxy_ssl (string ssl_host, GLib.Cancellable? cancellable = null);
 		public bool start_ssl (GLib.Cancellable? cancellable = null);
 		public Soup.SocketIOStatus write ([CCode (array_length_cname = "len", array_length_pos = 1.5, array_length_type = "gsize")] uint8[] buffer, out size_t nwrote, GLib.Cancellable? cancellable = null) throws GLib.Error;
@@ -1634,7 +1634,7 @@ namespace Soup {
 		CLOSING,
 		CLOSED
 	}
-	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_REQUEST_ERROR_")]
+	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_REQUEST_ERROR_", type_id = "soup_request_error_get_type ()")]
 	[Version (since = "2.42")]
 	public errordomain RequestError {
 		BAD_URI,
@@ -1643,13 +1643,13 @@ namespace Soup {
 		ENCODING;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_REQUESTER_ERROR_")]
+	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_REQUESTER_ERROR_", type_id = "soup_requester_error_get_type ()")]
 	public errordomain RequesterError {
 		BAD_URI,
 		UNSUPPORTED_URI_SCHEME;
 		public static GLib.Quark quark ();
 	}
-	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_TLD_ERROR_")]
+	[CCode (cheader_filename = "libsoup/soup.h", cprefix = "SOUP_TLD_ERROR_", type_id = "soup_tld_error_get_type ()")]
 	[Version (since = "2.40")]
 	public errordomain TLDError {
 		INVALID_HOSTNAME,

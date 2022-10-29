@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 dist-xz no-dist-gzip subdir-objects])
 AM_MAINTAINER_MODE([enable])
 
-API_VERSION=0.56
+API_VERSION=0.58
 PACKAGE_SUFFIX="-$API_VERSION"
 
 VALA_MAJOR_VERSION=`echo $PACKAGE_VERSION | cut -d. -f1 | sed s/[[a-zA-Z\-]].*//g`
@@ -44,10 +44,6 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 
 AC_CANONICAL_HOST
-
-VALA_HOST_OS=`echo $host_os | cut -f1 -d'-'`
-AC_SUBST(VALA_HOST_OS)
-AC_DEFINE_UNQUOTED(VALA_HOST_OS, "$VALA_HOST_OS", [Define to the host OS name])
 
 # Detect the target system
 build_linux=no
@@ -130,13 +126,19 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=return-type \
 -Werror=sequence-point \
 -Werror=uninitialized \
+-Werror=init-self \
+-Werror=int-in-bool-context \
 -Werror=int-to-pointer-cast \
 -Werror=pointer-to-int-cast \
 -Werror=compare-distinct-pointer-types \
 -Werror=empty-body \
+-Werror=comment \
+-Werror=strict-overflow \
 -Wformat=2 \
 -Werror=format-security \
 -Werror=format-nonliteral \
+-Werror=format-overflow=2 \
+-Werror=format-truncation=2 \
 -Werror=int-conversion \
 -Werror=duplicated-branches \
 -Werror=duplicated-cond \
@@ -146,9 +148,12 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=missing-declarations \
 -Werror=missing-prototypes \
 -Werror=strict-prototypes \
+-Werror=bool-compare \
 -Werror=tautological-pointer-compare \
+-Werror=logical-not-parentheses \
 -Werror=address \
 -Werror=array-bounds \
+-Werror=array-parameter=2 \
 -Werror=enum-conversion"
 
 TEST_CFLAGS=
