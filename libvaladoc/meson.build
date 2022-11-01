@@ -131,7 +131,7 @@ libvaladoc_sources = [
 libvaladoc_lib = library(
 	'valadoc@0@'.format(vala_version_suffix),
 	libvaladoc_sources,
-	dependencies: [gmodule_dep, valacore_dep, libgvc_dep],
+	dependencies: [gmodule_dep, valacore_dep, valacodegen_dep, libgvc_dep],
 	soversion: '0.0.0',
 	install: true,
 	install_dir: [
@@ -145,7 +145,7 @@ libvaladoc_lib = library(
 	vala_vapi: 'valadoc@0@.vapi'.format(vala_version_suffix),
 )
 
-libvaladoc_dep = declare_dependency(link_with: [libvaladoc_lib], dependencies: [gmodule_dep, valacore_dep, libgvc_dep], include_directories: include_directories('.'))
+libvaladoc_dep = declare_dependency(link_with: [libvaladoc_lib], dependencies: [gmodule_dep, valacore_dep, valacodegen_dep, libgvc_dep], include_directories: include_directories('.'))
 
 configure_file(input: 'valadoc.deps.in', output: 'valadoc@0@.deps'.format(vala_version_suffix), configuration: pkgconf)
 
