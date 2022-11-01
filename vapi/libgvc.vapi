@@ -21,7 +21,7 @@
  *      Martin Olsson <martin@minimum.se>
  */
 
-[CCode (cprefix = "", lower_case_cprefix = "", cheader_filename = "graphviz/gvc.h")]
+[CCode (cprefix = "", lower_case_cprefix = "", cheader_filename = "gvc.h")]
 namespace Gvc {
 
 	[CCode (cname = "aginitlib", cheader_filename="gvc.h")]
