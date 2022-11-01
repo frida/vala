@@ -24,6 +24,9 @@
 /* Define to the version of this package. */
 #mesondefine PACKAGE_VERSION
 
+/* Define to path to the valadoc icon directory. */
+#mesondefine PACKAGE_VALADOC_ICONDIR
+
 /* Version number of package */
 #mesondefine VERSION
 
