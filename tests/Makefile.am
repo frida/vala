@@ -812,9 +812,7 @@ TESTS = \
 	dbus/async-bus.test \
 	dbus/async-connection.test \
 	dbus/async-errors.test \
-	dbus/async-no-reply-request.test \
-	dbus/async-no-reply-response.test \
-	dbus/async-no-reply-relay.test \
+	dbus/async-no-reply.test \
 	dbus/connection.test \
 	dbus/dbus-name-missing.test \
 	dbus/dynamic-method.test \
@@ -910,6 +908,8 @@ TESTS = \
 	scanner/string-escape-x-digit-length.test \
 	scanner/string-escape-x-empty.test \
 	scanner/string-escape-x.vala \
+	scanner/string-template.vala \
+	scanner/string-verbatim-template.vala \
 	parser/argument-list-incomplete.test \
 	parser/array-creation-invalid.test \
 	parser/array-length.vala \
@@ -1008,6 +1008,7 @@ TESTS = \
 	parser/using-invalid-namespace.test \
 	parser/var-type-dynamic.vala \
 	parser/var-type-nullable.vala \
+	parser/verbatim-template.vala \
 	parser/with-embedded.vala \
 	parser/with-empty.vala \
 	parser/with-invalid-declaration.test \
@@ -1405,6 +1406,7 @@ TESTS = \
 	genie/struct-after-class.gs \
 	genie/try-except-finally.gs \
 	genie/typeof.gs \
+	genie/verbatim-template.gs \
 	genie/while.gs \
 	glib/conditional-glib-api.vala \
 	bindings/gio/memoryoutputstream.vala \

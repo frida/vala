@@ -171,10 +171,6 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		    && !(m is CreationMethod)) {
 			if (!m.is_private_symbol () && (context.internal_header_filename != null || context.use_fast_vapi)) {
 				// do not warn if internal member may be used outside this compilation unit
-			} else if (m.name == "closure_callback" && m.binding == MemberBinding.STATIC
-			    && m.parent_symbol != null && m.parent_symbol is ObjectTypeSymbol
-			    && ((ObjectTypeSymbol) m.parent_symbol).is_subtype_of (context.analyzer.gsource_type)) {
-				// do not warn if method is a custom GSource closure_callback
 			} else if (m.parent_symbol != null && m.parent_symbol.get_attribute ("DBus") != null
 			    && m.get_attribute_bool ("DBus", "visible", true)) {
 				// do not warn if internal member is a visible DBus method
