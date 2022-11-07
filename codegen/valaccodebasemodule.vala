@@ -6553,7 +6553,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		if (type.type_symbol != null && !type.nullable
 		    && (on_error ? get_ccode_default_value_on_error (type.type_symbol) : get_ccode_default_value (type.type_symbol)) != "") {
 		    CCodeExpression val = new CCodeConstant (on_error ? get_ccode_default_value_on_error (type.type_symbol) : get_ccode_default_value (type.type_symbol));
-		    if (st != null && st.get_fields ().size > 0) {
+		    if (!initializer_expression && st != null && st.get_fields ().size > 0) {
 				val = new CCodeCastExpression (val, get_ccode_name (st));
 			}
 			return val;
