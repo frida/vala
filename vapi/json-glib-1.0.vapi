@@ -280,7 +280,7 @@ namespace Json {
 	}
 	[CCode (cheader_filename = "json-glib/json-glib.h", type_id = "json_path_get_type ()")]
 	[Version (since = "0.14")]
-	public class Path : GLib.Object {
+	public sealed class Path : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public Path ();
 		public bool compile (string expression) throws GLib.Error;
@@ -297,6 +297,8 @@ namespace Json {
 		public void end_element ();
 		public void end_member ();
 		public bool get_boolean_value ();
+		[Version (since = "1.8")]
+		public unowned Json.Node? get_current_node ();
 		public double get_double_value ();
 		public unowned GLib.Error? get_error ();
 		public int64 get_int_value ();

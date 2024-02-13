@@ -83,6 +83,8 @@ Accessible
   .update_property skip=false sentinel="-1"
   .update_relation skip=false sentinel="-1"
   .update_state skip=false sentinel="-1"
+AlertDialog
+  .new skip=false printf_format
 BuilderCScope
   .* skip=false
 CellArea
@@ -234,8 +236,6 @@ Constraint
   .new_constant name="const"
 DragSource
   .drag_cancel#method name="cancel"
-DropTarget
-  .drop#signal name="on_drop"
 EntryCompletion
   .insert_prefix#method name="request_prefix_insertion"
 InfoBar
@@ -244,8 +244,6 @@ LayoutManager
   .get_request_mode#method name="get_size_request_mode"
 MediaStream
   .play#method name="play_now"
-Notebook
-  .insert_page_menu skip
 PopoverMenu
   .add_child new
 PopoverMenuBar
@@ -264,6 +262,7 @@ Editable
 // Not sure what g-i was thinking
 TreeModel
   .filter_new parent="Gtk.TreeModelFilter" name="new" symbol_type="constructor"
+TreeRowData skip
 
 // Vala-specific, not really bugs
 /////////////////////////////////
@@ -271,7 +270,10 @@ TreeModel
 CellArea
   .cell_get_property.value ref
   .get_cell_property.value ref
-
+CssProvider
+  .load_from_data.data type="uint8[]" array array_length_idx=1
+Expression
+  .evaluate.value ref
 param_spec_expression parent="Gtk.ParamSpecExpression" name="new" symbol_type="constructor"
 value_get_expression.value ref
 value_set_expression.value ref
@@ -299,6 +301,9 @@ Snapshot
   .free_to_paintable destroys_instance
 render_* parent="Gtk.StyleContext"
 render_* symbol_type="method" instance_idx=0
+SearchEntry
+  // gtk4 < 4.10
+  .placeholder_text no_accessor_method
 TextBuffer
   .backspace.iter ref
   .delete.start ref

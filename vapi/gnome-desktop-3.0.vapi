@@ -43,7 +43,7 @@ namespace Gnome {
 		public static bool parse_locale (string locale, out string language_codep, out string? country_codep, out string? codesetp, out string? modifierp);
 	}
 	[CCode (cheader_filename = "libgnome-desktop/gnome-bg.h", type_id = "gnome_bg_get_type ()")]
-	public class BG : GLib.Object {
+	public sealed class BG : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public BG ();
 		public bool changes_with_time ();
@@ -116,18 +116,18 @@ namespace Gnome {
 		[Version (since = "2.2")]
 		public bool can_thumbnail (string uri, string mime_type, long mtime);
 		[Version (since = "2.2")]
-		public void create_failed_thumbnail (string uri, long mtime);
-		public async void create_failed_thumbnail_async (string uri, long original_mtime, GLib.Cancellable? cancellable) throws GLib.Error;
-		[Version (since = "2.2")]
-		public Gdk.Pixbuf generate_thumbnail (string uri, string mime_type);
+		public bool create_failed_thumbnail (string uri, long mtime, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public async bool create_failed_thumbnail_async (string uri, long original_mtime, GLib.Cancellable? cancellable) throws GLib.Error;
+		[Version (since = "42.0")]
+		public Gdk.Pixbuf generate_thumbnail (string uri, string mime_type, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public async Gdk.Pixbuf generate_thumbnail_async (string uri, string mime_type, GLib.Cancellable? cancellable) throws GLib.Error;
 		[Version (since = "2.2")]
 		public bool has_valid_failed_thumbnail (string uri, long mtime);
 		[Version (since = "2.2")]
 		public string lookup (string uri, long mtime);
 		[Version (since = "2.2")]
-		public void save_thumbnail (Gdk.Pixbuf thumbnail, string uri, long original_mtime);
-		public async void save_thumbnail_async (Gdk.Pixbuf thumbnail, string uri, long original_mtime, GLib.Cancellable? cancellable) throws GLib.Error;
+		public bool save_thumbnail (Gdk.Pixbuf thumbnail, string uri, long original_mtime, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		public async bool save_thumbnail_async (Gdk.Pixbuf thumbnail, string uri, long original_mtime, GLib.Cancellable? cancellable) throws GLib.Error;
 	}
 	[CCode (cheader_filename = "libgnome-desktop/gnome-idle-monitor.h", type_id = "gnome_idle_monitor_get_type ()")]
 	public class IdleMonitor : GLib.Object, GLib.Initable {
@@ -289,6 +289,8 @@ namespace Gnome {
 		public unowned GLib.TimeZone get_timezone ();
 		public string string_for_datetime (GLib.DateTime now, GDesktop.ClockFormat clock_format, bool show_weekday, bool show_full_date, bool show_seconds);
 		public string clock { get; }
+		[NoAccessorMethod]
+		public bool force_seconds { get; set; }
 		[NoAccessorMethod]
 		public bool time_only { get; set; }
 		public GLib.TimeZone timezone { get; }

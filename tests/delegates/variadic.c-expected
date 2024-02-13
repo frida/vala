@@ -7,8 +7,16 @@
 #include <glib-object.h>
 #include <stdarg.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -35,7 +43,7 @@ typedef enum  {
 #define BAZ_ERROR baz_error_quark ()
 
 VALA_EXTERN GQuark baz_error_quark (void);
-GType baz_error_get_type (void) G_GNUC_CONST ;
+VALA_EXTERN GType baz_error_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN void foo (const gchar* first,
           ...);
 VALA_EXTERN void baz (const gchar* first,
@@ -151,13 +159,13 @@ _vala_main (void)
 	GError* _inner_error0_ = NULL;
 	{
 		FooFunc func = NULL;
-		func = foo;
+		func = (FooFunc) foo;
 		func ("foo", 42, "bar", NULL);
 	}
 	{
 		FooFunc func = NULL;
 		BarFunc f = NULL;
-		func = foo;
+		func = (FooFunc) foo;
 		f = func;
 	}
 	{
@@ -168,7 +176,7 @@ _vala_main (void)
 	}
 	{
 		BazFunc func = NULL;
-		func = baz;
+		func = (BazFunc) baz;
 		func ("baz", &_inner_error0_, 23, "bar", NULL);
 		if (G_UNLIKELY (_inner_error0_ != NULL)) {
 			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error0_->message, g_quark_to_string (_inner_error0_->domain), _inner_error0_->code);
@@ -178,7 +186,7 @@ _vala_main (void)
 	}
 	{
 		BazFunc func = NULL;
-		func = baz_fail;
+		func = (BazFunc) baz_fail;
 		{
 			BazFunc _tmp0_;
 			_tmp0_ = func;
@@ -210,7 +218,7 @@ _vala_main (void)
 		}
 	}
 	{
-		mamam (foo);
+		mamam ((FooFunc) foo);
 	}
 	{
 		mamam ((FooFunc) foo);

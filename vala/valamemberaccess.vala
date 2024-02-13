@@ -615,11 +615,15 @@ public class Vala.MemberAccess : Expression {
 			}
 
 			Report.error (source_reference, "The name `%s' does not exist in the context of `%s'%s%s", member_name, base_type_name, base_type_package, visited_types_string);
+			if (inner != null && inner.symbol_reference != null && inner.symbol_reference.source_reference != null) {
+				Report.notice (inner.symbol_reference.source_reference, "`%s' was declared here", inner.symbol_reference.name);
+			}
 			value_type = new InvalidType ();
 			return false;
 		} else if (symbol_reference.error) {
 			//ignore previous error
 			error = true;
+			value_type = new InvalidType ();
 			return false;
 		}
 
@@ -632,7 +636,7 @@ public class Vala.MemberAccess : Expression {
 			unowned CodeNode? parent = ma.parent_node;
 			if (parent != null && !(parent is ElementAccess) && !(((MemberAccess) ma).inner is BaseAccess)
 			    && (!(parent is MethodCall) || ((MethodCall) parent).get_argument_list ().contains (this))) {
-				if (sig.get_attribute ("HasEmitter") != null) {
+				if (sig.has_attribute ("HasEmitter")) {
 					if (!sig.check (context)) {
 						return false;
 					}
@@ -1160,7 +1164,7 @@ public class Vala.MemberAccess : Expression {
 			}
 		}
 
-		if (symbol_reference is Method && ((Method) symbol_reference).get_attribute ("DestroysInstance") != null) {
+		if (symbol_reference is Method && ((Method) symbol_reference).has_attribute ("DestroysInstance")) {
 			unowned Class? cl = ((Method) symbol_reference).parent_symbol as Class;
 			if (cl != null && cl.is_compact && ma != null) {
 				ma.lvalue = true;
@@ -1200,7 +1204,7 @@ public class Vala.MemberAccess : Expression {
 
 	bool is_tainted () {
 		unowned CodeNode node = this;
-		if (node.parent_node is MemberAccess) {
+		if (node.parent_node is ElementAccess || node.parent_node is MemberAccess) {
 			return false;
 		}
 

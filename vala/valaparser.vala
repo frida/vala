@@ -406,6 +406,7 @@ public class Vala.Parser : CodeVisitor {
 		scanner = new Scanner (source_file);
 		parse_file_comments ();
 
+		tokens = new TokenInfo[BUFFER_SIZE];
 		index = -1;
 		size = 0;
 
@@ -1427,9 +1428,22 @@ public class Vala.Parser : CodeVisitor {
 		return left;
 	}
 
-	Expression parse_relational_expression () throws ParseError {
+	Expression parse_type_check_expression () throws ParseError {
 		var begin = get_location ();
 		var left = parse_shift_expression ();
+		if (accept (TokenType.IS)) {
+			var type = parse_type (true, false);
+			left = new TypeCheck (left, type, get_src (begin));
+		} else if (accept (TokenType.AS)) {
+			var type = parse_type (true, false);
+			left = new CastExpression.silent (left, type, get_src (begin));
+		}
+		return left;
+	}
+
+	Expression parse_relational_expression () throws ParseError {
+		var begin = get_location ();
+		var left = parse_type_check_expression ();
 
 		bool first = true;
 		bool found = true;
@@ -1439,8 +1453,10 @@ public class Vala.Parser : CodeVisitor {
 			case BinaryOperator.LESS_THAN:
 			case BinaryOperator.LESS_THAN_OR_EQUAL:
 			case BinaryOperator.GREATER_THAN_OR_EQUAL:
+			case BinaryOperator.EQUALITY:
+			case BinaryOperator.INEQUALITY:
 				next ();
-				var right = parse_shift_expression ();
+				var right = parse_type_check_expression ();
 				if (first) {
 					left = new BinaryExpression (operator, left, right, get_src (begin));
 				} else {
@@ -1452,7 +1468,7 @@ public class Vala.Parser : CodeVisitor {
 				next ();
 				// ignore >> and >>= (two tokens due to generics)
 				if (current () != TokenType.OP_GT && current () != TokenType.OP_GE) {
-					var right = parse_shift_expression ();
+					var right = parse_type_check_expression ();
 					if (first) {
 						left = new BinaryExpression (operator, left, right, get_src (begin));
 					} else {
@@ -1465,41 +1481,6 @@ public class Vala.Parser : CodeVisitor {
 				}
 				break;
 			default:
-				switch (current ()) {
-				case TokenType.IS:
-					next ();
-					var type = parse_type (true, false);
-					left = new TypeCheck (left, type, get_src (begin));
-					break;
-				case TokenType.AS:
-					next ();
-					var type = parse_type (true, false);
-					left = new CastExpression.silent (left, type, get_src (begin));
-					break;
-				default:
-					found = false;
-					break;
-				}
-				break;
-			}
-		}
-		return left;
-	}
-
-	Expression parse_equality_expression () throws ParseError {
-		var begin = get_location ();
-		var left = parse_relational_expression ();
-		bool found = true;
-		while (found) {
-			var operator = get_binary_operator (current ());
-			switch (operator) {
-			case BinaryOperator.EQUALITY:
-			case BinaryOperator.INEQUALITY:
-				next ();
-				var right = parse_relational_expression ();
-				left = new BinaryExpression (operator, left, right, get_src (begin));
-				break;
-			default:
 				found = false;
 				break;
 			}
@@ -1509,9 +1490,9 @@ public class Vala.Parser : CodeVisitor {
 
 	Expression parse_and_expression () throws ParseError {
 		var begin = get_location ();
-		var left = parse_equality_expression ();
+		var left = parse_relational_expression ();
 		while (accept (TokenType.BITWISE_AND)) {
-			var right = parse_equality_expression ();
+			var right = parse_relational_expression ();
 			left = new BinaryExpression (BinaryOperator.BITWISE_AND, left, right, get_src (begin));
 		}
 		return left;
@@ -2652,7 +2633,7 @@ public class Vala.Parser : CodeVisitor {
 	void set_attributes (CodeNode node, List<Attribute>? attributes) {
 		if (attributes != null) {
 			foreach (Attribute attr in (List<Attribute>) attributes) {
-				if (node.get_attribute (attr.name) != null) {
+				if (node.has_attribute (attr.name)) {
 					Report.error (attr.source_reference, "duplicate attribute `%s'", attr.name);
 				}
 				node.attributes.append (attr);
@@ -2813,6 +2794,7 @@ public class Vala.Parser : CodeVisitor {
 						return;
 					}
 				case TokenType.ASSIGN:
+				case TokenType.COMMA:
 				case TokenType.SEMICOLON:
 					rollback (begin);
 					switch (last_keyword) {
@@ -3046,19 +3028,19 @@ public class Vala.Parser : CodeVisitor {
 		}
 		if (old_cl != null && old_cl.is_partial) {
 			if (cl.is_partial != old_cl.is_partial) {
-				Report.error (cl.source_reference, "conflicting partial and not partial declarations of `%s'".printf (cl.name));
+				Report.error (cl.source_reference, "conflicting partial and not partial declarations of `%s'", cl.name);
 				cl.error = true;
 			}
 			if (cl.access != old_cl.access) {
-				Report.error (cl.source_reference, "partial declarations of `%s' have conflicting accessiblity modifiers".printf (cl.name));
+				Report.error (cl.source_reference, "partial declarations of `%s' have conflicting accessiblity modifiers", cl.name);
 				cl.error = true;
 			}
 			if (cl.is_abstract != old_cl.is_abstract) {
-				Report.error (cl.source_reference, "partial declarations of `%s' have conflicting abstract modifiers".printf (cl.name));
+				Report.error (cl.source_reference, "partial declarations of `%s' have conflicting abstract modifiers", cl.name);
 				cl.error = true;
 			}
 			if (cl.is_sealed != old_cl.is_sealed) {
-				Report.error (cl.source_reference, "partial declarations of `%s' have conflicting sealed modifiers".printf (cl.name));
+				Report.error (cl.source_reference, "partial declarations of `%s' have conflicting sealed modifiers", cl.name);
 				cl.error = true;
 			}
 			if (cl.error) {
@@ -3163,46 +3145,48 @@ public class Vala.Parser : CodeVisitor {
 		var access = parse_access_modifier ((parent is Struct) ? SymbolAccessibility.PUBLIC : SymbolAccessibility.PRIVATE);
 		var flags = parse_member_declaration_modifiers ();
 		var type = parse_type (true, true);
-		string id = parse_identifier ();
-		type = parse_inline_array_type (type);
+		do {
+			string id = parse_identifier ();
+			var ftype = parse_inline_array_type (type.copy ());
 
-		var f = new Field (id, type, null, get_src (begin), comment);
-		f.access = access;
+			var f = new Field (id, ftype, null, get_src (begin), comment);
+			f.access = access;
 
-		set_attributes (f, attrs);
-		if (ModifierFlags.STATIC in flags && ModifierFlags.CLASS in flags) {
-			Report.error (f.source_reference, "only one of `static' or `class' may be specified");
-		} else if (ModifierFlags.STATIC in flags) {
-			f.binding = MemberBinding.STATIC;
-		} else if (ModifierFlags.CLASS in flags) {
-			f.binding = MemberBinding.CLASS;
-		} else if (parent is Namespace) {
-			// default to static member binding in namespace
-			f.binding = MemberBinding.STATIC;
-		}
+			set_attributes (f, attrs);
+			if (ModifierFlags.STATIC in flags && ModifierFlags.CLASS in flags) {
+				Report.error (f.source_reference, "only one of `static' or `class' may be specified");
+			} else if (ModifierFlags.STATIC in flags) {
+				f.binding = MemberBinding.STATIC;
+			} else if (ModifierFlags.CLASS in flags) {
+				f.binding = MemberBinding.CLASS;
+			} else if (parent is Namespace) {
+				// default to static member binding in namespace
+				f.binding = MemberBinding.STATIC;
+			}
 
-		if (!parent.external_package && parent is Struct
-		    && f.access != SymbolAccessibility.PUBLIC && f.binding == MemberBinding.INSTANCE) {
-			Report.warning (f.source_reference, "accessibility of struct fields can only be `public`");
-		}
+			if (!parent.external_package && parent is Struct
+				&& f.access != SymbolAccessibility.PUBLIC && f.binding == MemberBinding.INSTANCE) {
+				Report.warning (f.source_reference, "accessibility of struct fields can only be `public`");
+			}
 
-		if (ModifierFlags.ABSTRACT in flags
-		    || ModifierFlags.VIRTUAL in flags
-		    || ModifierFlags.OVERRIDE in flags) {
-			Report.error (f.source_reference, "abstract, virtual, and override modifiers are not applicable to fields");
-		}
-		if (ModifierFlags.EXTERN in flags) {
-			f.is_extern = true;
-		}
-		if (ModifierFlags.NEW in flags) {
-			f.hides = true;
-		}
-		if (accept (TokenType.ASSIGN)) {
-			f.initializer = parse_expression ();
-		}
+			if (ModifierFlags.ABSTRACT in flags
+				|| ModifierFlags.VIRTUAL in flags
+				|| ModifierFlags.OVERRIDE in flags) {
+				Report.error (f.source_reference, "abstract, virtual, and override modifiers are not applicable to fields");
+			}
+			if (ModifierFlags.EXTERN in flags) {
+				f.is_extern = true;
+			}
+			if (ModifierFlags.NEW in flags) {
+				f.hides = true;
+			}
+			if (accept (TokenType.ASSIGN)) {
+				f.initializer = parse_expression ();
+			}
+
+			parent.add_field (f);
+		} while (accept (TokenType.COMMA));
 		expect (TokenType.SEMICOLON);
-
-		parent.add_field (f);
 	}
 
 	InitializerList parse_initializer () throws ParseError {

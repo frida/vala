@@ -7,8 +7,16 @@
 #include <glib.h>
 #include <gobject/gvaluecollector.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -390,8 +398,8 @@ bar_class_init (BarClass * klass,
 	bar_parent_class = g_type_class_peek_parent (klass);
 	((BarClass *) klass)->finalize = bar_finalize;
 	g_type_class_adjust_private_offset (klass, &Bar_private_offset);
-	BAR_CLASS (klass)->get_prop_v = bar_real_get_prop_v;
-	BAR_CLASS (klass)->set_prop_v = bar_real_set_prop_v;
+	BAR_CLASS (klass)->get_prop_v = (const gchar* (*) (Bar*)) bar_real_get_prop_v;
+	BAR_CLASS (klass)->set_prop_v = (void (*) (Bar*, const gchar*)) bar_real_set_prop_v;
 }
 
 static void
@@ -530,8 +538,8 @@ foo_class_init (FooClass * klass,
 	foo_parent_class = g_type_class_peek_parent (klass);
 	((BarClass *) klass)->finalize = foo_finalize;
 	g_type_class_adjust_private_offset (klass, &Foo_private_offset);
-	BAR_CLASS (klass)->get_prop_v = foo_real_get_prop_v;
-	BAR_CLASS (klass)->set_prop_v = foo_real_set_prop_v;
+	BAR_CLASS (klass)->get_prop_v = (const gchar* (*) (Bar*)) foo_real_get_prop_v;
+	BAR_CLASS (klass)->set_prop_v = (void (*) (Bar*, const gchar*)) foo_real_set_prop_v;
 }
 
 static void

@@ -7,8 +7,16 @@
 #include <string.h>
 #include <glib.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -186,14 +194,14 @@ static void run_ready (GObject* source_object,
                 GAsyncResult* _res_,
                 gpointer _user_data_);
 static void _g_free0_ (gpointer var);
-static GDBusMessage* __lambda4_ (Block1Data* _data1_,
-                          GDBusConnection* conn,
-                          GDBusMessage* message,
-                          gboolean incoming);
-static GDBusMessage* ___lambda4__gd_bus_message_filter_function (GDBusConnection* connection,
-                                                          GDBusMessage* message,
-                                                          gboolean incoming,
-                                                          gpointer self);
+static GDBusMessage* _vala_lambda0_ (Block1Data* _data1_,
+                              GDBusConnection* conn,
+                              GDBusMessage* message,
+                              gboolean incoming);
+static GDBusMessage* __vala_lambda0__gd_bus_message_filter_function (GDBusConnection* connection,
+                                                              GDBusMessage* message,
+                                                              gboolean incoming,
+                                                              gpointer self);
 static void _vala_main (void);
 static void _vala_array_destroy (gpointer array,
                           gssize array_length,
@@ -674,14 +682,14 @@ _g_object_ref0 (gpointer self)
 }
 
 static GDBusMessage*
-__lambda4_ (Block1Data* _data1_,
-            GDBusConnection* conn,
-            GDBusMessage* message,
-            gboolean incoming)
+_vala_lambda0_ (Block1Data* _data1_,
+                GDBusConnection* conn,
+                GDBusMessage* message,
+                gboolean incoming)
 {
 	gboolean _tmp0_ = FALSE;
 	const gchar* _tmp1_;
-	GDBusMessage* _tmp6_;
+	GDBusMessage* _tmp4_;
 	GDBusMessage* result;
 	g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (conn, g_dbus_connection_get_type ()), NULL);
 	g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (message, g_dbus_message_get_type ()), NULL);
@@ -698,12 +706,8 @@ __lambda4_ (Block1Data* _data1_,
 			case G_DBUS_MESSAGE_TYPE_METHOD_CALL:
 			{
 				GAsyncQueue* _tmp3_;
-				GFlagsValue* _tmp4_;
-				gchar* _tmp5_;
 				_tmp3_ = _data1_->events;
-				_tmp4_ = g_flags_get_first_value (g_type_class_ref (g_dbus_message_flags_get_type ()), g_dbus_message_get_flags (message));
-				_tmp5_ = g_strdup ((_tmp4_ != NULL) ? _tmp4_->value_name : NULL);
-				g_async_queue_push (_tmp3_, _tmp5_);
+				g_async_queue_push (_tmp3_, g_flags_to_string (g_dbus_message_flags_get_type (), g_dbus_message_get_flags (message)));
 				break;
 			}
 			default:
@@ -712,20 +716,20 @@ __lambda4_ (Block1Data* _data1_,
 			}
 		}
 	}
-	_tmp6_ = _g_object_ref0 (message);
-	result = _tmp6_;
+	_tmp4_ = _g_object_ref0 (message);
+	result = _tmp4_;
 	_g_object_unref0 (message);
 	return result;
 }
 
 static GDBusMessage*
-___lambda4__gd_bus_message_filter_function (GDBusConnection* connection,
-                                            GDBusMessage* message,
-                                            gboolean incoming,
-                                            gpointer self)
+__vala_lambda0__gd_bus_message_filter_function (GDBusConnection* connection,
+                                                GDBusMessage* message,
+                                                gboolean incoming,
+                                                gpointer self)
 {
 	GDBusMessage* result;
-	result = __lambda4_ (self, connection, message, incoming);
+	result = _vala_lambda0_ (self, connection, message, incoming);
 	return result;
 }
 
@@ -765,7 +769,7 @@ run_co (RunData* _data_)
 	_data_->_tmp4_ = _data_->_tmp3_;
 	_data_->connection = _data_->_tmp4_;
 	_data_->_tmp5_ = _data_->connection;
-	g_dbus_connection_add_filter (_data_->_tmp5_, ___lambda4__gd_bus_message_filter_function, block1_data_ref (_data_->_data1_), block1_data_unref);
+	g_dbus_connection_add_filter (_data_->_tmp5_, __vala_lambda0__gd_bus_message_filter_function, block1_data_ref (_data_->_data1_), block1_data_unref);
 	_data_->_tmp6_ = _data_->test;
 	_data_->_tmp7_ = 0;
 	_data_->_tmp8_ = test_list_messages (_data_->_tmp6_, &_data_->_tmp7_, &_data_->_inner_error0_);

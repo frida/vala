@@ -20,6 +20,7 @@ libvalaccode_la_VALASOURCES = \
 	valaccode.vala \
 	valaccodeassignment.vala \
 	valaccodebinaryexpression.vala \
+	valaccodebinarycompareexpression.vala \
 	valaccodeblock.vala \
 	valaccodebreakstatement.vala \
 	valaccodecasestatement.vala \
@@ -63,6 +64,7 @@ libvalaccode_la_VALASOURCES = \
 	valaccodeoncesection.vala \
 	valaccodeparameter.vala \
 	valaccodeparenthesizedexpression.vala \
+	valaccodepragma.vala \
 	valaccodereturnstatement.vala \
 	valaccodestatement.vala \
 	valaccodestruct.vala \

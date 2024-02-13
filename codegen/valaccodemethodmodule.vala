@@ -291,6 +291,12 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			}
 		}
 
+		unowned Interface? iface = type_symbol as Interface;
+		bool is_dbus_interface = false;
+		if (iface != null) {
+			is_dbus_interface = GDBusModule.get_dbus_name (type_symbol) != null;
+		}
+
 		// Add function prototypes for required register-type-calls which are likely external
 		if (type_symbol.source_reference.file != cfile.file) {
 			// TODO Duplicated source with TypeRegisterFunction.init_from_type()
@@ -298,22 +304,26 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			register_func.add_parameter (new CCodeParameter ("module", "GTypeModule *"));
 			register_func.is_declaration = true;
 			cfile.add_function_declaration (register_func);
+
+			// TODO Duplicated source with GDBusClientModule.generate_interface_declaration()
+			if (is_dbus_interface) {
+				var proxy_register_type = new CCodeFunction ("%sproxy_register_dynamic_type".printf (get_ccode_lower_case_prefix (iface)));
+				proxy_register_type.add_parameter (new CCodeParameter ("module", "GTypeModule*"));
+				proxy_register_type.modifiers |= CCodeModifiers.EXTERN;
+				cfile.add_function_declaration (proxy_register_type);
+				requires_vala_extern = true;
+			}
 		}
 
 		var register_call = new CCodeFunctionCall (new CCodeIdentifier ("%s_register_type".printf (get_ccode_lower_case_name (type_symbol, null))));
 		register_call.add_argument (new CCodeIdentifier (module_init_param_name));
 		ccode.add_expression (register_call);
 
-		var iface = type_symbol as Interface;
-		if (iface != null) {
-			string? dbus_name = GDBusModule.get_dbus_name(type_symbol);
-
-			if (dbus_name != null) {
-				string proxy_cname = get_ccode_lower_case_prefix (type_symbol) + "proxy";
-				var register_proxy = new CCodeFunctionCall (new CCodeIdentifier ("%s_register_dynamic_type".printf (proxy_cname)));
-				register_proxy.add_argument (new CCodeIdentifier (module_init_param_name));
-				ccode.add_expression (register_proxy);
-			}
+		if (is_dbus_interface) {
+			string proxy_cname = get_ccode_lower_case_prefix (type_symbol) + "proxy";
+			var register_proxy = new CCodeFunctionCall (new CCodeIdentifier ("%s_register_dynamic_type".printf (proxy_cname)));
+			register_proxy.add_argument (new CCodeIdentifier (module_init_param_name));
+			ccode.add_expression (register_proxy);
 		}
 	}
 
@@ -330,7 +340,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		bool in_gobject_creation_method = false;
 		bool in_fundamental_creation_method = false;
 
-		bool profile = m.get_attribute ("Profile") != null;
+		bool profile = m.has_attribute ("Profile");
 
 		string real_name = get_ccode_real_name (m);
 
@@ -891,8 +901,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				}
 			}
 
-			ccode.add_statement (new CCodeExpressionStatement.behind_ifdef ("GLIB_DYNAMIC_UNLOADING", new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
-
 			var main_call = new CCodeFunctionCall (new CCodeIdentifier (m.coroutine ? real_name : function.name));
 			if (m.get_parameters ().size == 1) {
 				main_call.add_argument (new CCodeIdentifier ("argv"));
@@ -1028,6 +1036,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		} else if (m.parent_symbol is Class && m is CreationMethod) {
 			var cl = (Class) m.parent_symbol;
 			if (!cl.is_compact && vcall == null && (direction & 1) == 1) {
+				cfile.add_include ("glib-object.h");
 				cparam_map.set (get_param_pos (get_ccode_instance_pos (m)), new CCodeParameter ("object_type", "GType"));
 			}
 		} else if (m.binding == MemberBinding.INSTANCE && (direction != 2 || get_ccode_finish_instance (m))) {
@@ -1071,6 +1080,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		if (type_parameters != null) {
 			int type_param_index = 0;
 			foreach (var type_param in type_parameters) {
+				cfile.add_include ("glib-object.h");
 				var type = get_ccode_type_id (type_param);
 				var dup_func = get_ccode_copy_function (type_param);
 				var destroy_func = get_ccode_destroy_function (type_param);

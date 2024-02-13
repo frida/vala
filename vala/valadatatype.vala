@@ -204,7 +204,11 @@ public abstract class Vala.DataType : CodeNode {
 			return false;
 		}
 		if (type2.nullable != nullable) {
-			return false;
+			//TODO Allow equality between nullable and non-nullable generic-types
+			// This mitigation allows fixing affected source code without breaking it.
+			// It has to be removed at some point
+			var context = CodeContext.get ();
+			return !context.experimental_non_null && this is GenericType == type2 is GenericType;
 		}
 		if (type2.type_symbol != type_symbol) {
 			return false;
@@ -365,26 +369,33 @@ public abstract class Vala.DataType : CodeNode {
 
 		if (type_symbol is Struct && target_type.type_symbol is Struct) {
 			unowned Struct expr_struct = (Struct) type_symbol;
-			unowned Struct expect_struct = (Struct) target_type.type_symbol;
+			unowned Struct target_struct = (Struct) target_type.type_symbol;
 
-			/* integer types may be implicitly cast to floating point types */
-			if (expr_struct.is_integer_type () && expect_struct.is_floating_type ()) {
+			// Allow compatibility of struct subtypes in both ways
+			if (target_struct.is_subtype_of (expr_struct)) {
 				return true;
 			}
 
-			if ((expr_struct.is_integer_type () && expect_struct.is_integer_type ()) ||
-			    (expr_struct.is_floating_type () && expect_struct.is_floating_type ())) {
-				if (expr_struct.rank <= expect_struct.rank) {
+			// Negative ranks are used for handle types that are not implicitly convertible
+			if ((expr_struct.is_integer_type () || expr_struct.is_floating_type ()) && expr_struct.rank < 0) {
+				return false;
+			} else if ((target_struct.is_integer_type () || target_struct.is_floating_type ()) && target_struct.rank < 0) {
+				return false;
+			}
+
+			/* integer types may be implicitly cast to floating point types */
+			if (expr_struct.is_integer_type () && target_struct.is_floating_type ()) {
+				return true;
+			}
+
+			if ((expr_struct.is_integer_type () && target_struct.is_integer_type ()) ||
+			    (expr_struct.is_floating_type () && target_struct.is_floating_type ())) {
+				if (expr_struct.rank <= target_struct.rank) {
 					return true;
 				}
 			}
 
-			if (expr_struct.is_boolean_type () && expect_struct.is_boolean_type ()) {
-				return true;
-			}
-
-			// Allow compatibility of struct subtypes in both ways
-			if (expect_struct.is_subtype_of (expr_struct)) {
+			if (expr_struct.is_boolean_type () && target_struct.is_boolean_type ()) {
 				return true;
 			}
 		}
@@ -676,12 +687,8 @@ public abstract class Vala.DataType : CodeNode {
 		int n_type_args = get_type_arguments ().size;
 		int expected_n_type_args = 0;
 
-		if (type_symbol is ObjectTypeSymbol) {
-			expected_n_type_args = ((ObjectTypeSymbol) type_symbol).get_type_parameters ().size;
-		} else if (type_symbol is Struct) {
-			expected_n_type_args = ((Struct) type_symbol).get_type_parameters ().size;
-		} else if (type_symbol is Delegate) {
-			expected_n_type_args = ((Delegate) type_symbol).get_type_parameters ().size;
+		if (type_symbol is GenericSymbol) {
+			expected_n_type_args = ((GenericSymbol) type_symbol).get_type_parameters ().size;
 		} else if (n_type_args > 0) {
 			Report.error (source_reference, "`%s' does not support type arguments", type_symbol.get_full_name ());
 			error = true;
@@ -693,11 +700,11 @@ public abstract class Vala.DataType : CodeNode {
 
 		if ((!allow_none || n_type_args > 0) && n_type_args < expected_n_type_args) {
 			error = true;
-			Report.error (source_reference, "too few type arguments for `%s'", type_symbol.get_full_name ());
+			Report.error (source_reference, "too few type arguments for `%s'", type_symbol.to_string ());
 			return false;
 		} else if ((!allow_none || n_type_args > 0) && n_type_args > expected_n_type_args) {
 			error = true;
-			Report.error (source_reference, "too many type arguments for `%s'", type_symbol.get_full_name ());
+			Report.error (source_reference, "too many type arguments for `%s'", type_symbol.to_string ());
 			return false;
 		}
 

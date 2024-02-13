@@ -79,23 +79,23 @@ public class Vala.Scanner {
 		state_stack = null;
 	}
 
-	bool in_template () {
+	inline bool in_template () {
 		return (state_stack.length > 0 && state_stack[state_stack.length - 1] == State.TEMPLATE);
 	}
 
-	bool in_verbatim_template () {
+	inline bool in_verbatim_template () {
 		return (state_stack.length > 0 && state_stack[state_stack.length - 1] == State.VERBATIM_TEMPLATE);
 	}
 
-	bool in_template_part () {
+	inline bool in_template_part () {
 		return (state_stack.length > 0 && state_stack[state_stack.length - 1] == State.TEMPLATE_PART);
 	}
 
-	bool in_regex_literal () {
+	inline bool in_regex_literal () {
 		return (state_stack.length > 0 && state_stack[state_stack.length - 1] == State.REGEX_LITERAL);
 	}
 
-	bool is_ident_char (char c) {
+	inline bool is_ident_char (char c) {
 		return (c.isalnum () || c == '_');
 	}
 
@@ -607,12 +607,54 @@ public class Vala.Scanner {
 		var type = TokenType.INTEGER_LITERAL;
 
 		// integer part
-		if (current < end - 2 && current[0] == '0'
-		    && current[1] == 'x' && current[2].isxdigit ()) {
-			// hexadecimal integer literal
-			current += 2;
-			while (current < end && current[0].isxdigit ()) {
-				current++;
+		if (current < end - 2 && current[0] == '0') {
+			switch (current[1]) {
+			case 'x':
+			case 'X':
+				// hexadecimal literal
+				current += 2;
+				while (current < end && current[0].isxdigit ()) {
+					current++;
+				}
+				// fractional part
+				// hexadecimal fractional part
+				if (current < end - 1 && current[0] == '.' && current[1].isxdigit ()) {
+					type = TokenType.REAL_LITERAL;
+					current++;
+					while (current < end && current[0].isxdigit ()) {
+						current++;
+					}
+				}
+				// hexadecimal exponent part
+				if (current < end && current[0].tolower () == 'p') {
+					type = TokenType.REAL_LITERAL;
+					current++;
+					if (current < end && (current[0] == '+' || current[0] == '-')) {
+						current++;
+					}
+					while (current < end && current[0].isdigit ()) {
+						current++;
+					}
+				} else if (type == TokenType.REAL_LITERAL) {
+					Report.error (get_source_reference (1), "hexadecimal floating constants require an exponent");
+				}
+				break;
+			case 'b':
+			case 'B':
+			case 'o':
+			case 'O':
+				// binary integer literal or octal integer literal
+				current += 2;
+				while (current < end && current[0].isdigit ()) {
+					current++;
+				}
+				break;
+			default:
+				// decimal number (also may be octal integer)
+				while (current < end && current[0].isdigit ()) {
+					current++;
+				}
+				break;
 			}
 		} else {
 			// decimal number

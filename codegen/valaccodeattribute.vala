@@ -25,6 +25,8 @@
  * Cache for the CCode attribute
  */
 public class Vala.CCodeAttribute : AttributeCache {
+	private static int next_lambda_id = 0;
+
 	private weak CodeNode node;
 	private weak Symbol? sym;
 	private Attribute ccode;
@@ -600,7 +602,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 	public bool array_length {
 		get {
 			if (_array_length == null) {
-				if (node.get_attribute ("NoArrayLength") != null) {
+				if (node.has_attribute ("NoArrayLength")) {
 					Report.deprecated (node.source_reference, "[NoArrayLength] is deprecated, use [CCode (array_length = false)] instead.");
 					_array_length = false;
 				} else if (ccode != null && ccode.has_argument ("array_length")) {
@@ -755,6 +757,9 @@ public class Vala.CCodeAttribute : AttributeCache {
 				return "_dynamic_%s%d".printf (sym.name, dynamic_method_id++);
 			} else if (sym is Method) {
 				unowned Method m = (Method) sym;
+				if (m.parent_node is LambdaExpression) {
+					return "_vala_lambda%d_".printf (next_lambda_id++);
+				}
 				if (m.is_async_callback) {
 					return "%s_co".printf (get_ccode_real_name ((Method) m.parent_symbol));
 				}
@@ -1174,7 +1179,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 		} else if (node is PointerType || node is GenericType) {
 			return "POINTER";
 		} else if (node is ErrorType) {
-			return "POINTER";
+			return "BOXED";
 		} else if (node is ArrayType) {
 			unowned ArrayType array_type = (ArrayType) node;
 			if (array_type.element_type.type_symbol == CodeContext.get ().analyzer.string_type.type_symbol) {
@@ -1212,7 +1217,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 				return get_ccode_lower_case_name (cl, "value_get_");
 			} else if (cl.base_class != null) {
 				return get_ccode_get_value_function (cl.base_class);
-			} else if (type_id == "G_TYPE_POINTER" || cl.is_error_base) {
+			} else if (type_id == "G_TYPE_POINTER") {
 				return "g_value_get_pointer";
 			} else {
 				return "g_value_get_boxed";
@@ -1232,6 +1237,8 @@ public class Vala.CCodeAttribute : AttributeCache {
 					return "g_value_get_int";
 				}
 			}
+		} else if (sym is ErrorDomain) {
+			return "g_value_get_boxed";
 		} else if (sym is Interface) {
 			foreach (var prereq in ((Interface) sym).get_prerequisites ()) {
 				var type_name = get_ccode_get_value_function (prereq.type_symbol);
@@ -1270,7 +1277,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 				return get_ccode_lower_case_name (cl, "value_set_");
 			} else if (cl.base_class != null) {
 				return get_ccode_set_value_function (cl.base_class);
-			} else if (type_id == "G_TYPE_POINTER" || cl.is_error_base) {
+			} else if (type_id == "G_TYPE_POINTER") {
 				return "g_value_set_pointer";
 			} else {
 				return "g_value_set_boxed";
@@ -1290,6 +1297,8 @@ public class Vala.CCodeAttribute : AttributeCache {
 					return "g_value_set_int";
 				}
 			}
+		} else if (sym is ErrorDomain) {
+			return "g_value_set_boxed";
 		} else if (sym is Interface) {
 			foreach (var prereq in ((Interface) sym).get_prerequisites ()) {
 				var type_name = get_ccode_set_value_function (prereq.type_symbol);
@@ -1328,26 +1337,13 @@ public class Vala.CCodeAttribute : AttributeCache {
 				return get_ccode_lower_case_name (cl, "value_take_");
 			} else if (cl.base_class != null) {
 				return get_ccode_take_value_function (cl.base_class);
-			} else if (type_id == "G_TYPE_POINTER" || cl.is_error_base) {
+			} else if (type_id == "G_TYPE_POINTER") {
 				return "g_value_set_pointer";
 			} else {
 				return "g_value_take_boxed";
 			}
-		} else if (sym is Enum) {
-			unowned Enum en = (Enum) sym;
-			if (get_ccode_has_type_id (en)) {
-				if (en.is_flags) {
-					return "g_value_take_flags";
-				} else {
-					return "g_value_take_enum";
-				}
-			} else {
-				if (en.is_flags) {
-					return "g_value_take_uint";
-				} else {
-					return "g_value_take_int";
-				}
-			}
+		} else if (sym is ErrorDomain) {
+			return "g_value_take_boxed";
 		} else if (sym is Interface) {
 			foreach (var prereq in ((Interface) sym).get_prerequisites ()) {
 				var func = get_ccode_take_value_function (prereq.type_symbol);
@@ -1415,6 +1411,8 @@ public class Vala.CCodeAttribute : AttributeCache {
 						return "g_param_spec_int";
 					}
 				}
+			} else if (sym is ErrorDomain) {
+				return "g_param_spec_boxed";
 			} else if (sym is Struct) {
 				var type_id = get_ccode_type_id (sym);
 				if (type_id == "G_TYPE_INT") {

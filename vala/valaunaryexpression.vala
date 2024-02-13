@@ -218,13 +218,18 @@ public class Vala.UnaryExpression : Expression {
 			    (ea != null && ea.container.value_type is ArrayType)) {
 				// ref and out can only be used with fields, parameters, local variables, and array element access
 				lvalue = true;
-				value_type = inner.value_type;
+				// `ref foo` or `out foo` is used as synonym for `&foo`
+				if (parent_node is InitializerList || parent_node is MemberInitializer) {
+					value_type = new PointerType (inner.value_type, inner.source_reference);
+				} else {
+					value_type = inner.value_type;
+				}
 			} else {
 				error = true;
 				Report.error (source_reference, "ref and out method arguments can only be used with fields, parameters, local variables, and array element access");
 				return false;
 			}
-			if (inner.symbol_reference != null && inner.symbol_reference.get_attribute ("GtkChild") != null) {
+			if (inner.symbol_reference != null && inner.symbol_reference.has_attribute ("GtkChild")) {
 				error = true;
 				Report.error (source_reference, "Assignment of [GtkChild] `%s' is not allowed", inner.symbol_reference.get_full_name ());
 				return false;

@@ -68,6 +68,8 @@ PropertyAction
 ActionEntry
   .*#field skip
 ActionGroup
+  .get_action_*#virtual_method virtual
+  .has_action#virtual_method virtual
   .query_action#virtual_method virtual
 Application
   .local_command_line.arguments unowned
@@ -166,6 +168,7 @@ ListModel
   .get_item#method skip=false abstract type="GLib.Object?"
 ListStore
   .find_with_equal_func.equal_func type_arguments="GLib.Object"
+  .find_with_equal_func_full.equal_func type_arguments="GLib.Object"
   .insert_sorted.compare_func type_arguments="GLib.Object"
   .sort.compare_func type_arguments="GLib.Object"
 MemoryInputStream
@@ -375,6 +378,18 @@ DataInputStream
   .read_line_finish type="string?"
   .read_line_finish.length default=null
   .read_line.length default=null
+
+// delegates with target
+AsyncReadyCallback instance_idx=2
+CancellableSourceFunc instance_idx=1
+DBusProxyTypeFunc instance_idx=3
+DatagramBasedSourceFunc instance_idx=2
+FileMeasureProgressCallback instance_idx=4
+FileProgressCallback instance_idx=2
+FileReadMoreCallback instance_idx=2
+IOSchedulerJobFunc instance_idx=2
+PollableSourceFunc instance_idx=1
+SocketSourceFunc instance_idx=2
 
 // Forward upstream
 *.ref unowned

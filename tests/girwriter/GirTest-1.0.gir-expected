@@ -141,6 +141,9 @@
 		<field name="field" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
+		<field name="struct_field" writable="1">
+			<type name="GirTest.Struct" c:type="GirTestStruct"/>
+		</field>
 		<field name="internal_field" writable="1">
 			<type name="gint" c:type="gint"/>
 		</field>
@@ -393,6 +396,37 @@
 				</parameter>
 				<parameter name="array_length1" transfer-ownership="none">
 					<type name="gint" c:type="gint"/>
+				</parameter>
+			</parameters>
+		</method>
+		<method name="array_size_t_length" c:identifier="gir_test_object_test_array_size_t_length">
+			<return-value transfer-ownership="full">
+				<array length="4" c:type="gint*">
+					<type name="gint" c:type="gint"/>
+				</array>
+			</return-value>
+			<parameters>
+				<instance-parameter name="self" transfer-ownership="none">
+					<type name="GirTest.ObjectTest" c:type="GirTestObjectTest*"/>
+				</instance-parameter>
+				<parameter name="array" transfer-ownership="none">
+					<array length="1" c:type="gint*">
+						<type name="gint" c:type="gint"/>
+					</array>
+				</parameter>
+				<parameter name="array_length1" transfer-ownership="full">
+					<type name="gulong" c:type="gsize"/>
+				</parameter>
+				<parameter name="array2" direction="out" transfer-ownership="full">
+					<array length="3" c:type="gint**">
+						<type name="gint" c:type="gint"/>
+					</array>
+				</parameter>
+				<parameter name="array2_length1" direction="out" transfer-ownership="full">
+					<type name="gulong" c:type="gsize*"/>
+				</parameter>
+				<parameter name="result_length1" direction="out" transfer-ownership="full">
+					<type name="gulong" c:type="gsize*"/>
 				</parameter>
 			</parameters>
 		</method>
@@ -2823,6 +2857,19 @@
 				</parameter>
 			</parameters>
 		</method>
+		<method name="set" c:identifier="gir_test_boxed_struct_set">
+			<return-value transfer-ownership="full">
+				<type name="none" c:type="void"/>
+			</return-value>
+			<parameters>
+				<instance-parameter name="self" transfer-ownership="none" nullable="1">
+					<type name="GirTest.BoxedStruct" c:type="GirTestBoxedStruct*"/>
+				</instance-parameter>
+				<parameter name="param1" transfer-ownership="none">
+					<type name="GirTest.BoxedStruct" c:type="GirTestBoxedStruct*"/>
+				</parameter>
+			</parameters>
+		</method>
 	</record>
 	<record name="Struct" c:type="GirTestStruct" c:symbol-prefix="struct">
 		<field name="field_name" writable="1">
@@ -2876,6 +2923,19 @@
 					<type name="GirTest.Struct" c:type="GirTestStruct*"/>
 				</instance-parameter>
 				<parameter name="result" direction="out" transfer-ownership="full" caller-allocates="1">
+					<type name="GirTest.Struct" c:type="GirTestStruct*"/>
+				</parameter>
+			</parameters>
+		</method>
+		<method name="set" c:identifier="gir_test_struct_set">
+			<return-value transfer-ownership="full">
+				<type name="none" c:type="void"/>
+			</return-value>
+			<parameters>
+				<instance-parameter name="self" transfer-ownership="none" nullable="1">
+					<type name="GirTest.Struct" c:type="GirTestStruct*"/>
+				</instance-parameter>
+				<parameter name="param1" transfer-ownership="none">
 					<type name="GirTest.Struct" c:type="GirTestStruct*"/>
 				</parameter>
 			</parameters>
@@ -2935,7 +2995,7 @@
 			<parameter name="t_destroy_func" transfer-ownership="none">
 				<type name="GLib.DestroyNotify" c:type="GDestroyNotify"/>
 			</parameter>
-			<parameter name="g" transfer-ownership="none" nullable="1">
+			<parameter name="g" transfer-ownership="none">
 				<type name="gpointer" c:type="gpointer"/>
 			</parameter>
 			<parameter name="t" transfer-ownership="none" nullable="1">
@@ -3019,7 +3079,7 @@
 		</return-value>
 		<parameters>
 			<parameter name="param" transfer-ownership="none">
-				<type name="GirTest.RenamedStruct" c:type="GirTestNamedStruct"/>
+				<type name="GirTest.RenamedStruct" c:type="GirTestNamedStruct*"/>
 			</parameter>
 		</parameters>
 	</function>

@@ -40,7 +40,7 @@ namespace GirTest {
 	[CCode (cheader_filename = "girtest.h")]
 	public class GenericsTest<G,T> {
 		public GenericsTest (owned GirTest.DelegateTest cb);
-		public void method (T param);
+		public void method (T? param);
 		public GenericsTest.typed (owned GirTest.DelegateGenericsTest<G,T> cb);
 	}
 	[CCode (cheader_filename = "girtest.h")]
@@ -65,12 +65,14 @@ namespace GirTest {
 		public int field;
 		public int fixed_array_field[23];
 		public string? nullable_field;
+		public GirTest.Struct struct_field;
 		public ObjectTest ();
 		public void array_in (int[] array);
 		public void array_inout (ref int[] array);
 		public void array_out (out int[] array);
 		public int[] array_return ();
 		public int[] array_return_int_in_delegate_out (int i1, out GirTest.DelegateTest d);
+		public int[:size_t] array_size_t_length (int[:size_t] array, out int[:size_t] array2);
 		public (unowned string)[] container_return ();
 		public async void coroutine_async ();
 		public virtual async void coroutine_method_throw (int i1, out int o1) throws GirTest.ErrorTest;
@@ -177,6 +179,7 @@ namespace GirTest {
 		public BoxedStruct.foo (int param1, int param2);
 		public void inv ();
 		public GirTest.BoxedStruct ret ();
+		public void @set (GirTest.BoxedStruct param1);
 	}
 	[CCode (cheader_filename = "girtest.h")]
 	[GIR (name = "RenamedStruct")]
@@ -196,6 +199,7 @@ namespace GirTest {
 		public Struct.foo (int param1, int param2);
 		public void inv ();
 		public GirTest.Struct ret ();
+		public void @set (GirTest.Struct param1);
 	}
 	[CCode (cheader_filename = "girtest.h")]
 	public enum EnumTest {
@@ -258,7 +262,7 @@ namespace GirTest {
 	[CCode (cheader_filename = "girtest.h")]
 	public delegate bool DelegateErrorTest () throws GirTest.ErrorTest;
 	[CCode (cheader_filename = "girtest.h")]
-	public delegate bool DelegateGenericsTest<G,T> (G g, T t);
+	public delegate bool DelegateGenericsTest<G,T> (G g, T? t);
 	[CCode (cheader_filename = "girtest.h")]
 	public delegate bool DelegateTest (void* a, void* b);
 	[CCode (cheader_filename = "girtest.h")]

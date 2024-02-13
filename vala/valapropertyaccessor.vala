@@ -122,7 +122,13 @@ public class Vala.PropertyAccessor : Subroutine {
 		Method? m = null;
 		if (readable) {
 			m = new Method ("get_%s".printf (prop.name), value_type, source_reference, comment);
-		} else if (writable) {
+
+			// Inherit important attributes
+			m.copy_attribute_bool (prop, "CCode", "array_length");
+			m.copy_attribute_string (prop, "CCode", "array_length_type");
+			m.copy_attribute_bool (prop, "CCode", "array_null_terminated");
+			m.copy_attribute_bool (prop, "CCode", "delegate_target");
+		} else if (writable || construction) {
 			m = new Method ("set_%s".printf (prop.name), new VoidType(), source_reference, comment);
 			m.add_parameter (value_parameter.copy ());
 		}
@@ -162,6 +168,7 @@ public class Vala.PropertyAccessor : Subroutine {
 			value_parameter = new Parameter ("value", value_type, source_reference);
 			// Inherit important attributes
 			value_parameter.copy_attribute_bool (prop, "CCode", "array_length");
+			value_parameter.copy_attribute_string (prop, "CCode", "array_length_type");
 			value_parameter.copy_attribute_bool (prop, "CCode", "array_null_terminated");
 			value_parameter.copy_attribute_bool (prop, "CCode", "delegate_target");
 		}
@@ -169,7 +176,7 @@ public class Vala.PropertyAccessor : Subroutine {
 		if (context.profile == Profile.GOBJECT
 		    && readable && ((TypeSymbol) prop.parent_symbol).is_subtype_of (context.analyzer.object_type)) {
 			//FIXME Code duplication with CCodeMemberAccessModule.visit_member_access()
-			if (prop.get_attribute ("NoAccessorMethod") != null) {
+			if (prop.has_attribute ("NoAccessorMethod")) {
 				if (value_type.is_real_struct_type ()) {
 					if (source_reference == null || source_reference.file == null) {
 						// Hopefully good as is
@@ -208,6 +215,12 @@ public class Vala.PropertyAccessor : Subroutine {
 		if ((prop.is_abstract || prop.is_virtual || prop.overrides) && access == SymbolAccessibility.PRIVATE) {
 			error = true;
 			Report.error (source_reference, "Property `%s' with private accessor cannot be marked as abstract, virtual or override", prop.get_full_name ());
+			return false;
+		}
+
+		if (value_type.value_owned && value_type.is_non_null_simple_type ()) {
+			error = true;
+			Report.error (source_reference, "`owned' accessor not allowed for specified property type");
 			return false;
 		}
 

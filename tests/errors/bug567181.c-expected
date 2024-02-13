@@ -4,8 +4,16 @@
 #include <glib.h>
 #include <glib-object.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -58,7 +66,7 @@ static gpointer foo_parent_class = NULL;
 VALA_EXTERN GType foo_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Foo, g_object_unref)
 VALA_EXTERN GQuark error_quark (void);
-GType error_get_type (void) G_GNUC_CONST ;
+VALA_EXTERN GType error_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN Foo* foo_new (GError** error);
 VALA_EXTERN Foo* foo_construct (GType object_type,
                     GError** error);

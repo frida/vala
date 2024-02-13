@@ -6,8 +6,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -60,8 +68,8 @@ VALA_EXTERN void foo_finish (GAsyncResult* _res_);
 static gboolean foo_co (FooData* _data_);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (void * _userdata_);
-static void __lambda4_ (Block1Data* _data1_);
-static void ___lambda4__func (gpointer self);
+static void _vala_lambda0_ (Block1Data* _data1_);
+static void __vala_lambda0__func (gpointer self);
 static gboolean _foo_co_gsource_func (gpointer self);
 static void _vala_main (void);
 
@@ -117,7 +125,7 @@ block1_data_unref (void * _userdata_)
 }
 
 static void
-__lambda4_ (Block1Data* _data1_)
+_vala_lambda0_ (Block1Data* _data1_)
 {
 	gchar* _tmp0_;
 	_data1_->func = NULL;
@@ -128,9 +136,9 @@ __lambda4_ (Block1Data* _data1_)
 }
 
 static void
-___lambda4__func (gpointer self)
+__vala_lambda0__func (gpointer self)
 {
-	__lambda4_ (self);
+	_vala_lambda0_ (self);
 }
 
 static gboolean
@@ -162,7 +170,7 @@ foo_co (FooData* _data_)
 	_data_->_data1_->func_target = NULL;
 	_data_->_tmp0_ = g_strdup ("hello");
 	_data_->_data1_->bar = _data_->_tmp0_;
-	_data_->foobar = ___lambda4__func;
+	_data_->foobar = __vala_lambda0__func;
 	_data_->foobar_target = block1_data_ref (_data_->_data1_);
 	_data_->foobar_target_destroy_notify = block1_data_unref;
 	_data_->foobar (_data_->foobar_target);

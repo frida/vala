@@ -7,8 +7,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -80,7 +88,7 @@ VALA_EXTERN GMainLoop* loop;
 GMainLoop* loop = NULL;
 
 VALA_EXTERN GQuark foo_error_quark (void);
-GType foo_error_get_type (void) G_GNUC_CONST ;
+VALA_EXTERN GType foo_error_get_type (void) G_GNUC_CONST ;
 static void fail_data_free (gpointer _data);
 VALA_EXTERN void fail (GAsyncReadyCallback _callback_,
            gpointer _user_data_);
@@ -116,16 +124,16 @@ VALA_EXTERN void run (GAsyncReadyCallback _callback_,
           gpointer _user_data_);
 VALA_EXTERN void run_finish (GAsyncResult* _res_);
 static gboolean run_co (RunData* _data_);
-static void __lambda4_ (GObject* o,
-                 GAsyncResult* r);
-static void ___lambda4__gasync_ready_callback (GObject* source_object,
-                                        GAsyncResult* res,
-                                        gpointer self);
-static void __lambda5_ (GObject* o,
-                 GAsyncResult* r);
-static void ___lambda5__gasync_ready_callback (GObject* source_object,
-                                        GAsyncResult* res,
-                                        gpointer self);
+static void _vala_lambda0_ (GObject* o,
+                     GAsyncResult* r);
+static void __vala_lambda0__gasync_ready_callback (GObject* source_object,
+                                            GAsyncResult* res,
+                                            gpointer self);
+static void _vala_lambda1_ (GObject* o,
+                     GAsyncResult* r);
+static void __vala_lambda1__gasync_ready_callback (GObject* source_object,
+                                            GAsyncResult* res,
+                                            gpointer self);
 static void _vala_main (void);
 
 GQuark
@@ -599,8 +607,8 @@ run_finish (GAsyncResult* _res_)
 }
 
 static void
-__lambda4_ (GObject* o,
-            GAsyncResult* r)
+_vala_lambda0_ (GObject* o,
+                GAsyncResult* r)
 {
 	GError* _inner_error0_ = NULL;
 	g_return_if_fail ((o == NULL) || G_TYPE_CHECK_INSTANCE_TYPE (o, G_TYPE_OBJECT));
@@ -638,16 +646,16 @@ __lambda4_ (GObject* o,
 }
 
 static void
-___lambda4__gasync_ready_callback (GObject* source_object,
-                                   GAsyncResult* res,
-                                   gpointer self)
+__vala_lambda0__gasync_ready_callback (GObject* source_object,
+                                       GAsyncResult* res,
+                                       gpointer self)
 {
-	__lambda4_ (source_object, res);
+	_vala_lambda0_ (source_object, res);
 }
 
 static void
-__lambda5_ (GObject* o,
-            GAsyncResult* r)
+_vala_lambda1_ (GObject* o,
+                GAsyncResult* r)
 {
 	GError* _inner_error0_ = NULL;
 	g_return_if_fail ((o == NULL) || G_TYPE_CHECK_INSTANCE_TYPE (o, G_TYPE_OBJECT));
@@ -688,11 +696,11 @@ __lambda5_ (GObject* o,
 }
 
 static void
-___lambda5__gasync_ready_callback (GObject* source_object,
-                                   GAsyncResult* res,
-                                   gpointer self)
+__vala_lambda1__gasync_ready_callback (GObject* source_object,
+                                       GAsyncResult* res,
+                                       gpointer self)
 {
-	__lambda5_ (source_object, res);
+	_vala_lambda1_ (source_object, res);
 }
 
 static gboolean
@@ -705,8 +713,8 @@ run_co (RunData* _data_)
 		g_assert_not_reached ();
 	}
 	_state_0:
-	foo (___lambda4__gasync_ready_callback, NULL);
-	bar (___lambda5__gasync_ready_callback, NULL);
+	foo (__vala_lambda0__gasync_ready_callback, NULL);
+	bar (__vala_lambda1__gasync_ready_callback, NULL);
 	g_task_return_pointer (_data_->_async_result, _data_, NULL);
 	if (_data_->_state_ != 0) {
 		while (!g_task_get_completed (_data_->_async_result)) {

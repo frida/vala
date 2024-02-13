@@ -1,0 +1,6 @@
+Frame
+  .get_js_context type="JSC.Context"
+  .get_js_context_for_script_world type="JSC.Context"
+
+URIRequest.get_http_headers unowned
+URIResponse.get_http_headers unowned

@@ -4582,7 +4582,7 @@ namespace Gdk {
 		public static void send_notify_for_display (Gdk.Display display, Gdk.Window requestor, Gdk.Atom selection, Gdk.Atom target, Gdk.Atom property, uint32 time_);
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_app_launch_context_get_type ()")]
-	public class AppLaunchContext : GLib.AppLaunchContext {
+	public sealed class AppLaunchContext : GLib.AppLaunchContext {
 		[CCode (has_construct_function = false)]
 		[Version (deprecated = true, deprecated_since = "3.0", since = "2.14")]
 		public AppLaunchContext ();
@@ -4750,7 +4750,7 @@ namespace Gdk {
 		public signal void device_removed (Gdk.Device device);
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_device_tool_get_type ()")]
-	public class DeviceTool : GLib.Object {
+	public sealed class DeviceTool : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected DeviceTool ();
 		[Version (since = "3.22")]
@@ -4766,7 +4766,7 @@ namespace Gdk {
 		public Gdk.DeviceToolType tool_type { get; construct; }
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_display_get_type ()")]
-	public class Display : GLib.Object {
+	public sealed class Display : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Display ();
 		[Version (since = "2.2")]
@@ -4877,7 +4877,7 @@ namespace Gdk {
 		public signal void seat_removed (Gdk.Seat seat);
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_display_manager_get_type ()")]
-	public class DisplayManager : GLib.Object {
+	public sealed class DisplayManager : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected DisplayManager ();
 		[Version (since = "2.2")]
@@ -4895,7 +4895,7 @@ namespace Gdk {
 		public signal void display_opened (Gdk.Display display);
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_drag_context_get_type ()")]
-	public class DragContext : GLib.Object {
+	public sealed class DragContext : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected DragContext ();
 		[Version (since = "2.22")]
@@ -4930,7 +4930,7 @@ namespace Gdk {
 		public signal void drop_performed (int time);
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_drawing_context_get_type ()")]
-	public class DrawingContext : GLib.Object {
+	public sealed class DrawingContext : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected DrawingContext ();
 		[Version (since = "3.22")]
@@ -5010,30 +5010,30 @@ namespace Gdk {
 		public void set_source_device (Gdk.Device device);
 		[Version (since = "3.4")]
 		public bool triggers_context_menu ();
-		public Gdk.EventAny any {[CCode (cname = "(GdkEventAny *)")]  get; }
-		public Gdk.EventButton button {[CCode (cname = "(GdkEventButton *)")]  get; }
-		public Gdk.EventConfigure configure {[CCode (cname = "(GdkEventConfigure *)")]  get; }
-		public Gdk.EventCrossing crossing {[CCode (cname = "(GdkEventCrossing *)")]  get; }
-		public Gdk.EventDND dnd {[CCode (cname = "(GdkEventDND *)")]  get; }
-		public Gdk.EventExpose expose {[CCode (cname = "(GdkEventExpose *)")]  get; }
-		public Gdk.EventFocus focus_change {[CCode (cname = "(GdkEventFocus *)")]  get; }
-		public Gdk.EventGrabBroken grab_broken {[CCode (cname = "(GdkEventGrabBroken *)")]  get; }
-		public Gdk.EventKey key {[CCode (cname = "(GdkEventKey *)")]  get; }
-		public Gdk.EventMotion motion {[CCode (cname = "(GdkEventMotion *)")]  get; }
-		public Gdk.EventOwnerChange owner_change {[CCode (cname = "(GdkEventOwnerChange *)")]  get; }
-		public Gdk.EventPadAxis pad_axis {[CCode (cname = "(GdkEventPadAxis *)")]  get; }
-		public Gdk.EventPadButton pad_button {[CCode (cname = "(GdkEventPadButton *)")]  get; }
-		public Gdk.EventPadGroupMode pad_group_mode {[CCode (cname = "(GdkEventPadGroupMode *)")]  get; }
-		public Gdk.EventProperty property {[CCode (cname = "(GdkEventProperty *)")]  get; }
-		public Gdk.EventProximity proximity {[CCode (cname = "(GdkEventProximity *)")]  get; }
-		public Gdk.EventScroll scroll {[CCode (cname = "(GdkEventScroll *)")]  get; }
-		public Gdk.EventSelection selection {[CCode (cname = "(GdkEventSelection *)")]  get; }
-		public Gdk.EventSetting setting {[CCode (cname = "(GdkEventSetting *)")]  get; }
-		public Gdk.EventTouch touch {[CCode (cname = "(GdkEventTouch *)")]  get; }
-		public Gdk.EventTouchpadPinch touchpad_pinch {[CCode (cname = "(GdkEventTouchpadPinch *)")]  get; }
-		public Gdk.EventTouchpadSwipe touchpad_swipe {[CCode (cname = "(GdkEventTouchpadSwipe *)")]  get; }
-		public Gdk.EventVisibility visibility {[CCode (cname = "(GdkEventVisibility *)")]  get; }
-		public Gdk.EventWindowState window_state {[CCode (cname = "(GdkEventWindowState *)")]  get; }
+		public Gdk.EventAny any { [CCode (cname = "(GdkEventAny *)")] get; }
+		public Gdk.EventButton button { [CCode (cname = "(GdkEventButton *)")] get; }
+		public Gdk.EventConfigure configure { [CCode (cname = "(GdkEventConfigure *)")] get; }
+		public Gdk.EventCrossing crossing { [CCode (cname = "(GdkEventCrossing *)")] get; }
+		public Gdk.EventDND dnd { [CCode (cname = "(GdkEventDND *)")] get; }
+		public Gdk.EventExpose expose { [CCode (cname = "(GdkEventExpose *)")] get; }
+		public Gdk.EventFocus focus_change { [CCode (cname = "(GdkEventFocus *)")] get; }
+		public Gdk.EventGrabBroken grab_broken { [CCode (cname = "(GdkEventGrabBroken *)")] get; }
+		public Gdk.EventKey key { [CCode (cname = "(GdkEventKey *)")] get; }
+		public Gdk.EventMotion motion { [CCode (cname = "(GdkEventMotion *)")] get; }
+		public Gdk.EventOwnerChange owner_change { [CCode (cname = "(GdkEventOwnerChange *)")] get; }
+		public Gdk.EventPadAxis pad_axis { [CCode (cname = "(GdkEventPadAxis *)")] get; }
+		public Gdk.EventPadButton pad_button { [CCode (cname = "(GdkEventPadButton *)")] get; }
+		public Gdk.EventPadGroupMode pad_group_mode { [CCode (cname = "(GdkEventPadGroupMode *)")] get; }
+		public Gdk.EventProperty property { [CCode (cname = "(GdkEventProperty *)")] get; }
+		public Gdk.EventProximity proximity { [CCode (cname = "(GdkEventProximity *)")] get; }
+		public Gdk.EventScroll scroll { [CCode (cname = "(GdkEventScroll *)")] get; }
+		public Gdk.EventSelection selection { [CCode (cname = "(GdkEventSelection *)")] get; }
+		public Gdk.EventSetting setting { [CCode (cname = "(GdkEventSetting *)")] get; }
+		public Gdk.EventTouch touch { [CCode (cname = "(GdkEventTouch *)")] get; }
+		public Gdk.EventTouchpadPinch touchpad_pinch { [CCode (cname = "(GdkEventTouchpadPinch *)")] get; }
+		public Gdk.EventTouchpadSwipe touchpad_swipe { [CCode (cname = "(GdkEventTouchpadSwipe *)")] get; }
+		public Gdk.EventVisibility visibility { [CCode (cname = "(GdkEventVisibility *)")] get; }
+		public Gdk.EventWindowState window_state { [CCode (cname = "(GdkEventWindowState *)")] get; }
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gdk_event_get_type ()")]
 	[Compact]
@@ -5438,7 +5438,7 @@ namespace Gdk {
 		public Gdk.Window window { get; construct; }
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_keymap_get_type ()")]
-	public class Keymap : GLib.Object {
+	public sealed class Keymap : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Keymap ();
 		[Version (since = "2.20")]
@@ -5474,7 +5474,7 @@ namespace Gdk {
 		public signal void state_changed ();
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_monitor_get_type ()")]
-	public class Monitor : GLib.Object {
+	public sealed class Monitor : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Monitor ();
 		[Version (since = "3.22")]
@@ -5510,7 +5510,7 @@ namespace Gdk {
 		public signal void invalidate ();
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_screen_get_type ()")]
-	public class Screen : GLib.Object {
+	public sealed class Screen : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Screen ();
 		[Version (deprecated = true, deprecated_since = "3.22", since = "2.10")]
@@ -5621,7 +5621,7 @@ namespace Gdk {
 		public signal void tool_removed (Gdk.DeviceTool tool);
 	}
 	[CCode (cheader_filename = "gdk/gdk.h", type_id = "gdk_visual_get_type ()")]
-	public class Visual : GLib.Object {
+	public sealed class Visual : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Visual ();
 		[Version (deprecated = true, deprecated_since = "3.22")]

@@ -3,8 +3,16 @@
 
 #include <glib.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -32,12 +40,12 @@ VALA_EXTERN void func (FooFunc f,
 static void _vala_main (void);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (void * _userdata_);
-static gint __lambda4_ (gint i);
-static gint ___lambda4__foo_func (gint i);
-static gint __lambda5_ (Block1Data* _data1_,
-                 gint i);
-static gint ___lambda5__bar_func (gint i,
-                           gpointer self);
+static gint _vala_lambda0_ (gint i);
+static gint __vala_lambda0__foo_func (gint i);
+static gint _vala_lambda1_ (Block1Data* _data1_,
+                     gint i);
+static gint __vala_lambda1__bar_func (gint i,
+                               gpointer self);
 
 void
 func (FooFunc f,
@@ -66,7 +74,7 @@ block1_data_unref (void * _userdata_)
 }
 
 static gint
-__lambda4_ (gint i)
+_vala_lambda0_ (gint i)
 {
 	gint result;
 	_vala_assert (i == 42, "i == 42");
@@ -75,16 +83,16 @@ __lambda4_ (gint i)
 }
 
 static gint
-___lambda4__foo_func (gint i)
+__vala_lambda0__foo_func (gint i)
 {
 	gint result;
-	result = __lambda4_ (i);
+	result = _vala_lambda0_ (i);
 	return result;
 }
 
 static gint
-__lambda5_ (Block1Data* _data1_,
-            gint i)
+_vala_lambda1_ (Block1Data* _data1_,
+                gint i)
 {
 	gint result;
 	_vala_assert (i == 23, "i == 23");
@@ -93,11 +101,11 @@ __lambda5_ (Block1Data* _data1_,
 }
 
 static gint
-___lambda5__bar_func (gint i,
-                      gpointer self)
+__vala_lambda1__bar_func (gint i,
+                          gpointer self)
 {
 	gint result;
-	result = __lambda5_ (self, i);
+	result = _vala_lambda1_ (self, i);
 	return result;
 }
 
@@ -108,7 +116,7 @@ _vala_main (void)
 	_data1_ = g_slice_new0 (Block1Data);
 	_data1_->_ref_count_ = 1;
 	_data1_->global = 4711;
-	func (___lambda4__foo_func, ___lambda5__bar_func, _data1_);
+	func (__vala_lambda0__foo_func, __vala_lambda1__bar_func, _data1_);
 	block1_data_unref (_data1_);
 	_data1_ = NULL;
 }

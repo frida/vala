@@ -174,7 +174,7 @@ namespace Pango {
 		public void init (Pango.AttrClass klass);
 	}
 	[CCode (cheader_filename = "pango/pango.h", type_id = "pango_context_get_type ()")]
-	public class Context : GLib.Object {
+	public sealed class Context : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public Context ();
 		[Version (since = "1.32.4")]
@@ -182,14 +182,14 @@ namespace Pango {
 		public Pango.Direction get_base_dir ();
 		[Version (since = "1.16")]
 		public Pango.Gravity get_base_gravity ();
-		public unowned Pango.FontDescription get_font_description ();
+		public unowned Pango.FontDescription? get_font_description ();
 		[Version (since = "1.6")]
-		public unowned Pango.FontMap get_font_map ();
+		public unowned Pango.FontMap? get_font_map ();
 		[Version (since = "1.16")]
 		public Pango.Gravity get_gravity ();
 		[Version (since = "1.16")]
 		public Pango.GravityHint get_gravity_hint ();
-		public Pango.Language get_language ();
+		public unowned Pango.Language get_language ();
 		[Version (since = "1.6")]
 		public unowned Pango.Matrix? get_matrix ();
 		public Pango.FontMetrics get_metrics (Pango.FontDescription? desc, Pango.Language? language);
@@ -203,18 +203,18 @@ namespace Pango {
 		public void set_base_dir (Pango.Direction direction);
 		[Version (since = "1.16")]
 		public void set_base_gravity (Pango.Gravity gravity);
-		public void set_font_description (Pango.FontDescription desc);
-		public void set_font_map (Pango.FontMap font_map);
+		public void set_font_description (Pango.FontDescription? desc);
+		public void set_font_map (Pango.FontMap? font_map);
 		[Version (since = "1.16")]
 		public void set_gravity_hint (Pango.GravityHint hint);
-		public void set_language (Pango.Language language);
+		public void set_language (Pango.Language? language);
 		[Version (since = "1.6")]
 		public void set_matrix (Pango.Matrix? matrix);
 		[Version (since = "1.44")]
 		public void set_round_glyph_positions (bool round_positions);
 	}
 	[CCode (cheader_filename = "pango/pango.h", ref_function = "pango_coverage_ref", type_id = "pango_coverage_get_type ()", unref_function = "pango_coverage_unref")]
-	public class Coverage : GLib.Object {
+	public sealed class Coverage : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public Coverage ();
 		public Pango.Coverage copy ();
@@ -304,7 +304,7 @@ namespace Pango {
 		[Version (since = "1.42")]
 		public void set_variations_static (string variations);
 		public void set_weight (Pango.Weight weight);
-		public string to_filename ();
+		public string? to_filename ();
 		public string to_string ();
 		public void unset_fields (Pango.FontMask to_unset);
 	}
@@ -390,7 +390,7 @@ namespace Pango {
 		public virtual Pango.FontMetrics get_metrics ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", type_id = "pango_fontset_simple_get_type ()")]
-	public class FontsetSimple : Pango.Fontset {
+	public sealed class FontsetSimple : Pango.Fontset {
 		[CCode (has_construct_function = false)]
 		public FontsetSimple (Pango.Language language);
 		public void append (owned Pango.Font font);
@@ -415,7 +415,7 @@ namespace Pango {
 		[Version (since = "1.6")]
 		public void letter_space (string text, [CCode (array_length = false)] Pango.LogAttr[] log_attrs, int letter_spacing);
 		[Version (since = "1.2")]
-		public Pango.GlyphItem split (string text, int split_index);
+		public Pango.GlyphItem? split (string text, int split_index);
 	}
 	[CCode (cheader_filename = "pango/pango.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "pango_glyph_string_get_type ()")]
 	[Compact]
@@ -462,8 +462,9 @@ namespace Pango {
 		public static unowned Pango.Language? from_string (string? language);
 		[Version (since = "1.16")]
 		public static unowned Pango.Language get_default ();
+		[CCode (array_length = false, array_null_terminated = true)]
 		[Version (since = "1.48")]
-		public static unowned Pango.Language? get_preferred ();
+		public static unowned Pango.Language[]? get_preferred ();
 		public unowned string get_sample_string ();
 		[CCode (array_length_pos = 0.1)]
 		[Version (since = "1.22")]
@@ -474,7 +475,7 @@ namespace Pango {
 		public unowned string to_string ();
 	}
 	[CCode (cheader_filename = "pango/pango.h", type_id = "pango_layout_get_type ()")]
-	public class Layout : GLib.Object {
+	public sealed class Layout : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public Layout (Pango.Context context);
 		public void context_changed ();
@@ -581,12 +582,12 @@ namespace Pango {
 		public void get_cluster_extents (out Pango.Rectangle ink_rect, out Pango.Rectangle logical_rect);
 		public int get_index ();
 		[Version (since = "1.20")]
-		public unowned Pango.Layout get_layout ();
+		public unowned Pango.Layout? get_layout ();
 		public void get_layout_extents (out Pango.Rectangle ink_rect, out Pango.Rectangle logical_rect);
-		public unowned Pango.LayoutLine get_line ();
+		public unowned Pango.LayoutLine? get_line ();
 		public void get_line_extents (out Pango.Rectangle ink_rect, out Pango.Rectangle logical_rect);
 		[Version (since = "1.16")]
-		public unowned Pango.LayoutLine get_line_readonly ();
+		public unowned Pango.LayoutLine? get_line_readonly ();
 		public void get_line_yrange (out int y0_, out int y1_);
 		public unowned Pango.LayoutRun? get_run ();
 		[Version (since = "1.50")]
@@ -622,7 +623,7 @@ namespace Pango {
 		[Version (since = "1.50")]
 		public bool is_paragraph_start ();
 		[Version (since = "1.10")]
-		public unowned Pango.LayoutLine @ref ();
+		public unowned Pango.LayoutLine? @ref ();
 		public void unref ();
 		public bool x_to_index (int x_pos, out int index_, out int trailing);
 	}
@@ -1423,9 +1424,9 @@ namespace Pango {
 	[CCode (cheader_filename = "pango/pango.h")]
 	[Version (replacement = "Language.get_default", since = "1.16")]
 	public static unowned Pango.Language language_get_default ();
-	[CCode (cheader_filename = "pango/pango.h")]
+	[CCode (array_length = false, array_null_terminated = true, cheader_filename = "pango/pango.h")]
 	[Version (replacement = "Language.get_preferred", since = "1.48")]
-	public static unowned Pango.Language? language_get_preferred ();
+	public static unowned Pango.Language[]? language_get_preferred ();
 	[CCode (cheader_filename = "pango/pango.h")]
 	[Version (replacement = "LayoutDeserializeError.quark")]
 	public static GLib.Quark layout_deserialize_error_quark ();

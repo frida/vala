@@ -1,3 +1,176 @@
+Vala 0.56.14
+============
+ * Various improvements and bug fixes:
+  - codegen: Generate compatible wrapper of ref-void functions [#1486]
+  - vala: Prevent usage of strlen() on non-null-terminated string [#1485]
+
+ * Bindings:
+  - glib-2.0: Add new symbols from 2.78
+  - gstreamer-1.0: Make ElementFactory.make()'s name parameter default to null
+  - gtk4-wayland: Add the missing wayland-client bindings
+  - wayland-client: Complete the binding
+
+Vala 0.56.13
+============
+ * Bindings:
+  - gtk4: Restore CssProvider.load_from_data() signature to take an array
+    [#1478]
+
+Vala 0.56.12
+============
+ * Regression fix:
+  - vala: Only transform default initializers of parameters [#1474]
+
+ * Bindings:
+  - gtk4: Preserve compatibility with <= 4.8.x [#1475]
+
+Vala 0.56.11
+============
+ * Various improvements and bug fixes:
+  - vala: Infer generic type from typeof() initializer of parameters
+  - girparser: Support glib:ref-func, glib:unref-func, copy-function
+    and free-function
+
+ * Bindings:
+  - gtk4: Update to 4.12.0
+
+Vala 0.56.10
+============
+ * Various improvements and bug fixes:
+  - codegen: Don't emit casts in static field initializers [#1459]
+  - parser: Reset tokens buffer when parsing a new source file
+  - vala: Output additional information when accessing unknown member
+  - vala: Allow "set" method of an container to return void or bool
+  - vala: Correctly handle possible null from SourceFile.get_source_line()
+    [#1464]
+
+ * Bindings:
+  - glib-2.0: Update return-type of HashTable.add/insert/replace() and
+    GenericSet.add() [#1465]
+  - linux: Add resolution field to Input.AbsInfo
+  - libpq: Fix a few binding errors
+
+Vala 0.56.9
+===========
+ * Various improvements and bug fixes:
+  - codegen: Add missing EXTERN flag for GType function of error domains
+    [#1449]
+  - codegen: Improve handling of sealed classes [#1451]
+  - vala: Report an error when trying to chain up to inaccessible private
+    ctor [#1445]
+  - vala: Fix spaces for attributes when writing property accessors
+  - girwriter: Fix c:type attribute for real struct parameters [#1444]
+  - testrunner: Add support to check generated header
+  - manual: Update from wiki.gnome.org
+
+ * Bindings:
+  - gio-2.0: Ease implemention of GLib.ActionGroup [#1447]
+  - glib-2.0: Fix return-type of GLib.SourceOnceFunc [#1446]
+  - glib-2.0: Add ConvertError.{NO_MEMORY,EMBEDDED_NUL}
+  - gtk4: Pick up fix for Gdk.Toplevel.compute_size.size parameter
+  - vapi: Add documentation to GLib.Math that '-X -lm' may be needed when
+    compiling [#1388]
+
+Vala 0.56.8
+===========
+ * Various improvements and bug fixes:
+  - codegen: Include "glib-object.h" when using GType/GBoxedCopyFunc
+  - valadoc: Backing method of lambda-expression isn't included in valadoc AST
+  - valadoc/tests: Add girwriter test
+  - build: Improve usage of AC_PATH_PROG() for valacs
+  - build: valadoc requires valac 0.18.1
+
+ * Bindings:
+  - gio-2.0: Add new symbols from 2.76
+  - glib-2.0: Add new symbols from 2.76
+  - glib-2.0: Fix binding of g_variant_type_n_items()
+  - gtk4: Don't skip AlertDialog ctor
+
+Vala 0.56.7
+===========
+ * Various improvements and bug fixes:
+  - codegen:
+    + Fix usage of lambda-expression from delegate initializer [#1428]
+  - vala:
+    + Check type-argument count of interface prerequisites
+    + Improve Symbol.to_string() to include TypeParameters
+    + Improve error message for wrong number of type-arguments
+    + Improve check of type_reference in ObjectCreationExpression
+    + Allow inheritance from sealed class in bindings [#1036]
+  - Fix a couple of type-argument issues in vala itself
+  - g-i: Fix compiling with mingw clang
+
+ * Bindings:
+  - gio-2.0,glib-2.0,gtk+-3.0,gtk4: Fix a few binding issues
+  - glib-2.0: g_chdir is declared in <glib/gstdio.h>
+
+Vala 0.56.6
+===========
+ * Regression fix:
+  - vala: Improve initialization of namespace fields with compound
+    literal [#1424]
+
+ * Bindings:
+  - gio-2.0,glib-2.0,gobject-2.0: Update 2.74 symbols
+  - webkit2gtk-4.*: Update to 2.40.0
+  - webkitgtk-6.0: Update to 2.40.0
+
+Vala 0.56.5
+===========
+ * Various improvements and bug fixes:
+  - codegen:
+    + Consistently handle GLib.Error as boxed type [#1418]
+    + Add cast to accessor calls for generic property implementations
+    + Use g_object_class_override_property to implement generic interface
+      properties [#1419]
+    + Add declaration for register call of dynamic DBus interfaces [#1422]
+  - vala:
+    + Correctly handle pre/post-increment expression as index of element
+      access [#1417]
+    + Set proper value-type of unary ref/out expression in initializers [#1421]
+    + Allow assignment of namespace fields with inline allocated arrays
+  - gtkmodule: Improve error messages
+
+ * Bindings:
+  - gtk4: Update to 4.10.1~40b154bf from 0.58
+  - gtk4: Add sealed to all the final types
+  - gtk+-3.0: Fix ToolPalette.icon_size get-accessor type
+  - webkitgtk-6.0: Update to 2.39.90
+
+Vala 0.56.4
+===========
+ * Various improvements and bug fixes:
+  - codegen:
+    + Add glib.h include for TRUE/FALSE literal
+    + Append VALA_EXTERN also when using fast-vapi
+    + Perform required casts for generic types of return-values and
+      in/out-parameters [#1407]
+    + Correctly handle fixed-length array initialization of fields in classes
+    + Perform required cast while assigning and passing function pointers [#1408]
+    + Cast return value of generic type accessor functions [#1408]
+    + Cast vfunc of property accessors by using cast_method_pointer() [#1408]
+  - vala:
+    + Report error in real literal if exponent has no digits
+    + Improve compatibility type checks of array elements in assignments
+    + Improve missing exponent check for real literals
+    + Better handling of [NoReturn] call inside finally clause
+  - Properly check for colored terminal output on Windows [#1383]
+  - Fix output decoding error of non-ASCII character on Win32 [#1379]
+  - parser: Properly handle chained equality expressions [#1385]
+  - manual: Update from wiki.gnome.org
+
+ * Bindings:
+  - cairo: Add missing Cairo.Pattern.get_rgba() [#1381]
+  - glib-2.0: Add `double_hash` and `double_equal`
+  - gtk4: Make Gtk.show_uri_full() an instance method of Gtk.Window [#1347]
+  - gtk4: Update workaround for DropTarget.drop() signal conflict [#1312]
+  - libgvc: Fix `cheader_filename` of the `Gvc` namespace
+  - pango: Fix a few binding errors
+  - pixman-1: Fix instance position of region copy methods
+  - webkit2gtk-*.*: Update to 2.37.91
+  - Add webkitgtk-6.0 bindings
+  - Update gnome-desktop-3.0 and gnome-desktop-4
+
 Vala 0.56.3
 ===========
  * Various improvements and bug fixes:

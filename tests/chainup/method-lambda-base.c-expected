@@ -5,8 +5,16 @@
 #include <glib-object.h>
 #include <gobject/gvaluecollector.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -100,8 +108,8 @@ static void bar_execute (Bar* self,
                   Func func,
                   gpointer func_target);
 static void bar_real_foo (Foo* base);
-static void __lambda4_ (Bar* self);
-static void ___lambda4__func (gpointer self);
+static void _vala_lambda0_ (Bar* self);
+static void __vala_lambda0__func (gpointer self);
 VALA_EXTERN Bar* bar_new (void);
 VALA_EXTERN Bar* bar_construct (GType object_type);
 static GType bar_get_type_once (void);
@@ -348,15 +356,15 @@ bar_execute (Bar* self,
 }
 
 static void
-__lambda4_ (Bar* self)
+_vala_lambda0_ (Bar* self)
 {
 	FOO_CLASS (bar_parent_class)->foo (G_TYPE_CHECK_INSTANCE_CAST (self, TYPE_FOO, Foo));
 }
 
 static void
-___lambda4__func (gpointer self)
+__vala_lambda0__func (gpointer self)
 {
-	__lambda4_ ((Bar*) self);
+	_vala_lambda0_ ((Bar*) self);
 }
 
 static void
@@ -364,7 +372,7 @@ bar_real_foo (Foo* base)
 {
 	Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_BAR, Bar);
-	bar_execute (self, ___lambda4__func, self);
+	bar_execute (self, __vala_lambda0__func, self);
 }
 
 Bar*

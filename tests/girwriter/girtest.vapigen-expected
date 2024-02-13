@@ -28,7 +28,7 @@ namespace GirTest {
 		[CCode (has_construct_function = false)]
 		public CompactClass ();
 	}
-	[CCode (cheader_filename = "girtest.h", type_id = "gir_test_deprecated_class_test_get_type ()")]
+	[CCode (cheader_filename = "girtest.h", ref_function = "gir_test_deprecated_class_test_ref", type_id = "gir_test_deprecated_class_test_get_type ()", unref_function = "gir_test_deprecated_class_test_unref")]
 	[Version (deprecated = true, deprecated_since = "0.1.2", since = "0.1.0")]
 	public class DeprecatedClassTest {
 		public int ref_count;
@@ -53,7 +53,7 @@ namespace GirTest {
 		[NoAccessorMethod]
 		public GLib.Type t_type { get; construct; }
 	}
-	[CCode (cheader_filename = "girtest.h", type_id = "gir_test_generics_test_get_type ()")]
+	[CCode (cheader_filename = "girtest.h", ref_function = "gir_test_generics_test_ref", type_id = "gir_test_generics_test_get_type ()", unref_function = "gir_test_generics_test_unref")]
 	public class GenericsTest {
 		public int ref_count;
 		[CCode (has_construct_function = false)]
@@ -74,6 +74,7 @@ namespace GirTest {
 		public int fixed_array_field[23];
 		public int internal_field;
 		public string? nullable_field;
+		public GirTest.Struct struct_field;
 		[CCode (has_construct_function = false)]
 		public ObjectTest ();
 		public void array_in ([CCode (array_length_cname = "array_length1", array_length_pos = 1.1)] int[] array);
@@ -83,6 +84,8 @@ namespace GirTest {
 		public int[] array_return ();
 		[CCode (array_length_pos = 2.3)]
 		public int[] array_return_int_in_delegate_out (int i1, out GirTest.DelegateTest d);
+		[CCode (array_length_pos = 2.2, array_length_type = "gsize")]
+		public int[] array_size_t_length ([CCode (array_length_cname = "array_length1", array_length_pos = 1.5, array_length_type = "gsize")] int[] array, [CCode (array_length_cname = "array2_length1", array_length_pos = 2.1, array_length_type = "gsize")] out int[] array2);
 		[CCode (array_length_pos = 0.1)]
 		public (unowned string)[] container_return ();
 		public async void coroutine_async ();
@@ -141,7 +144,7 @@ namespace GirTest {
 		public virtual signal void signal_with_default_handlder (int i1);
 		public signal void some_signal (int param);
 	}
-	[CCode (cheader_filename = "girtest.h", cname = "GirTestNamedClass", lower_case_csuffix = "namedclass", type_id = "gir_test_namedclass_get_type ()")]
+	[CCode (cheader_filename = "girtest.h", cname = "GirTestNamedClass", lower_case_csuffix = "namedclass", ref_function = "gir_test_namedclass_ref", type_id = "gir_test_namedclass_get_type ()", unref_function = "gir_test_namedclass_unref")]
 	public class RenamedClass {
 		public int ref_count;
 		[CCode (has_construct_function = false)]
@@ -166,7 +169,7 @@ namespace GirTest {
 		[CCode (has_construct_function = false)]
 		public SubTypeTest ();
 	}
-	[CCode (cheader_filename = "girtest.h", type_id = "gir_test_typetest_get_type ()")]
+	[CCode (cheader_filename = "girtest.h", ref_function = "gir_test_typetest_ref", type_id = "gir_test_typetest_get_type ()", unref_function = "gir_test_typetest_unref")]
 	public class TypeTest {
 		public int ref_count;
 		[CCode (has_construct_function = false)]
@@ -206,6 +209,7 @@ namespace GirTest {
 		public BoxedStruct.foo (int param1, int param2);
 		public void inv ();
 		public GirTest.BoxedStruct ret ();
+		public void @set (GirTest.BoxedStruct param1);
 	}
 	[CCode (cheader_filename = "girtest.h", cname = "GirTestNamedCompactClass", has_type_id = false)]
 	public struct RenamedCompactClass {
@@ -222,6 +226,7 @@ namespace GirTest {
 		public Struct.foo (int param1, int param2);
 		public void inv ();
 		public GirTest.Struct ret ();
+		public void @set (GirTest.Struct param1);
 	}
 	[CCode (cheader_filename = "girtest.h", cprefix = "GIR_TEST_ENUM_TEST_", type_id = "gir_test_enum_test_get_type ()")]
 	public enum EnumTest {

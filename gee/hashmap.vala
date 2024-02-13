@@ -137,7 +137,7 @@ public class Vala.HashMap<K,V> : Map<K,V> {
 		for (int i = 0; i < _array_size; i++) {
 			Node<K,V> node = (owned) _nodes[i];
 			while (node != null) {
-				Node next = (owned) node.next;
+				Node<K,V> next = (owned) node.next;
 				node.key = null;
 				node.value = null;
 				node = (owned) next;
@@ -258,13 +258,13 @@ public class Vala.HashMap<K,V> : Map<K,V> {
 			return (_node != null);
 		}
 
-		public override K? get_key () {
+		public override K get_key () {
 			assert (_stamp == _map._stamp);
 			assert (_node != null);
 			return _node.key;
 		}
 
-		public override V? get_value () {
+		public override V get_value () {
 			assert (_stamp == _map._stamp);
 			assert (_node != null);
 			return _node.value;
@@ -387,7 +387,7 @@ public class Vala.HashMap<K,V> : Map<K,V> {
 			}
 		}
 
-		private HashMap<V,K> _map;
+		private HashMap<K,V> _map;
 		private int _index = -1;
 		private weak Node<K,V> _node;
 		private weak Node<K,V> _next;

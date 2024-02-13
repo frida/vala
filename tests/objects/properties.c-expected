@@ -8,8 +8,16 @@
 #include <stdio.h>
 #include <gobject/gvaluecollector.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -366,12 +374,12 @@ VALA_EXTERN Sample* sample_construct (GType object_type,
 VALA_EXTERN void sample_set_name (Sample* self,
                       const gchar* value);
 VALA_EXTERN void sample_run (Sample* self);
-static void __lambda4_ (Sample* self,
-                 GObject* s,
-                 GParamSpec* p);
-static void ___lambda4__g_object_notify (GObject* _sender,
-                                  GParamSpec* pspec,
-                                  gpointer self);
+static void _vala_lambda0_ (Sample* self,
+                     GObject* s,
+                     GParamSpec* p);
+static void __vala_lambda0__g_object_notify (GObject* _sender,
+                                      GParamSpec* pspec,
+                                      gpointer self);
 static void sample_set_automatic (Sample* self,
                            const gchar* value);
 static const gchar* sample_get_automatic (Sample* self);
@@ -721,9 +729,9 @@ sample_new (const gchar* name)
 }
 
 static void
-__lambda4_ (Sample* self,
-            GObject* s,
-            GParamSpec* p)
+_vala_lambda0_ (Sample* self,
+                GObject* s,
+                GParamSpec* p)
 {
 	FILE* _tmp0_;
 	const gchar* _tmp1_;
@@ -735,11 +743,11 @@ __lambda4_ (Sample* self,
 }
 
 static void
-___lambda4__g_object_notify (GObject* _sender,
-                             GParamSpec* pspec,
-                             gpointer self)
+__vala_lambda0__g_object_notify (GObject* _sender,
+                                 GParamSpec* pspec,
+                                 gpointer self)
 {
-	__lambda4_ ((Sample*) self, _sender, pspec);
+	_vala_lambda0_ ((Sample*) self, _sender, pspec);
 }
 
 void
@@ -757,7 +765,7 @@ sample_run (Sample* self)
 	const gchar* _tmp9_;
 	GError* _inner_error0_ = NULL;
 	g_return_if_fail (IS_SAMPLE (self));
-	g_signal_connect_object (G_TYPE_CHECK_INSTANCE_CAST (self, G_TYPE_OBJECT, GObject), "notify", (GCallback) ___lambda4__g_object_notify, self, 0);
+	g_signal_connect_object (G_TYPE_CHECK_INSTANCE_CAST (self, G_TYPE_OBJECT, GObject), "notify", (GCallback) __vala_lambda0__g_object_notify, self, 0);
 	sample_set_automatic (self, "TheNewAutomatic");
 	sample_set_name (self, "TheNewName");
 	_tmp0_ = stdout;
@@ -1637,8 +1645,8 @@ maman_bar_class_init (MamanBarClass * klass,
 {
 	maman_bar_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_adjust_private_offset (klass, &MamanBar_private_offset);
-	MAMAN_FOO_CLASS (klass)->get_abstract_base_property = maman_bar_real_get_abstract_base_property;
-	MAMAN_FOO_CLASS (klass)->set_abstract_base_property = maman_bar_real_set_abstract_base_property;
+	MAMAN_FOO_CLASS (klass)->get_abstract_base_property = (gint (*) (MamanFoo*)) maman_bar_real_get_abstract_base_property;
+	MAMAN_FOO_CLASS (klass)->set_abstract_base_property = (void (*) (MamanFoo*, gint)) maman_bar_real_set_abstract_base_property;
 	G_OBJECT_CLASS (klass)->get_property = _vala_maman_bar_get_property;
 	G_OBJECT_CLASS (klass)->set_property = _vala_maman_bar_set_property;
 	G_OBJECT_CLASS (klass)->finalize = maman_bar_finalize;
@@ -2131,8 +2139,8 @@ maman_biz_class_init (MamanBizClass * klass,
 {
 	maman_biz_parent_class = g_type_class_peek_parent (klass);
 	g_type_class_adjust_private_offset (klass, &MamanBiz_private_offset);
-	MAMAN_ABIZ_CLASS (klass)->get_number2 = maman_biz_real_get_number2;
-	MAMAN_ABIZ_CLASS (klass)->set_number2 = maman_biz_real_set_number2;
+	MAMAN_ABIZ_CLASS (klass)->get_number2 = (gint (*) (MamanABiz*)) maman_biz_real_get_number2;
+	MAMAN_ABIZ_CLASS (klass)->set_number2 = (void (*) (MamanABiz*, gint)) maman_biz_real_set_number2;
 	G_OBJECT_CLASS (klass)->get_property = _vala_maman_biz_get_property;
 	G_OBJECT_CLASS (klass)->set_property = _vala_maman_biz_set_property;
 	G_OBJECT_CLASS (klass)->finalize = maman_biz_finalize;

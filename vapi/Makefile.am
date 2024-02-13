@@ -49,6 +49,7 @@ dist_vapi_DATA = \
 	dbus-glib-1.vapi \
 	enchant.vapi \
 	enchant-2.vapi \
+	freetype2.vapi \
 	fuse.deps \
 	fuse.vapi \
 	gconf-2.0.vapi \
@@ -179,13 +180,9 @@ dist_vapi_DATA = \
 	hal.vapi \
 	harfbuzz-gobject.deps \
 	harfbuzz-gobject.vapi \
-	hildon-1.deps \
-	hildon-1.vapi \
-	hildon-fm-2.deps \
-	hildon-fm-2.vapi \
 	javascriptcoregtk-4.0.vapi \
 	javascriptcoregtk-4.1.vapi \
-	javascriptcoregtk-5.0.vapi \
+	javascriptcoregtk-6.0.vapi \
 	json-glib-1.0.deps \
 	json-glib-1.0.vapi \
 	libarchive.deps \
@@ -310,14 +307,16 @@ dist_vapi_DATA = \
 	webkit2gtk-4.0.deps \
 	webkit2gtk-4.1.vapi \
 	webkit2gtk-4.1.deps \
-	webkit2gtk-5.0.vapi \
-	webkit2gtk-5.0.deps \
 	webkit2gtk-web-extension-4.0.vapi \
 	webkit2gtk-web-extension-4.0.deps \
 	webkit2gtk-web-extension-4.1.vapi \
 	webkit2gtk-web-extension-4.1.deps \
-	webkit2gtk-web-extension-5.0.vapi \
-	webkit2gtk-web-extension-5.0.deps \
+	webkitgtk-6.0.vapi \
+	webkitgtk-6.0.deps \
+	webkitgtk-web-extension-6.0.vapi \
+	webkitgtk-web-extension-6.0.deps \
+	webkitgtk-web-process-extension-6.0.vapi \
+	webkitgtk-web-process-extension-6.0.deps \
 	x11.vapi \
 	xcb.vapi \
 	xcb-icccm.vapi \
@@ -346,8 +345,6 @@ GIDL_BINDINGS = \
 	gtk+-unix-print-2.0 \
 	gtk+-unix-print-3.0 \
 	gtksourceview-2.0 \
-	hildon-1 \
-	hildon-fm-2 \
 	libepc-1.0 \
 	libglade-2.0 \
 	libgnome-2.0 \
@@ -421,7 +418,7 @@ GIR_BINDINGS = \
 	harfbuzz-gobject \
 	javascriptcoregtk-4.0 \
 	javascriptcoregtk-4.1 \
-	javascriptcoregtk-5.0 \
+	javascriptcoregtk-6.0 \
 	json-glib-1.0 \
 	libgeoclue-2.0 \
 	libgnome-menu-3.0 \
@@ -446,10 +443,11 @@ GIR_BINDINGS = \
 	udisks2 \
 	webkit2gtk-4.0 \
 	webkit2gtk-4.1 \
-	webkit2gtk-5.0 \
 	webkit2gtk-web-extension-4.0 \
 	webkit2gtk-web-extension-4.1 \
-	webkit2gtk-web-extension-5.0 \
+	webkitgtk-6.0 \
+	webkitgtk-web-extension-6.0 \
+	webkitgtk-web-process-extension-6.0 \
 	$(GSTREAMER_1_0_BINDINGS) \
 	$(NULL)
 
@@ -680,13 +678,7 @@ gudev-1.0:
 	$(GENVAPI) --library $(srcdir)/gudev-1.0 --metadatadir $(METADATADIR) $(METADATADIR)/GUdev-1.0-custom.vala $(GIRDIR)/GUdev-1.0.gir
 
 harfbuzz-gobject:
-	$(GENVAPI) --library $(srcdir)/harfbuzz-gobject --metadatadir $(METADATADIR) $(GIRDIR)/HarfBuzz-0.0.gir
-
-hildon-1:
-	$(GENVAPI) --library $(srcdir)/hildon-1 $(PACKAGESDIR)/hildon-1/hildon-1-custom.vala $(PACKAGESDIR)/hildon-1/hildon-1.gi
-
-hildon-fm-2:
-	$(GENVAPI) --library $(srcdir)/hildon-fm-2 $(PACKAGESDIR)/hildon-fm-2/hildon-fm-2.gi
+	$(GENVAPI) --library $(srcdir)/harfbuzz-gobject --pkg freetype2 --metadatadir $(METADATADIR) $(GIRDIR)/HarfBuzz-0.0.gir
 
 javascriptcoregtk-4.0:
 	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-4.0 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-4.0-custom.vala $(GIRDIR)/JavaScriptCore-4.0.gir
@@ -694,8 +686,8 @@ javascriptcoregtk-4.0:
 javascriptcoregtk-4.1:
 	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-4.1 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-4.1-custom.vala $(GIRDIR)/JavaScriptCore-4.1.gir
 
-javascriptcoregtk-5.0:
-	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-5.0 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-5.0-custom.vala $(GIRDIR)/JavaScriptCore-5.0.gir
+javascriptcoregtk-6.0:
+	$(GENVAPI) --library $(srcdir)/javascriptcoregtk-6.0 --metadatadir $(METADATADIR) $(METADATADIR)/JavaScriptCore-6.0-custom.vala $(GIRDIR)/JavaScriptCore-6.0.gir
 
 json-glib-1.0:
 	$(GENVAPI) --library $(srcdir)/json-glib-1.0 --metadatadir $(METADATADIR) --pkg gio-2.0 $(METADATADIR)/Json-1.0-custom.vala $(GIRDIR)/Json-1.0.gir
@@ -797,13 +789,10 @@ unique-1.0:
 	$(GENVAPI) --library $(srcdir)/unique-1.0 $(PACKAGESDIR)/unique-1.0/unique-1.0.gi
 
 webkit2gtk-4.0:
-	$(GENVAPI) --library $(srcdir)/webkit2gtk-4.0 --metadatadir $(METADATADIR) --pkg gtk+-3.0 --pkg libsoup-2.4 $(GIRDIR)/WebKit2-4.0.gir
+	$(GENVAPI) --library $(srcdir)/webkit2gtk-4.0 --metadatadir $(METADATADIR) --pkg gtk+-3.0 --pkg libsoup-2.4 $(METADATADIR)/WebKit2-4.0-custom.vala $(GIRDIR)/WebKit2-4.0.gir
 
 webkit2gtk-4.1:
-	$(GENVAPI) --library $(srcdir)/webkit2gtk-4.1 --metadatadir $(METADATADIR) --pkg gtk+-3.0 --pkg libsoup-3.0 $(GIRDIR)/WebKit2-4.1.gir
-
-webkit2gtk-5.0:
-	$(GENVAPI) --library $(srcdir)/webkit2gtk-5.0 --metadatadir $(METADATADIR) --pkg gtk4 --pkg libsoup-3.0 $(GIRDIR)/WebKit2-5.0.gir
+	$(GENVAPI) --library $(srcdir)/webkit2gtk-4.1 --metadatadir $(METADATADIR) --pkg gtk+-3.0 --pkg libsoup-3.0 $(METADATADIR)/WebKit2-4.1-custom.vala $(GIRDIR)/WebKit2-4.1.gir
 
 webkit2gtk-web-extension-4.0:
 	$(GENVAPI) --library $(srcdir)/webkit2gtk-web-extension-4.0 --metadatadir $(METADATADIR) --pkg gtk+-3.0 $(METADATADIR)/WebKit2WebExtension-4.0-custom.vala $(GIRDIR)/WebKit2WebExtension-4.0.gir
@@ -811,5 +800,11 @@ webkit2gtk-web-extension-4.0:
 webkit2gtk-web-extension-4.1:
 	$(GENVAPI) --library $(srcdir)/webkit2gtk-web-extension-4.1 --metadatadir $(METADATADIR) --pkg gtk+-3.0 $(METADATADIR)/WebKit2WebExtension-4.1-custom.vala $(GIRDIR)/WebKit2WebExtension-4.1.gir
 
-webkit2gtk-web-extension-5.0:
-	$(GENVAPI) --library $(srcdir)/webkit2gtk-web-extension-5.0 --metadatadir $(METADATADIR) --pkg gtk4 $(METADATADIR)/WebKit2WebExtension-5.0-custom.vala $(GIRDIR)/WebKit2WebExtension-5.0.gir
+webkitgtk-6.0:
+	$(GENVAPI) --library $(srcdir)/webkitgtk-6.0 --metadatadir $(METADATADIR) --pkg javascriptcoregtk-6.0 --pkg gtk4 --pkg libsoup-3.0 $(GIRDIR)/WebKit-6.0.gir
+
+webkitgtk-web-extension-6.0:
+	$(GENVAPI) --library $(srcdir)/webkitgtk-web-extension-6.0 --metadatadir $(METADATADIR) --pkg javascriptcoregtk-6.0 --pkg gtk4 --pkg libsoup-3.0 $(METADATADIR)/WebKitWebExtension-6.0-custom.vala $(GIRDIR)/WebKitWebExtension-6.0.gir
+
+webkitgtk-web-process-extension-6.0:
+	$(GENVAPI) --library $(srcdir)/webkitgtk-web-process-extension-6.0 --metadatadir $(METADATADIR) --pkg javascriptcoregtk-6.0 --pkg gtk4 --pkg libsoup-3.0 $(GIRDIR)/WebKitWebProcessExtension-6.0.gir

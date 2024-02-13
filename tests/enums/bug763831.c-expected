@@ -2,9 +2,20 @@
  * generated from enums_bug763831.vala, do not modify */
 
 #include <glib-object.h>
+#include <stdlib.h>
+#include <string.h>
+#include <glib.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -23,6 +34,7 @@ typedef enum  {
 } Bar;
 
 #define TYPE_BAR (bar_get_type ())
+#define _g_free0(var) (var = (g_free (var), NULL))
 
 VALA_EXTERN GType foo_get_type (void) G_GNUC_CONST ;
 VALA_EXTERN GType bar_get_type (void) G_GNUC_CONST ;
@@ -73,10 +85,12 @@ bar_get_type (void)
 static void
 _vala_main (void)
 {
-	GFlagsValue* _tmp0_;
-	GEnumValue* _tmp1_;
-	_tmp0_ = g_flags_get_first_value (g_type_class_ref (TYPE_FOO), FOO_TEST);
-	_tmp1_ = g_enum_get_value (g_type_class_ref (TYPE_BAR), BAR_TEST);
+	gchar* _tmp0_;
+	gchar* _tmp1_;
+	_tmp0_ = g_flags_to_string (TYPE_FOO, FOO_TEST);
+	_g_free0 (_tmp0_);
+	_tmp1_ = g_enum_to_string (TYPE_BAR, BAR_TEST);
+	_g_free0 (_tmp1_);
 }
 
 int

@@ -4,8 +4,16 @@
 #include <glib-object.h>
 #include <glib.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -41,9 +49,9 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (Foo, g_object_unref)
 VALA_EXTERN void foo_foo (Foo* self);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (void * _userdata_);
-static gboolean __lambda4_ (Block1Data* _data1_);
+static gboolean _vala_lambda0_ (Block1Data* _data1_);
 VALA_EXTERN gint foo_get_i (Foo* self);
-static gboolean ___lambda4__gsource_func (gpointer self);
+static gboolean __vala_lambda0__gsource_func (gpointer self);
 VALA_EXTERN void foo_set_i (Foo* self,
                 gint value);
 static GType foo_get_type_once (void);
@@ -70,7 +78,7 @@ block1_data_unref (void * _userdata_)
 }
 
 static gboolean
-__lambda4_ (Block1Data* _data1_)
+_vala_lambda0_ (Block1Data* _data1_)
 {
 	Foo* self;
 	gint _tmp0_;
@@ -84,10 +92,10 @@ __lambda4_ (Block1Data* _data1_)
 }
 
 static gboolean
-___lambda4__gsource_func (gpointer self)
+__vala_lambda0__gsource_func (gpointer self)
 {
 	gboolean result;
-	result = __lambda4_ (self);
+	result = _vala_lambda0_ (self);
 	return result;
 }
 
@@ -102,7 +110,7 @@ foo_foo (Foo* self)
 	_data1_->_ref_count_ = 1;
 	_data1_->self = g_object_ref (self);
 	_data1_->j = 0;
-	bar = ___lambda4__gsource_func;
+	bar = __vala_lambda0__gsource_func;
 	bar_target = block1_data_ref (_data1_);
 	bar_target_destroy_notify = block1_data_unref;
 	(bar_target_destroy_notify == NULL) ? NULL : (bar_target_destroy_notify (bar_target), NULL);

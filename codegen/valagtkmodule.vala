@@ -294,7 +294,7 @@ public class Vala.GtkModule : GSignalModule {
 			} else if (current_object != null && current_token == MarkupTokenType.START_ELEMENT && (current_name == "property" || current_name == "binding")) {
 				var property_name = reader.get_attribute ("name");
 				if (property_name == null) {
-					Report.error (node.source_reference, "Invalid binding in ui file `%s'", ui_file);
+					Report.error (node.source_reference, "Invalid %s without name in ui file `%s'", current_name, ui_file);
 					current_token = reader.read_token (null, null);
 					continue;
 				}
@@ -318,7 +318,7 @@ public class Vala.GtkModule : GSignalModule {
 
 				if (current_property != null) {
 					if (handler_name == null) {
-						Report.error (node.source_reference, "Invalid closure in ui file `%s'", ui_file);
+						Report.error (node.source_reference, "Invalid %s without function in ui file `%s'", current_name, ui_file);
 						current_token = reader.read_token (null, null);
 						continue;
 					}
@@ -384,7 +384,7 @@ public class Vala.GtkModule : GSignalModule {
 	}
 
 	public override void visit_property (Property prop) {
-		if (prop.get_attribute ("GtkChild") != null && prop.field == null) {
+		if (prop.has_attribute ("GtkChild") && prop.field == null) {
 			Report.error (prop.source_reference, "[GtkChild] is only allowed on automatic properties");
 		}
 
@@ -399,7 +399,7 @@ public class Vala.GtkModule : GSignalModule {
 			return;
 		}
 
-		if (f.binding != MemberBinding.INSTANCE || f.get_attribute ("GtkChild") == null) {
+		if (f.binding != MemberBinding.INSTANCE || !f.has_attribute ("GtkChild")) {
 			return;
 		}
 
@@ -465,7 +465,7 @@ public class Vala.GtkModule : GSignalModule {
 			return;
 		}
 
-		if (m.get_attribute ("GtkCallback") == null) {
+		if (!m.has_attribute ("GtkCallback")) {
 			return;
 		}
 

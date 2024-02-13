@@ -178,7 +178,7 @@ public class Vala.Assignment : Expression {
 				return false;
 			}
 
-			if (ma.symbol_reference.get_attribute ("GtkChild") != null) {
+			if (ma.symbol_reference.has_attribute ("GtkChild")) {
 				error = true;
 				Report.error (source_reference, "Assignment of [GtkChild] `%s' is not allowed", ma.symbol_reference.get_full_name ());
 				return false;
@@ -204,6 +204,36 @@ public class Vala.Assignment : Expression {
 				foreach (Expression e in ea.get_indices ()) {
 					set_call.add_argument (e);
 				}
+
+				if (operator != AssignmentOperator.SIMPLE && ea.container.value_type.get_member ("get") is Method) {
+					// transform into binary expression inside set call
+					var get_call = new MethodCall (new MemberAccess (ea.container, "get", source_reference), source_reference);
+					foreach (Expression e in ea.get_indices ()) {
+						get_call.add_argument (e);
+					}
+
+					BinaryOperator bop;
+
+					switch (operator) {
+					case AssignmentOperator.BITWISE_OR: bop = BinaryOperator.BITWISE_OR; break;
+					case AssignmentOperator.BITWISE_AND: bop = BinaryOperator.BITWISE_AND; break;
+					case AssignmentOperator.BITWISE_XOR: bop = BinaryOperator.BITWISE_XOR; break;
+					case AssignmentOperator.ADD: bop = BinaryOperator.PLUS; break;
+					case AssignmentOperator.SUB: bop = BinaryOperator.MINUS; break;
+					case AssignmentOperator.MUL: bop = BinaryOperator.MUL; break;
+					case AssignmentOperator.DIV: bop = BinaryOperator.DIV; break;
+					case AssignmentOperator.PERCENT: bop = BinaryOperator.MOD; break;
+					case AssignmentOperator.SHIFT_LEFT: bop = BinaryOperator.SHIFT_LEFT; break;
+					case AssignmentOperator.SHIFT_RIGHT: bop = BinaryOperator.SHIFT_RIGHT; break;
+					default:
+						error = true;
+						Report.error (source_reference, "internal error: unsupported assignment operator");
+						return false;
+					}
+
+					right = new BinaryExpression (bop, get_call, right, source_reference);
+				}
+
 				set_call.add_argument (right);
 				parent_node.replace_expression (this, set_call);
 				return set_call.check (context);
@@ -500,7 +530,7 @@ public class Vala.Assignment : Expression {
 				} else if (param != null) {
 					codegen.store_parameter (param, new_value, false, source_reference);
 				} else if (field != null) {
-					codegen.store_field (field, instance && ma.inner != null ? ma.inner.target_value : null, new_value, source_reference);
+					codegen.store_field (field, instance && ma.inner != null ? ma.inner.target_value : null, new_value, false, source_reference);
 				}
 
 				if (!(parent_node is ExpressionStatement)) {

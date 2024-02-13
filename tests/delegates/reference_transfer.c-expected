@@ -5,8 +5,16 @@
 #include <glib-object.h>
 #include <gobject/gvaluecollector.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -82,8 +90,8 @@ VALA_EXTERN Foo* foo_construct (GType object_type,
 static void foo_finalize (Foo * obj);
 static GType foo_get_type_once (void);
 static void _vala_main (void);
-static void __lambda4_ (void);
-static void ___lambda4__foo_func (gpointer self);
+static void _vala_lambda0_ (void);
+static void __vala_lambda0__foo_func (gpointer self);
 
 static inline gpointer
 foo_get_instance_private (Foo* self)
@@ -338,14 +346,14 @@ foo_unref (gpointer instance)
 }
 
 static void
-__lambda4_ (void)
+_vala_lambda0_ (void)
 {
 }
 
 static void
-___lambda4__foo_func (gpointer self)
+__vala_lambda0__foo_func (gpointer self)
 {
-	__lambda4_ ();
+	_vala_lambda0_ ();
 }
 
 static void
@@ -353,7 +361,7 @@ _vala_main (void)
 {
 	Foo* foo = NULL;
 	Foo* _tmp0_;
-	_tmp0_ = foo_new (___lambda4__foo_func, NULL, NULL);
+	_tmp0_ = foo_new (__vala_lambda0__foo_func, NULL, NULL);
 	foo = _tmp0_;
 	_foo_unref0 (foo);
 }

@@ -171,11 +171,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		    && !(m is CreationMethod)) {
 			if (!m.is_private_symbol () && (context.internal_header_filename != null || context.use_fast_vapi)) {
 				// do not warn if internal member may be used outside this compilation unit
-			} else if (m.name == "closure_callback" && m.binding == MemberBinding.STATIC
-			    && m.parent_symbol != null && m.parent_symbol is ObjectTypeSymbol
-			    && ((ObjectTypeSymbol) m.parent_symbol).is_subtype_of (context.analyzer.gsource_type)) {
-				// do not warn if method is a custom GSource closure_callback
-			} else if (m.parent_symbol != null && m.parent_symbol.get_attribute ("DBus") != null
+			} else if (m.parent_symbol != null && m.parent_symbol.has_attribute ("DBus")
 			    && m.get_attribute_bool ("DBus", "visible", true)) {
 				// do not warn if internal member is a visible DBus method
 			} else {
@@ -598,7 +594,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		if (stmt.expression is MethodCall) {
 			unowned MethodCall expr = (MethodCall) stmt.expression;
 			unowned MemberAccess? ma = expr.call as MemberAccess;
-			if (ma != null && ma.symbol_reference != null && ma.symbol_reference.get_attribute ("NoReturn") != null) {
+			if (ma != null && ma.symbol_reference != null && ma.symbol_reference.has_attribute ("NoReturn")) {
 				mark_unreachable ();
 				return;
 			}
@@ -1022,7 +1018,9 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 				return;
 			}
 
-			jump_stack.add (new JumpTarget.finally_clause (finally_block, current_block));
+			if (current_block != null) {
+				jump_stack.add (new JumpTarget.finally_clause (finally_block, current_block));
+			}
 		}
 
 		int finally_jump_stack_size = jump_stack.size;

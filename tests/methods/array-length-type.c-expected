@@ -6,8 +6,16 @@
 #include <gobject/gvaluecollector.h>
 #include <string.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -187,15 +195,15 @@ VALA_EXTERN gint* foo_func (gint* p,
 static gint* _vala_array_dup4 (gint* self,
                         gssize length);
 static void _vala_main (void);
-static gint* ___lambda4_ (gint* a,
-                   guint8 a_length1,
-                   guint8* result_length1);
+static gint* _vala_lambda0_ (gint* a,
+                      guint8 a_length1,
+                      guint8* result_length1);
 static gint* _vala_array_dup5 (gint* self,
                         gssize length);
-static gint* ____lambda4__foo_func (gint* p,
-                             guint8 p_length1,
-                             guint8* result_length1,
-                             gpointer self);
+static gint* __vala_lambda0__foo_func (gint* p,
+                                guint8 p_length1,
+                                guint8* result_length1,
+                                gpointer self);
 static inline gpointer _vala_memdup2 (gconstpointer mem,
                         gsize byte_size);
 
@@ -734,8 +742,8 @@ foo_class_init (FooClass * klass,
 	g_type_class_adjust_private_offset (klass, &Foo_private_offset);
 	((FooClass *) klass)->get_bar = (gint* (*) (Foo*, guint8*)) foo_real_get_bar;
 	((FooClass *) klass)->set_bar = (void (*) (Foo*, gint**, guint8*)) foo_real_set_bar;
-	FOO_CLASS (klass)->get_manar = foo_real_get_manar;
-	FOO_CLASS (klass)->set_manar = foo_real_set_manar;
+	FOO_CLASS (klass)->get_manar = (gint* (*) (Foo*, guint8*)) foo_real_get_manar;
+	FOO_CLASS (klass)->set_manar = (void (*) (Foo*, gint*, guint8)) foo_real_set_manar;
 }
 
 static void
@@ -1031,8 +1039,8 @@ bar_class_init (BarClass * klass,
 	g_type_class_adjust_private_offset (klass, &Bar_private_offset);
 	((FooClass *) klass)->get_bar = (gint* (*) (Foo*, guint8*)) bar_real_get_bar;
 	((FooClass *) klass)->set_bar = (void (*) (Foo*, gint**, guint8*)) bar_real_set_bar;
-	FOO_CLASS (klass)->get_manar = bar_real_get_manar;
-	FOO_CLASS (klass)->set_manar = bar_real_set_manar;
+	FOO_CLASS (klass)->get_manar = (gint* (*) (Foo*, guint8*)) bar_real_get_manar;
+	FOO_CLASS (klass)->set_manar = (void (*) (Foo*, gint*, guint8)) bar_real_set_manar;
 }
 
 static void
@@ -1162,9 +1170,9 @@ _vala_array_dup5 (gint* self,
 }
 
 static gint*
-___lambda4_ (gint* a,
-             guint8 a_length1,
-             guint8* result_length1)
+_vala_lambda0_ (gint* a,
+                guint8 a_length1,
+                guint8* result_length1)
 {
 	gint* _tmp0_;
 	gint _tmp0__length1;
@@ -1184,13 +1192,13 @@ ___lambda4_ (gint* a,
 }
 
 static gint*
-____lambda4__foo_func (gint* p,
-                       guint8 p_length1,
-                       guint8* result_length1,
-                       gpointer self)
+__vala_lambda0__foo_func (gint* p,
+                          guint8 p_length1,
+                          guint8* result_length1,
+                          gpointer self)
 {
 	gint* result;
-	result = ___lambda4_ (p, p_length1, result_length1);
+	result = _vala_lambda0_ (p, p_length1, result_length1);
 	return result;
 }
 
@@ -1216,7 +1224,7 @@ _vala_main (void)
 		gint* _tmp6_;
 		gint _tmp6__length1;
 		gint _tmp7_;
-		f = ____lambda4__foo_func;
+		f = __vala_lambda0__foo_func;
 		f_target = NULL;
 		f_target_destroy_notify = NULL;
 		_tmp0_ = g_new0 (gint, 255);

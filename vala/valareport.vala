@@ -233,9 +233,12 @@ public class Vala.Report {
 	 */
 	private void report_source (SourceReference source) {
 		for (int idx = source.begin.line; idx <= source.end.line; idx++) {
-			string offending_line = source.file.get_source_line (idx);
-			stderr.printf ("%5d | %s\n", idx, offending_line);
-			stderr.printf ("      | ");
+			string? offending_line = source.file.get_source_line (idx);
+			if (offending_line == null) {
+				break;
+			}
+			printerr ("%5d | %s\n", idx, offending_line);
+			printerr ("      | ");
 			stderr.puts (caret_color_start);
 			for (int jdx = 0; jdx < offending_line.length; jdx++) {
 				if (offending_line[jdx] == '\t') {
@@ -290,7 +293,7 @@ public class Vala.Report {
 					start = cur;
 				} else {
 					cur++;
-					stderr.printf ("%s%s%s", quote_color_start, message.substring (start, cur - start), quote_color_end);
+					printerr ("%s%s%s", quote_color_start, message.substring (start, cur - start), quote_color_end);
 					start = cur;
 				}
 			} else {
@@ -303,10 +306,10 @@ public class Vala.Report {
 
 	private void print_message (SourceReference? source, string type, string type_color_start, string type_color_end, string message, bool do_report_source) {
 		if (source != null) {
-			stderr.printf ("%s%s:%s ", locus_color_start, source.to_string (), locus_color_end);
+			printerr ("%s%s:%s ", locus_color_start, source.to_string (), locus_color_end);
 		}
 
-		stderr.printf ("%s%s:%s ", type_color_start, type, type_color_end);
+		printerr ("%s%s:%s ", type_color_start, type, type_color_end);
 
 		// highlight '', `', ``
 		print_highlighted_message (message);
@@ -410,10 +413,13 @@ public class Vala.Report {
 		void* _func;
 		module.symbol ("isatty", out _func);
 		if (_func == null) {
-			return false;
+			module.symbol ("_isatty", out _func);
+			if (_func == null) {
+				return false;
+			}
 		}
 
 		AttyFunc? func = (AttyFunc) _func;
-		return func (fd) == 1;
+		return func (fd) > 0;
 	}
 }

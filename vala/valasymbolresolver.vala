@@ -412,11 +412,11 @@ public class Vala.SymbolResolver : CodeVisitor {
 		}
 
 		// attributes are not processed yet, access them directly
-		if (base_struct.get_attribute ("BooleanType") != null) {
+		if (base_struct.has_attribute ("BooleanType")) {
 			return new BooleanType (st, source_reference);
-		} else if (base_struct.get_attribute ("IntegerType") != null) {
+		} else if (base_struct.has_attribute ("IntegerType")) {
 			return new IntegerType (st, null, null, source_reference);
-		} else if (base_struct.get_attribute ("FloatingType") != null) {
+		} else if (base_struct.has_attribute ("FloatingType")) {
 			return new FloatingType (st, source_reference);
 		} else {
 			return new StructValueType (st, source_reference);
@@ -473,15 +473,8 @@ public class Vala.SymbolResolver : CodeVisitor {
 
 		type.source_reference = unresolved_type.source_reference;
 		type.value_owned = unresolved_type.value_owned;
+		type.nullable = unresolved_type.nullable;
 		sym.used = true;
-
-		if (type is GenericType) {
-			// type parameters are always considered nullable
-			// actual type argument may or may not be nullable
-			type.nullable = true;
-		} else {
-			type.nullable = unresolved_type.nullable;
-		}
 
 		type.is_dynamic = unresolved_type.is_dynamic;
 		foreach (DataType type_arg in unresolved_type.get_type_arguments ()) {

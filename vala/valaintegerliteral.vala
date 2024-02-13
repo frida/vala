@@ -78,7 +78,83 @@ public class Vala.IntegerLiteral : Literal {
 			value = value.substring (0, value.length - 1);
 		}
 
-		int64 n = int64.parse (value);
+		bool negative = value.has_prefix ("-");
+		if (negative && u) {
+			Report.error (source_reference, "unsigned integer literal cannot be negative");
+			error = true;
+		}
+
+		int64 n = 0LL;
+		uint64 un = 0ULL;
+
+		errno = 0;
+		if (value.has_prefix ("0b") || value.has_prefix ("0B")
+		    || value.has_prefix ("-0b") || value.has_prefix ("-0B")) {
+			string v;
+			if (negative) {
+				v = "-" + value.substring (3);
+			} else {
+				v = value.substring (2);
+			}
+			string unparsed;
+			if (negative) {
+				int64.try_parse (v, out n, out unparsed, 2);
+				value = n.to_string ();
+			} else {
+				uint64.try_parse (v, out un, out unparsed, 2);
+				value = un.to_string ();
+			}
+			if (unparsed != "") {
+				Report.error (source_reference, "invalid digit '%c' in binary literal", unparsed[0]);
+				error = true;
+			}
+		} else if ((value[0] == '0' && value.length > 1
+		    && (value[1] == 'o' || value[1] == 'O' || value[1].isdigit ()))
+		    || (value.has_prefix ("-0") && value.length > 3
+		    && (value[2] == 'o' || value[2] == 'O' || value[2].isdigit ()))) {
+			if (negative) {
+				if (!value[2].isdigit ()) {
+					value = "-0" + value.substring (3);
+				}
+			} else {
+				if (!value[1].isdigit ()) {
+					value = "0" + value.substring (2);
+				}
+			}
+			string unparsed;
+			if (negative) {
+				int64.try_parse (value, out n, out unparsed, 8);
+			} else {
+				uint64.try_parse (value, out un, out unparsed, 8);
+			}
+			if (unparsed != "") {
+				Report.error (source_reference, "invalid digit '%c' in octal literal", unparsed[0]);
+				error = true;
+			}
+		} else {
+			// hexademical and decimal literal
+			if (negative) {
+				n = int64.parse (value);
+			} else {
+				un = uint64.parse (value);
+			}
+		}
+
+		if (errno == ERANGE) {
+			Report.error (source_reference, "integer literal is too large for its type");
+			error = true;
+		} else if (errno == EINVAL) {
+			Report.error (source_reference, "invalid integer literal");
+			error = true;
+		}
+
+		if (un > int64.MAX) {
+			// value doesn't fit into signed 64-bit
+			u = true;
+			l = 2;
+		} else if (!negative) {
+			n = (int64) un;
+		}
 		if (!u && (n > int.MAX || n < int.MIN)) {
 			// value doesn't fit into signed 32-bit
 			l = 2;

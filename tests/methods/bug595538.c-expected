@@ -3,8 +3,16 @@
 
 #include <glib.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -26,10 +34,10 @@ VALA_EXTERN void do_foo (Foo foo,
 static void _vala_main (void);
 static Block1Data* block1_data_ref (Block1Data* _data1_);
 static void block1_data_unref (void * _userdata_);
-static void __lambda4_ (Block1Data* _data1_);
-static void __lambda5_ (Block1Data* _data1_);
-static void ___lambda5__foo (gpointer self);
-static void ___lambda4__foo (gpointer self);
+static void _vala_lambda0_ (Block1Data* _data1_);
+static void _vala_lambda1_ (Block1Data* _data1_);
+static void __vala_lambda1__foo (gpointer self);
+static void __vala_lambda0__foo (gpointer self);
 
 void
 do_foo (Foo foo,
@@ -56,28 +64,28 @@ block1_data_unref (void * _userdata_)
 }
 
 static void
-__lambda5_ (Block1Data* _data1_)
+_vala_lambda1_ (Block1Data* _data1_)
 {
 	gint j = 0;
 	j = _data1_->i;
 }
 
 static void
-___lambda5__foo (gpointer self)
+__vala_lambda1__foo (gpointer self)
 {
-	__lambda5_ (self);
+	_vala_lambda1_ (self);
 }
 
 static void
-__lambda4_ (Block1Data* _data1_)
+_vala_lambda0_ (Block1Data* _data1_)
 {
-	do_foo (___lambda5__foo, _data1_);
+	do_foo (__vala_lambda1__foo, _data1_);
 }
 
 static void
-___lambda4__foo (gpointer self)
+__vala_lambda0__foo (gpointer self)
 {
-	__lambda4_ (self);
+	_vala_lambda0_ (self);
 }
 
 static void
@@ -87,7 +95,7 @@ _vala_main (void)
 	_data1_ = g_slice_new0 (Block1Data);
 	_data1_->_ref_count_ = 1;
 	_data1_->i = 42;
-	do_foo (___lambda4__foo, _data1_);
+	do_foo (__vala_lambda0__foo, _data1_);
 	block1_data_unref (_data1_);
 	_data1_ = NULL;
 }

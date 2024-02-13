@@ -20,6 +20,9 @@ namespace Gst {
 			public Gst.TaskPool get_execution_task_pool ();
 			[NoWrapper]
 			public virtual Gst.Caps update_caps (Gst.Caps caps);
+			[NoAccessorMethod]
+			[Version (since = "1.22")]
+			public bool force_live { get; construct; }
 		}
 		[CCode (cheader_filename = "gst/video/video.h", type_id = "gst_video_aggregator_convert_pad_get_type ()")]
 		[GIR (name = "VideoAggregatorConvertPad")]
@@ -142,6 +145,10 @@ namespace Gst {
 			[Version (since = "1.6")]
 			public void free ();
 			public unowned Gst.Structure get_config ();
+			[Version (since = "1.22")]
+			public unowned Gst.Video.Info get_in_info ();
+			[Version (since = "1.22")]
+			public unowned Gst.Video.Info get_out_info ();
 			[Version (since = "1.6")]
 			public bool set_config (owned Gst.Structure config);
 		}
@@ -151,7 +158,7 @@ namespace Gst {
 			[CCode (has_construct_function = false)]
 			protected Decoder ();
 			public void add_to_frame (int n_bytes);
-			public Gst.Buffer allocate_output_buffer ();
+			public Gst.Buffer? allocate_output_buffer ();
 			public Gst.FlowReturn allocate_output_frame (Gst.Video.CodecFrame frame);
 			[Version (since = "1.12")]
 			public Gst.FlowReturn allocate_output_frame_with_params (Gst.Video.CodecFrame frame, Gst.BufferPoolAcquireParams @params);
@@ -171,10 +178,10 @@ namespace Gst {
 			public Gst.FlowReturn finish_subframe (owned Gst.Video.CodecFrame frame);
 			[NoWrapper]
 			public virtual bool flush ();
-			public void get_allocator (out Gst.Allocator allocator, out Gst.AllocationParams @params);
-			public Gst.BufferPool get_buffer_pool ();
+			public void get_allocator (out Gst.Allocator? allocator, out Gst.AllocationParams @params);
+			public Gst.BufferPool? get_buffer_pool ();
 			public int get_estimate_rate ();
-			public Gst.Video.CodecFrame get_frame (int frame_number);
+			public Gst.Video.CodecFrame? get_frame (int frame_number);
 			public GLib.List<Gst.Video.CodecFrame> get_frames ();
 			[Version (since = "1.20")]
 			public uint get_input_subframe_index (Gst.Video.CodecFrame frame);
@@ -185,8 +192,8 @@ namespace Gst {
 			public bool get_needs_format ();
 			[Version (since = "1.20")]
 			public bool get_needs_sync_point ();
-			public Gst.Video.CodecFrame get_oldest_frame ();
-			public Gst.Video.CodecState get_output_state ();
+			public Gst.Video.CodecFrame? get_oldest_frame ();
+			public Gst.Video.CodecState? get_output_state ();
 			public bool get_packetized ();
 			[Version (since = "1.4")]
 			public size_t get_pending_frame_size ();
@@ -226,14 +233,14 @@ namespace Gst {
 			[NoWrapper]
 			public virtual bool set_format (Gst.Video.CodecState state);
 			[Version (since = "1.16.")]
-			public Gst.Video.CodecState set_interlaced_output_state (Gst.Video.Format fmt, Gst.Video.InterlaceMode interlace_mode, uint width, uint height, Gst.Video.CodecState? reference);
+			public Gst.Video.CodecState? set_interlaced_output_state (Gst.Video.Format fmt, Gst.Video.InterlaceMode interlace_mode, uint width, uint height, Gst.Video.CodecState? reference);
 			public void set_latency (Gst.ClockTime min_latency, Gst.ClockTime max_latency);
 			public void set_max_errors (int num);
 			[Version (since = "1.4")]
 			public void set_needs_format (bool enabled);
 			[Version (since = "1.20")]
 			public void set_needs_sync_point (bool enabled);
-			public Gst.Video.CodecState set_output_state (Gst.Video.Format fmt, uint width, uint height, Gst.Video.CodecState? reference);
+			public Gst.Video.CodecState? set_output_state (Gst.Video.Format fmt, uint width, uint height, Gst.Video.CodecState? reference);
 			public void set_packetized (bool packetized);
 			[Version (since = "1.20")]
 			public void set_subframe_mode (bool subframe_mode);
@@ -296,16 +303,16 @@ namespace Gst {
 			public Gst.FlowReturn finish_subframe (Gst.Video.CodecFrame frame);
 			[NoWrapper]
 			public virtual bool flush ();
-			public void get_allocator (out Gst.Allocator allocator, out Gst.AllocationParams @params);
-			public Gst.Video.CodecFrame get_frame (int frame_number);
+			public void get_allocator (out Gst.Allocator? allocator, out Gst.AllocationParams @params);
+			public Gst.Video.CodecFrame? get_frame (int frame_number);
 			public GLib.List<Gst.Video.CodecFrame> get_frames ();
 			public void get_latency (out Gst.ClockTime min_latency, out Gst.ClockTime max_latency);
 			[Version (since = "1.14")]
 			public Gst.ClockTimeDiff get_max_encode_time (Gst.Video.CodecFrame frame);
 			[Version (since = "1.18")]
 			public Gst.ClockTime get_min_force_key_unit_interval ();
-			public Gst.Video.CodecFrame get_oldest_frame ();
-			public Gst.Video.CodecState get_output_state ();
+			public Gst.Video.CodecFrame? get_oldest_frame ();
+			public Gst.Video.CodecState? get_output_state ();
 			[NoWrapper]
 			public virtual Gst.Caps getcaps (Gst.Caps filter);
 			[NoWrapper]
@@ -331,7 +338,7 @@ namespace Gst {
 			public void set_min_force_key_unit_interval (Gst.ClockTime interval);
 			[Version (since = "1.6")]
 			public void set_min_pts (Gst.ClockTime min_pts);
-			public Gst.Video.CodecState set_output_state (owned Gst.Caps caps, Gst.Video.CodecState? reference);
+			public Gst.Video.CodecState? set_output_state (owned Gst.Caps caps, Gst.Video.CodecState? reference);
 			[Version (since = "1.14")]
 			public void set_qos_enabled (bool enabled);
 			[NoWrapper]
@@ -417,9 +424,26 @@ namespace Gst {
 			[Version (since = "1.20")]
 			public Info.with_caps (Gst.Caps caps);
 		}
+		[CCode (cheader_filename = "gst/video/video.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "gst_video_info_dma_drm_get_type ()")]
+		[Compact]
+		[GIR (name = "VideoInfoDmaDrm")]
+		[Version (since = "1.24")]
+		public class InfoDmaDrm {
+			public uint32 drm_fourcc;
+			public uint64 drm_modifier;
+			public weak Gst.Video.Info vinfo;
+			[CCode (has_construct_function = false)]
+			public InfoDmaDrm ();
+			public void free ();
+			[CCode (has_construct_function = false)]
+			public InfoDmaDrm.from_caps (Gst.Caps caps);
+			public bool from_video_info (Gst.Video.Info info, uint64 modifier);
+			public void init ();
+			public Gst.Caps? to_caps ();
+		}
 		[CCode (cheader_filename = "gst/video/video.h", lower_case_cprefix = "gst_video_multiview_flagset_", type_id = "gst_video_multiview_flagset_get_type ()")]
 		[GIR (name = "VideoMultiviewFlagsSet")]
-		public class MultiviewFlagsSet : Gst.FlagSet {
+		public sealed class MultiviewFlagsSet : Gst.FlagSet {
 			[CCode (has_construct_function = false)]
 			protected MultiviewFlagsSet ();
 		}
@@ -432,7 +456,7 @@ namespace Gst {
 			public void add_rectangle (Gst.Video.OverlayRectangle rectangle);
 			public bool blend (Gst.Video.Frame video_buf);
 			public Gst.Video.OverlayComposition copy ();
-			public unowned Gst.Video.OverlayRectangle get_rectangle (uint n);
+			public unowned Gst.Video.OverlayRectangle? get_rectangle (uint n);
 			public uint get_seqnum ();
 			[DestroysInstance]
 			[ReturnsModifiedPointer]
@@ -847,12 +871,13 @@ namespace Gst {
 			public Gst.Video.TileMode tile_mode;
 			public uint tile_ws;
 			public uint tile_hs;
+			[CCode (array_length = false)]
+			[Version (since = "1.22")]
+			public weak Gst.Video.TileInfo tile_info[4];
 			[Version (since = "1.18")]
 			public void component (uint plane, out int components);
 			[Version (since = "1.22")]
 			public int extrapolate_stride (int plane, int stride);
-			[Version (since = "1.22")]
-			public uint get_tile_sizes (uint plane, uint? out_ws, uint? out_hs);
 		}
 		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]
 		[GIR (name = "VideoFrame")]
@@ -1001,6 +1026,15 @@ namespace Gst {
 			public uint8 data;
 			public size_t size;
 			public static unowned Gst.MetaInfo? get_info ();
+		}
+		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]
+		[GIR (name = "VideoTileInfo")]
+		[Version (since = "1.22")]
+		public struct TileInfo {
+			public uint width;
+			public uint height;
+			public uint stride;
+			public uint size;
 		}
 		[CCode (cheader_filename = "gst/video/video.h", has_type_id = false)]
 		[GIR (name = "VideoTimeCodeConfig")]
@@ -1392,7 +1426,9 @@ namespace Gst {
 			[Version (since = "1.22")]
 			NV12_8L128,
 			[Version (since = "1.22")]
-			NV12_10BE_8L128;
+			NV12_10BE_8L128,
+			[Version (since = "1.24")]
+			NV12_10LE40_4L4;
 			public static Gst.Video.Format from_fourcc (uint32 fourcc);
 			public static Gst.Video.Format from_masks (int depth, int bpp, int endianness, uint red_mask, uint green_mask, uint blue_mask, uint alpha_mask);
 			public static Gst.Video.Format from_string (string format);
@@ -1534,7 +1570,7 @@ namespace Gst {
 			[Version (since = "1.6")]
 			public static Gst.Video.MultiviewMode from_caps_string (string caps_mview_mode);
 			[Version (since = "1.6")]
-			public unowned string to_caps_string ();
+			public unowned string? to_caps_string ();
 		}
 		[CCode (cheader_filename = "gst/video/video.h", cname = "GstNavigationCommand", cprefix = "GST_NAVIGATION_COMMAND_", type_id = "gst_navigation_command_get_type ()")]
 		[GIR (name = "NavigationCommand")]
@@ -1596,7 +1632,11 @@ namespace Gst {
 			SHIFT_MASK,
 			LOCK_MASK,
 			CONTROL_MASK,
-			ALT_MASK,
+			MOD1_MASK,
+			MOD2_MASK,
+			MOD3_MASK,
+			MOD4_MASK,
+			MOD5_MASK,
 			BUTTON1_MASK,
 			BUTTON2_MASK,
 			BUTTON3_MASK,
@@ -2039,7 +2079,7 @@ namespace Gst {
 		[Version (deprecated = true, deprecated_since = "1.20", since = "1.6")]
 		public static double color_transfer_encode (Gst.Video.TransferFunction func, double val);
 		[CCode (cheader_filename = "gst/video/video.h")]
-		public static Gst.Sample convert_sample (Gst.Sample sample, Gst.Caps to_caps, Gst.ClockTime timeout) throws GLib.Error;
+		public static Gst.Sample? convert_sample (Gst.Sample sample, Gst.Caps to_caps, Gst.ClockTime timeout) throws GLib.Error;
 		[CCode (cheader_filename = "gst/video/video.h")]
 		public static void convert_sample_async (Gst.Sample sample, Gst.Caps to_caps, Gst.ClockTime timeout, owned Gst.Video.ConvertSampleCallback callback);
 		[CCode (cheader_filename = "gst/video/video.h")]
@@ -2047,6 +2087,18 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/video/video.h")]
 		[Version (replacement = "VideoCropMeta.get_info")]
 		public static unowned Gst.MetaInfo? crop_meta_get_info ();
+		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (since = "1.24")]
+		public static uint32 dma_drm_fourcc_from_format (Gst.Video.Format format);
+		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (since = "1.24")]
+		public static uint32 dma_drm_fourcc_from_string (string format_str, out uint64 modifier);
+		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (since = "1.24")]
+		public static Gst.Video.Format dma_drm_fourcc_to_format (uint32 fourcc);
+		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (since = "1.24")]
+		public static string? dma_drm_fourcc_to_string (uint32 fourcc, uint64 modifier);
 		[CCode (cheader_filename = "gst/video/video.h")]
 		public static bool event_is_force_key_unit (Gst.Event event);
 		[CCode (cheader_filename = "gst/video/video.h")]
@@ -2106,6 +2158,15 @@ namespace Gst {
 		[Version (since = "1.6")]
 		public static bool guess_framerate (Gst.ClockTime duration, out int dest_n, out int dest_d);
 		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (replacement = "VideoInfoDmaDrm.from_caps", since = "1.24")]
+		public static bool info_dma_drm_from_caps (out unowned Gst.Video.InfoDmaDrm drm_info, Gst.Caps caps);
+		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (replacement = "VideoInfoDmaDrm.from_video_info", since = "1.24")]
+		public static bool info_dma_drm_from_video_info (out unowned Gst.Video.InfoDmaDrm drm_info, Gst.Video.Info info, uint64 modifier);
+		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (replacement = "VideoInfoDmaDrm.init", since = "1.24")]
+		public static void info_dma_drm_init (out unowned Gst.Video.InfoDmaDrm drm_info);
+		[CCode (cheader_filename = "gst/video/video.h")]
 		[Version (replacement = "VideoInfo.from_caps")]
 		public static bool info_from_caps (out unowned Gst.Video.Info info, Gst.Caps caps);
 		[CCode (cheader_filename = "gst/video/video.h")]
@@ -2120,6 +2181,9 @@ namespace Gst {
 		[CCode (cheader_filename = "gst/video/video.h")]
 		[Version (since = "1.22")]
 		public static bool is_common_aspect_ratio (int width, int height, int par_n, int par_d);
+		[CCode (cheader_filename = "gst/video/video.h")]
+		[Version (since = "1.24")]
+		public static bool is_dma_drm_caps (Gst.Caps caps);
 		[CCode (cheader_filename = "gst/video/video.h", cname = "gst_is_video_overlay_prepare_window_handle_message")]
 		public static bool is_video_overlay_prepare_window_handle_message (Gst.Message msg);
 		[CCode (cheader_filename = "gst/video/video.h")]
@@ -2162,7 +2226,7 @@ namespace Gst {
 		public static Gst.Video.MultiviewMode multiview_mode_from_caps_string (string caps_mview_mode);
 		[CCode (cheader_filename = "gst/video/video.h")]
 		[Version (replacement = "VideoMultiviewMode.to_caps_string", since = "1.6")]
-		public static unowned string multiview_mode_to_caps_string (Gst.Video.MultiviewMode mview_mode);
+		public static unowned string? multiview_mode_to_caps_string (Gst.Video.MultiviewMode mview_mode);
 		[CCode (cheader_filename = "gst/video/video.h")]
 		[Version (since = "1.6")]
 		public static void multiview_video_info_change_mode (Gst.Video.Info info, Gst.Video.MultiviewMode out_mview_mode, Gst.Video.MultiviewFlags out_mview_flags);

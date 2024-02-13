@@ -1657,7 +1657,7 @@ public class Vala.CodeWriter : CodeVisitor {
 		foreach (var attr in node.attributes) {
 			attributes.insert_sorted (attr, (a, b) => strcmp (a.name, b.name));
 		}
-		if (need_cheaders && node.get_attribute ("CCode") == null) {
+		if (need_cheaders && !node.has_attribute ("CCode")) {
 			attributes.insert_sorted (new Attribute ("CCode"), (a, b) => strcmp (a.name, b.name));
 		}
 
@@ -1693,7 +1693,11 @@ public class Vala.CodeWriter : CodeVisitor {
 				}
 			}
 
-			if (!(node is Parameter) && !(node is PropertyAccessor)) {
+			if (node is PropertyAccessor) {
+				write_string (" ");
+			} else if (node is Parameter) {
+				// nothing
+			} else {
 				write_indent ();
 			}
 
@@ -1717,7 +1721,9 @@ public class Vala.CodeWriter : CodeVisitor {
 				stream.puts (")");
 			}
 			stream.puts ("]");
-			if (node is Parameter || node is PropertyAccessor) {
+			if (node is PropertyAccessor) {
+				// nothing
+			} else if (node is Parameter) {
 				write_string (" ");
 			} else {
 				write_newline ();

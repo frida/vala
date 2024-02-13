@@ -248,6 +248,18 @@ public class Vala.ObjectCreationExpression : Expression, CallableExpression {
 			type_reference.add_type_argument (type_arg);
 		}
 
+		if (!type_reference.check (context)) {
+			error = true;
+			return false;
+		}
+
+		context.analyzer.check_type (type_reference);
+		// check whether there is the expected amount of type-arguments
+		if (!type_reference.check_type_arguments (context)) {
+			error = true;
+			return false;
+		}
+
 		value_type = type_reference.copy ();
 		value_type.value_owned = true;
 
@@ -300,7 +312,7 @@ public class Vala.ObjectCreationExpression : Expression, CallableExpression {
 
 			while (cl != null) {
 				// FIXME: use target values in the codegen
-				if (cl.get_attribute_string ("CCode", "ref_sink_function") != null) {
+				if (cl.has_attribute_argument ("CCode", "ref_sink_function")) {
 					value_type.floating_reference = true;
 					break;
 				}
@@ -323,12 +335,6 @@ public class Vala.ObjectCreationExpression : Expression, CallableExpression {
 				Report.error (source_reference, "`%s' does not have a default constructor", st.get_full_name ());
 				return false;
 			}
-		}
-
-		// check whether there is the expected amount of type-arguments
-		if (!type_reference.check_type_arguments (context)) {
-			error = true;
-			return false;
 		}
 
 		if (symbol_reference == null && argument_list.size != 0) {
@@ -432,10 +438,6 @@ public class Vala.ObjectCreationExpression : Expression, CallableExpression {
 
 			context.analyzer.check_arguments (this, new MethodType (m), m.get_parameters (), argument_list);
 		} else if (type_reference is ErrorType) {
-			if (type_reference != null) {
-				type_reference.check (context);
-			}
-
 			if (member_name != null) {
 				member_name.check (context);
 			}
@@ -487,10 +489,6 @@ public class Vala.ObjectCreationExpression : Expression, CallableExpression {
 			}
 		}
 
-		if (!type.external_package) {
-			context.analyzer.check_type (type_reference);
-		}
-
 		// Unwrap chained member initializers
 		foreach (MemberInitializer init in get_object_initializer ()) {
 			if (!(init.initializer is MemberInitializer)) {
@@ -540,6 +538,7 @@ public class Vala.ObjectCreationExpression : Expression, CallableExpression {
 
 				var temp_access = SemanticAnalyzer.create_temp_access (local, target_type);
 				temp_access.formal_target_type = formal_target_type;
+				formal_target_type = null;
 
 				// don't set initializer earlier as this changes parent_node and parent_statement
 				local.initializer = this;

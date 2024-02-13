@@ -46,7 +46,7 @@ public class Vala.Parameter : Variable {
 
 	public bool format_arg {
 		get {
-			return get_attribute ("FormatArg") != null;
+			return has_attribute ("FormatArg");
 		}
 	}
 
@@ -208,9 +208,7 @@ public class Vala.Parameter : Variable {
 		if (!ellipsis) {
 			if (!external_package) {
 				context.analyzer.check_type (variable_type);
-				if (variable_type is DelegateType) {
-					variable_type.check_type_arguments (context);
-				}
+				variable_type.check_type_arguments (context, !(variable_type is DelegateType));
 
 				// check symbol availability
 				if ((parent_symbol == null || !parent_symbol.external_package) && variable_type.type_symbol != null) {

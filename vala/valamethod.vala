@@ -27,7 +27,7 @@ using GLib;
 /**
  * Represents a type or namespace method.
  */
-public class Vala.Method : Subroutine, Callable {
+public class Vala.Method : Subroutine, Callable, GenericSymbol {
 	List<TypeParameter> type_parameters;
 
 	/**
@@ -91,7 +91,7 @@ public class Vala.Method : Subroutine, Callable {
 	 */
 	public bool returns_modified_pointer {
 		get {
-			return get_attribute ("ReturnsModifiedPointer") != null;
+			return has_attribute ("ReturnsModifiedPointer");
 		}
 		set {
 			set_attribute ("ReturnsModifiedPointer", value);
@@ -145,7 +145,7 @@ public class Vala.Method : Subroutine, Callable {
 	 */
 	public bool printf_format {
 		get {
-			return get_attribute ("PrintfFormat") != null;
+			return has_attribute ("PrintfFormat");
 		}
 		set {
 			set_attribute ("PrintfFormat", value);
@@ -157,7 +157,7 @@ public class Vala.Method : Subroutine, Callable {
 	 */
 	public bool scanf_format {
 		get {
-			return get_attribute ("ScanfFormat") != null;
+			return has_attribute ("ScanfFormat");
 		}
 		set {
 			set_attribute ("ScanfFormat", value);
@@ -752,10 +752,10 @@ public class Vala.Method : Subroutine, Callable {
 			this_parameter.check (context);
 		}
 
-		if (get_attribute ("DestroysInstance") != null) {
+		if (has_attribute ("DestroysInstance")) {
 			this_parameter.variable_type.value_owned = true;
 		}
-		if (get_attribute ("NoThrow") != null) {
+		if (has_attribute ("NoThrow")) {
 			error_types = null;
 		}
 
@@ -779,7 +779,7 @@ public class Vala.Method : Subroutine, Callable {
 			return false;
 		}
 
-		if (get_attribute ("NoWrapper") != null && !(is_abstract || is_virtual)) {
+		if (has_attribute ("NoWrapper") && !(is_abstract || is_virtual)) {
 			error = true;
 			Report.error (source_reference, "[NoWrapper] methods must be declared abstract or virtual");
 			return false;
@@ -866,9 +866,7 @@ public class Vala.Method : Subroutine, Callable {
 		return_type.check (context);
 		if (!external_package) {
 			context.analyzer.check_type (return_type);
-			if (return_type is DelegateType) {
-				return_type.check_type_arguments (context);
-			}
+			return_type.check_type_arguments (context, !(return_type is DelegateType));
 		}
 
 		if (return_type.type_symbol == context.analyzer.va_list_type.type_symbol) {
@@ -877,8 +875,7 @@ public class Vala.Method : Subroutine, Callable {
 			return false;
 		}
 
-		var init_attr = get_attribute ("ModuleInit");
-		if (init_attr != null) {
+		if (has_attribute ("ModuleInit")) {
 			source_reference.file.context.module_init_method = this;
 		}
 
@@ -888,7 +885,7 @@ public class Vala.Method : Subroutine, Callable {
 			Report.error (parameters[0].source_reference, "Named parameter required before `...'");
 		}
 
-		if (get_attribute ("Print") != null && (parameters.size != 1 || parameters[0].variable_type.type_symbol != context.analyzer.string_type.type_symbol)) {
+		if (has_attribute ("Print") && (parameters.size != 1 || parameters[0].variable_type.type_symbol != context.analyzer.string_type.type_symbol)) {
 			error = true;
 			Report.error (source_reference, "[Print] methods must have exactly one parameter of type `string'");
 		}
@@ -1046,7 +1043,8 @@ public class Vala.Method : Subroutine, Callable {
 		if (overrides && base_method == null && base_interface_method != null && base_interface_method.is_abstract) {
 			Report.warning (source_reference, "`override' not required to implement `abstract' interface method `%s'", base_interface_method.get_full_name ());
 			overrides = false;
-		} else if (overrides && base_method == null && base_interface_method == null) {
+		} else if (!error && overrides && base_method == null && base_interface_method == null) {
+			error = true;
 			Report.error (source_reference, "`%s': no suitable method found to override", get_full_name ());
 		} else if ((is_abstract || is_virtual || overrides) && access == SymbolAccessibility.PRIVATE) {
 			error = true;
@@ -1133,7 +1131,7 @@ public class Vala.Method : Subroutine, Callable {
 		// check that DBus methods at least throw "GLib.Error" or "GLib.DBusError, GLib.IOError"
 		if (!(this is CreationMethod) && binding == MemberBinding.INSTANCE
 		    && !overrides && access == SymbolAccessibility.PUBLIC
-		    && parent_symbol is ObjectTypeSymbol && parent_symbol.get_attribute ("DBus") != null) {
+		    && parent_symbol is ObjectTypeSymbol && parent_symbol.has_attribute ("DBus")) {
 			Attribute? dbus_attr = get_attribute ("DBus");
 			if (dbus_attr == null || dbus_attr.get_bool ("visible", true)) {
 				bool throws_gerror = false;
@@ -1183,7 +1181,7 @@ public class Vala.Method : Subroutine, Callable {
 			}
 		}
 
-		if (get_attribute ("GtkCallback") != null) {
+		if (has_attribute ("GtkCallback")) {
 			used = true;
 		}
 

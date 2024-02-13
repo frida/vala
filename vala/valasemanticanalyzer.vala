@@ -234,7 +234,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			gsequence_type = new ObjectType ((Class) glib_ns.scope.lookup ("Sequence"));
 
 			gerror_type = (Class) glib_ns.scope.lookup ("Error");
-			regex_type = new ObjectType ((Class) root_symbol.scope.lookup ("GLib").scope.lookup ("Regex"));
+			regex_type = new ObjectType ((Class) glib_ns.scope.lookup ("Regex"));
 
 			gsource_type = (Class) glib_ns.scope.lookup ("Source");
 
@@ -473,7 +473,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 			return false;
 		}
 
-		if (type_sym is Interface && type_sym.get_attribute ("DBus") != null) {
+		if (type_sym is Interface && type_sym.has_attribute ("DBus")) {
 			// GObject properties not currently supported in D-Bus interfaces
 			return false;
 		}
@@ -515,7 +515,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		Expression prev_arg = null;
 		Iterator<Expression> arg_it = args.iterator ();
 
-		bool diag = (mtype is MethodType && ((MethodType) mtype).method_symbol.get_attribute ("Diagnostics") != null);
+		bool diag = (mtype is MethodType && ((MethodType) mtype).method_symbol.has_attribute ("Diagnostics"));
 
 		bool ellipsis = false;
 		int i = 0;

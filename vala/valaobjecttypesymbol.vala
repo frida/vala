@@ -28,7 +28,7 @@
  * be defined in Vala source code or imported from an external library with a
  * Vala API file.
  */
-public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
+public abstract class Vala.ObjectTypeSymbol : TypeSymbol, GenericSymbol {
 	private List<TypeParameter> type_parameters = new ArrayList<TypeParameter> ();
 
 	private List<Symbol> members = new ArrayList<Symbol> ();
@@ -381,7 +381,7 @@ public abstract class Vala.ObjectTypeSymbol : TypeSymbol {
 			return !error;
 		}
 
-		if (!external_package && get_attribute ("DBus") != null && !context.has_package ("gio-2.0")) {
+		if (!external_package && has_attribute ("DBus") && !context.has_package ("gio-2.0")) {
 			error = true;
 			Report.error (source_reference, "gio-2.0 package required for DBus support");
 		}

@@ -41,7 +41,7 @@ namespace Poppler {
 		public void free ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_get_type ()")]
-	public class Annot : GLib.Object {
+	public sealed class Annot : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Annot ();
 		public Poppler.AnnotType get_annot_type ();
@@ -79,7 +79,7 @@ namespace Poppler {
 		public void free ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_circle_get_type ()")]
-	public class AnnotCircle : Poppler.AnnotMarkup {
+	public sealed class AnnotCircle : Poppler.AnnotMarkup {
 		[CCode (has_construct_function = false, type = "PopplerAnnot*")]
 		[Version (since = "0.26")]
 		public AnnotCircle (Poppler.Document doc, Poppler.Rectangle rect);
@@ -89,7 +89,7 @@ namespace Poppler {
 		public void set_interior_color (Poppler.Color? poppler_color);
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_file_attachment_get_type ()")]
-	public class AnnotFileAttachment : Poppler.AnnotMarkup {
+	public sealed class AnnotFileAttachment : Poppler.AnnotMarkup {
 		[CCode (has_construct_function = false)]
 		protected AnnotFileAttachment ();
 		[Version (since = "0.14")]
@@ -98,14 +98,14 @@ namespace Poppler {
 		public string get_name ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_free_text_get_type ()")]
-	public class AnnotFreeText : Poppler.AnnotMarkup {
+	public sealed class AnnotFreeText : Poppler.AnnotMarkup {
 		[CCode (has_construct_function = false)]
 		protected AnnotFreeText ();
 		public Poppler.AnnotCalloutLine get_callout_line ();
 		public Poppler.AnnotFreeTextQuadding get_quadding ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_line_get_type ()")]
-	public class AnnotLine : Poppler.AnnotMarkup {
+	public sealed class AnnotLine : Poppler.AnnotMarkup {
 		[CCode (has_construct_function = false, type = "PopplerAnnot*")]
 		[Version (since = "0.26")]
 		public AnnotLine (Poppler.Document doc, Poppler.Rectangle rect, Poppler.Point start, Poppler.Point end);
@@ -123,7 +123,7 @@ namespace Poppler {
 		public void free ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_markup_get_type ()")]
-	public class AnnotMarkup : Poppler.Annot {
+	public sealed class AnnotMarkup : Poppler.Annot {
 		[CCode (has_construct_function = false)]
 		protected AnnotMarkup ();
 		public GLib.Date? get_date ();
@@ -149,7 +149,7 @@ namespace Poppler {
 		public void set_popup_rectangle (Poppler.Rectangle poppler_rect);
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_movie_get_type ()")]
-	public class AnnotMovie : Poppler.Annot {
+	public sealed class AnnotMovie : Poppler.Annot {
 		[CCode (has_construct_function = false)]
 		protected AnnotMovie ();
 		[Version (since = "0.14")]
@@ -158,14 +158,14 @@ namespace Poppler {
 		public string get_title ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_screen_get_type ()")]
-	public class AnnotScreen : Poppler.Annot {
+	public sealed class AnnotScreen : Poppler.Annot {
 		[CCode (has_construct_function = false)]
 		protected AnnotScreen ();
 		[Version (since = "0.14")]
 		public unowned Poppler.Action get_action ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_square_get_type ()")]
-	public class AnnotSquare : Poppler.AnnotMarkup {
+	public sealed class AnnotSquare : Poppler.AnnotMarkup {
 		[CCode (has_construct_function = false, type = "PopplerAnnot*")]
 		[Version (since = "0.26")]
 		public AnnotSquare (Poppler.Document doc, Poppler.Rectangle rect);
@@ -174,8 +174,20 @@ namespace Poppler {
 		[Version (since = "0.26")]
 		public void set_interior_color (Poppler.Color? poppler_color);
 	}
+	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_stamp_get_type ()")]
+	public sealed class AnnotStamp : Poppler.Annot {
+		[CCode (has_construct_function = false, type = "PopplerAnnot*")]
+		[Version (since = "22.07.0")]
+		public AnnotStamp (Poppler.Document doc, Poppler.Rectangle rect);
+		[Version (since = "22.07.0")]
+		public Poppler.AnnotStampIcon get_icon ();
+		[Version (since = "22.07.0")]
+		public bool set_custom_image ([CCode (type = "cairo_surface_t*")] Cairo.Surface image) throws GLib.Error;
+		[Version (since = "22.07.0")]
+		public void set_icon (Poppler.AnnotStampIcon icon);
+	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_text_get_type ()")]
-	public class AnnotText : Poppler.AnnotMarkup {
+	public sealed class AnnotText : Poppler.AnnotMarkup {
 		[CCode (has_construct_function = false, type = "PopplerAnnot*")]
 		[Version (since = "0.16")]
 		public AnnotText (Poppler.Document doc, Poppler.Rectangle rect);
@@ -188,7 +200,7 @@ namespace Poppler {
 		public void set_is_open (bool is_open);
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_annot_text_markup_get_type ()")]
-	public class AnnotTextMarkup : Poppler.AnnotMarkup {
+	public sealed class AnnotTextMarkup : Poppler.AnnotMarkup {
 		[CCode (has_construct_function = false)]
 		protected AnnotTextMarkup ();
 		[Version (since = "0.26")]
@@ -232,6 +244,8 @@ namespace Poppler {
 		public size_t get_size ();
 		public bool save (string filename) throws GLib.Error;
 		public bool save_to_callback (Poppler.AttachmentSaveFunc save_func) throws GLib.Error;
+		[Version (since = "21.12.0")]
+		public bool save_to_fd (int fd) throws GLib.Error;
 	}
 	[CCode (cheader_filename = "poppler.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "poppler_color_get_type ()")]
 	[Compact]
@@ -262,7 +276,7 @@ namespace Poppler {
 		public void free ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_document_get_type ()")]
-	public class Document : GLib.Object {
+	public sealed class Document : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Document ();
 		[Version (since = "0.78")]
@@ -272,7 +286,11 @@ namespace Poppler {
 		[Version (since = "0.82")]
 		public Document.from_bytes (GLib.Bytes bytes, string? password) throws GLib.Error;
 		[CCode (has_construct_function = false)]
+		[Version (deprecated = true, deprecated_since = "0.82")]
 		public Document.from_data ([CCode (array_length_cname = "length", array_length_pos = 1.5)] uint8[] data, string? password) throws GLib.Error;
+		[CCode (has_construct_function = false)]
+		[Version (since = "21.12.0")]
+		public Document.from_fd (int fd, string? password) throws GLib.Error;
 		[CCode (has_construct_function = false)]
 		public Document.from_file (string uri, string? password) throws GLib.Error;
 		[CCode (has_construct_function = false)]
@@ -304,6 +322,8 @@ namespace Poppler {
 		[Version (since = "0.18")]
 		public uint get_n_attachments ();
 		public int get_n_pages ();
+		[Version (since = "21.12.0")]
+		public int get_n_signatures ();
 		public Poppler.Page get_page (int index);
 		public Poppler.Page get_page_by_label (string label);
 		[Version (since = "0.16")]
@@ -335,6 +355,8 @@ namespace Poppler {
 		public Poppler.PrintScaling get_print_scaling ();
 		[Version (since = "0.16")]
 		public string get_producer ();
+		[Version (since = "22.02.0")]
+		public GLib.List<Poppler.FormField> get_signature_fields ();
 		[Version (since = "0.16")]
 		public string get_subject ();
 		[Version (since = "0.16")]
@@ -345,9 +367,11 @@ namespace Poppler {
 		[Version (since = "0.16")]
 		public bool is_linearized ();
 		[Version (since = "0.90")]
-		public void reset_form (GLib.List<string> fields, bool exclude_fields);
+		public void reset_form (GLib.List<string>? fields, bool exclude_fields);
 		public bool save (string uri) throws GLib.Error;
 		public bool save_a_copy (string uri) throws GLib.Error;
+		[Version (since = "21.12.0")]
+		public bool save_to_fd (int fd, bool include_changes) throws GLib.Error;
 		[Version (since = "0.46")]
 		public void set_author (string author);
 		[Version (since = "0.46")]
@@ -415,7 +439,7 @@ namespace Poppler {
 		public Poppler.ViewerPreferences viewer_preferences { get; }
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_font_info_get_type ()")]
-	public class FontInfo : GLib.Object {
+	public sealed class FontInfo : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public FontInfo (Poppler.Document document);
 		public void free ();
@@ -439,7 +463,7 @@ namespace Poppler {
 		public bool next ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_form_field_get_type ()")]
-	public class FormField : GLib.Object {
+	public sealed class FormField : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected FormField ();
 		public Poppler.FormButtonType button_get_button_type ();
@@ -474,6 +498,10 @@ namespace Poppler {
 		[Version (since = "0.16")]
 		public string get_partial_name ();
 		public bool is_read_only ();
+		[Version (since = "21.12.0")]
+		public async Poppler.SignatureInfo signature_validate_async (Poppler.SignatureValidationFlags flags, GLib.Cancellable? cancellable) throws GLib.Error;
+		[Version (since = "21.12.0")]
+		public Poppler.SignatureInfo signature_validate_sync (Poppler.SignatureValidationFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public bool text_do_scroll ();
 		public bool text_do_spell_check ();
 		public int text_get_max_len ();
@@ -516,7 +544,7 @@ namespace Poppler {
 		public bool next ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_layer_get_type ()")]
-	public class Layer : GLib.Object {
+	public sealed class Layer : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Layer ();
 		[Version (since = "0.12")]
@@ -561,22 +589,30 @@ namespace Poppler {
 		public void free ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_media_get_type ()")]
-	public class Media : GLib.Object {
+	public sealed class Media : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Media ();
+		[Version (since = "20.04.0")]
+		public bool get_auto_play ();
 		[Version (since = "0.14")]
 		public unowned string get_filename ();
 		[Version (since = "0.14")]
 		public unowned string get_mime_type ();
+		[Version (since = "20.04.0")]
+		public float get_repeat_count ();
+		[Version (since = "20.04.0")]
+		public bool get_show_controls ();
 		[Version (since = "0.14")]
 		public bool is_embedded ();
 		[Version (since = "0.14")]
 		public bool save (string filename) throws GLib.Error;
 		[Version (since = "0.14")]
 		public bool save_to_callback (Poppler.MediaSaveFunc save_func) throws GLib.Error;
+		[Version (since = "21.12.0")]
+		public bool save_to_fd (int fd) throws GLib.Error;
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_movie_get_type ()")]
-	public class Movie : GLib.Object {
+	public sealed class Movie : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Movie ();
 		[Version (since = "0.89")]
@@ -603,15 +639,18 @@ namespace Poppler {
 		public bool show_controls ();
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_ps_file_get_type ()")]
-	public class PSFile : GLib.Object {
+	public sealed class PSFile : GLib.Object {
 		[CCode (has_construct_function = false)]
 		public PSFile (Poppler.Document document, string filename, int first_page, int n_pages);
+		[CCode (has_construct_function = false)]
+		[Version (since = "21.12.0")]
+		public PSFile.fd (Poppler.Document document, int fd, int first_page, int n_pages);
 		public void free ();
 		public void set_duplex (bool duplex);
 		public void set_paper_size (double width, double height);
 	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_page_get_type ()")]
-	public class Page : GLib.Object {
+	public sealed class Page : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected Page ();
 		[Version (since = "0.16")]
@@ -714,8 +753,19 @@ namespace Poppler {
 		[Version (since = "0.26")]
 		public void free ();
 	}
+	[CCode (cheader_filename = "poppler.h", copy_function = "g_boxed_copy", free_function = "g_boxed_free", type_id = "poppler_signature_info_get_type ()")]
+	[Compact]
+	[Version (since = "21.12.0")]
+	public class SignatureInfo {
+		public Poppler.SignatureInfo copy ();
+		public void free ();
+		public Poppler.CertificateStatus get_certificate_status ();
+		public unowned GLib.DateTime get_local_signing_time ();
+		public Poppler.SignatureStatus get_signature_status ();
+		public unowned string get_signer_name ();
+	}
 	[CCode (cheader_filename = "poppler.h", type_id = "poppler_structure_element_get_type ()")]
-	public class StructureElement : GLib.Object {
+	public sealed class StructureElement : GLib.Object {
 		[CCode (has_construct_function = false)]
 		protected StructureElement ();
 		[Version (since = "0.26")]
@@ -904,6 +954,7 @@ namespace Poppler {
 		public Poppler.Dest dest;
 	}
 	[CCode (cheader_filename = "poppler.h", has_type_id = false)]
+	[Version (since = "0.18")]
 	public struct ActionJavascript {
 		public Poppler.ActionType type;
 		public string title;
@@ -922,6 +973,7 @@ namespace Poppler {
 		public weak GLib.List<Poppler.ActionLayer?> layers;
 	}
 	[CCode (cheader_filename = "poppler.h", has_type_id = false)]
+	[Version (since = "0.14")]
 	public struct ActionMovie {
 		public Poppler.ActionType type;
 		public string title;
@@ -935,12 +987,14 @@ namespace Poppler {
 		public string named_dest;
 	}
 	[CCode (cheader_filename = "poppler.h", has_type_id = false)]
+	[Version (since = "0.14")]
 	public struct ActionOCGState {
 		public Poppler.ActionType type;
 		public string title;
 		public GLib.List<Poppler.ActionLayer?> state_list;
 	}
 	[CCode (cheader_filename = "poppler.h", has_type_id = false)]
+	[Version (since = "0.14")]
 	public struct ActionRendition {
 		public Poppler.ActionType type;
 		public string title;
@@ -948,6 +1002,7 @@ namespace Poppler {
 		public Poppler.Media media;
 	}
 	[CCode (cheader_filename = "poppler.h", has_type_id = false)]
+	[Version (since = "0.90")]
 	public struct ActionResetForm {
 		public Poppler.ActionType type;
 		public string title;
@@ -975,6 +1030,10 @@ namespace Poppler {
 		[CCode (has_construct_function = false, type = "PopplerRectangle*")]
 		public Rectangle ();
 		public Poppler.Rectangle? copy ();
+		[Version (since = "21.05.0")]
+		public bool find_get_ignored_hyphen ();
+		[Version (since = "21.05.0")]
+		public bool find_get_match_continued ();
 		public void free ();
 	}
 	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_ACTION_LAYER_", type_id = "poppler_action_layer_action_get_type ()")]
@@ -1046,6 +1105,24 @@ namespace Poppler {
 		R,
 		GROUP
 	}
+	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_ANNOT_STAMP_ICON_", type_id = "poppler_annot_stamp_icon_get_type ()")]
+	public enum AnnotStampIcon {
+		UNKNOWN,
+		APPROVED,
+		AS_IS,
+		CONFIDENTIAL,
+		FINAL,
+		EXPERIMENTAL,
+		EXPIRED,
+		NOT_APPROVED,
+		NOT_FOR_PUBLIC_RELEASE,
+		SOLD,
+		DEPARTMENTAL,
+		FOR_COMMENT,
+		FOR_PUBLIC_RELEASE,
+		TOP_SECRET,
+		NONE
+	}
 	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_ANNOT_TEXT_STATE_", type_id = "poppler_annot_text_state_get_type ()")]
 	public enum AnnotTextState {
 		MARKED,
@@ -1092,6 +1169,17 @@ namespace Poppler {
 		SPLASH,
 		CAIRO
 	}
+	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_CERTIFICATE_", type_id = "poppler_certificate_status_get_type ()")]
+	[Version (since = "21.12.0")]
+	public enum CertificateStatus {
+		TRUSTED,
+		UNTRUSTED_ISSUER,
+		UNKNOWN_ISSUER,
+		REVOKED,
+		EXPIRED,
+		GENERIC_ERROR,
+		NOT_VERIFIED
+	}
 	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_DEST_", type_id = "poppler_dest_type_get_type ()")]
 	public enum DestType {
 		UNKNOWN,
@@ -1113,7 +1201,8 @@ namespace Poppler {
 		CASE_SENSITIVE,
 		BACKWARDS,
 		WHOLE_WORDS_ONLY,
-		IGNORE_DIACRITICS
+		IGNORE_DIACRITICS,
+		MULTILINE
 	}
 	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_FONT_TYPE_", type_id = "poppler_font_type_get_type ()")]
 	public enum FontType {
@@ -1297,6 +1386,25 @@ namespace Poppler {
 		GLYPH,
 		WORD,
 		LINE
+	}
+	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_SIGNATURE_", type_id = "poppler_signature_status_get_type ()")]
+	[Version (since = "21.12.0")]
+	public enum SignatureStatus {
+		VALID,
+		INVALID,
+		DIGEST_MISMATCH,
+		DECODING_ERROR,
+		GENERIC_ERROR,
+		NOT_FOUND,
+		NOT_VERIFIED
+	}
+	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_SIGNATURE_VALIDATION_FLAG_", type_id = "poppler_signature_validation_flags_get_type ()")]
+	[Flags]
+	[Version (since = "21.12.0")]
+	public enum SignatureValidationFlags {
+		VALIDATE_CERTIFICATE,
+		WITHOUT_OCSP_REVOCATION_CHECK,
+		USE_AIA_CERTIFICATE_FETCH
 	}
 	[CCode (cheader_filename = "poppler.h", cprefix = "POPPLER_STRUCTURE_BLOCK_ALIGN_", type_id = "poppler_structure_block_align_get_type ()")]
 	public enum StructureBlockAlign {

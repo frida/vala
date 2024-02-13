@@ -45,10 +45,6 @@ AC_PROG_MKDIR_P
 
 AC_CANONICAL_HOST
 
-VALA_HOST_OS=`echo $host_os | cut -f1 -d'-'`
-AC_SUBST(VALA_HOST_OS)
-AC_DEFINE_UNQUOTED(VALA_HOST_OS, "$VALA_HOST_OS", [Define to the host OS name])
-
 # Detect the target system
 build_linux=no
 case "${host_os}" in
@@ -74,12 +70,13 @@ if test "$YACC" = :; then
 	AC_MSG_ERROR([bison not found but required])
 fi
 
-AC_PATH_PROG(VALAC, valac, valac)
+AC_PATH_PROG([VALAC], [valac], :)
 AC_SUBST(VALAC)
 
 VALAC_BOOTSTRAP_REQUIRED=0.39.5.8
+VALAC_VALADOC_REQUIRED=0.18.1
 
-AS_IF([test "$VALAC" != valac], [FOUND_VALAC_VERION=`$VALAC --version | sed 's/Vala  *//'`
+AS_IF([test "$VALAC" != :], [FOUND_VALAC_VERION=`$VALAC --version | sed 's/Vala  *//'`
 	AS_VERSION_COMPARE(["$VALAC_BOOTSTRAP_REQUIRED"], ["$FOUND_VALAC_VERION"],
 		[enable_boostrap=yes], [enable_boostrap=yes], [enable_boostrap=no])])
 
@@ -138,6 +135,7 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=empty-body \
 -Werror=comment \
 -Werror=strict-overflow \
+-Werror=shift-overflow \
 -Wformat=2 \
 -Werror=format-security \
 -Werror=format-nonliteral \
@@ -157,6 +155,7 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=logical-not-parentheses \
 -Werror=address \
 -Werror=array-bounds \
+-Werror=array-parameter \
 -Werror=array-parameter=2 \
 -Werror=enum-conversion"
 
@@ -182,7 +181,7 @@ fi
 AC_SUBST(TEST_CFLAGS)
 
 
-GLIB_REQUIRED=2.48.0
+GLIB_REQUIRED=2.56.0
 LIBGVC_REQUIRED=2.16
 
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED)
@@ -197,6 +196,12 @@ AC_SUBST(GMODULE_LIBS)
 
 AC_ARG_WITH(cgraph, AS_HELP_STRING([--with-cgraph], [Required flag for cross-compilation to define capability of graphviz]), [], with_cgraph=check)
 AC_ARG_ENABLE(valadoc, AS_HELP_STRING([--disable-valadoc], [Disable valadoc]), enable_valadoc=$enableval, enable_valadoc=yes)
+AS_IF([test "$VALAC" != :], [FOUND_VALAC_VERION=`$VALAC --version | sed 's/Vala  *//'`
+	AS_VERSION_COMPARE(["$FOUND_VALAC_VERION"], ["$VALAC_VALADOC_REQUIRED"], [
+		AC_MSG_WARN([Force disable build of valadoc, valac >= $VALAC_VALADOC_REQUIRED is required])
+		enable_valadoc=no
+	])
+])
 if test x$enable_valadoc = xyes; then
 	PKG_CHECK_MODULES(LIBGVC, libgvc >= $LIBGVC_REQUIRED)
 	AC_MSG_CHECKING([for CGRAPH])
@@ -249,8 +254,11 @@ AM_CONDITIONAL(HAVE_JING, test "$JING" != :)
 AC_PATH_PROG([XSLTPROC], [xsltproc], :)
 AM_CONDITIONAL(HAVE_XSLTPROC, test "$XSLTPROC" != :)
 
-AC_CHECK_PROG([WEASYPRINT], [weasyprint], [weasyprint])
-AM_CONDITIONAL(HAVE_WEASYPRINT, [test x$WEASYPRINT = xweasyprint])
+AC_CHECK_PROGS([SPHINXBUILD], [sphinx-build sphinx-build3 sphinx-build2], [no])
+AM_CONDITIONAL(HAVE_SPHINXBUILD, [test "x$SPHINXBUILD" != xno])
+
+AC_CHECK_PROGS([LATEXMK], [latexmk], [no])
+AM_CONDITIONAL(HAVE_LATEXMK, [test "x$LATEXMK" != xno])
 
 AC_CHECK_PROG([HELP2MAN], [help2man], [help2man])
 AM_CONDITIONAL([HAVE_HELP2MAN], [test x$HELP2MAN = xhelp2man])
@@ -271,7 +279,6 @@ AC_CONFIG_FILES([Makefile
            tests/gtktemplate/Makefile
            doc/Makefile
            doc/manual/Makefile
-           doc/manual/version.xml
            gobject-introspection/Makefile
            vapigen/vapigen.pc
            vapigen/Makefile
@@ -287,6 +294,7 @@ AC_CONFIG_FILES([Makefile
            valadoc/doclets/gtkdoc/Makefile
            valadoc/icons/Makefile
            valadoc/tests/Makefile
+           valadoc/tests/girwriter/Makefile
 ])
 
 AC_OUTPUT

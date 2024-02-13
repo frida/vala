@@ -86,6 +86,8 @@ namespace Pk {
 		[CCode (finish_name = "pk_client_generic_finish")]
 		[Version (since = "0.8.17")]
 		public async Pk.Results get_details_local_async ([CCode (array_length = false, array_null_terminated = true)] string[] files, GLib.Cancellable? cancellable, Pk.ProgressCallback progress_callback) throws GLib.Error;
+		[Version (since = "1.2.7")]
+		public bool get_details_with_deps_size ();
 		[Version (since = "0.5.3")]
 		public Pk.Results get_distro_upgrades (GLib.Cancellable? cancellable, Pk.ProgressCallback progress_callback) throws GLib.Error;
 		[CCode (finish_name = "pk_client_generic_finish")]
@@ -215,6 +217,8 @@ namespace Pk {
 		public void set_background (bool background);
 		[Version (since = "0.6.10")]
 		public void set_cache_age (uint cache_age);
+		[Version (since = "1.2.7")]
+		public void set_details_with_deps_size (bool details_with_deps_size);
 		[Version (since = "0.6.10")]
 		public void set_interactive (bool interactive);
 		[Version (since = "0.6.10")]
@@ -237,6 +241,8 @@ namespace Pk {
 		public bool background { get; set; }
 		[Version (since = "0.6.10")]
 		public uint cache_age { get; set; }
+		[Version (since = "1.2.7")]
+		public bool details_with_deps_size { get; set; }
 		[Version (since = "0.5.4")]
 		public bool idle { get; }
 		[Version (since = "0.5.4")]
@@ -738,6 +744,8 @@ namespace Pk {
 		public uint get_remaining_time ();
 		[Version (since = "1.0.12")]
 		public Pk.Role get_role ();
+		[Version (since = "1.2.6")]
+		public string get_sender ();
 		[Version (since = "1.0.12")]
 		public uint get_speed ();
 		[Version (since = "1.0.12")]
@@ -768,6 +776,8 @@ namespace Pk {
 		public bool set_remaining_time (uint remaining_time);
 		[Version (since = "0.5.2")]
 		public bool set_role (Pk.Role role);
+		[Version (since = "1.2.6")]
+		public bool set_sender (string bus_name);
 		[Version (since = "0.5.2")]
 		public bool set_speed (uint speed);
 		[Version (since = "0.5.2")]
@@ -798,6 +808,8 @@ namespace Pk {
 		public uint remaining_time { get; set; }
 		[Version (since = "0.5.2")]
 		public uint role { get; set; }
+		[Version (since = "1.2.6")]
+		public string sender { owned get; set; }
 		[Version (since = "0.5.2")]
 		public uint speed { get; set; }
 		[Version (since = "0.5.2")]
@@ -1503,6 +1515,7 @@ namespace Pk {
 		COLLECTIONS,
 		VENDOR,
 		NEWEST,
+		DESKTOP_DDE,
 		LAST;
 		[CCode (cname = "pk_group_enum_from_string")]
 		[Version (since = "0.5.0")]
@@ -1654,7 +1667,8 @@ namespace Pk {
 		PACKAGE,
 		ITEM_PROGRESS,
 		TRANSACTION_FLAGS,
-		INVALID
+		INVALID,
+		SENDER
 	}
 	[CCode (cheader_filename = "packagekit-glib2/packagekit.h", cname = "PkRestartEnum", cprefix = "PK_RESTART_ENUM_", type_id = "pk_restart_enum_get_type ()")]
 	[GIR (name = "RestartEnum")]

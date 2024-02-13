@@ -18,6 +18,9 @@ namespace GirTest {
 		public BoxedStruct ret () {
 			return this;
 		}
+
+		public void @set (BoxedStruct param1) {
+		}
 	}
 
 	[CCode (has_type_id = false)]
@@ -38,6 +41,9 @@ namespace GirTest {
 
 		public Struct ret () {
 			return this;
+		}
+
+		public void @set (Struct param1) {
 		}
 	}
 
@@ -163,7 +169,7 @@ namespace GirTest {
 
 	public delegate bool DelegateErrorTest () throws ErrorTest;
 
-	public delegate bool DelegateGenericsTest<G,T> (G g, T t);
+	public delegate bool DelegateGenericsTest<G,T> (G g, T? t);
 
 	[GIR (visible = false)]
 	public delegate void SkippedDelegate ();
@@ -191,6 +197,8 @@ namespace GirTest {
 		public signal void skipped_signal (int param);
 
 		public int field = 42;
+
+		public Struct struct_field;
 
 		internal int internal_field = 23;
 
@@ -270,6 +278,11 @@ namespace GirTest {
 		}
 
 		public void array_in (int[] array) {
+		}
+
+		public int[:size_t] array_size_t_length (int[:size_t] array, out int[:size_t] array2) {
+			array2 = new int[8:size_t];
+			return new int[8:size_t];
 		}
 
 		public void array_inout (ref int[] array) {
@@ -436,7 +449,7 @@ namespace GirTest {
 		public GenericsTest.typed (owned DelegateGenericsTest<G,T> cb) {
 		}
 
-		public void method (T param) {
+		public void method (T? param) {
 		}
 	}
 

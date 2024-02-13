@@ -289,6 +289,8 @@ namespace Soup {
 		public uint64 get_connection_id ();
 		public unowned GLib.Uri get_first_party ();
 		public Soup.MessageFlags get_flags ();
+		[Version (since = "3.4")]
+		public bool get_force_http1 ();
 		public Soup.HTTPVersion get_http_version ();
 		public bool get_is_options_ping ();
 		public bool get_is_top_level_navigation ();
@@ -314,6 +316,8 @@ namespace Soup {
 		public void remove_flags (Soup.MessageFlags flags);
 		public void set_first_party (GLib.Uri first_party);
 		public void set_flags (Soup.MessageFlags flags);
+		[Version (since = "3.4")]
+		public void set_force_http1 (bool value);
 		public void set_is_options_ping (bool is_options_ping);
 		public void set_is_top_level_navigation (bool is_top_level_navigation);
 		public void set_method (string method);
@@ -348,6 +352,8 @@ namespace Soup {
 		public signal void content_sniffed (string type, GLib.HashTable<string,string> @params);
 		public signal void finished ();
 		public signal void got_body ();
+		[Version (since = "3.4")]
+		public signal void got_body_data (uint chunk_size);
 		public signal void got_headers ();
 		public signal void got_informational ();
 		public signal void hsts_enforced ();
@@ -444,7 +450,7 @@ namespace Soup {
 	public class Multipart {
 		[CCode (has_construct_function = false)]
 		public Multipart (string mime_type);
-		public void append_form_file (string control_name, string filename, string content_type, GLib.Bytes body);
+		public void append_form_file (string control_name, string? filename, string? content_type, GLib.Bytes body);
 		public void append_form_string (string control_name, string data);
 		public void append_part (Soup.MessageHeaders headers, GLib.Bytes body);
 		public void free ();
@@ -485,6 +491,7 @@ namespace Soup {
 		public bool listen_all (uint port, Soup.ServerListenOptions options) throws GLib.Error;
 		public bool listen_local (uint port, Soup.ServerListenOptions options) throws GLib.Error;
 		public bool listen_socket (GLib.Socket socket, Soup.ServerListenOptions options) throws GLib.Error;
+		[Version (deprecated = true, deprecated_since = "3.2")]
 		public void pause_message (Soup.ServerMessage msg);
 		public void remove_auth_domain (Soup.AuthDomain auth_domain);
 		public void remove_handler (string path);
@@ -492,6 +499,7 @@ namespace Soup {
 		public void set_tls_auth_mode (GLib.TlsAuthenticationMode mode);
 		public void set_tls_certificate (GLib.TlsCertificate certificate);
 		public void set_tls_database (GLib.TlsDatabase tls_database);
+		[Version (deprecated = true, deprecated_since = "3.2")]
 		public void unpause_message (Soup.ServerMessage msg);
 		[NoAccessorMethod]
 		public bool raw_paths { get; construct; }
@@ -527,16 +535,21 @@ namespace Soup {
 		public GLib.TlsCertificateFlags get_tls_peer_certificate_errors ();
 		public unowned GLib.Uri get_uri ();
 		public bool is_options_ping ();
+		[Version (since = "3.2")]
+		public void pause ();
 		public void set_http_version (Soup.HTTPVersion version);
 		public void set_redirect (uint status_code, string redirect_uri);
 		public void set_response (string? content_type, Soup.MemoryUse resp_use, [CCode (array_length_cname = "resp_length", array_length_pos = 3.1, array_length_type = "gsize")] uint8[]? resp_body);
 		public void set_status (uint status_code, string? reason_phrase);
 		public GLib.IOStream steal_connection ();
 		[Version (since = "3.2")]
+		public void unpause ();
+		[Version (since = "3.2")]
 		public GLib.TlsCertificate tls_peer_certificate { get; }
 		[Version (since = "3.2")]
 		public GLib.TlsCertificateFlags tls_peer_certificate_errors { get; }
 		public signal bool accept_certificate (GLib.TlsCertificate tls_peer_certificate, GLib.TlsCertificateFlags tls_peer_errors);
+		public signal void connected ();
 		public signal void disconnected ();
 		public signal void finished ();
 		public signal void got_body ();
@@ -577,6 +590,10 @@ namespace Soup {
 		public GLib.InputStream send (Soup.Message msg, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public GLib.Bytes send_and_read (Soup.Message msg, GLib.Cancellable? cancellable = null) throws GLib.Error;
 		public async GLib.Bytes send_and_read_async (Soup.Message msg, int io_priority, GLib.Cancellable? cancellable) throws GLib.Error;
+		[Version (since = "3.4")]
+		public ssize_t send_and_splice (Soup.Message msg, GLib.OutputStream out_stream, GLib.OutputStreamSpliceFlags flags, GLib.Cancellable? cancellable = null) throws GLib.Error;
+		[Version (since = "3.4")]
+		public async ssize_t send_and_splice_async (Soup.Message msg, GLib.OutputStream out_stream, GLib.OutputStreamSpliceFlags flags, int io_priority, GLib.Cancellable? cancellable) throws GLib.Error;
 		public async GLib.InputStream send_async (Soup.Message msg, int io_priority, GLib.Cancellable? cancellable) throws GLib.Error;
 		public void set_accept_language (string accept_language);
 		public void set_accept_language_auto (bool accept_language_auto);
@@ -971,7 +988,7 @@ namespace Soup {
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static void header_free_param_list (GLib.HashTable<string,string> param_list);
 	[CCode (cheader_filename = "libsoup/soup.h")]
-	public static void header_g_string_append_param (GLib.StringBuilder string, string name, string value);
+	public static void header_g_string_append_param (GLib.StringBuilder string, string name, string? value);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static void header_g_string_append_param_quoted (GLib.StringBuilder string, string name, string value);
 	[CCode (cheader_filename = "libsoup/soup.h")]
@@ -1010,6 +1027,8 @@ namespace Soup {
 	public static GLib.Quark tld_error_quark ();
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static unowned string tld_get_base_domain (string hostname) throws GLib.Error;
+	[CCode (cheader_filename = "libsoup/soup.h", sentinel = "SOUP_URI_NONE")]
+	public static GLib.Uri uri_copy (GLib.Uri uri, ...);
 	[CCode (cheader_filename = "libsoup/soup.h")]
 	public static GLib.Bytes uri_decode_data_uri (string uri, out string? content_type);
 	[CCode (cheader_filename = "libsoup/soup.h")]

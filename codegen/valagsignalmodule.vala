@@ -413,7 +413,7 @@ public class Vala.GSignalModule : GObjectModule {
 		if (sig.return_type is PointerType || sig.return_type is GenericType) {
 			csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
 		} else if (sig.return_type is ErrorType) {
-			csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
+			csignew.add_argument (new CCodeConstant ("G_TYPE_ERROR"));
 		} else if (sig.return_type is ValueType && sig.return_type.nullable) {
 			csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
 		} else if (sig.return_type.type_symbol == null) {
@@ -469,7 +469,7 @@ public class Vala.GSignalModule : GObjectModule {
 			} else if (param.variable_type is PointerType || param.variable_type is GenericType || param.direction != ParameterDirection.IN) {
 				csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
 			} else if (param.variable_type is ErrorType) {
-				csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
+				csignew.add_argument (new CCodeConstant ("G_TYPE_ERROR"));
 			} else if (param.variable_type is ValueType && param.variable_type.nullable) {
 				csignew.add_argument (new CCodeConstant ("G_TYPE_POINTER"));
 			} else {
@@ -605,6 +605,7 @@ public class Vala.GSignalModule : GObjectModule {
 			// Use actual lambda expression if available for proper target/destroy handling
 			if (((Variable) handler.symbol_reference).initializer is LambdaExpression) {
 				handler = ((Variable) handler.symbol_reference).initializer;
+				dt = null;
 			}
 		}
 		var m = handler.symbol_reference as Method;

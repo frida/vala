@@ -5,8 +5,16 @@
 #include <glib.h>
 #include <gobject/gvaluecollector.h>
 
+#if !defined(VALA_STRICT_C)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+#endif
 #if !defined(VALA_EXTERN)
-#if defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define VALA_EXTERN __declspec(dllexport) extern
 #elif __GNUC__ >= 4
 #define VALA_EXTERN __attribute__((visibility("default"))) extern
@@ -306,9 +314,11 @@ foo_class_init (FooClass * klass,
 	_tmp0_[2] = 3;
 	foo_static_bar = _tmp0_;
 	foo_static_bar_length1 = 3;
+	_foo_static_bar_size_ = foo_static_bar_length1;
 	_tmp2_ = foo_create_array (&_tmp1_);
 	foo_static_baz = _tmp2_;
 	foo_static_baz_length1 = _tmp1_;
+	_foo_static_baz_size_ = foo_static_baz_length1;
 }
 
 static void

@@ -416,6 +416,8 @@ public class Vala.Genie.Parser : CodeVisitor {
 		scanner = new Scanner (source_file);
 		scanner.parse_file_comments ();
 		scanner.indent_spaces = 0;
+
+		tokens = new TokenInfo[BUFFER_SIZE];
 		index = -1;
 		size = 0;
 
@@ -1440,9 +1442,22 @@ public class Vala.Genie.Parser : CodeVisitor {
 		return left;
 	}
 
-	Expression parse_relational_expression () throws ParseError {
+	Expression parse_type_check_expression () throws ParseError {
 		var begin = get_location ();
 		var left = parse_shift_expression ();
+		if (accept (TokenType.ISA)) {
+			var type = parse_type (true, false);
+			left = new TypeCheck (left, type, get_src (begin));
+		} else if (accept (TokenType.AS)) {
+			var type = parse_type (true, false);
+			left = new CastExpression.silent (left, type, get_src (begin));
+		}
+		return left;
+	}
+
+	Expression parse_relational_expression () throws ParseError {
+		var begin = get_location ();
+		var left = parse_type_check_expression ();
 		bool found = true;
 		while (found) {
 			var operator = get_binary_operator (current ());
@@ -1451,14 +1466,14 @@ public class Vala.Genie.Parser : CodeVisitor {
 			case BinaryOperator.LESS_THAN_OR_EQUAL:
 			case BinaryOperator.GREATER_THAN_OR_EQUAL:
 				next ();
-				var right = parse_shift_expression ();
+				var right = parse_type_check_expression ();
 				left = new BinaryExpression (operator, left, right, get_src (begin));
 				break;
 			case BinaryOperator.GREATER_THAN:
 				next ();
 				// ignore >> and >>= (two tokens due to generics)
 				if (current () != TokenType.OP_GT && current () != TokenType.OP_GE) {
-					var right = parse_shift_expression ();
+					var right = parse_type_check_expression ();
 					left = new BinaryExpression (operator, left, right, get_src (begin));
 				} else {
 					prev ();
@@ -1466,21 +1481,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 				}
 				break;
 			default:
-				switch (current ()) {
-				case TokenType.ISA:
-					next ();
-					var type = parse_type (true, false);
-					left = new TypeCheck (left, type, get_src (begin));
-					break;
-				case TokenType.AS:
-					next ();
-					var type = parse_type (true, false);
-					left = new CastExpression.silent (left, type, get_src (begin));
-					break;
-				default:
-					found = false;
-					break;
-				}
+				found = false;
 				break;
 			}
 		}
@@ -2382,7 +2383,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 		}
 	}
 
-	List<Attribute>? parse_attributes (bool parameter) throws ParseError {
+	List<Attribute>? parse_attributes () throws ParseError {
 		if (current () != TokenType.OPEN_BRACKET) {
 			return null;
 		}
@@ -2406,15 +2407,15 @@ public class Vala.Genie.Parser : CodeVisitor {
 			} while (accept (TokenType.COMMA));
 			expect (TokenType.CLOSE_BRACKET);
 		}
-		if (!parameter)
-			expect (TokenType.EOL);
+		accept (TokenType.EOL);
+
 		return attrs;
 	}
 
 	void set_attributes (CodeNode node, List<Attribute>? attributes) {
 		if (attributes != null) {
 			foreach (Attribute attr in (List<Attribute>) attributes) {
-				if (node.get_attribute (attr.name) != null) {
+				if (node.has_attribute (attr.name)) {
 					Report.error (attr.source_reference, "duplicate attribute `%s'", attr.name);
 				}
 				node.attributes.append (attr);
@@ -2424,7 +2425,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 
 	Symbol parse_declaration (bool is_root = false) throws ParseError {
 		comment = scanner.pop_comment ();
-		var attrs = parse_attributes (false);
+		var attrs = parse_attributes ();
 		var begin = get_location ();
 
 		switch (current ()) {
@@ -3131,7 +3132,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 			expect (TokenType.INDENT);
 			while (current () != TokenType.DEDENT) {
 				var accessor_begin = get_location ();
-				var attribs = parse_attributes (false);
+				var attribs = parse_attributes ();
 
 				var value_type = type.copy ();
 				value_type.value_owned = accept (TokenType.OWNED);
@@ -3458,7 +3459,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 				// allow trailing comma
 				break;
 			}
-			var value_attrs = parse_attributes (false);
+			var value_attrs = parse_attributes ();
 			var value_begin = get_location ();
 			string id = parse_identifier ();
 			comment = scanner.pop_comment ();
@@ -3519,7 +3520,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 				// allow trailing comma
 				break;
 			}
-			var code_attrs = parse_attributes (false);
+			var code_attrs = parse_attributes ();
 			var code_begin = get_location ();
 			string id = parse_identifier ();
 			comment = scanner.pop_comment ();
@@ -3654,7 +3655,7 @@ public class Vala.Genie.Parser : CodeVisitor {
 	}
 
 	Parameter parse_parameter () throws ParseError {
-		var attrs = parse_attributes (true);
+		var attrs = parse_attributes ();
 		var begin = get_location ();
 		if (accept (TokenType.ELLIPSIS)) {
 			// varargs
