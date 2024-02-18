@@ -666,13 +666,16 @@ public class Vala.GTypeModule : GErrorModule {
 		generate_class_private_declaration (cl, cfile);
 
 		var last_prop = "%s_NUM_PROPERTIES".printf (get_ccode_upper_case_name (cl));
-		if (is_gobject) {
+		bool has_properties = !cl.get_properties ().is_empty;
+		if (is_gobject && (has_properties || cl.has_type_parameters ())) {
 			cfile.add_type_declaration (prop_enum);
 
-			var prop_array_decl = new CCodeDeclaration ("GParamSpec*");
-			prop_array_decl.modifiers |= CCodeModifiers.STATIC;
-			prop_array_decl.add_declarator (new CCodeVariableDeclarator ("%s_properties".printf (get_ccode_lower_case_name (cl)), null, new CCodeDeclaratorSuffix.with_array (new CCodeIdentifier (last_prop))));
-			cfile.add_type_declaration (prop_array_decl);
+			if (has_properties) {
+				var prop_array_decl = new CCodeDeclaration ("GParamSpec*");
+				prop_array_decl.modifiers |= CCodeModifiers.STATIC;
+				prop_array_decl.add_declarator (new CCodeVariableDeclarator ("%s_properties".printf (get_ccode_lower_case_name (cl)), null, new CCodeDeclaratorSuffix.with_array (new CCodeIdentifier (last_prop))));
+				cfile.add_type_declaration (prop_array_decl);
+			}
 		}
 
 		if (!cl.is_internal_symbol () || cl.is_sealed) {
