@@ -164,8 +164,13 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 
 		var function = new CCodeFunction (get_ccode_name (m));
 
+		var cl = m.parent_symbol as Class;
+
 		if (m.is_private_symbol () && !m.external) {
 			function.modifiers |= CCodeModifiers.STATIC;
+			if (m is CreationMethod && cl != null && !cl.is_compact) {
+				function.modifiers |= CCodeModifiers.UNUSED;
+			}
 			if (m.is_inline) {
 				function.modifiers |= CCodeModifiers.INLINE;
 			}
@@ -189,8 +194,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 
 		var cparam_map = new HashMap<int,CCodeParameter> (direct_hash, direct_equal);
 		var carg_map = new HashMap<int,CCodeExpression> (direct_hash, direct_equal);
-
-		var cl = m.parent_symbol as Class;
 
 		// do not generate _new functions for creation methods of abstract classes
 		if (!(m is CreationMethod && cl != null && cl.is_abstract && !cl.is_compact)) {
