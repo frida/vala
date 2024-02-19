@@ -581,7 +581,7 @@ public class Vala.GAsyncModule : GtkModule {
 
 		var data_var = new CCodeIdentifier ("_data_");
 
-		ccode.add_declaration (dataname + "*", new CCodeVariableDeclarator ("_data_"));
+		ccode.add_declaration (dataname + "*", new CCodeVariableDeclarator ("_data_"), CCodeModifiers.UNUSED);
 
 		var async_result_cast = new CCodeFunctionCall (new CCodeIdentifier ("G_TASK"));
 		async_result_cast.add_argument (new CCodeIdentifier ("_res_"));
