@@ -2303,7 +2303,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			// create ref/unref functions
 			var ref_fun = new CCodeFunction ("block%d_data_ref".printf (block_id), struct_name + "*");
 			ref_fun.add_parameter (new CCodeParameter ("_data%d_".printf (block_id), struct_name + "*"));
-			ref_fun.modifiers = CCodeModifiers.STATIC;
+			ref_fun.modifiers = CCodeModifiers.STATIC | CCodeModifiers.UNUSED;
 
 			push_function (ref_fun);
 
