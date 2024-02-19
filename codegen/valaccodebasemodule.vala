@@ -2747,7 +2747,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 					if (array_type.rank == 1) {
 						var size_var = new LocalVariable (array_type.length_type.copy (), get_array_size_cname (get_local_cname (local)));
 						size_var.init = local.initializer == null;
-						emit_temp_var (size_var);
+						emit_temp_var (size_var, false, CCodeModifiers.UNUSED);
 					}
 				}
 			} else if (local.variable_type is DelegateType) {
@@ -3987,7 +3987,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		temp_ref_values.clear ();
 	}
 
-	public void emit_temp_var (LocalVariable local, bool on_error = false) {
+	public void emit_temp_var (LocalVariable local, bool on_error = false, CCodeModifiers modifiers = NONE) {
 		generate_type_declaration (local.variable_type, cfile);
 
 		var init = (!local.name.has_prefix ("*") && local.init);
@@ -4029,7 +4029,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 				memset_call.add_argument (size);
 				ccode.add_expression (memset_call);
 			}
-			ccode.add_declaration (get_ccode_name (local.variable_type), cvar);
+			ccode.add_declaration (get_ccode_name (local.variable_type), cvar, modifiers);
 		}
 	}
 
