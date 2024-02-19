@@ -111,6 +111,9 @@ public class Vala.CCodeDeclaration : CCodeStatement {
 		}
 
 		writer.write_indent ();
+		if ((modifiers & CCodeModifiers.UNUSED) == CCodeModifiers.UNUSED) {
+			writer.write_string (GNUC_UNUSED.chug ());
+		}
 		if ((modifiers & CCodeModifiers.REGISTER) == CCodeModifiers.REGISTER) {
 			writer.write_string ("register ");
 		}
