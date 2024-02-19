@@ -2000,7 +2000,8 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 						ccode.add_assignment (new CCodeIdentifier ("old_value"), get_call);
 						ccode.open_if (new CCodeBinaryExpression (CCodeBinaryOperator.INEQUALITY, new CCodeIdentifier ("old_value"), new CCodeIdentifier ("value")));
 					} else if (property_type.compatible (string_type)) {
-						ccode.add_declaration (get_ccode_name (property_type), new CCodeVariableDeclarator ("old_value"));
+						CCodeModifiers modifiers = (!prop.get_accessor.value_type.is_disposable ()) ? CCodeModifiers.CONST : CCodeModifiers.NONE;
+						ccode.add_declaration (get_ccode_name (property_type), new CCodeVariableDeclarator ("old_value"), modifiers);
 						ccode.add_assignment (new CCodeIdentifier ("old_value"), get_call);
 						CCodeFunctionCall ccall;
 						if (context.profile == Profile.POSIX) {
