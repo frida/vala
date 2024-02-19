@@ -383,6 +383,10 @@ public class Vala.GAsyncModule : GtkModule {
 				requires_vala_extern = true;
 			}
 
+			if (m.is_private_symbol () && m.base_method == null && m.base_interface_method == null) {
+				finishfunc.modifiers |= CCodeModifiers.UNUSED;
+			}
+
 			// do not generate _new functions for creation methods of abstract classes
 			if (!(m is CreationMethod && cl != null && cl.is_abstract)) {
 				generate_cparameters (m, decl_space, cparam_map, finishfunc, null, carg_map, new CCodeFunctionCall (new CCodeIdentifier ("fake")), 2);
