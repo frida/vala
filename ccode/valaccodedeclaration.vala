@@ -111,6 +111,9 @@ public class Vala.CCodeDeclaration : CCodeStatement {
 		}
 
 		writer.write_indent ();
+		if ((modifiers & CCodeModifiers.CONST) == CCodeModifiers.CONST) {
+			writer.write_string ("const ");
+		}
 		if ((modifiers & CCodeModifiers.UNUSED) == CCodeModifiers.UNUSED) {
 			writer.write_string (GNUC_UNUSED.chug ());
 		}
