@@ -1841,7 +1841,7 @@ public class Vala.GTypeModule : GErrorModule {
 				ccast = new CCodeCastExpression (new CCodeIdentifier ("obj"), "%s *".printf (get_ccode_name (cl)));
 			}
 
-			ccode.add_declaration ("%s *".printf (get_ccode_name (cl)), new CCodeVariableDeclarator ("self"));
+			ccode.add_declaration ("%s *".printf (get_ccode_name (cl)), new CCodeVariableDeclarator ("self"), CCodeModifiers.UNUSED);
 			ccode.add_assignment (new CCodeIdentifier ("self"), ccast);
 
 			if (!cl.is_compact && cl.base_class == null) {
