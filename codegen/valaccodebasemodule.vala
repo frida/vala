@@ -2342,7 +2342,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			var this_type = get_this_type ();
 			if (this_type != null) {
 				// assign "self" for type parameters
-				ccode.add_declaration(get_ccode_name (this_type), new CCodeVariableDeclarator ("self"));
+				ccode.add_declaration (get_ccode_name (this_type), new CCodeVariableDeclarator ("self"), CCodeModifiers.UNUSED);
 				ccode.add_assignment (new CCodeIdentifier ("self"), new CCodeMemberAccess.pointer (outer_block, "self"));
 			}
 
