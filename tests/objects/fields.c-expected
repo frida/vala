@@ -59,11 +59,6 @@ typedef struct _FazClassPrivate FazClassPrivate;
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 
 #define TYPE_BAZ (baz_get_type ())
 #define BAZ(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_BAZ, Baz))
@@ -76,11 +71,6 @@ typedef struct _Baz Baz;
 typedef struct _BazClass BazClass;
 typedef struct _BazPrivate BazPrivate;
 typedef struct _BazClassPrivate BazClassPrivate;
-enum  {
-	BAZ_0_PROPERTY,
-	BAZ_NUM_PROPERTIES
-};
-static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 
 #define TYPE_MANAM (manam_get_type ())
 #define MANAM(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_MANAM, Manam))
@@ -490,7 +480,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -754,7 +744,7 @@ faz_instance_init (Faz * self,
 static void
 faz_finalize (Foo * obj)
 {
-	Faz * self;
+	G_GNUC_UNUSED Faz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FAZ, Faz);
 	g_rec_mutex_clear (&self->priv->__lock_public_field);
 	g_rec_mutex_clear (&self->priv->__lock_private_field);
@@ -817,7 +807,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (GObject * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	G_OBJECT_CLASS (bar_parent_class)->finalize (obj);
 }
@@ -1061,7 +1051,7 @@ baz_instance_init (Baz * self,
 static void
 baz_finalize (GObject * obj)
 {
-	Baz * self;
+	G_GNUC_UNUSED Baz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAZ, Baz);
 	g_rec_mutex_clear (&self->priv->__lock_public_field);
 	g_rec_mutex_clear (&self->priv->__lock_private_field);
@@ -1272,7 +1262,7 @@ manam_instance_init (Manam * self,
 static void
 manam_finalize (Manam * obj)
 {
-	Manam * self;
+	G_GNUC_UNUSED Manam * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_MANAM, Manam);
 	g_signal_handlers_destroy (self);
 	((self->foo == NULL) || (self->priv->t_destroy_func == NULL)) ? NULL : (self->foo = (self->priv->t_destroy_func (self->foo), NULL));

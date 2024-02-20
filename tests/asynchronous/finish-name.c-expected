@@ -207,7 +207,7 @@ VALA_EXTERN void manam (GAsyncReadyCallback _callback_,
 VALA_EXTERN gchar* manam_end (GAsyncResult* _res_);
 static gboolean manam_co (ManamData* _data_);
 static void _vala_main (void);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_,
                      GObject* o,
@@ -259,7 +259,7 @@ Foo*
 foo_construct_finish (GAsyncResult* _res_)
 {
 	Foo* result;
-	FooNewAsyncData* _data_;
+	G_GNUC_UNUSED FooNewAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->self;
 	_data_->self = NULL;
@@ -338,7 +338,7 @@ foo_bar_end (Foo* self,
              GAsyncResult* _res_)
 {
 	gchar* result;
-	FooBarData* _data_;
+	G_GNUC_UNUSED FooBarData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;
@@ -397,7 +397,7 @@ foo_real_baz_finish (Foo* self,
                      GAsyncResult* _res_)
 {
 	gchar* result;
-	FooBazData* _data_;
+	G_GNUC_UNUSED FooBazData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;
@@ -617,7 +617,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -697,7 +697,7 @@ bar_baz_end (Foo* base,
              GAsyncResult* _res_)
 {
 	gchar* result;
-	BarBazData* _data_;
+	G_GNUC_UNUSED BarBazData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;
@@ -800,7 +800,7 @@ gchar*
 manam_end (GAsyncResult* _res_)
 {
 	gchar* result;
-	ManamData* _data_;
+	G_GNUC_UNUSED ManamData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;

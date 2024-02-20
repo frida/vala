@@ -26,7 +26,7 @@ _vala_main (void)
 		gint* i = NULL;
 		gint* _tmp0_;
 		gint i_length1;
-		gint _i_size_;
+		G_GNUC_UNUSED gint _i_size_;
 		gint j = 0;
 		gint _tmp1_;
 		gint _tmp2_;
@@ -52,7 +52,7 @@ _vala_main (void)
 		gint* i = NULL;
 		gint* _tmp3_;
 		gint i_length1;
-		gint _i_size_;
+		G_GNUC_UNUSED gint _i_size_;
 		gint j = 0;
 		_tmp3_ = g_new0 (gint, 2);
 		_tmp3_[0] = 23;
@@ -74,7 +74,7 @@ _vala_main (void)
 		gint* i = NULL;
 		gint* _tmp4_;
 		gint i_length1;
-		gint _i_size_;
+		G_GNUC_UNUSED gint _i_size_;
 		gint j = 0;
 		gint _tmp5_;
 		gint _tmp6_;

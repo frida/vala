@@ -257,7 +257,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 	self->baz = (g_free (self->baz), NULL);
@@ -331,7 +331,7 @@ _vala_main (void)
 	guint8* _tmp5_;
 	gint _tmp5__length1;
 	gint bar_length1;
-	gint _bar_size_;
+	G_GNUC_UNUSED gint _bar_size_;
 	_tmp0_ = foo_new ();
 	foo = _tmp0_;
 	_tmp1_ = foo_bar (foo);

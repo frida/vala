@@ -39,7 +39,7 @@ struct _Block1Data {
 VALA_EXTERN Deleg foo (gchar* bar,
            gpointer* result_target,
            GDestroyNotify* result_target_destroy_notify);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static gchar* _vala_lambda0_ (Block1Data* _data1_);
 static gchar* __vala_lambda0__deleg (gpointer self);

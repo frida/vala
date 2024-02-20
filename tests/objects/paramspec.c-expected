@@ -925,7 +925,7 @@ void
 foo_set_string_prop (Foo* self,
                      const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FOO (self));
 	old_value = foo_get_string_prop (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -952,7 +952,7 @@ void
 foo_set_string_prop2 (Foo* self,
                       const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FOO (self));
 	old_value = foo_get_string_prop2 (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -1556,7 +1556,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	_g_object_unref0 (self->priv->_object_prop);
 	_g_param_spec_unref0 (self->priv->_param_prop);

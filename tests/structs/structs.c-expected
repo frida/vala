@@ -426,7 +426,7 @@ test_struct_with_func (void)
 	StructWithFunc _tmp0_ = {0};
 	StructWithFunc* _tmp1_;
 	gint foes_length1;
-	gint _foes_size_;
+	G_GNUC_UNUSED gint _foes_size_;
 	struct_with_func_init (&_tmp0_, __vala_lambda0__func, NULL, NULL);
 	_tmp1_ = g_new0 (StructWithFunc, 1);
 	_tmp1_[0] = _tmp0_;

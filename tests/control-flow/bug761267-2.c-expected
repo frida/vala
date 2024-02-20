@@ -180,7 +180,7 @@ foo_bars (Foo* self,
 	Bar** a = NULL;
 	Bar** _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Bar** _tmp5_;
 	gint _tmp5__length1;
 	Bar** result;
@@ -234,7 +234,7 @@ foo_seq (Foo* self,
 	gint* a = NULL;
 	gint* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gint* _tmp4_;
 	gint _tmp4__length1;
 	gint* result;
@@ -465,7 +465,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 	_bar_free0 (self->b);
@@ -569,12 +569,12 @@ bar (Foo* f)
 	{
 		gint* a = NULL;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp5_ = NULL;
 		gint* _tmp6_;
 		gint _tmp6__length1;
 		gint _tmp5__length1;
-		gint __tmp5__size_;
+		G_GNUC_UNUSED gint __tmp5__size_;
 		gint* _tmp7_ = NULL;
 		gint* i = NULL;
 		gint* _tmp10_;
@@ -608,20 +608,20 @@ bar (Foo* f)
 	{
 		gint* a = NULL;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp12_ = NULL;
 		gint* _tmp13_;
 		gint _tmp13__length1;
 		gint _tmp12__length1;
-		gint __tmp12__size_;
+		G_GNUC_UNUSED gint __tmp12__size_;
 		gint* _tmp14_ = NULL;
 		gint _tmp14__length1;
-		gint __tmp14__size_;
+		G_GNUC_UNUSED gint __tmp14__size_;
 		gint* s = NULL;
 		gint* _tmp15_;
 		gint _tmp15__length1;
 		gint s_length1;
-		gint _s_size_;
+		G_GNUC_UNUSED gint _s_size_;
 		a = NULL;
 		a_length1 = 0;
 		_a_size_ = a_length1;
@@ -684,12 +684,12 @@ baz (Foo* f)
 		gint _tmp0_ = 0;
 		gint* _tmp1_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp2_ = NULL;
 		gint* _tmp3_;
 		gint _tmp3__length1;
 		gint _tmp2__length1;
-		gint __tmp2__size_;
+		G_GNUC_UNUSED gint __tmp2__size_;
 		gint* _tmp4_ = NULL;
 		gint* i = NULL;
 		gint* _tmp7_;
@@ -728,20 +728,20 @@ baz (Foo* f)
 		gint _tmp10_ = 0;
 		gint* _tmp11_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp12_ = NULL;
 		gint* _tmp13_;
 		gint _tmp13__length1;
 		gint _tmp12__length1;
-		gint __tmp12__size_;
+		G_GNUC_UNUSED gint __tmp12__size_;
 		gint* _tmp14_ = NULL;
 		gint _tmp14__length1;
-		gint __tmp14__size_;
+		G_GNUC_UNUSED gint __tmp14__size_;
 		gint* s = NULL;
 		gint* _tmp15_;
 		gint _tmp15__length1;
 		gint s_length1;
-		gint _s_size_;
+		G_GNUC_UNUSED gint _s_size_;
 		gint* _tmp16_;
 		gint _tmp16__length1;
 		gint _tmp17_;
@@ -823,17 +823,17 @@ baz (Foo* f)
 		Foo* _tmp28_ = NULL;
 		Bar** _tmp29_ = NULL;
 		gint _tmp29__length1;
-		gint __tmp29__size_;
+		G_GNUC_UNUSED gint __tmp29__size_;
 		Bar** a = NULL;
 		Bar** _tmp32_;
 		gint _tmp32__length1;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		Bar** _tmp33_ = NULL;
 		Bar** _tmp34_;
 		gint _tmp34__length1;
 		gint _tmp33__length1;
-		gint __tmp33__size_;
+		G_GNUC_UNUSED gint __tmp33__size_;
 		Bar* _tmp35_ = NULL;
 		Bar* b = NULL;
 		Bar* _tmp37_;

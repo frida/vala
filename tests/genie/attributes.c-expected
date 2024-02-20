@@ -351,7 +351,7 @@ test1_instance_init (Test1 * self,
 static void
 test1_finalize (Test1 * obj)
 {
-	Test1 * self;
+	G_GNUC_UNUSED Test1 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST1, Test1);
 	g_signal_handlers_destroy (self);
 }
@@ -603,7 +603,7 @@ test2_instance_init (Test2 * self,
 static void
 test2_finalize (Test2 * obj)
 {
-	Test2 * self;
+	G_GNUC_UNUSED Test2 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST2, Test2);
 	g_signal_handlers_destroy (self);
 }

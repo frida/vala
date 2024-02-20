@@ -175,7 +175,7 @@ _vala_main (void)
 	FooEnum* foo_array = NULL;
 	FooEnum* _tmp0_;
 	gint foo_array_length1;
-	gint _foo_array_size_;
+	G_GNUC_UNUSED gint _foo_array_size_;
 	FooEnum* _tmp1_;
 	gint _tmp1__length1;
 	FooEnum* _tmp2_;

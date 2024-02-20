@@ -67,7 +67,7 @@ do_foo (GAsyncReadyCallback _callback_,
 void
 do_foo_finish (GAsyncResult* _res_)
 {
-	DoFooData* _data_;
+	G_GNUC_UNUSED DoFooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

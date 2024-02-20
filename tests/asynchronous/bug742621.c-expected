@@ -162,7 +162,7 @@ xyzzy_instance_init (Xyzzy * self,
 static void
 xyzzy_finalize (GObject * obj)
 {
-	Xyzzy * self;
+	G_GNUC_UNUSED Xyzzy * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_XYZZY, Xyzzy);
 	G_OBJECT_CLASS (xyzzy_parent_class)->finalize (obj);
 }
@@ -253,7 +253,7 @@ void
 go_finish (GAsyncResult* _res_,
            GError** error)
 {
-	GoAsyncData* _data_;
+	G_GNUC_UNUSED GoAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), error);
 	if (NULL == _data_) {
 		return;

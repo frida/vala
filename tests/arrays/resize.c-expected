@@ -85,7 +85,7 @@ _vala_main (void)
 		gchar** foo = NULL;
 		gchar** _tmp0_;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		gint _tmp1_;
 		_tmp0_ = g_new0 (gchar*, 23 + 1);
 		foo = _tmp0_;
@@ -102,7 +102,7 @@ _vala_main (void)
 		gchar** foo = NULL;
 		gchar** _tmp2_;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		_tmp2_ = g_new0 (gchar*, 23 + 1);
 		foo = _tmp2_;
 		foo_length1 = 23;
@@ -114,7 +114,7 @@ _vala_main (void)
 	{
 		gchar** foo = NULL;
 		gint foo_length1 = 0;
-		gint _foo_size_ = 0;
+		G_GNUC_UNUSED gint _foo_size_ = 0;
 		gchar** _tmp3_ = NULL;
 		gint _tmp4_ = 0;
 		manam (&_tmp3_, &_tmp4_);

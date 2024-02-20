@@ -33,7 +33,7 @@ _vala_main (void)
 	gchar* _tmp2_;
 	gchar** _tmp3_;
 	gint array_length1;
-	gint _array_size_;
+	G_GNUC_UNUSED gint _array_size_;
 	gchar** _tmp4_;
 	gint _tmp4__length1;
 	gchar** _tmp6_;
@@ -57,7 +57,7 @@ _vala_main (void)
 	{
 		gchar** s_collection = NULL;
 		gint s_collection_length1 = 0;
-		gint _s_collection_size_ = 0;
+		G_GNUC_UNUSED gint _s_collection_size_ = 0;
 		gint s_it = 0;
 		s_collection = _tmp4_;
 		s_collection_length1 = _tmp4__length1;
@@ -76,7 +76,7 @@ _vala_main (void)
 	{
 		gchar** s_collection = NULL;
 		gint s_collection_length1 = 0;
-		gint _s_collection_size_ = 0;
+		G_GNUC_UNUSED gint _s_collection_size_ = 0;
 		gint s_it = 0;
 		s_collection = _tmp6_;
 		s_collection_length1 = _tmp6__length1;
@@ -92,7 +92,7 @@ _vala_main (void)
 	{
 		gchar** s_collection = NULL;
 		gint s_collection_length1 = 0;
-		gint _s_collection_size_ = 0;
+		G_GNUC_UNUSED gint _s_collection_size_ = 0;
 		gint s_it = 0;
 		s_collection = _tmp7_;
 		s_collection_length1 = _tmp7__length1;
@@ -111,7 +111,7 @@ _vala_main (void)
 	{
 		gchar** s_collection = NULL;
 		gint s_collection_length1 = 0;
-		gint _s_collection_size_ = 0;
+		G_GNUC_UNUSED gint _s_collection_size_ = 0;
 		gint s_it = 0;
 		s_collection = _tmp9_;
 		s_collection_length1 = _tmp9__length1;

@@ -55,11 +55,6 @@ static GParamSpec* fooclass_properties[FOOCLASS_NUM_PROPERTIES];
 typedef struct _AFoo AFoo;
 typedef struct _AFooClass AFooClass;
 typedef struct _AFooPrivate AFooPrivate;
-enum  {
-	AFOO_0_PROPERTY,
-	AFOO_NUM_PROPERTIES
-};
-static GParamSpec* afoo_properties[AFOO_NUM_PROPERTIES];
 
 #define TYPE_IFOO (ifoo_get_type ())
 #define IFOO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_IFOO, IFoo))
@@ -317,7 +312,7 @@ fooclass_instance_init (FooClass * self,
 static void
 fooclass_finalize (GObject * obj)
 {
-	FooClass * self;
+	G_GNUC_UNUSED FooClass * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOOCLASS, FooClass);
 	G_OBJECT_CLASS (fooclass_parent_class)->finalize (obj);
 }

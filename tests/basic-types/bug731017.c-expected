@@ -49,7 +49,7 @@ bar (gint* result_length1)
 	const gchar** ret = NULL;
 	const gchar** _tmp0_;
 	gint ret_length1;
-	gint _ret_size_;
+	G_GNUC_UNUSED gint _ret_size_;
 	const gchar* _tmp1_;
 	const gchar** _tmp2_;
 	gint _tmp2__length1;
@@ -97,7 +97,7 @@ _vala_main (void)
 	gchar** _tmp3_;
 	gint _tmp3__length1;
 	gint keys_length1;
-	gint _keys_size_;
+	G_GNUC_UNUSED gint _keys_size_;
 	gchar** _tmp4_;
 	gint _tmp4__length1;
 	_tmp0_ = g_strdup ("foo");
@@ -117,7 +117,7 @@ _vala_main (void)
 	{
 		gchar** k_collection = NULL;
 		gint k_collection_length1 = 0;
-		gint _k_collection_size_ = 0;
+		G_GNUC_UNUSED gint _k_collection_size_ = 0;
 		gint k_it = 0;
 		k_collection = _tmp4_;
 		k_collection_length1 = _tmp4__length1;

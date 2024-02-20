@@ -48,7 +48,7 @@ _vala_main (gchar** args,
 	{
 		gchar** s_collection = NULL;
 		gint s_collection_length1 = 0;
-		gint _s_collection_size_ = 0;
+		G_GNUC_UNUSED gint _s_collection_size_ = 0;
 		gint s_it = 0;
 		s_collection = a;
 		s_collection_length1 = 3;

@@ -322,7 +322,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -410,7 +410,7 @@ static void
 bar_foo_finish (Foo* base,
                 GAsyncResult* _res_)
 {
-	BarFooData* _data_;
+	G_GNUC_UNUSED BarFooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -493,7 +493,7 @@ _vala_main (void)
 	gchar* _tmp1_;
 	gchar** _tmp2_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Bar* bar = NULL;
 	Bar* _tmp3_;
 	_tmp0_ = g_strdup ("foo");

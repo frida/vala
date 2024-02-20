@@ -36,11 +36,6 @@ typedef struct _Test Test;
 typedef struct _TestClass TestClass;
 typedef struct _TestPrivate TestPrivate;
 enum  {
-	TEST_0_PROPERTY,
-	TEST_NUM_PROPERTIES
-};
-static GParamSpec* test_properties[TEST_NUM_PROPERTIES];
-enum  {
 	TEST_FOO_SIGNAL,
 	TEST_NUM_SIGNALS
 };

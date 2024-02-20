@@ -27,7 +27,7 @@ struct _Block1Data {
 };
 
 static void _vala_main (void);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static gboolean _vala_lambda0_ (Block1Data* _data1_);
 static gboolean __vala_lambda0__gsource_func (gpointer self);
@@ -82,7 +82,7 @@ _vala_main (void)
 	gchar* _tmp1_;
 	gchar** _tmp2_;
 	gint foo_length1;
-	gint _foo_size_;
+	G_GNUC_UNUSED gint _foo_size_;
 	gchar** _tmp3_;
 	gint _tmp3__length1;
 	_tmp0_ = g_strdup ("bar");
@@ -98,7 +98,7 @@ _vala_main (void)
 	{
 		gchar** bar_collection = NULL;
 		gint bar_collection_length1 = 0;
-		gint _bar_collection_size_ = 0;
+		G_GNUC_UNUSED gint _bar_collection_size_ = 0;
 		gint bar_it = 0;
 		bar_collection = _tmp3_;
 		bar_collection_length1 = _tmp3__length1;

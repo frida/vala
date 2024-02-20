@@ -37,7 +37,7 @@ _vala_main (void)
 	gint* _tmp0_;
 	gint _tmp0__length1;
 	gint bar_length1;
-	gint _bar_size_;
+	G_GNUC_UNUSED gint _bar_size_;
 	_tmp0_ = _vala_array_dup1 (foo, 3);
 	_tmp0__length1 = 3;
 	bar = _tmp0_;

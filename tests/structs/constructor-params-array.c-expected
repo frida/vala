@@ -104,7 +104,7 @@ foo_init (Foo *self,
 	va_list _va_list_strv;
 	const gchar** strv = NULL;
 	gint strv_length1 = 0;
-	gint _strv_size_ = 0;
+	G_GNUC_UNUSED gint _strv_size_ = 0;
 	const gchar* _tmp0_;
 	const gchar* _tmp1_;
 	const gchar* _tmp2_;

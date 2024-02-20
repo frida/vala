@@ -300,7 +300,7 @@ foo_real_get_foo (IFoo* base,
 	gint* res = NULL;
 	gint* _tmp0_;
 	gint res_length1;
-	gint _res_size_;
+	G_GNUC_UNUSED gint _res_size_;
 	gint* _tmp1_;
 	gint _tmp1__length1;
 	gint* result;
@@ -351,7 +351,7 @@ foo_real_get_bar (Foo* self,
 	gint* res = NULL;
 	gint* _tmp0_;
 	gint res_length1;
-	gint _res_size_;
+	G_GNUC_UNUSED gint _res_size_;
 	gint* _tmp1_;
 	gint _tmp1__length1;
 	gint* result;
@@ -428,7 +428,7 @@ foo_construct (GType object_type)
 		guint8 _tmp0_ = 0;
 		gint* _tmp1_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint _tmp2_;
 		_tmp1_ = ifoo_get_foo (G_TYPE_CHECK_INSTANCE_CAST (self, TYPE_IFOO, IFoo), &_tmp0_);
 		a = _tmp1_;
@@ -442,7 +442,7 @@ foo_construct (GType object_type)
 	{
 		gint* a = NULL;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp3_ = NULL;
 		guint8 _tmp4_ = 0;
 		gint* _tmp5_;
@@ -768,7 +768,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 	self->priv->_manam = (g_free (self->priv->_manam), NULL);
@@ -835,7 +835,7 @@ bar_real_get_bar (Foo* base,
 	gint* res = NULL;
 	gint* _tmp0_;
 	gint res_length1;
-	gint _res_size_;
+	G_GNUC_UNUSED gint _res_size_;
 	gint* _tmp1_;
 	gint _tmp1__length1;
 	gint* result;
@@ -889,7 +889,7 @@ bar_construct (GType object_type)
 		guint8 _tmp0_ = 0;
 		gint* _tmp1_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint _tmp2_;
 		_tmp1_ = ifoo_get_foo (G_TYPE_CHECK_INSTANCE_CAST (self, TYPE_IFOO, IFoo), &_tmp0_);
 		a = _tmp1_;
@@ -903,7 +903,7 @@ bar_construct (GType object_type)
 	{
 		gint* a = NULL;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp3_ = NULL;
 		guint8 _tmp4_ = 0;
 		gint* _tmp5_;
@@ -933,7 +933,7 @@ bar_construct (GType object_type)
 		guint8 _tmp8_ = 0;
 		gint* _tmp9_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint _tmp10_;
 		_tmp9_ = foo_get_bar (G_TYPE_CHECK_INSTANCE_CAST (self, TYPE_FOO, Foo), &_tmp8_);
 		a = _tmp9_;
@@ -947,7 +947,7 @@ bar_construct (GType object_type)
 	{
 		gint* a = NULL;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp11_ = NULL;
 		guint8 _tmp12_ = 0;
 		gint* _tmp13_;
@@ -1053,7 +1053,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (Foo * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	self->priv->_manar = (g_free (self->priv->_manar), NULL);
 	FOO_CLASS (bar_parent_class)->finalize (obj);
@@ -1087,7 +1087,7 @@ get_foo (guint8* result_length1)
 	gint* res = NULL;
 	gint* _tmp0_;
 	gint res_length1;
-	gint _res_size_;
+	G_GNUC_UNUSED gint _res_size_;
 	gint* _tmp1_;
 	gint _tmp1__length1;
 	gint* result;
@@ -1212,7 +1212,7 @@ _vala_main (void)
 		gint* a = NULL;
 		gint* _tmp0_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp1_;
 		gint _tmp1__length1;
 		gint* _tmp2_;
@@ -1263,7 +1263,7 @@ _vala_main (void)
 		gint* a = NULL;
 		gint* _tmp8_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp9_;
 		gint _tmp9__length1;
 		gint* _tmp10_;
@@ -1312,7 +1312,7 @@ _vala_main (void)
 		guint8 _tmp16_ = 0;
 		gint* _tmp17_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint _tmp18_;
 		_tmp17_ = get_foo (&_tmp16_);
 		a = _tmp17_;
@@ -1326,7 +1326,7 @@ _vala_main (void)
 	{
 		gint* a = NULL;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint* _tmp19_ = NULL;
 		guint8 _tmp20_ = 0;
 		gint* _tmp21_;

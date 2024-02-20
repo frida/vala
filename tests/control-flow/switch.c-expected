@@ -33,11 +33,6 @@
 typedef struct _MamanBar MamanBar;
 typedef struct _MamanBarClass MamanBarClass;
 typedef struct _MamanBarPrivate MamanBarPrivate;
-enum  {
-	MAMAN_BAR_0_PROPERTY,
-	MAMAN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_FOO (maman_foo_get_type ())
 #define MAMAN_FOO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_FOO, MamanFoo))
@@ -50,11 +45,6 @@ typedef struct _MamanFoo MamanFoo;
 typedef struct _MamanFooClass MamanFooClass;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _MamanFooPrivate MamanFooPrivate;
-enum  {
-	MAMAN_FOO_0_PROPERTY,
-	MAMAN_FOO_NUM_PROPERTIES
-};
-static GParamSpec* maman_foo_properties[MAMAN_FOO_NUM_PROPERTIES];
 
 struct _MamanBar {
 	GObject parent_instance;
@@ -346,7 +336,7 @@ maman_foo_instance_init (MamanFoo * self,
 static void
 maman_foo_finalize (GObject * obj)
 {
-	MamanFoo * self;
+	G_GNUC_UNUSED MamanFoo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_FOO, MamanFoo);
 	G_OBJECT_CLASS (maman_foo_parent_class)->finalize (obj);
 }

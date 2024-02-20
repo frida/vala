@@ -37,11 +37,6 @@ typedef struct _FooClass FooClass;
 typedef gchar* (*FooFunc) (Foo* foo, const gchar* s, gpointer user_data);
 typedef struct _FooPrivate FooPrivate;
 enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
-enum  {
 	FOO_TEST_SIGNAL,
 	FOO_NUM_SIGNALS
 };
@@ -57,11 +52,6 @@ static guint foo_signals[FOO_NUM_SIGNALS] = {0};
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
@@ -686,7 +676,7 @@ faz_instance_init (Faz * self,
 static void
 faz_finalize (Faz * obj)
 {
-	Faz * self;
+	G_GNUC_UNUSED Faz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FAZ, Faz);
 	g_signal_handlers_destroy (self);
 }
@@ -1015,7 +1005,7 @@ boo_instance_init (Boo * self,
 static void
 boo_finalize (Boo * obj)
 {
-	Boo * self;
+	G_GNUC_UNUSED Boo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BOO, Boo);
 	g_signal_handlers_destroy (self);
 }

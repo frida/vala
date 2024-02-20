@@ -36,11 +36,6 @@
 typedef struct _MamanBar MamanBar;
 typedef struct _MamanBarClass MamanBarClass;
 typedef struct _MamanBarPrivate MamanBarPrivate;
-enum  {
-	MAMAN_BAR_0_PROPERTY,
-	MAMAN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_SUB_BAR (maman_sub_bar_get_type ())
 #define MAMAN_SUB_BAR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_SUB_BAR, MamanSubBar))
@@ -52,11 +47,6 @@ static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 typedef struct _MamanSubBar MamanSubBar;
 typedef struct _MamanSubBarClass MamanSubBarClass;
 typedef struct _MamanSubBarPrivate MamanSubBarPrivate;
-enum  {
-	MAMAN_SUB_BAR_0_PROPERTY,
-	MAMAN_SUB_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_sub_bar_properties[MAMAN_SUB_BAR_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
 
 #define MAMAN_TYPE_FOO_BAR (maman_foo_bar_get_type ())
@@ -88,17 +78,7 @@ typedef struct _MamanFoo MamanFoo;
 typedef struct _MamanFooIface MamanFooIface;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _MamanFooBarPrivate MamanFooBarPrivate;
-enum  {
-	MAMAN_FOO_BAR_0_PROPERTY,
-	MAMAN_FOO_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_foo_bar_properties[MAMAN_FOO_BAR_NUM_PROPERTIES];
 typedef struct _MamanSubFooBarPrivate MamanSubFooBarPrivate;
-enum  {
-	MAMAN_SUB_FOO_BAR_0_PROPERTY,
-	MAMAN_SUB_FOO_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_sub_foo_bar_properties[MAMAN_SUB_FOO_BAR_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_ABSTRACT_BASE (maman_abstract_base_get_type ())
 #define MAMAN_ABSTRACT_BASE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_ABSTRACT_BASE, MamanAbstractBase))
@@ -110,11 +90,6 @@ static GParamSpec* maman_sub_foo_bar_properties[MAMAN_SUB_FOO_BAR_NUM_PROPERTIES
 typedef struct _MamanAbstractBase MamanAbstractBase;
 typedef struct _MamanAbstractBaseClass MamanAbstractBaseClass;
 typedef struct _MamanAbstractBasePrivate MamanAbstractBasePrivate;
-enum  {
-	MAMAN_ABSTRACT_BASE_0_PROPERTY,
-	MAMAN_ABSTRACT_BASE_NUM_PROPERTIES
-};
-static GParamSpec* maman_abstract_base_properties[MAMAN_ABSTRACT_BASE_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_ABSTRACT_DERIVED (maman_abstract_derived_get_type ())
 #define MAMAN_ABSTRACT_DERIVED(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_ABSTRACT_DERIVED, MamanAbstractDerived))
@@ -126,11 +101,6 @@ static GParamSpec* maman_abstract_base_properties[MAMAN_ABSTRACT_BASE_NUM_PROPER
 typedef struct _MamanAbstractDerived MamanAbstractDerived;
 typedef struct _MamanAbstractDerivedClass MamanAbstractDerivedClass;
 typedef struct _MamanAbstractDerivedPrivate MamanAbstractDerivedPrivate;
-enum  {
-	MAMAN_ABSTRACT_DERIVED_0_PROPERTY,
-	MAMAN_ABSTRACT_DERIVED_NUM_PROPERTIES
-};
-static GParamSpec* maman_abstract_derived_properties[MAMAN_ABSTRACT_DERIVED_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_DEEP_DERIVED (maman_deep_derived_get_type ())
 #define MAMAN_DEEP_DERIVED(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_DEEP_DERIVED, MamanDeepDerived))
@@ -142,11 +112,6 @@ static GParamSpec* maman_abstract_derived_properties[MAMAN_ABSTRACT_DERIVED_NUM_
 typedef struct _MamanDeepDerived MamanDeepDerived;
 typedef struct _MamanDeepDerivedClass MamanDeepDerivedClass;
 typedef struct _MamanDeepDerivedPrivate MamanDeepDerivedPrivate;
-enum  {
-	MAMAN_DEEP_DERIVED_0_PROPERTY,
-	MAMAN_DEEP_DERIVED_NUM_PROPERTIES
-};
-static GParamSpec* maman_deep_derived_properties[MAMAN_DEEP_DERIVED_NUM_PROPERTIES];
 
 #define MAMAN_BASE_ACCESS_TYPE_IFOO (maman_base_access_ifoo_get_type ())
 #define MAMAN_BASE_ACCESS_IFOO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_BASE_ACCESS_TYPE_IFOO, MamanBaseAccessIFoo))
@@ -166,11 +131,6 @@ typedef struct _MamanBaseAccessIFooIface MamanBaseAccessIFooIface;
 typedef struct _MamanBaseAccessFoo MamanBaseAccessFoo;
 typedef struct _MamanBaseAccessFooClass MamanBaseAccessFooClass;
 typedef struct _MamanBaseAccessFooPrivate MamanBaseAccessFooPrivate;
-enum  {
-	MAMAN_BASE_ACCESS_FOO_0_PROPERTY,
-	MAMAN_BASE_ACCESS_FOO_NUM_PROPERTIES
-};
-static GParamSpec* maman_base_access_foo_properties[MAMAN_BASE_ACCESS_FOO_NUM_PROPERTIES];
 
 #define MAMAN_BASE_ACCESS_TYPE_BAR (maman_base_access_bar_get_type ())
 #define MAMAN_BASE_ACCESS_BAR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_BASE_ACCESS_TYPE_BAR, MamanBaseAccessBar))
@@ -182,11 +142,6 @@ static GParamSpec* maman_base_access_foo_properties[MAMAN_BASE_ACCESS_FOO_NUM_PR
 typedef struct _MamanBaseAccessBar MamanBaseAccessBar;
 typedef struct _MamanBaseAccessBarClass MamanBaseAccessBarClass;
 typedef struct _MamanBaseAccessBarPrivate MamanBaseAccessBarPrivate;
-enum  {
-	MAMAN_BASE_ACCESS_BAR_0_PROPERTY,
-	MAMAN_BASE_ACCESS_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_base_access_bar_properties[MAMAN_BASE_ACCESS_BAR_NUM_PROPERTIES];
 
 #define MAMAN_BASE_ACCESS_TYPE_FOO_BAR (maman_base_access_foo_bar_get_type ())
 #define MAMAN_BASE_ACCESS_FOO_BAR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_BASE_ACCESS_TYPE_FOO_BAR, MamanBaseAccessFooBar))
@@ -198,11 +153,6 @@ static GParamSpec* maman_base_access_bar_properties[MAMAN_BASE_ACCESS_BAR_NUM_PR
 typedef struct _MamanBaseAccessFooBar MamanBaseAccessFooBar;
 typedef struct _MamanBaseAccessFooBarClass MamanBaseAccessFooBarClass;
 typedef struct _MamanBaseAccessFooBarPrivate MamanBaseAccessFooBarPrivate;
-enum  {
-	MAMAN_BASE_ACCESS_FOO_BAR_0_PROPERTY,
-	MAMAN_BASE_ACCESS_FOO_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_base_access_foo_bar_properties[MAMAN_BASE_ACCESS_FOO_BAR_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_CLASS_TEST (maman_class_test_get_type ())
 #define MAMAN_CLASS_TEST(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_CLASS_TEST, MamanClassTest))
@@ -601,7 +551,7 @@ maman_sub_bar_main (void)
 	const gchar* weak_str = NULL;
 	gchar** array = NULL;
 	gint array_length1 = 0;
-	gint _array_size_ = 0;
+	G_GNUC_UNUSED gint _array_size_ = 0;
 	gchar* _tmp13_ = NULL;
 	const gchar* _tmp14_;
 	const gchar* _tmp15_ = NULL;
@@ -1679,7 +1629,7 @@ maman_class_test_instance_init (MamanClassTest * self,
 static void
 maman_class_test_finalize (MamanClassTest * obj)
 {
-	MamanClassTest * self;
+	G_GNUC_UNUSED MamanClassTest * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_CLASS_TEST, MamanClassTest);
 	g_signal_handlers_destroy (self);
 }

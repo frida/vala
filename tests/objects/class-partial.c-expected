@@ -393,7 +393,7 @@ void
 foo_set_p0 (Foo* self,
             const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FOO (self));
 	old_value = foo_get_p0 (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -420,7 +420,7 @@ void
 foo_set_p1 (Foo* self,
             const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FOO (self));
 	old_value = foo_get_p1 (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -447,7 +447,7 @@ void
 foo_set_p2 (Foo* self,
             const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FOO (self));
 	old_value = foo_get_p2 (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -523,7 +523,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	_g_free0 (self->priv->_p0);
 	_g_free0 (self->f0);

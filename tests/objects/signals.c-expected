@@ -36,11 +36,6 @@ typedef struct _MamanFoo MamanFoo;
 typedef struct _MamanFooClass MamanFooClass;
 typedef struct _MamanFooPrivate MamanFooPrivate;
 enum  {
-	MAMAN_FOO_0_PROPERTY,
-	MAMAN_FOO_NUM_PROPERTIES
-};
-static GParamSpec* maman_foo_properties[MAMAN_FOO_NUM_PROPERTIES];
-enum  {
 	MAMAN_FOO_ACTIVATED_SIGNAL,
 	MAMAN_FOO_NUM_SIGNALS
 };
@@ -56,11 +51,6 @@ static guint maman_foo_signals[MAMAN_FOO_NUM_SIGNALS] = {0};
 typedef struct _MamanBar MamanBar;
 typedef struct _MamanBarClass MamanBarClass;
 typedef struct _MamanBarPrivate MamanBarPrivate;
-enum  {
-	MAMAN_BAR_0_PROPERTY,
-	MAMAN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 #define MAMAN_TYPE_USER_FOO (maman_user_foo_get_type ())
@@ -73,11 +63,6 @@ static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 typedef struct _MamanUserFoo MamanUserFoo;
 typedef struct _MamanUserFooClass MamanUserFooClass;
 typedef struct _MamanUserFooPrivate MamanUserFooPrivate;
-enum  {
-	MAMAN_USER_FOO_0_PROPERTY,
-	MAMAN_USER_FOO_NUM_PROPERTIES
-};
-static GParamSpec* maman_user_foo_properties[MAMAN_USER_FOO_NUM_PROPERTIES];
 enum  {
 	MAMAN_USER_FOO_ACTIVATED_SIGNAL,
 	MAMAN_USER_FOO_NUM_SIGNALS
@@ -94,11 +79,6 @@ static guint maman_user_foo_signals[MAMAN_USER_FOO_NUM_SIGNALS] = {0};
 typedef struct _MamanUserBar MamanUserBar;
 typedef struct _MamanUserBarClass MamanUserBarClass;
 typedef struct _MamanUserBarPrivate MamanUserBarPrivate;
-enum  {
-	MAMAN_USER_BAR_0_PROPERTY,
-	MAMAN_USER_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_user_bar_properties[MAMAN_USER_BAR_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_RETURN_FOO (maman_return_foo_get_type ())
 #define MAMAN_RETURN_FOO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_RETURN_FOO, MamanReturnFoo))
@@ -110,11 +90,6 @@ static GParamSpec* maman_user_bar_properties[MAMAN_USER_BAR_NUM_PROPERTIES];
 typedef struct _MamanReturnFoo MamanReturnFoo;
 typedef struct _MamanReturnFooClass MamanReturnFooClass;
 typedef struct _MamanReturnFooPrivate MamanReturnFooPrivate;
-enum  {
-	MAMAN_RETURN_FOO_0_PROPERTY,
-	MAMAN_RETURN_FOO_NUM_PROPERTIES
-};
-static GParamSpec* maman_return_foo_properties[MAMAN_RETURN_FOO_NUM_PROPERTIES];
 enum  {
 	MAMAN_RETURN_FOO_INT_ACTIVATED_SIGNAL,
 	MAMAN_RETURN_FOO_STRING_ACTIVATED_SIGNAL,
@@ -132,11 +107,6 @@ static guint maman_return_foo_signals[MAMAN_RETURN_FOO_NUM_SIGNALS] = {0};
 typedef struct _MamanReturnBar MamanReturnBar;
 typedef struct _MamanReturnBarClass MamanReturnBarClass;
 typedef struct _MamanReturnBarPrivate MamanReturnBarPrivate;
-enum  {
-	MAMAN_RETURN_BAR_0_PROPERTY,
-	MAMAN_RETURN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_return_bar_properties[MAMAN_RETURN_BAR_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 #define _vala_return_if_fail(expr, msg) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return; }

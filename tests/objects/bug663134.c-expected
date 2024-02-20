@@ -84,7 +84,7 @@ VALA_EXTERN gpointer value_get_foo (const GValue* value);
 VALA_EXTERN GType foo_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Foo, foo_unref)
 VALA_EXTERN void foo_bar (Foo* self);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static gboolean _vala_lambda0_ (Block1Data* _data1_);
 static gboolean _vala_lambda1_ (Block1Data* _data1_);
@@ -120,7 +120,7 @@ block1_data_unref (void * _userdata_)
 	Block1Data* _data1_;
 	_data1_ = (Block1Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
-		Foo* self;
+		G_GNUC_UNUSED Foo* self;
 		self = _data1_->self;
 		((_data1_->baz == NULL) || (self->priv->t_destroy_func == NULL)) ? NULL : (_data1_->baz = (self->priv->t_destroy_func (_data1_->baz), NULL));
 		_foo_unref0 (self);
@@ -131,7 +131,7 @@ block1_data_unref (void * _userdata_)
 static gboolean
 _vala_lambda1_ (Block1Data* _data1_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	gboolean result;
 	self = _data1_->self;
 	((_data1_->baz == NULL) || (self->priv->t_destroy_func == NULL)) ? NULL : (_data1_->baz = (self->priv->t_destroy_func (_data1_->baz), NULL));
@@ -151,7 +151,7 @@ __vala_lambda1__gsource_func (gpointer self)
 static gboolean
 _vala_lambda0_ (Block1Data* _data1_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	GSourceFunc ff = NULL;
 	gpointer ff_target;
 	GDestroyNotify ff_target_destroy_notify;
@@ -378,7 +378,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }

@@ -594,7 +594,7 @@ _vala_main (void)
 		gchar** _tmp23_ = NULL;
 		gint _tmp23__length1 = 0;
 		gint sa_length1;
-		gint _sa_size_;
+		G_GNUC_UNUSED gint _sa_size_;
 		const gchar* _tmp24_;
 		_tmp22_ = v;
 		_tmp23_ = _variant_get7 (_tmp22_, &_tmp23__length1);

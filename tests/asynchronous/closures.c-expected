@@ -66,7 +66,7 @@ VALA_EXTERN void foo (const gchar* baz,
           gpointer _user_data_);
 VALA_EXTERN void foo_finish (GAsyncResult* _res_);
 static gboolean foo_co (FooData* _data_);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_);
 static void __vala_lambda0__func (gpointer self);
@@ -101,7 +101,7 @@ foo (const gchar* baz,
 void
 foo_finish (GAsyncResult* _res_)
 {
-	FooData* _data_;
+	G_GNUC_UNUSED FooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

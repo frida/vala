@@ -146,7 +146,7 @@ static void ifoo_value_take_bar (GValue* value,
 static gpointer ifoo_value_get_bar (const GValue* value) G_GNUC_UNUSED ;
 static GType ifoo_bar_get_type (void) G_GNUC_CONST  G_GNUC_UNUSED ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (IFooBar, ifoo_bar_unref)
-static IFooBar* ifoo_bar_new (void);
+static IFooBar* ifoo_bar_new (void) G_GNUC_UNUSED ;
 static IFooBar* ifoo_bar_construct (GType object_type);
 static GType ifoo_ibar_get_type (void) G_GNUC_CONST  G_GNUC_UNUSED ;
 static void ifoo_bar_finalize (IFooBar * obj);
@@ -327,7 +327,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -560,7 +560,7 @@ ifoo_bar_instance_init (IFooBar * self,
 static void
 ifoo_bar_finalize (IFooBar * obj)
 {
-	IFooBar * self;
+	G_GNUC_UNUSED IFooBar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, IFOO_TYPE_BAR, IFooBar);
 	g_signal_handlers_destroy (self);
 }

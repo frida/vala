@@ -106,7 +106,7 @@ foo (gchar* _first_strv,
 	va_list _va_list_strv;
 	const gchar** strv = NULL;
 	gint strv_length1 = 0;
-	gint _strv_size_ = 0;
+	G_GNUC_UNUSED gint _strv_size_ = 0;
 	const gchar* _tmp0_;
 	const gchar* _tmp1_;
 	const gchar* _tmp2_;
@@ -149,7 +149,7 @@ bar (gint _first_intv,
 	va_list _va_list_intv;
 	gint* intv = NULL;
 	gint intv_length1 = 0;
-	gint _intv_size_ = 0;
+	G_GNUC_UNUSED gint _intv_size_ = 0;
 	gint _tmp0_;
 	gint _tmp1_;
 	gint _tmp2_;
@@ -192,7 +192,7 @@ manam (GValue* _first_valuev,
 	va_list _va_list_valuev;
 	GValue** valuev = NULL;
 	gint valuev_length1 = 0;
-	gint _valuev_size_ = 0;
+	G_GNUC_UNUSED gint _valuev_size_ = 0;
 	GValue* _tmp0_;
 	GValue* _tmp1_;
 	GValue* _tmp2_;
@@ -241,7 +241,7 @@ manam_owned (GValue* _first_valuev,
 	va_list _va_list_valuev;
 	GValue** valuev = NULL;
 	gint valuev_length1 = 0;
-	gint _valuev_size_ = 0;
+	G_GNUC_UNUSED gint _valuev_size_ = 0;
 	GValue* _tmp0_;
 	GValue* _tmp1_;
 	GValue* _tmp2_;
@@ -303,7 +303,7 @@ minim (GVariant* _first_variantv,
 	va_list _va_list_variantv;
 	GVariant** variantv = NULL;
 	gint variantv_length1 = 0;
-	gint _variantv_size_ = 0;
+	G_GNUC_UNUSED gint _variantv_size_ = 0;
 	GVariant* _tmp0_;
 	gchar* _tmp1_;
 	gchar* _tmp2_;

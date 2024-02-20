@@ -362,7 +362,7 @@ manam_baz_instance_init (ManamBaz * self,
 static void
 manam_baz_finalize (ManamBaz * obj)
 {
-	ManamBaz * self;
+	G_GNUC_UNUSED ManamBaz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MANAM_TYPE_BAZ, ManamBaz);
 	g_signal_handlers_destroy (self);
 }
@@ -431,7 +431,7 @@ _vala_main (void)
 	ManamBarFoo _tmp1_ = {0};
 	ManamBarFoo* _tmp2_;
 	gint foo_length1;
-	gint _foo_size_;
+	G_GNUC_UNUSED gint _foo_size_;
 	ManamBarFoo _tmp3_;
 	ManamBarFoo _tmp4_;
 	ManamBazFaz* faz = NULL;
@@ -439,7 +439,7 @@ _vala_main (void)
 	ManamBazFaz _tmp6_ = {0};
 	ManamBazFaz* _tmp7_;
 	gint faz_length1;
-	gint _faz_size_;
+	G_GNUC_UNUSED gint _faz_size_;
 	ManamBazFaz _tmp8_;
 	const gchar* _tmp9_;
 	ManamBazFaz _tmp10_;

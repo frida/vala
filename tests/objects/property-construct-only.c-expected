@@ -52,11 +52,6 @@ static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 
 #define TYPE_FAZ (faz_get_type ())
 #define FAZ(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_FAZ, Faz))
@@ -85,11 +80,6 @@ static GParamSpec* faz_properties[FAZ_NUM_PROPERTIES];
 typedef struct _Baz Baz;
 typedef struct _BazClass BazClass;
 typedef struct _BazPrivate BazPrivate;
-enum  {
-	BAZ_0_PROPERTY,
-	BAZ_NUM_PROPERTIES
-};
-static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 #define _vala_return_if_fail(expr, msg) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return; }
@@ -234,7 +224,7 @@ static void
 foo_set_manam (Foo* self,
                const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FOO (self));
 	old_value = foo_get_manam (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -284,7 +274,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	_g_free0 (self->priv->_manam);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
@@ -447,7 +437,7 @@ static void
 faz_set_manam (Faz* self,
                const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FAZ (self));
 	old_value = faz_get_manam (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -481,7 +471,7 @@ faz_instance_init (Faz * self,
 static void
 faz_finalize (GObject * obj)
 {
-	Faz * self;
+	G_GNUC_UNUSED Faz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FAZ, Faz);
 	_g_free0 (self->priv->_manam);
 	G_OBJECT_CLASS (faz_parent_class)->finalize (obj);

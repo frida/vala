@@ -29,7 +29,7 @@ static void _vala_main (void);
 static void
 _vala_main (void)
 {
-	GOnce local = (GOnce) G_ONCE_INIT;
+	GOnce local = G_ONCE_INIT;
 }
 
 int

@@ -469,7 +469,7 @@ manam_instance_init (Manam * self,
 static void
 manam_finalize (Manam * obj)
 {
-	Manam * self;
+	G_GNUC_UNUSED Manam * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_MANAM, Manam);
 	g_signal_handlers_destroy (self);
 }
@@ -651,7 +651,7 @@ minim_instance_init (Minim * self,
 static void
 minim_finalize (GObject * obj)
 {
-	Minim * self;
+	G_GNUC_UNUSED Minim * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_MINIM, Minim);
 	G_OBJECT_CLASS (minim_parent_class)->finalize (obj);
 }

@@ -314,7 +314,7 @@ test_integer_array (void)
 	int* a = NULL;
 	int* _tmp0_;
 	int a_length1;
-	int _a_size_;
+	__attribute__((__unused__)) int _a_size_;
 	int* _tmp1_;
 	int _tmp1__length1;
 	int* _tmp2_;
@@ -335,7 +335,7 @@ test_integer_array (void)
 	int* _tmp11_;
 	int _tmp11__length1;
 	int b_length1;
-	int _b_size_;
+	__attribute__((__unused__)) int _b_size_;
 	int _tmp12_;
 	int _tmp13_;
 	int* _tmp14_;
@@ -357,7 +357,7 @@ test_integer_array (void)
 	int* _tmp24_;
 	int _tmp24__length1;
 	int c_length1;
-	int _c_size_;
+	__attribute__((__unused__)) int _c_size_;
 	int _tmp25_;
 	int _tmp26_;
 	int* c0 = NULL;
@@ -366,7 +366,7 @@ test_integer_array (void)
 	int* _tmp28_;
 	int _tmp28__length1;
 	int c0_length1;
-	int _c0_size_;
+	__attribute__((__unused__)) int _c0_size_;
 	int* c1 = NULL;
 	int* _tmp29_;
 	int _tmp29__length1;
@@ -375,7 +375,7 @@ test_integer_array (void)
 	int* _tmp31_;
 	int _tmp31__length1;
 	int c1_length1;
-	int _c1_size_;
+	__attribute__((__unused__)) int _c1_size_;
 	int _tmp32_;
 	int _tmp33_;
 	int* c2 = NULL;
@@ -384,7 +384,7 @@ test_integer_array (void)
 	int* _tmp35_;
 	int _tmp35__length1;
 	int c2_length1;
-	int _c2_size_;
+	__attribute__((__unused__)) int _c2_size_;
 	int _tmp36_;
 	int _tmp37_;
 	int* c3 = NULL;
@@ -395,7 +395,7 @@ test_integer_array (void)
 	int* _tmp40_;
 	int _tmp40__length1;
 	int c3_length1;
-	int _c3_size_;
+	__attribute__((__unused__)) int _c3_size_;
 	int _tmp41_;
 	int _tmp42_;
 	int _tmp43_;
@@ -406,7 +406,7 @@ test_integer_array (void)
 	int** d = NULL;
 	int** _tmp46_;
 	int d_length1;
-	int _d_size_;
+	__attribute__((__unused__)) int _d_size_;
 	int _tmp47_;
 	int* _tmp48_;
 	int* _tmp49_;
@@ -415,7 +415,7 @@ test_integer_array (void)
 	int* e = NULL;
 	int* _tmp52_;
 	int e_length1;
-	int _e_size_;
+	__attribute__((__unused__)) int _e_size_;
 	int _tmp53_;
 	int _tmp54_;
 	int _tmp55_;
@@ -644,7 +644,7 @@ test_string_array (void)
 	char* _tmp0_;
 	char** _tmp1_;
 	int a_length1;
-	int _a_size_;
+	__attribute__((__unused__)) int _a_size_;
 	char** _tmp2_;
 	int _tmp2__length1;
 	char** _tmp3_;
@@ -667,7 +667,7 @@ test_string_array (void)
 	char** _tmp14_;
 	int _tmp14__length1;
 	int b_length1;
-	int _b_size_;
+	__attribute__((__unused__)) int _b_size_;
 	const char* _tmp15_;
 	const char* _tmp16_;
 	_tmp0_ = _strdup0 ("hello");
@@ -777,10 +777,10 @@ test_array_pass (void)
 {
 	int* a = NULL;
 	int a_length1 = 0;
-	int _a_size_ = 0;
+	__attribute__((__unused__)) int _a_size_ = 0;
 	int* b = NULL;
 	int b_length1 = 0;
-	int _b_size_ = 0;
+	__attribute__((__unused__)) int _b_size_ = 0;
 	int* _tmp0_;
 	int* _tmp1_;
 	int _tmp1__length1;
@@ -853,19 +853,19 @@ test_reference_transfer (void)
 	int* _tmp0_;
 	int _tmp0__length1;
 	int baz_length1;
-	int _baz_size_;
+	__attribute__((__unused__)) int _baz_size_;
 	int* _tmp1_;
 	int _tmp1__length1;
 	char** data = NULL;
 	char* _tmp2_;
 	char** _tmp3_;
 	int data_length1;
-	int _data_size_;
+	__attribute__((__unused__)) int _data_size_;
 	char** data2 = NULL;
 	char** _tmp4_;
 	int _tmp4__length1;
 	int data2_length1;
-	int _data2_size_;
+	__attribute__((__unused__)) int _data2_size_;
 	char** _tmp5_;
 	int _tmp5__length1;
 	_tmp0_ = foo;
@@ -908,7 +908,7 @@ test_length_assignment (void)
 	int* a = NULL;
 	int* _tmp0_;
 	int a_length1;
-	int _a_size_;
+	__attribute__((__unused__)) int _a_size_;
 	int* b = NULL;
 	int* _tmp1_;
 	int b_length1;
@@ -1203,7 +1203,7 @@ test_delegate_array (void)
 	SimpleFunc* a = NULL;
 	SimpleFunc* _tmp0_;
 	int a_length1;
-	int _a_size_;
+	__attribute__((__unused__)) int _a_size_;
 	SimpleFunc* _tmp1_;
 	int _tmp1__length1;
 	SimpleFunc* _tmp2_;
@@ -1278,7 +1278,7 @@ test_void_array (void)
 	void** a = NULL;
 	void** _tmp0_;
 	int a_length1;
-	int _a_size_;
+	__attribute__((__unused__)) int _a_size_;
 	void** _tmp1_;
 	int _tmp1__length1;
 	void** _tmp2_;
@@ -1317,12 +1317,12 @@ test_explicit_copying (void)
 	int* a0 = NULL;
 	int* _tmp0_;
 	int a0_length1;
-	int _a0_size_;
+	__attribute__((__unused__)) int _a0_size_;
 	int* a1 = NULL;
 	int* _tmp1_;
 	int _tmp1__length1;
 	int a1_length1;
-	int _a1_size_;
+	__attribute__((__unused__)) int _a1_size_;
 	int _tmp2_;
 	int _tmp3_;
 	_tmp0_ = calloc (3, sizeof (int));
@@ -1351,7 +1351,7 @@ test_array_move (void)
 	int* a = NULL;
 	int* _tmp0_;
 	int a_length1;
-	int _a_size_;
+	__attribute__((__unused__)) int _a_size_;
 	int _tmp1_;
 	int _tmp2_;
 	_tmp0_ = calloc (9, sizeof (int));
@@ -1381,7 +1381,7 @@ test_array_resize (void)
 	int* a = NULL;
 	int* _tmp0_;
 	int a_length1;
-	int _a_size_;
+	__attribute__((__unused__)) int _a_size_;
 	int _tmp1_;
 	int _tmp2_;
 	int _tmp3_;
@@ -1503,7 +1503,7 @@ test_struct_array (void)
 	Bar* bar = NULL;
 	Bar* _tmp2_;
 	int bar_length1;
-	int _bar_size_;
+	__attribute__((__unused__)) int _bar_size_;
 	Bar _tmp3_;
 	Bar _tmp4_;
 	Manam* manam = NULL;
@@ -1566,11 +1566,11 @@ test_fixed_array (void)
 	int* i = NULL;
 	int* _tmp0_;
 	int i_length1;
-	int _i_size_;
+	__attribute__((__unused__)) int _i_size_;
 	int* k = NULL;
 	int* _tmp1_;
 	int k_length1;
-	int _k_size_;
+	__attribute__((__unused__)) int _k_size_;
 	int* _tmp2_;
 	int _tmp2__length1;
 	int* _tmp3_;
@@ -1578,7 +1578,7 @@ test_fixed_array (void)
 	int _tmp4_;
 	int* j = NULL;
 	int j_length1 = 0;
-	int _j_size_ = 0;
+	__attribute__((__unused__)) int _j_size_ = 0;
 	_tmp0_ = calloc (4, sizeof (int));
 	_tmp0_[0] = 1;
 	_tmp0_[1] = 2;

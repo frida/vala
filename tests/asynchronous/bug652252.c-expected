@@ -43,11 +43,6 @@ typedef struct _FooFooData FooFooData;
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 typedef struct _Block1Data Block1Data;
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 
@@ -102,7 +97,7 @@ VALA_EXTERN Bar* bar_new (void);
 VALA_EXTERN Bar* bar_construct (GType object_type);
 static GType bar_get_type_once (void);
 static void _vala_main (void);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_,
                      GObject* s,
@@ -145,7 +140,7 @@ static void
 foo_real_foo_finish (Foo* self,
                      GAsyncResult* _res_)
 {
-	FooFooData* _data_;
+	G_GNUC_UNUSED FooFooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

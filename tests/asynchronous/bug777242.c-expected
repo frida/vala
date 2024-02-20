@@ -53,7 +53,7 @@ VALA_EXTERN void run (GAsyncReadyCallback _callback_,
 VALA_EXTERN void run_finish (GAsyncResult* _res_);
 static gboolean run_co (RunData* _data_);
 static void _vala_main (void);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static gboolean _vala_lambda0_ (Block1Data* _data1_);
 static gboolean __vala_lambda0__gsource_func (gpointer self);
@@ -80,7 +80,7 @@ run (GAsyncReadyCallback _callback_,
 void
 run_finish (GAsyncResult* _res_)
 {
-	RunData* _data_;
+	G_GNUC_UNUSED RunData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

@@ -32,11 +32,6 @@
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _FooNewData FooNewData;
 typedef struct _BarData BarData;
@@ -119,7 +114,7 @@ Foo*
 foo_construct_finish (GAsyncResult* _res_)
 {
 	Foo* result;
-	FooNewData* _data_;
+	G_GNUC_UNUSED FooNewData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->self;
 	_data_->self = NULL;
@@ -216,7 +211,7 @@ bar (GAsyncReadyCallback _callback_,
 void
 bar_finish (GAsyncResult* _res_)
 {
-	BarData* _data_;
+	G_GNUC_UNUSED BarData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

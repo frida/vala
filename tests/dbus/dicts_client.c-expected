@@ -236,6 +236,7 @@ _dbus_test_test_dict (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -250,7 +251,12 @@ _dbus_test_test_dict (Test* self,
 		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_hash_table_iter_init (&_tmp6_, result);
 	g_variant_builder_init (&_tmp5_, G_VARIANT_TYPE ("a{sv}"));
@@ -407,7 +413,7 @@ _vala_main (void)
 	gchar** _tmp9_ = NULL;
 	gint _tmp9__length1 = 0;
 	gint s_length1;
-	gint _s_size_;
+	G_GNUC_UNUSED gint _s_size_;
 	gboolean _tmp10_ = FALSE;
 	gchar** _tmp11_;
 	gint _tmp11__length1;

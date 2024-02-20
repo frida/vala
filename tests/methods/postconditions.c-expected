@@ -243,7 +243,7 @@ _vala_main (void)
 		gchar** a = NULL;
 		gchar** _tmp3_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gchar** _tmp4_;
 		gint _tmp4__length1;
 		const gchar* _tmp5_;
@@ -262,7 +262,7 @@ _vala_main (void)
 	{
 		gchar** a = NULL;
 		gint a_length1 = 0;
-		gint _a_size_ = 0;
+		G_GNUC_UNUSED gint _a_size_ = 0;
 		gchar** _tmp6_ = NULL;
 		gint _tmp7_ = 0;
 		const gchar* _tmp8_;
@@ -300,7 +300,7 @@ _vala_main (void)
 		gchar** a = NULL;
 		gchar** _tmp16_;
 		gint a_length1;
-		gint _a_size_;
+		G_GNUC_UNUSED gint _a_size_;
 		gint _tmp17_ = 0;
 		gchar** _tmp18_;
 		gchar** _tmp19_;
@@ -322,7 +322,7 @@ _vala_main (void)
 	{
 		gchar** a = NULL;
 		gint a_length1 = 0;
-		gint _a_size_ = 0;
+		G_GNUC_UNUSED gint _a_size_ = 0;
 		gchar** _tmp21_ = NULL;
 		gint _tmp22_ = 0;
 		gint _tmp23_ = 0;

@@ -35,11 +35,6 @@ typedef struct _Test Test;
 typedef struct _TestClass TestClass;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _TestPrivate TestPrivate;
-enum  {
-	TEST_0_PROPERTY,
-	TEST_NUM_PROPERTIES
-};
-static GParamSpec* test_properties[TEST_NUM_PROPERTIES];
 
 struct _Test {
 	GObject parent_instance;
@@ -143,7 +138,7 @@ test_instance_init (Test * self,
 static void
 test_finalize (GObject * obj)
 {
-	Test * self;
+	G_GNUC_UNUSED Test * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST, Test);
 	nothing ();
 	G_OBJECT_CLASS (test_parent_class)->finalize (obj);

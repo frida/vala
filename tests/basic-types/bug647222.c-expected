@@ -21,7 +21,7 @@ _vala_main (void)
 	GValue** v = NULL;
 	GValue** _tmp0_;
 	gint v_length1;
-	gint _v_size_;
+	G_GNUC_UNUSED gint _v_size_;
 	_tmp0_ = g_new0 (GValue*, 10);
 	v = _tmp0_;
 	v_length1 = 10;

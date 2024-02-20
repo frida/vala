@@ -242,7 +242,7 @@ _vala_main (void)
 	Foo _tmp9_ = {0};
 	Foo* _tmp10_;
 	gint foos_length1;
-	gint _foos_size_;
+	G_GNUC_UNUSED gint _foos_size_;
 	Foo f = {0};
 	Foo* _tmp11_;
 	gint _tmp11__length1;

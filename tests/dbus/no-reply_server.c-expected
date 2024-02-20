@@ -35,11 +35,6 @@
 typedef struct _Test Test;
 typedef struct _TestClass TestClass;
 typedef struct _TestPrivate TestPrivate;
-enum  {
-	TEST_0_PROPERTY,
-	TEST_NUM_PROPERTIES
-};
-static GParamSpec* test_properties[TEST_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_variant_unref0(var) ((var == NULL) ? NULL : (var = (g_variant_unref (var), NULL)))
@@ -297,7 +292,7 @@ test_instance_init (Test * self,
 static void
 test_finalize (GObject * obj)
 {
-	Test * self;
+	G_GNUC_UNUSED Test * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST, Test);
 	self->priv->messages = (_vala_array_free (self->priv->messages, self->priv->messages_length1, (GDestroyNotify) g_free), NULL);
 	G_OBJECT_CLASS (test_parent_class)->finalize (obj);
@@ -333,6 +328,7 @@ _dbus_test_list_messages (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -343,7 +339,12 @@ _dbus_test_list_messages (Test* self,
 	gint _tmp2_;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_list_messages (self, &result_length1);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp0_ = result;
 	g_variant_builder_init (&_tmp1_, G_VARIANT_TYPE ("as"));
@@ -369,6 +370,7 @@ _dbus_test_post_message (Test* self,
 	GVariantIter _arguments_iter;
 	gchar* message = NULL;
 	GVariant* _tmp3_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -377,7 +379,12 @@ _dbus_test_post_message (Test* self,
 	message = g_variant_dup_string (_tmp3_, NULL);
 	g_variant_unref (_tmp3_);
 	test_post_message (self, message);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);

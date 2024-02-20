@@ -94,7 +94,7 @@ run (GAsyncReadyCallback _callback_,
 void
 run_finish (GAsyncResult* _res_)
 {
-	RunData* _data_;
+	G_GNUC_UNUSED RunData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

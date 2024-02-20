@@ -34,11 +34,6 @@
 typedef struct _FObject FObject;
 typedef struct _FObjectClass FObjectClass;
 typedef struct _FObjectPrivate FObjectPrivate;
-enum  {
-	FOBJECT_0_PROPERTY,
-	FOBJECT_NUM_PROPERTIES
-};
-static GParamSpec* fobject_properties[FOBJECT_NUM_PROPERTIES];
 
 #define TYPE_FSTRUCT (fstruct_get_type ())
 typedef struct _FStruct FStruct;
@@ -304,7 +299,7 @@ void
 foo_set_s (Foo* self,
            const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_FOO (self));
 	old_value = foo_get_s (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -527,7 +522,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	_g_free0 (self->priv->_s);
 	_g_object_unref0 (self->priv->_o);
@@ -733,7 +728,7 @@ _vala_main (void)
 	gchar* _tmp2_;
 	gchar** _tmp3_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gint i = 0;
 	FObject* o = NULL;
 	FObject* _tmp4_;

@@ -284,7 +284,7 @@ manam_manam_instance_init (ManamManam * self,
 static void
 manam_manam_finalize (ManamManam * obj)
 {
-	ManamManam * self;
+	G_GNUC_UNUSED ManamManam * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MANAM_TYPE_MANAM, ManamManam);
 	g_signal_handlers_destroy (self);
 }
@@ -502,7 +502,7 @@ manam_foo_instance_init (ManamFoo * self,
 static void
 manam_foo_finalize (ManamFoo * obj)
 {
-	ManamFoo * self;
+	G_GNUC_UNUSED ManamFoo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MANAM_TYPE_FOO, ManamFoo);
 	g_signal_handlers_destroy (self);
 }

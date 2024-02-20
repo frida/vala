@@ -191,7 +191,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	self->priv->_strings = (_vala_array_free (self->priv->_strings, self->priv->_strings_length1, (GDestroyNotify) g_free), NULL);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
@@ -267,7 +267,7 @@ _vala_main (void)
 {
 	gchar** strings = NULL;
 	gint strings_length1 = 0;
-	gint _strings_size_ = 0;
+	G_GNUC_UNUSED gint _strings_size_ = 0;
 	Foo* f = NULL;
 	Foo* _tmp0_;
 	Foo* _tmp1_;

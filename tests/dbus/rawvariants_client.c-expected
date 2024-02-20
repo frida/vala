@@ -218,7 +218,7 @@ static void _dbus_test_raw_test_signal (GObject* _sender,
                                  gpointer* _data);
 static void _test_raw_unregister_object (gpointer user_data);
 VALA_EXTERN void test_raw (TestRaw* test);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_,
                      GVariant* var_i);
@@ -232,7 +232,7 @@ static gint _variant_get2 (GVariant* value);
 static GVariant* _variant_new3 (const gchar* value);
 static gchar* _variant_get3 (GVariant* value);
 VALA_EXTERN void test (Test* test);
-static Block2Data* block2_data_ref (Block2Data* _data2_);
+static Block2Data* block2_data_ref (Block2Data* _data2_) G_GNUC_UNUSED ;
 static void block2_data_unref (void * _userdata_);
 static void _vala_lambda1_ (Block2Data* _data2_,
                      gint i);
@@ -489,6 +489,7 @@ _dbus_test_test_method (Test* self,
 	GVariant* _tmp4_;
 	gint k = 0;
 	GVariant* _tmp5_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -505,7 +506,12 @@ _dbus_test_test_method (Test* self,
 		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -853,6 +859,7 @@ _dbus_test_raw_test_method (TestRaw* self,
 	GVariantIter _arguments_iter;
 	GVariant* j = NULL;
 	GVariant* k = NULL;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -863,9 +870,14 @@ _dbus_test_raw_test_method (TestRaw* self,
 	result = test_raw_test_method (self, j, k, &error);
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _error;
+		goto _return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		goto _return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, result);
 	_g_variant_unref0 (result);
@@ -874,7 +886,7 @@ _dbus_test_raw_test_method (TestRaw* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_error:
+	_return:
 	_g_variant_unref0 (j);
 	_g_variant_unref0 (k);
 	;

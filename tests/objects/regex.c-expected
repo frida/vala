@@ -36,11 +36,6 @@ typedef struct _Test Test;
 typedef struct _TestClass TestClass;
 typedef struct _TestPrivate TestPrivate;
 enum  {
-	TEST_0_PROPERTY,
-	TEST_NUM_PROPERTIES
-};
-static GParamSpec* test_properties[TEST_NUM_PROPERTIES];
-enum  {
 	TEST_REGEX_TEST_SIGNAL,
 	TEST_NUM_SIGNALS
 };
@@ -83,7 +78,7 @@ VALA_EXTERN Test* test_new (void);
 VALA_EXTERN Test* test_construct (GType object_type);
 static GType test_get_type_once (void);
 static void _vala_main (void);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_,
                      const gchar* s);
@@ -138,7 +133,7 @@ get_from_array (gint index)
 	GRegex* _tmp3_;
 	GRegex** _tmp4_;
 	gint arr_length1;
-	gint _arr_size_;
+	G_GNUC_UNUSED gint _arr_size_;
 	gint _tmp5_;
 	GRegex* _tmp6_;
 	GRegex* _tmp7_;

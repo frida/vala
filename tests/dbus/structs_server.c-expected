@@ -370,7 +370,7 @@ test_instance_init (Test * self,
 static void
 test_finalize (GObject * obj)
 {
-	Test * self;
+	G_GNUC_UNUSED Test * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST, Test);
 	foo_struct_destroy (&self->priv->_test_property);
 	G_OBJECT_CLASS (test_parent_class)->finalize (obj);
@@ -453,6 +453,7 @@ _dbus_test_test_struct (Test* self,
 	GVariantIter _tmp2_;
 	GVariant* _tmp3_;
 	GVariant* _tmp4_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -472,7 +473,12 @@ _dbus_test_test_struct (Test* self,
 	f = _tmp1_;
 	g_variant_unref (_tmp0_);
 	test_test_struct (self, &f, &g, &result);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_init (&_tmp5_, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_tmp5_, g_variant_new_int32 (g.i));

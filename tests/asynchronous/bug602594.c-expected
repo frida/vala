@@ -307,7 +307,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -386,7 +386,7 @@ callback (const gchar* s,
 void
 callback_finish (GAsyncResult* _res_)
 {
-	CallbackData* _data_;
+	G_GNUC_UNUSED CallbackData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

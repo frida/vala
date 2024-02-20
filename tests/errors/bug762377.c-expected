@@ -35,11 +35,6 @@
 typedef struct _FooOutputStream FooOutputStream;
 typedef struct _FooOutputStreamClass FooOutputStreamClass;
 typedef struct _FooOutputStreamPrivate FooOutputStreamPrivate;
-enum  {
-	FOO_OUTPUT_STREAM_0_PROPERTY,
-	FOO_OUTPUT_STREAM_NUM_PROPERTIES
-};
-static GParamSpec* foo_output_stream_properties[FOO_OUTPUT_STREAM_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 struct _FooOutputStream {
@@ -164,7 +159,7 @@ string_get_data (const gchar* self,
 	guint8* result;
 	guint8* res = NULL;
 	gint res_length1;
-	gint _res_size_;
+	G_GNUC_UNUSED gint _res_size_;
 	gint _tmp0_;
 	gint _tmp1_;
 	guint8* _tmp2_;

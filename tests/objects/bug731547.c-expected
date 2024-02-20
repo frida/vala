@@ -33,11 +33,6 @@ typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
 enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
-enum  {
 	FOO_BAZ_SIGNAL,
 	FOO_BAZ_BAR_SIGNAL,
 	FOO_BAZ_VIRT_SIGNAL,

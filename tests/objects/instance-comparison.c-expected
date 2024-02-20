@@ -40,11 +40,6 @@ typedef struct _IFooIface IFooIface;
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 
 #define TYPE_MANAM (manam_get_type ())
 #define MANAM(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_MANAM, Manam))
@@ -56,11 +51,6 @@ static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 typedef struct _Manam Manam;
 typedef struct _ManamClass ManamClass;
 typedef struct _ManamPrivate ManamPrivate;
-enum  {
-	MANAM_0_PROPERTY,
-	MANAM_NUM_PROPERTIES
-};
-static GParamSpec* manam_properties[MANAM_NUM_PROPERTIES];
 
 #define TYPE_IFAZ (ifaz_get_type ())
 #define IFAZ(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_IFAZ, IFaz))
@@ -80,11 +70,6 @@ typedef struct _IFazIface IFazIface;
 typedef struct _Baz Baz;
 typedef struct _BazClass BazClass;
 typedef struct _BazPrivate BazPrivate;
-enum  {
-	BAZ_0_PROPERTY,
-	BAZ_NUM_PROPERTIES
-};
-static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 struct _IFooIface {

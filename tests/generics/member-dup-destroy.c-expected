@@ -44,7 +44,6 @@ enum  {
 	FOO_G_DESTROY_FUNC,
 	FOO_NUM_PROPERTIES
 };
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _FooFooAsyncData FooFooAsyncData;
 typedef struct _BarAsyncData BarAsyncData;
@@ -146,7 +145,7 @@ VALA_EXTERN void bar_captured (GType t_type,
                    GBoxedCopyFunc t_dup_func,
                    GDestroyNotify t_destroy_func,
                    gconstpointer t);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda1_ (Block1Data* _data1_);
 static void __vala_lambda1__foo_func (gpointer self);
@@ -237,7 +236,7 @@ void
 foo_foo_finish (Foo* self,
                 GAsyncResult* _res_)
 {
-	FooFooAsyncData* _data_;
+	G_GNUC_UNUSED FooFooAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -441,7 +440,7 @@ bar_async (GType t_type,
 void
 bar_finish (GAsyncResult* _res_)
 {
-	BarAsyncData* _data_;
+	G_GNUC_UNUSED BarAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

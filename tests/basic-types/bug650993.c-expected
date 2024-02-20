@@ -38,7 +38,7 @@ _vala_main (void)
 	gint* o = NULL;
 	void* _tmp0_;
 	gint o_length1;
-	gint _o_size_;
+	G_GNUC_UNUSED gint _o_size_;
 	_tmp0_ = test ();
 	o = (gint*) _tmp0_;
 	o_length1 = -1;

@@ -210,7 +210,7 @@ test_without_destroy (void)
 		Foo* _tmp5_;
 		Foo** _tmp6_;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		memset (&_tmp0_, 0, sizeof (Foo));
 		_tmp0_.i = 23;
 		_tmp1_ = _foo_dup0 (&_tmp0_);
@@ -559,7 +559,7 @@ test_with_destroy (void)
 		Bar** _tmp13_;
 		gint _tmp13__length1;
 		gint bar_length1;
-		gint _bar_size_;
+		G_GNUC_UNUSED gint _bar_size_;
 		_tmp0_ = g_strdup ("foo");
 		memset (&_tmp1_, 0, sizeof (Bar));
 		_g_free0 (_tmp1_.s);

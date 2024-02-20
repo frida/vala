@@ -75,7 +75,7 @@ _vala_main (void)
 	gdouble* _tmp5_;
 	gdouble** _tmp6_;
 	gint array_length1;
-	gint _array_size_;
+	G_GNUC_UNUSED gint _array_size_;
 	gdouble** _tmp7_;
 	gint _tmp7__length1;
 	_tmp0_ = (gdouble) 3;
@@ -96,7 +96,7 @@ _vala_main (void)
 	{
 		gdouble** i_collection = NULL;
 		gint i_collection_length1 = 0;
-		gint _i_collection_size_ = 0;
+		G_GNUC_UNUSED gint _i_collection_size_ = 0;
 		gint i_it = 0;
 		i_collection = _tmp7_;
 		i_collection_length1 = _tmp7__length1;

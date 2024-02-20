@@ -2,6 +2,8 @@
  * generated from objects_gsource.vala, do not modify */
 
 #include <glib.h>
+#include <glib-object.h>
+#include <gio/gio.h>
 
 #if !defined(VALA_STRICT_C)
 #if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
@@ -24,7 +26,9 @@
 typedef GSource FooSource;
 typedef struct _BarSource BarSource;
 typedef GSource ManamSource;
+typedef GSource MotuSource;
 #define _g_source_unref0(var) ((var == NULL) ? NULL : (var = (g_source_unref (var), NULL)))
+#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 struct _BarSource {
 	GSource parent_instance;
@@ -55,6 +59,16 @@ static gboolean manam_source_real_dispatch (GSource* base,
                                      GSourceFunc callback,
                                      gpointer callback_target);
 VALA_EXTERN ManamSource* manam_source_new (void);
+static void motu_source_instance_init (MotuSource * self);
+static void motu_source_finalize (GSource * obj);
+static gboolean motu_source_real_dispatch (GSource* base,
+                                    GSourceFunc callback,
+                                    gpointer callback_target);
+static gboolean motu_source_closure_callback (GObject* motu,
+                                       GClosure* closure);
+static void _vala_GValue_array_free (GValue * array,
+                              gssize array_length);
+VALA_EXTERN MotuSource* motu_source_new (void);
 static void _vala_main (void);
 
 static gboolean
@@ -99,7 +113,7 @@ FooSource*
 foo_source_new (void)
 {
 	FooSource* self;
-	static const GSourceFuncs _source_funcs = { foo_source_real_prepare, foo_source_real_check, foo_source_real_dispatch, foo_source_finalize};
+	static const GSourceFuncs _source_funcs = { foo_source_real_prepare, foo_source_real_check, foo_source_real_dispatch, foo_source_finalize, NULL };
 	self = (FooSource*) g_source_new ((GSourceFuncs *) (&_source_funcs), sizeof (FooSource));
 	foo_source_instance_init (self);
 	return self;
@@ -113,7 +127,7 @@ foo_source_instance_init (FooSource * self)
 static void
 foo_source_finalize (GSource * obj)
 {
-	FooSource * self;
+	G_GNUC_UNUSED FooSource * self;
 	self = (FooSource *) obj;
 }
 
@@ -121,7 +135,7 @@ BarSource*
 bar_source_new (gint timeout)
 {
 	BarSource* self;
-	static const GSourceFuncs _source_funcs = { bar_source_real_prepare, bar_source_real_check, bar_source_real_dispatch, bar_source_finalize};
+	static const GSourceFuncs _source_funcs = { bar_source_real_prepare, bar_source_real_check, bar_source_real_dispatch, bar_source_finalize, NULL };
 	self = (BarSource*) g_source_new ((GSourceFuncs *) (&_source_funcs), sizeof (BarSource));
 	bar_source_instance_init (self);
 	self->custom_timeout = timeout;
@@ -174,7 +188,7 @@ bar_source_instance_init (BarSource * self)
 static void
 bar_source_finalize (GSource * obj)
 {
-	BarSource * self;
+	G_GNUC_UNUSED BarSource * self;
 	self = (BarSource *) obj;
 }
 
@@ -194,7 +208,7 @@ ManamSource*
 manam_source_new (void)
 {
 	ManamSource* self;
-	static const GSourceFuncs _source_funcs = { NULL, NULL, manam_source_real_dispatch, manam_source_finalize};
+	static const GSourceFuncs _source_funcs = { NULL, NULL, manam_source_real_dispatch, manam_source_finalize, NULL };
 	self = (ManamSource*) g_source_new ((GSourceFuncs *) (&_source_funcs), sizeof (ManamSource));
 	manam_source_instance_init (self);
 	return self;
@@ -208,8 +222,97 @@ manam_source_instance_init (ManamSource * self)
 static void
 manam_source_finalize (GSource * obj)
 {
-	ManamSource * self;
+	G_GNUC_UNUSED ManamSource * self;
 	self = (ManamSource *) obj;
+}
+
+static gboolean
+motu_source_real_dispatch (GSource* base,
+                           GSourceFunc callback,
+                           gpointer callback_target)
+{
+	MotuSource * self;
+	gboolean result;
+	self = (MotuSource*) base;
+	result = FALSE;
+	return result;
+}
+
+static void
+_vala_GValue_array_free (GValue * array,
+                         gssize array_length)
+{
+	if (array != NULL) {
+		gssize i;
+		for (i = 0; i < array_length; i = i + 1) {
+			g_value_unset (&array[i]);
+		}
+	}
+	g_free (array);
+}
+
+static gboolean
+motu_source_closure_callback (GObject* motu,
+                              GClosure* closure)
+{
+	GValue return_value = {0};
+	GValue _tmp0_ = {0};
+	GValue motu_parameter = {0};
+	GValue _tmp1_ = {0};
+	GValue _tmp2_;
+	GValue _tmp3_;
+	GValue _tmp4_ = {0};
+	GValue* _tmp5_;
+	GValue* _tmp6_;
+	gint _tmp6__length1;
+	gboolean result;
+	g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (motu, G_TYPE_OBJECT), FALSE);
+	g_return_val_if_fail (closure != NULL, FALSE);
+	g_value_init (&_tmp0_, G_TYPE_BOOLEAN);
+	return_value = _tmp0_;
+	g_value_init (&_tmp1_, G_TYPE_OBJECT);
+	motu_parameter = _tmp1_;
+	g_value_set_object (&motu_parameter, motu);
+	_tmp2_ = motu_parameter;
+	_tmp3_ = _tmp2_;
+	if (G_IS_VALUE (&_tmp3_)) {
+		g_value_init (&_tmp4_, G_VALUE_TYPE (&_tmp3_));
+		g_value_copy (&_tmp3_, &_tmp4_);
+	} else {
+		_tmp4_ = _tmp3_;
+	}
+	_tmp5_ = g_new0 (GValue, 1);
+	_tmp5_[0] = _tmp4_;
+	_tmp6_ = _tmp5_;
+	_tmp6__length1 = 1;
+	g_closure_invoke (closure, &return_value, (guint) 1, _tmp6_, NULL);
+	_tmp6_ = (_vala_GValue_array_free (_tmp6_, _tmp6__length1), NULL);
+	result = g_value_get_boolean (&return_value);
+	G_IS_VALUE (&motu_parameter) ? (g_value_unset (&motu_parameter), NULL) : NULL;
+	G_IS_VALUE (&return_value) ? (g_value_unset (&return_value), NULL) : NULL;
+	return result;
+}
+
+MotuSource*
+motu_source_new (void)
+{
+	MotuSource* self;
+	static const GSourceFuncs _source_funcs = { NULL, NULL, motu_source_real_dispatch, motu_source_finalize, (GSourceFunc) motu_source_closure_callback };
+	self = (MotuSource*) g_source_new ((GSourceFuncs *) (&_source_funcs), sizeof (MotuSource));
+	motu_source_instance_init (self);
+	return self;
+}
+
+static void
+motu_source_instance_init (MotuSource * self)
+{
+}
+
+static void
+motu_source_finalize (GSource * obj)
+{
+	G_GNUC_UNUSED MotuSource * self;
+	self = (MotuSource *) obj;
 }
 
 static void
@@ -221,12 +324,29 @@ _vala_main (void)
 	BarSource* _tmp1_;
 	ManamSource* manam = NULL;
 	ManamSource* _tmp2_;
+	GSource* motu = NULL;
+	GMemoryInputStream* _tmp3_;
+	GMemoryInputStream* _tmp4_;
+	MotuSource* _tmp5_;
+	MotuSource* _tmp6_;
+	GSource* _tmp7_;
+	GSource* _tmp8_;
 	_tmp0_ = foo_source_new ();
 	foo = _tmp0_;
 	_tmp1_ = bar_source_new (1000);
 	bar = _tmp1_;
 	_tmp2_ = manam_source_new ();
 	manam = _tmp2_;
+	_tmp3_ = (GMemoryInputStream*) g_memory_input_stream_new ();
+	_tmp4_ = _tmp3_;
+	_tmp5_ = motu_source_new ();
+	_tmp6_ = _tmp5_;
+	_tmp7_ = g_pollable_source_new_full (G_TYPE_CHECK_INSTANCE_CAST (_tmp4_, G_TYPE_OBJECT, GObject), (GSource*) _tmp6_, NULL);
+	_tmp8_ = _tmp7_;
+	_g_source_unref0 (_tmp6_);
+	_g_object_unref0 (_tmp4_);
+	motu = _tmp8_;
+	_g_source_unref0 (motu);
 	_g_source_unref0 (manam);
 	_g_source_unref0 (bar);
 	_g_source_unref0 (foo);

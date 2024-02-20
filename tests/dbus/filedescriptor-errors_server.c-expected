@@ -39,11 +39,6 @@
 typedef struct _Test Test;
 typedef struct _TestClass TestClass;
 typedef struct _TestPrivate TestPrivate;
-enum  {
-	TEST_0_PROPERTY,
-	TEST_NUM_PROPERTIES
-};
-static GParamSpec* test_properties[TEST_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_variant_unref0(var) ((var == NULL) ? NULL : (var = (g_variant_unref (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
@@ -136,7 +131,7 @@ test_test (Test* self,
 	guint8* buffer = NULL;
 	guint8* _tmp0_;
 	gint buffer_length1;
-	gint _buffer_size_;
+	G_GNUC_UNUSED gint _buffer_size_;
 	GError* _inner_error0_ = NULL;
 	g_return_if_fail (IS_TEST (self));
 	g_return_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (output_stream, G_TYPE_UNIX_OUTPUT_STREAM));
@@ -221,6 +216,7 @@ _dbus_test_test (Test* self,
 	gint _fd_index = 0;
 	gint _fd;
 	GUnixOutputStream* output_stream = NULL;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -237,14 +233,19 @@ _dbus_test_test (Test* self,
 	}
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _error;
+		goto _return;
 	}
 	test_test (self, output_stream, &error);
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _error;
+		goto _return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		goto _return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_fd_list = g_unix_fd_list_new ();
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -254,7 +255,7 @@ _dbus_test_test (Test* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_error:
+	_return:
 	_g_object_unref0 (output_stream);
 	;
 }

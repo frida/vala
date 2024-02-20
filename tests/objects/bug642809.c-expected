@@ -44,11 +44,6 @@ static guint foo_signals[FOO_NUM_SIGNALS] = {0};
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 
 #define TYPE_MANAM (manam_get_type ())
 #define MANAM(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_MANAM, Manam))
@@ -60,11 +55,6 @@ static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 typedef struct _Manam Manam;
 typedef struct _ManamClass ManamClass;
 typedef struct _ManamPrivate ManamPrivate;
-enum  {
-	MANAM_0_PROPERTY,
-	MANAM_NUM_PROPERTIES
-};
-static GParamSpec* manam_properties[MANAM_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 struct _FooIface {

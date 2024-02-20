@@ -34,11 +34,6 @@
 typedef struct _Base Base;
 typedef struct _BaseClass BaseClass;
 typedef struct _BasePrivate BasePrivate;
-enum  {
-	BASE_0_PROPERTY,
-	BASE_NUM_PROPERTIES
-};
-static GParamSpec* base_properties[BASE_NUM_PROPERTIES];
 
 #define TYPE_IFOO (ifoo_get_type ())
 #define IFOO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_IFOO, IFoo))
@@ -66,11 +61,6 @@ typedef struct _IBarIface IBarIface;
 typedef struct _Manam Manam;
 typedef struct _ManamClass ManamClass;
 typedef struct _ManamPrivate ManamPrivate;
-enum  {
-	MANAM_0_PROPERTY,
-	MANAM_NUM_PROPERTIES
-};
-static GParamSpec* manam_properties[MANAM_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);

@@ -60,7 +60,7 @@ _vala_main (void)
 	gint* foo = NULL;
 	gint* _tmp0_;
 	gint foo_length1;
-	gint _foo_size_;
+	G_GNUC_UNUSED gint _foo_size_;
 	gint* i = NULL;
 	gint* _tmp1_;
 	gint _tmp2_;

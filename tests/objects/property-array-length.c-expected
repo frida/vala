@@ -145,7 +145,7 @@ foo (guint8* data,
 void
 foo_finish (GAsyncResult* _res_)
 {
-	FooData* _data_;
+	G_GNUC_UNUSED FooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -192,7 +192,7 @@ bar (GAsyncReadyCallback _callback_,
 void
 bar_finish (GAsyncResult* _res_)
 {
-	BarData* _data_;
+	G_GNUC_UNUSED BarData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

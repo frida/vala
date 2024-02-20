@@ -34,11 +34,6 @@ typedef void (*FooFunc) (gpointer user_data);
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 typedef struct _Block1Data Block1Data;
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _Block2Data Block2Data;
@@ -137,28 +132,28 @@ static void foo_call_shared_owned (Foo* self,
                             gpointer user_data,
                             GDestroyNotify user_data_destroy_notify);
 VALA_EXTERN void foo_run_1 (Foo* self);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_);
 static void __vala_lambda0__foo_func (gpointer self);
 static void _vala_lambda1_ (Block1Data* _data1_);
 static void __vala_lambda1__foo_func (gpointer self);
 VALA_EXTERN void foo_run_2 (Foo* self);
-static Block2Data* block2_data_ref (Block2Data* _data2_);
+static Block2Data* block2_data_ref (Block2Data* _data2_) G_GNUC_UNUSED ;
 static void block2_data_unref (void * _userdata_);
 static void _vala_lambda2_ (Block2Data* _data2_);
 static void __vala_lambda2__foo_func (gpointer self);
 static void _vala_lambda3_ (Block2Data* _data2_);
 static void __vala_lambda3__foo_func (gpointer self);
 VALA_EXTERN void foo_run_3 (Foo* self);
-static Block3Data* block3_data_ref (Block3Data* _data3_);
+static Block3Data* block3_data_ref (Block3Data* _data3_) G_GNUC_UNUSED ;
 static void block3_data_unref (void * _userdata_);
 static void _vala_lambda4_ (Block3Data* _data3_);
 static void __vala_lambda4__foo_func (gpointer self);
 static void _vala_lambda5_ (Block3Data* _data3_);
 static void __vala_lambda5__foo_func (gpointer self);
 VALA_EXTERN void foo_run_4 (Foo* self);
-static Block4Data* block4_data_ref (Block4Data* _data4_);
+static Block4Data* block4_data_ref (Block4Data* _data4_) G_GNUC_UNUSED ;
 static void block4_data_unref (void * _userdata_);
 static void _vala_lambda6_ (Block4Data* _data4_);
 static void __vala_lambda6__foo_func (gpointer self);
@@ -176,28 +171,28 @@ VALA_EXTERN void call_shared_owned (FooFunc a,
                         gpointer user_data,
                         GDestroyNotify user_data_destroy_notify);
 VALA_EXTERN void run_static_1 (void);
-static Block5Data* block5_data_ref (Block5Data* _data5_);
+static Block5Data* block5_data_ref (Block5Data* _data5_) G_GNUC_UNUSED ;
 static void block5_data_unref (void * _userdata_);
 static void _vala_lambda8_ (Block5Data* _data5_);
 static void __vala_lambda8__foo_func (gpointer self);
 static void _vala_lambda9_ (void);
 static void __vala_lambda9__foo_func (gpointer self);
 VALA_EXTERN void run_static_2 (void);
-static Block6Data* block6_data_ref (Block6Data* _data6_);
+static Block6Data* block6_data_ref (Block6Data* _data6_) G_GNUC_UNUSED ;
 static void block6_data_unref (void * _userdata_);
 static void _vala_lambda10_ (void);
 static void __vala_lambda10__foo_func (gpointer self);
 static void _vala_lambda11_ (Block6Data* _data6_);
 static void __vala_lambda11__foo_func (gpointer self);
 VALA_EXTERN void run_static_3 (void);
-static Block7Data* block7_data_ref (Block7Data* _data7_);
+static Block7Data* block7_data_ref (Block7Data* _data7_) G_GNUC_UNUSED ;
 static void block7_data_unref (void * _userdata_);
 static void _vala_lambda12_ (Block7Data* _data7_);
 static void __vala_lambda12__foo_func (gpointer self);
 static void _vala_lambda13_ (void);
 static void __vala_lambda13__foo_func (gpointer self);
 VALA_EXTERN void run_static_4 (void);
-static Block8Data* block8_data_ref (Block8Data* _data8_);
+static Block8Data* block8_data_ref (Block8Data* _data8_) G_GNUC_UNUSED ;
 static void block8_data_unref (void * _userdata_);
 static void _vala_lambda14_ (void);
 static void __vala_lambda14__foo_func (gpointer self);
@@ -289,7 +284,7 @@ block1_data_unref (void * _userdata_)
 	Block1Data* _data1_;
 	_data1_ = (Block1Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
-		Foo* self;
+		G_GNUC_UNUSED Foo* self;
 		self = _data1_->self;
 		_g_object_unref0 (self);
 		g_slice_free (Block1Data, _data1_);
@@ -299,7 +294,7 @@ block1_data_unref (void * _userdata_)
 static void
 _vala_lambda0_ (Block1Data* _data1_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data1_->self;
 	_vala_assert (self->priv->global == 42, "global == 42");
 	_vala_assert (G_TYPE_CHECK_INSTANCE_CAST (self, G_TYPE_OBJECT, GObject)->ref_count == ((guint) 2), "this.ref_count == 2");
@@ -314,7 +309,7 @@ __vala_lambda0__foo_func (gpointer self)
 static void
 _vala_lambda1_ (Block1Data* _data1_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data1_->self;
 	_vala_assert (_data1_->local == 23, "local == 23");
 	_vala_assert (G_TYPE_CHECK_INSTANCE_CAST (self, G_TYPE_OBJECT, GObject)->ref_count == ((guint) 2), "this.ref_count == 2");
@@ -355,7 +350,7 @@ block2_data_unref (void * _userdata_)
 	Block2Data* _data2_;
 	_data2_ = (Block2Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data2_->_ref_count_)) {
-		Foo* self;
+		G_GNUC_UNUSED Foo* self;
 		self = _data2_->self;
 		_g_object_unref0 (self);
 		g_slice_free (Block2Data, _data2_);
@@ -365,7 +360,7 @@ block2_data_unref (void * _userdata_)
 static void
 _vala_lambda2_ (Block2Data* _data2_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data2_->self;
 	_vala_assert (self->priv->global == 42, "global == 42");
 }
@@ -379,7 +374,7 @@ __vala_lambda2__foo_func (gpointer self)
 static void
 _vala_lambda3_ (Block2Data* _data2_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data2_->self;
 	_vala_assert (_data2_->local == 23, "local == 23");
 }
@@ -419,7 +414,7 @@ block3_data_unref (void * _userdata_)
 	Block3Data* _data3_;
 	_data3_ = (Block3Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data3_->_ref_count_)) {
-		Foo* self;
+		G_GNUC_UNUSED Foo* self;
 		self = _data3_->self;
 		_g_object_unref0 (self);
 		g_slice_free (Block3Data, _data3_);
@@ -429,7 +424,7 @@ block3_data_unref (void * _userdata_)
 static void
 _vala_lambda4_ (Block3Data* _data3_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data3_->self;
 	_vala_assert (self->priv->global == 42, "global == 42");
 }
@@ -443,7 +438,7 @@ __vala_lambda4__foo_func (gpointer self)
 static void
 _vala_lambda5_ (Block3Data* _data3_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data3_->self;
 	_vala_assert (_data3_->local == 23, "local == 23");
 }
@@ -483,7 +478,7 @@ block4_data_unref (void * _userdata_)
 	Block4Data* _data4_;
 	_data4_ = (Block4Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data4_->_ref_count_)) {
-		Foo* self;
+		G_GNUC_UNUSED Foo* self;
 		self = _data4_->self;
 		_g_object_unref0 (self);
 		g_slice_free (Block4Data, _data4_);
@@ -493,7 +488,7 @@ block4_data_unref (void * _userdata_)
 static void
 _vala_lambda6_ (Block4Data* _data4_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data4_->self;
 	_vala_assert (self->priv->global == 42, "global == 42");
 }
@@ -507,7 +502,7 @@ __vala_lambda6__foo_func (gpointer self)
 static void
 _vala_lambda7_ (Block4Data* _data4_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	self = _data4_->self;
 	_vala_assert (_data4_->local == 23, "local == 23");
 }
@@ -568,7 +563,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
 }

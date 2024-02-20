@@ -34,11 +34,6 @@
 typedef struct _ClsA ClsA;
 typedef struct _ClsAClass ClsAClass;
 typedef struct _ClsAPrivate ClsAPrivate;
-enum  {
-	CLS_A_0_PROPERTY,
-	CLS_A_NUM_PROPERTIES
-};
-static GParamSpec* cls_a_properties[CLS_A_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 #define TYPE_CLS_B (cls_b_get_type ())
@@ -51,11 +46,6 @@ static GParamSpec* cls_a_properties[CLS_A_NUM_PROPERTIES];
 typedef struct _ClsB ClsB;
 typedef struct _ClsBClass ClsBClass;
 typedef struct _ClsBPrivate ClsBPrivate;
-enum  {
-	CLS_B_0_PROPERTY,
-	CLS_B_NUM_PROPERTIES
-};
-static GParamSpec* cls_b_properties[CLS_B_NUM_PROPERTIES];
 
 typedef enum  {
 	FOO_BAR

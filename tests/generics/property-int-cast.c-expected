@@ -301,7 +301,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 	((self->priv->_prop == NULL) || (self->priv->g_destroy_func == NULL)) ? NULL : (self->priv->_prop = (self->priv->g_destroy_func (self->priv->_prop), NULL));

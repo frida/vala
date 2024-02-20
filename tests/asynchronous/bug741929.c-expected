@@ -33,11 +33,6 @@
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _FooQueryAsyncData FooQueryAsyncData;
 typedef struct _FooInternalQueryAsyncData FooInternalQueryAsyncData;
@@ -119,7 +114,7 @@ static void foo_internal_query_async (Foo* self,
                                gpointer _user_data_);
 static gboolean foo_internal_query_finish (Foo* self,
                                     GAsyncResult* _res_,
-                                    GError** error);
+                                    GError** error) G_GNUC_UNUSED ;
 static void foo_query_async_ready (GObject* source_object,
                             GAsyncResult* _res_,
                             gpointer _user_data_);
@@ -128,7 +123,7 @@ static void foo_close_query_async (Foo* self,
                             gpointer _user_data_);
 static void foo_close_query_finish (Foo* self,
                              GAsyncResult* _res_,
-                             GError** error);
+                             GError** error) G_GNUC_UNUSED ;
 static void foo_internal_query_async_data_free (gpointer _data);
 static gboolean foo_internal_query_async_co (FooInternalQueryAsyncData* _data_);
 static void foo_close_query_async_data_free (gpointer _data);
@@ -201,7 +196,7 @@ foo_query_finish (Foo* self,
                   GAsyncResult* _res_,
                   GError** error)
 {
-	FooQueryAsyncData* _data_;
+	G_GNUC_UNUSED FooQueryAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), error);
 	if (NULL == _data_) {
 		return;
@@ -349,7 +344,7 @@ foo_internal_query_finish (Foo* self,
                            GError** error)
 {
 	gboolean result;
-	FooInternalQueryAsyncData* _data_;
+	G_GNUC_UNUSED FooInternalQueryAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), error);
 	if (NULL == _data_) {
 		gboolean _tmp0_ = FALSE;
@@ -410,7 +405,7 @@ foo_close_query_finish (Foo* self,
                         GAsyncResult* _res_,
                         GError** error)
 {
-	FooCloseQueryAsyncData* _data_;
+	G_GNUC_UNUSED FooCloseQueryAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), error);
 	if (NULL == _data_) {
 		return;
@@ -457,7 +452,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
 }
@@ -506,7 +501,7 @@ go_async (GAsyncReadyCallback _callback_,
 void
 go_finish (GAsyncResult* _res_)
 {
-	GoAsyncData* _data_;
+	G_GNUC_UNUSED GoAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

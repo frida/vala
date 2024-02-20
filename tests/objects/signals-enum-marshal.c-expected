@@ -46,11 +46,6 @@ typedef struct _Manam Manam;
 typedef struct _ManamClass ManamClass;
 typedef struct _ManamPrivate ManamPrivate;
 enum  {
-	MANAM_0_PROPERTY,
-	MANAM_NUM_PROPERTIES
-};
-static GParamSpec* manam_properties[MANAM_NUM_PROPERTIES];
-enum  {
 	MANAM_FOO_SIGNAL,
 	MANAM_BAR_SIGNAL,
 	MANAM_NUM_SIGNALS

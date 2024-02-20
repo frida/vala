@@ -187,7 +187,7 @@ string_array_conversion (void)
 	gchar** _tmp9_ = NULL;
 	gint _tmp9__length1 = 0;
 	gint sa_length1;
-	gint _sa_size_;
+	G_GNUC_UNUSED gint _sa_size_;
 	const gchar* _tmp10_;
 	_tmp0_ = g_strdup ("foo");
 	_tmp1_ = g_strdup ("bar");
@@ -568,7 +568,7 @@ double_array_conversion (void)
 	gdouble* _tmp7_ = NULL;
 	gint _tmp7__length1 = 0;
 	gint da_length1;
-	gint _da_size_;
+	G_GNUC_UNUSED gint _da_size_;
 	gdouble _tmp8_;
 	_tmp0_ = g_new0 (gdouble, 2);
 	_tmp0_[0] = 42.23;

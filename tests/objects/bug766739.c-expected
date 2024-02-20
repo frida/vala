@@ -395,7 +395,7 @@ fooclass_instance_init (FooClass * self,
 static void
 fooclass_finalize (FooClass * obj)
 {
-	FooClass * self;
+	G_GNUC_UNUSED FooClass * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOOCLASS, FooClass);
 	g_signal_handlers_destroy (self);
 }
@@ -759,7 +759,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (Bar * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	g_signal_handlers_destroy (self);
 	_g_free0 (self->f_string);
@@ -883,7 +883,7 @@ _vala_main (void)
 	gchar* _tmp4_;
 	gchar** _tmp5_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Bar* bar = NULL;
 	gchar* _tmp6_;
 	gchar** _tmp7_;

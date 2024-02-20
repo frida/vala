@@ -560,7 +560,7 @@ test_foreach_const_array (void)
 	{
 		gint* i_collection = NULL;
 		gint i_collection_length1 = 0;
-		gint _i_collection_size_ = 0;
+		G_GNUC_UNUSED gint _i_collection_size_ = 0;
 		gint i_it = 0;
 		i_collection = FOO;
 		i_collection_length1 = G_N_ELEMENTS (FOO);
@@ -589,7 +589,7 @@ test_foreach_const_array (void)
 	{
 		gint* i_collection = NULL;
 		gint i_collection_length1 = 0;
-		gint _i_collection_size_ = 0;
+		G_GNUC_UNUSED gint _i_collection_size_ = 0;
 		gint i_it = 0;
 		i_collection = BAR;
 		i_collection_length1 = G_N_ELEMENTS (BAR);
@@ -623,7 +623,7 @@ test_foreach_slice_array (void)
 	gint* foo = NULL;
 	gint* _tmp0_;
 	gint foo_length1;
-	gint _foo_size_;
+	G_GNUC_UNUSED gint _foo_size_;
 	gchar* _result_ = NULL;
 	gchar* _tmp1_;
 	gint* _tmp2_;
@@ -650,7 +650,7 @@ test_foreach_slice_array (void)
 	{
 		gint* i_collection = NULL;
 		gint i_collection_length1 = 0;
-		gint _i_collection_size_ = 0;
+		G_GNUC_UNUSED gint _i_collection_size_ = 0;
 		gint i_it = 0;
 		i_collection = _tmp2_ + 1;
 		i_collection_length1 = (_tmp3__length1 - 1) - 1;

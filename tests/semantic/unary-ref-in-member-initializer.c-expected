@@ -86,7 +86,7 @@ _vala_main (void)
 	Foo _tmp3_ = {0};
 	Foo* _tmp4_;
 	gint foos_length1;
-	gint _foos_size_;
+	G_GNUC_UNUSED gint _foos_size_;
 	Foo _tmp5_;
 	void* _tmp6_;
 	bar = 42;

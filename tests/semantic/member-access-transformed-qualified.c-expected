@@ -250,7 +250,7 @@ foo_manam_foo_instance_init (FooManamFoo * self,
 static void
 foo_manam_foo_finalize (FooManamFoo * obj)
 {
-	FooManamFoo * self;
+	G_GNUC_UNUSED FooManamFoo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, FOO_MANAM_TYPE_FOO, FooManamFoo);
 	g_signal_handlers_destroy (self);
 }

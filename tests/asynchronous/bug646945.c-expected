@@ -32,11 +32,6 @@
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _FooMethod1Data FooMethod1Data;
 
@@ -59,11 +54,6 @@ typedef struct _BarMethod2Data BarMethod2Data;
 typedef struct _Baz Baz;
 typedef struct _BazClass BazClass;
 typedef struct _BazPrivate BazPrivate;
-enum  {
-	BAZ_0_PROPERTY,
-	BAZ_NUM_PROPERTIES
-};
-static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 typedef struct _BazMethod1Data BazMethod1Data;
 typedef struct _BazMethod2Data BazMethod2Data;
 
@@ -208,7 +198,7 @@ static void
 foo_real_method1_finish (Foo* self,
                          GAsyncResult* _res_)
 {
-	FooMethod1Data* _data_;
+	G_GNUC_UNUSED FooMethod1Data* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -333,7 +323,7 @@ static void
 bar_real_method2_finish (Bar* self,
                          GAsyncResult* _res_)
 {
-	BarMethod2Data* _data_;
+	G_GNUC_UNUSED BarMethod2Data* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -440,7 +430,7 @@ static void
 baz_method1_finish (Foo* base,
                     GAsyncResult* _res_)
 {
-	BazMethod1Data* _data_;
+	G_GNUC_UNUSED BazMethod1Data* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -495,7 +485,7 @@ static void
 baz_method2_finish (Bar* base,
                     GAsyncResult* _res_)
 {
-	BazMethod2Data* _data_;
+	G_GNUC_UNUSED BazMethod2Data* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

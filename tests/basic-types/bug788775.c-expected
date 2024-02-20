@@ -45,7 +45,7 @@ test_compile_only (void)
 		gsize _tmp1_ = 0;
 		gchar** _tmp2_;
 		gint list_length1;
-		gint _list_size_;
+		G_GNUC_UNUSED gint _list_size_;
 		_tmp0_ = g_key_file_new ();
 		file = _tmp0_;
 		_tmp2_ = g_key_file_get_string_list (file, "foo", "bar", &_tmp1_, &_inner_error0_);

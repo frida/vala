@@ -47,7 +47,7 @@ struct _Block1Data {
 VALA_EXTERN GType foo_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Foo, g_object_unref)
 VALA_EXTERN void foo_foo (Foo* self);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static gboolean _vala_lambda0_ (Block1Data* _data1_);
 VALA_EXTERN gint foo_get_i (Foo* self);
@@ -70,7 +70,7 @@ block1_data_unref (void * _userdata_)
 	Block1Data* _data1_;
 	_data1_ = (Block1Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
-		Foo* self;
+		G_GNUC_UNUSED Foo* self;
 		self = _data1_->self;
 		_g_object_unref0 (self);
 		g_slice_free (Block1Data, _data1_);
@@ -80,7 +80,7 @@ block1_data_unref (void * _userdata_)
 static gboolean
 _vala_lambda0_ (Block1Data* _data1_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	gint _tmp0_;
 	gint _tmp1_;
 	gboolean result;

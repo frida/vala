@@ -837,7 +837,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 	self->priv->_array = (_vala_array_free (self->priv->_array, self->priv->_array_length1, (GDestroyNotify) manam_free), NULL);
@@ -1197,7 +1197,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (GObject * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	self->priv->_array = (_vala_array_free (self->priv->_array, self->priv->_array_length1, (GDestroyNotify) manam_free), NULL);
 	self->priv->_array_v = (_vala_array_free (self->priv->_array_v, self->priv->_array_v_length1, (GDestroyNotify) manam_free), NULL);
@@ -1300,13 +1300,13 @@ _vala_main (void)
 	Manam* _tmp3_;
 	Manam** _tmp4_;
 	gint manam_length1;
-	gint _manam_size_;
+	G_GNUC_UNUSED gint _manam_size_;
 	gchar** minim = NULL;
 	gchar* _tmp5_;
 	gchar* _tmp6_;
 	gchar** _tmp7_;
 	gint minim_length1;
-	gint _minim_size_;
+	G_GNUC_UNUSED gint _minim_size_;
 	memset (&_tmp0_, 0, sizeof (Manam));
 	_tmp0_.i = 23;
 	_tmp1_ = _manam_dup0 (&_tmp0_);
@@ -1435,7 +1435,7 @@ _vala_main (void)
 		const gchar* _tmp41_;
 		Manam** res = NULL;
 		gint res_length1 = 0;
-		gint _res_size_ = 0;
+		G_GNUC_UNUSED gint _res_size_ = 0;
 		Manam** _tmp42_ = NULL;
 		Manam** _tmp43_;
 		gint _tmp43__length1;
@@ -1446,7 +1446,7 @@ _vala_main (void)
 		Manam* _tmp47_;
 		gchar** strv = NULL;
 		gint strv_length1 = 0;
-		gint _strv_size_ = 0;
+		G_GNUC_UNUSED gint _strv_size_ = 0;
 		gchar** _tmp48_ = NULL;
 		gchar** _tmp49_;
 		gint _tmp49__length1;

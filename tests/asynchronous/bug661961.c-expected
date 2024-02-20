@@ -62,7 +62,7 @@ VALA_EXTERN void foo (GType t_type,
 VALA_EXTERN gpointer foo_finish (GAsyncResult* _res_);
 static gboolean foo_co (FooData* _data_);
 static void _vala_main (void);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_,
                      GObject* s,
@@ -107,7 +107,7 @@ gpointer
 foo_finish (GAsyncResult* _res_)
 {
 	gpointer result;
-	FooData* _data_;
+	G_GNUC_UNUSED FooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;

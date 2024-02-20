@@ -35,11 +35,6 @@ typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef gchar* (*FooFunc) (Foo* foo, const gchar* s, gpointer user_data);
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
 enum  {
 	FOO_TEST_SIGNAL,
@@ -57,11 +52,6 @@ static guint foo_signals[FOO_NUM_SIGNALS] = {0};
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 enum  {
 	BAR_TEST_SIGNAL,
 	BAR_NUM_SIGNALS
@@ -433,7 +423,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (GObject * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	G_OBJECT_CLASS (bar_parent_class)->finalize (obj);
 }

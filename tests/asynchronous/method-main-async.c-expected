@@ -74,7 +74,7 @@ gint
 _vala_main_finish (GAsyncResult* _res_)
 {
 	gint result;
-	ValaMainAsyncData* _data_;
+	G_GNUC_UNUSED ValaMainAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	return result;
@@ -138,7 +138,8 @@ int
 main (int argc,
       char ** argv)
 {
-	GMainLoop* loop = g_main_loop_new (NULL, FALSE);
+	GMainLoop* loop;
+	loop = g_main_loop_new (NULL, FALSE);
 	_vala_main_async (argv, argc, _vala_main_async_callback, loop);
 	g_main_loop_run (loop);
 	g_main_loop_unref (loop);

@@ -33,11 +33,6 @@
 typedef struct _MamanBar MamanBar;
 typedef struct _MamanBarClass MamanBarClass;
 typedef struct _MamanBarPrivate MamanBarPrivate;
-enum  {
-	MAMAN_BAR_0_PROPERTY,
-	MAMAN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 
 struct _MamanBar {
 	GObject parent_instance;

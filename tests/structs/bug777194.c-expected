@@ -96,7 +96,7 @@ bar (guint8* a,
 {
 	Foo* f = NULL;
 	gint f_length1;
-	gint _f_size_;
+	G_GNUC_UNUSED gint _f_size_;
 	Foo _tmp0_;
 	Foo _tmp1_;
 	f = (Foo*) a;
@@ -169,10 +169,10 @@ _vala_main (void)
 {
 	guint8* tu = NULL;
 	gint tu_length1 = 0;
-	gint _tu_size_ = 0;
+	G_GNUC_UNUSED gint _tu_size_ = 0;
 	guint8* to = NULL;
 	gint to_length1 = 0;
-	gint _to_size_ = 0;
+	G_GNUC_UNUSED gint _to_size_ = 0;
 	Foo fstack = {0};
 	Foo _tmp0_ = {0};
 	Foo* fheap = NULL;

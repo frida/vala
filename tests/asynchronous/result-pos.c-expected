@@ -125,7 +125,7 @@ void
 foo_finish (gint* out_i,
             GAsyncResult* _res_)
 {
-	FooData* _data_;
+	G_GNUC_UNUSED FooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	if (out_i) {
 		*out_i = _data_->out_i;
@@ -179,7 +179,7 @@ bar_finish (gint* out_i,
             GAsyncResult* _res_,
             GError** error)
 {
-	BarData* _data_;
+	G_GNUC_UNUSED BarData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), error);
 	if (NULL == _data_) {
 		return;
@@ -232,7 +232,7 @@ run (GAsyncReadyCallback _callback_,
 void
 run_finish (GAsyncResult* _res_)
 {
-	RunData* _data_;
+	G_GNUC_UNUSED RunData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

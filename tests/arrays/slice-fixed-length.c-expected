@@ -230,7 +230,7 @@ _vala_main (void)
 		gchar** _tmp5_;
 		gint _tmp5__length1;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		const gchar* _tmp6_;
 		const gchar* _tmp7_;
 		_tmp5_ = _vala_array_dup1 (bar + 1, 3 - 1);
@@ -248,7 +248,7 @@ _vala_main (void)
 	{
 		gchar** foo = NULL;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		const gchar* _tmp8_;
 		const gchar* _tmp9_;
 		foo = bar + 1;
@@ -266,7 +266,7 @@ _vala_main (void)
 		gchar** _tmp10_;
 		gint _tmp10__length1;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		const gchar* _tmp11_;
 		const gchar* _tmp12_;
 		begin = 1;
@@ -287,7 +287,7 @@ _vala_main (void)
 		gchar** _tmp13_;
 		gint _tmp13__length1;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		const gchar* _tmp14_;
 		const gchar* _tmp15_;
 		_tmp13_ = _vala_array_dup3 (bar + 1, 3 - 1);
@@ -305,7 +305,7 @@ _vala_main (void)
 	{
 		gchar** foo = NULL;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		const gchar* _tmp16_;
 		const gchar* _tmp17_;
 		foo = bar + 1;
@@ -323,7 +323,7 @@ _vala_main (void)
 		gchar** _tmp18_;
 		gint _tmp18__length1;
 		gint foo_length1;
-		gint _foo_size_;
+		G_GNUC_UNUSED gint _foo_size_;
 		const gchar* _tmp19_;
 		const gchar* _tmp20_;
 		end = 3;

@@ -32,11 +32,6 @@
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 typedef struct _Block1Data Block1Data;
 
 struct _Foo {
@@ -63,7 +58,7 @@ static gpointer foo_parent_class = NULL;
 
 VALA_EXTERN GType foo_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Foo, g_object_unref)
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static gboolean _vala_lambda0_ (Block1Data* _data1_);
 static gboolean __vala_lambda0__gsource_func (gpointer self);
@@ -92,7 +87,7 @@ block1_data_unref (void * _userdata_)
 	Block1Data* _data1_;
 	_data1_ = (Block1Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
-		Foo* self;
+		G_GNUC_UNUSED Foo* self;
 		self = _data1_->self;
 		g_slice_free (Block1Data, _data1_);
 	}
@@ -101,7 +96,7 @@ block1_data_unref (void * _userdata_)
 static gboolean
 _vala_lambda0_ (Block1Data* _data1_)
 {
-	Foo* self;
+	G_GNUC_UNUSED Foo* self;
 	gboolean result;
 	self = _data1_->self;
 	result = _data1_->baz == 2;
@@ -149,7 +144,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	Block1Data* _data1_;
 	GSourceFunc f = NULL;
 	gpointer f_target;

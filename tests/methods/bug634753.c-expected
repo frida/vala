@@ -45,7 +45,7 @@ _vala_main (void)
 	guint8* a = NULL;
 	guint8* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	_tmp0_ = g_new0 (guint8, 32);
 	a = _tmp0_;
 	a_length1 = 32;

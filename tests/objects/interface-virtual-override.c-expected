@@ -43,11 +43,6 @@ typedef struct _IfooBarData IfooBarData;
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 typedef struct _BarBarData BarBarData;
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
@@ -180,7 +175,7 @@ ifoo_real_bar_finish (IFoo* self,
                       GAsyncResult* _res_)
 {
 	gint result;
-	IfooBarData* _data_;
+	G_GNUC_UNUSED IfooBarData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	return result;
@@ -295,7 +290,7 @@ bar_bar_finish (IFoo* base,
                 GAsyncResult* _res_)
 {
 	gint result;
-	BarBarData* _data_;
+	G_GNUC_UNUSED BarBarData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	return result;

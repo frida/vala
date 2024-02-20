@@ -62,7 +62,7 @@ _vala_main (void)
 	gint _tmp0_ = 0;
 	gint* _tmp1_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	f = __vala_lambda0__array_return_func;
 	f_target = NULL;
 	f_target_destroy_notify = NULL;

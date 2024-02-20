@@ -171,7 +171,7 @@ static void
 foo_real_do_foo_finish (Foo* self,
                         GAsyncResult* _res_)
 {
-	FooDoFooData* _data_;
+	G_GNUC_UNUSED FooDoFooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -385,7 +385,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -463,7 +463,7 @@ static void
 bar_do_foo_finish (Foo* base,
                    GAsyncResult* _res_)
 {
-	BarDoFooData* _data_;
+	G_GNUC_UNUSED BarDoFooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

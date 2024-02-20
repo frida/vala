@@ -91,7 +91,7 @@ test_heap_data (void)
 	guint8* buffer = NULL;
 	guint8* _tmp0_;
 	gint buffer_length1;
-	gint _buffer_size_;
+	G_GNUC_UNUSED gint _buffer_size_;
 	GMemoryOutputStream* mos = NULL;
 	GMemoryOutputStream* _tmp1_;
 	GDataOutputStream* dos = NULL;
@@ -162,7 +162,7 @@ test_owned_data (void)
 	guint8* buffer = NULL;
 	guint8* _tmp0_;
 	gint buffer_length1;
-	gint _buffer_size_;
+	G_GNUC_UNUSED gint _buffer_size_;
 	GMemoryOutputStream* mos = NULL;
 	guint8* _tmp1_;
 	gint _tmp1__length1;
@@ -186,7 +186,7 @@ test_owned_data (void)
 		guint8* data = NULL;
 		guint8* _tmp4_;
 		gint data_length1;
-		gint _data_size_;
+		G_GNUC_UNUSED gint _data_size_;
 		g_data_output_stream_put_string (dos, "foobar\0", NULL, &_inner_error0_);
 		if (G_UNLIKELY (_inner_error0_ != NULL)) {
 			goto __catch0_g_error;

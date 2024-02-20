@@ -35,11 +35,6 @@ typedef struct _MamanFoo MamanFoo;
 typedef struct _MamanFooClass MamanFooClass;
 typedef struct _MamanFooPrivate MamanFooPrivate;
 enum  {
-	MAMAN_FOO_0_PROPERTY,
-	MAMAN_FOO_NUM_PROPERTIES
-};
-static GParamSpec* maman_foo_properties[MAMAN_FOO_NUM_PROPERTIES];
-enum  {
 	MAMAN_FOO_BAR_SIGNAL,
 	MAMAN_FOO_NUM_SIGNALS
 };
@@ -76,7 +71,7 @@ VALA_EXTERN MamanFoo* maman_foo_new (void);
 VALA_EXTERN MamanFoo* maman_foo_construct (GType object_type);
 static GType maman_foo_get_type_once (void);
 static void _vala_main (void);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_);
 static void __vala_lambda0__maman_foo_bar (MamanFoo* _sender,

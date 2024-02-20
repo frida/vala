@@ -47,7 +47,6 @@ enum  {
 	FOO_G_DESTROY_FUNC,
 	FOO_NUM_PROPERTIES
 };
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 
 struct _IFooIface {
 	GTypeInterface parent_iface;

@@ -35,11 +35,6 @@
 typedef struct _Manam Manam;
 typedef struct _ManamClass ManamClass;
 typedef struct _ManamPrivate ManamPrivate;
-enum  {
-	MANAM_0_PROPERTY,
-	MANAM_NUM_PROPERTIES
-};
-static GParamSpec* manam_properties[MANAM_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _FooAsyncData FooAsyncData;
 typedef struct _RunData RunData;
@@ -229,7 +224,7 @@ foo_finish (GAsyncResult* _res_,
             Manam** o,
             GError** error)
 {
-	FooAsyncData* _data_;
+	G_GNUC_UNUSED FooAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), error);
 	if (NULL == _data_) {
 		return;
@@ -301,7 +296,7 @@ run (GAsyncReadyCallback _callback_,
 void
 run_finish (GAsyncResult* _res_)
 {
-	RunData* _data_;
+	G_GNUC_UNUSED RunData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

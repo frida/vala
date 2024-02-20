@@ -716,7 +716,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -968,7 +968,7 @@ foo_iterator_instance_init (FooIterator * self,
 static void
 foo_iterator_finalize (FooIterator * obj)
 {
-	FooIterator * self;
+	G_GNUC_UNUSED FooIterator * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_ITERATOR, FooIterator);
 	g_signal_handlers_destroy (self);
 }
@@ -1193,7 +1193,7 @@ foo_collection_instance_init (FooCollection * self,
 static void
 foo_collection_finalize (FooCollection * obj)
 {
-	FooCollection * self;
+	G_GNUC_UNUSED FooCollection * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_COLLECTION, FooCollection);
 	g_signal_handlers_destroy (self);
 }
@@ -1433,7 +1433,7 @@ foo_iterator2_instance_init (FooIterator2 * self,
 static void
 foo_iterator2_finalize (FooIterator2 * obj)
 {
-	FooIterator2 * self;
+	G_GNUC_UNUSED FooIterator2 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_ITERATOR2, FooIterator2);
 	g_signal_handlers_destroy (self);
 }
@@ -1658,7 +1658,7 @@ foo_collection2_instance_init (FooCollection2 * self,
 static void
 foo_collection2_finalize (FooCollection2 * obj)
 {
-	FooCollection2 * self;
+	G_GNUC_UNUSED FooCollection2 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_COLLECTION2, FooCollection2);
 	g_signal_handlers_destroy (self);
 }
@@ -1895,7 +1895,7 @@ foo_collection3_instance_init (FooCollection3 * self,
 static void
 foo_collection3_finalize (FooCollection3 * obj)
 {
-	FooCollection3 * self;
+	G_GNUC_UNUSED FooCollection3 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_COLLECTION3, FooCollection3);
 	g_signal_handlers_destroy (self);
 }
@@ -2183,7 +2183,7 @@ foo_entry4_instance_init (FooEntry4 * self,
 static void
 foo_entry4_finalize (FooEntry4 * obj)
 {
-	FooEntry4 * self;
+	G_GNUC_UNUSED FooEntry4 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_ENTRY4, FooEntry4);
 	g_signal_handlers_destroy (self);
 	((self->priv->_key == NULL) || (self->priv->k_destroy_func == NULL)) ? NULL : (self->priv->_key = (self->priv->k_destroy_func (self->priv->_key), NULL));
@@ -2440,7 +2440,7 @@ foo_iterator4_instance_init (FooIterator4 * self,
 static void
 foo_iterator4_finalize (FooIterator4 * obj)
 {
-	FooIterator4 * self;
+	G_GNUC_UNUSED FooIterator4 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_ITERATOR4, FooIterator4);
 	g_signal_handlers_destroy (self);
 }
@@ -2714,7 +2714,7 @@ foo_collection4_instance_init (FooCollection4 * self,
 static void
 foo_collection4_finalize (FooCollection4 * obj)
 {
-	FooCollection4 * self;
+	G_GNUC_UNUSED FooCollection4 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_COLLECTION4, FooCollection4);
 	g_signal_handlers_destroy (self);
 }

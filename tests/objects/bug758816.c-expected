@@ -45,11 +45,6 @@ typedef struct _Manam Manam;
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_free0(var) ((var == NULL) ? NULL : (var = (g_free (var), NULL)))
 #define _manam_free0(var) ((var == NULL) ? NULL : (var = (manam_free (var), NULL)))
 enum  {

@@ -307,7 +307,7 @@ test_integer_array (void)
 	gint* a = NULL;
 	gint* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gint* _tmp1_;
 	gint _tmp1__length1;
 	gint* _tmp2_;
@@ -328,7 +328,7 @@ test_integer_array (void)
 	gint* _tmp11_;
 	gint _tmp11__length1;
 	gint b_length1;
-	gint _b_size_;
+	G_GNUC_UNUSED gint _b_size_;
 	gint _tmp12_;
 	gint _tmp13_;
 	gint* _tmp14_;
@@ -350,7 +350,7 @@ test_integer_array (void)
 	gint* _tmp24_;
 	gint _tmp24__length1;
 	gint c_length1;
-	gint _c_size_;
+	G_GNUC_UNUSED gint _c_size_;
 	gint _tmp25_;
 	gint _tmp26_;
 	gint* c0 = NULL;
@@ -359,7 +359,7 @@ test_integer_array (void)
 	gint* _tmp28_;
 	gint _tmp28__length1;
 	gint c0_length1;
-	gint _c0_size_;
+	G_GNUC_UNUSED gint _c0_size_;
 	gint* c1 = NULL;
 	gint* _tmp29_;
 	gint _tmp29__length1;
@@ -368,7 +368,7 @@ test_integer_array (void)
 	gint* _tmp31_;
 	gint _tmp31__length1;
 	gint c1_length1;
-	gint _c1_size_;
+	G_GNUC_UNUSED gint _c1_size_;
 	gint _tmp32_;
 	gint _tmp33_;
 	gint* c2 = NULL;
@@ -377,7 +377,7 @@ test_integer_array (void)
 	gint* _tmp35_;
 	gint _tmp35__length1;
 	gint c2_length1;
-	gint _c2_size_;
+	G_GNUC_UNUSED gint _c2_size_;
 	gint _tmp36_;
 	gint _tmp37_;
 	gint* c3 = NULL;
@@ -388,7 +388,7 @@ test_integer_array (void)
 	gint* _tmp40_;
 	gint _tmp40__length1;
 	gint c3_length1;
-	gint _c3_size_;
+	G_GNUC_UNUSED gint _c3_size_;
 	gint _tmp41_;
 	gint _tmp42_;
 	gint _tmp43_;
@@ -399,7 +399,7 @@ test_integer_array (void)
 	gint** d = NULL;
 	gint** _tmp46_;
 	gint d_length1;
-	gint _d_size_;
+	G_GNUC_UNUSED gint _d_size_;
 	gint _tmp47_;
 	gint* _tmp48_;
 	gint* _tmp49_;
@@ -408,7 +408,7 @@ test_integer_array (void)
 	gint* e = NULL;
 	gint* _tmp52_;
 	gint e_length1;
-	gint _e_size_;
+	G_GNUC_UNUSED gint _e_size_;
 	gint _tmp53_;
 	gint _tmp54_;
 	gint _tmp55_;
@@ -618,7 +618,7 @@ test_string_array (void)
 	gchar* _tmp0_;
 	gchar** _tmp1_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gchar** _tmp2_;
 	gint _tmp2__length1;
 	gchar** _tmp3_;
@@ -641,7 +641,7 @@ test_string_array (void)
 	gchar** _tmp14_;
 	gint _tmp14__length1;
 	gint b_length1;
-	gint _b_size_;
+	G_GNUC_UNUSED gint _b_size_;
 	const gchar* _tmp15_;
 	const gchar* _tmp16_;
 	_tmp0_ = g_strdup ("hello");
@@ -748,10 +748,10 @@ test_array_pass (void)
 {
 	gint* a = NULL;
 	gint a_length1 = 0;
-	gint _a_size_ = 0;
+	G_GNUC_UNUSED gint _a_size_ = 0;
 	gint* b = NULL;
 	gint b_length1 = 0;
-	gint _b_size_ = 0;
+	G_GNUC_UNUSED gint _b_size_ = 0;
 	gint* _tmp0_;
 	gint* _tmp1_;
 	gint _tmp1__length1;
@@ -824,19 +824,19 @@ test_reference_transfer (void)
 	gint* _tmp0_;
 	gint _tmp0__length1;
 	gint baz_length1;
-	gint _baz_size_;
+	G_GNUC_UNUSED gint _baz_size_;
 	gint* _tmp1_;
 	gint _tmp1__length1;
 	gchar** data = NULL;
 	gchar* _tmp2_;
 	gchar** _tmp3_;
 	gint data_length1;
-	gint _data_size_;
+	G_GNUC_UNUSED gint _data_size_;
 	gchar** data2 = NULL;
 	gchar** _tmp4_;
 	gint _tmp4__length1;
 	gint data2_length1;
-	gint _data2_size_;
+	G_GNUC_UNUSED gint _data2_size_;
 	gchar** _tmp5_;
 	gint _tmp5__length1;
 	_tmp0_ = foo;
@@ -879,7 +879,7 @@ test_length_assignment (void)
 	gint* a = NULL;
 	gint* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gint* b = NULL;
 	gint* _tmp1_;
 	gint b_length1;
@@ -1168,7 +1168,7 @@ test_delegate_array (void)
 	SimpleFunc* a = NULL;
 	SimpleFunc* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	SimpleFunc* _tmp1_;
 	gint _tmp1__length1;
 	SimpleFunc* _tmp2_;
@@ -1243,7 +1243,7 @@ test_void_array (void)
 	void** a = NULL;
 	void** _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	void** _tmp1_;
 	gint _tmp1__length1;
 	void** _tmp2_;
@@ -1279,12 +1279,12 @@ test_explicit_copying (void)
 	gint* a0 = NULL;
 	gint* _tmp0_;
 	gint a0_length1;
-	gint _a0_size_;
+	G_GNUC_UNUSED gint _a0_size_;
 	gint* a1 = NULL;
 	gint* _tmp1_;
 	gint _tmp1__length1;
 	gint a1_length1;
-	gint _a1_size_;
+	G_GNUC_UNUSED gint _a1_size_;
 	gint _tmp2_;
 	gint _tmp3_;
 	_tmp0_ = g_new0 (gint, 3);
@@ -1313,7 +1313,7 @@ test_array_move (void)
 	gint* a = NULL;
 	gint* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gint _tmp1_;
 	gint _tmp2_;
 	_tmp0_ = g_new0 (gint, 9);
@@ -1343,7 +1343,7 @@ test_array_resize (void)
 	gint* a = NULL;
 	gint* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gint _tmp1_;
 	gint _tmp2_;
 	gint _tmp3_;
@@ -1525,7 +1525,7 @@ test_struct_array (void)
 	Bar* bar = NULL;
 	Bar* _tmp2_;
 	gint bar_length1;
-	gint _bar_size_;
+	G_GNUC_UNUSED gint _bar_size_;
 	Bar _tmp3_;
 	Bar _tmp4_;
 	Manam* manam = NULL;
@@ -1588,11 +1588,11 @@ test_fixed_array (void)
 	gint* i = NULL;
 	gint* _tmp0_;
 	gint i_length1;
-	gint _i_size_;
+	G_GNUC_UNUSED gint _i_size_;
 	gint* k = NULL;
 	gint* _tmp1_;
 	gint k_length1;
-	gint _k_size_;
+	G_GNUC_UNUSED gint _k_size_;
 	gint* _tmp2_;
 	gint _tmp2__length1;
 	gint* _tmp3_;
@@ -1600,7 +1600,7 @@ test_fixed_array (void)
 	gint _tmp4_;
 	gint* j = NULL;
 	gint j_length1 = 0;
-	gint _j_size_ = 0;
+	G_GNUC_UNUSED gint _j_size_ = 0;
 	_tmp0_ = g_new0 (gint, 4);
 	_tmp0_[0] = 1;
 	_tmp0_[1] = 2;

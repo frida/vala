@@ -202,7 +202,7 @@ _vala_main (void)
 	gchar* _tmp2_;
 	gchar** _tmp3_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	gchar* _tmp4_;
 	gchar* _tmp5_;
 	gchar* _tmp6_;

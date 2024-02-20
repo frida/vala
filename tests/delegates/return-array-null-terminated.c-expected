@@ -74,7 +74,7 @@ _vala_main (void)
 		gchar** _tmp0_;
 		gchar** _tmp1_;
 		gint s_length1;
-		gint _s_size_;
+		G_GNUC_UNUSED gint _s_size_;
 		const gchar* _tmp2_;
 		_tmp1_ = _tmp0_ = f ();
 		s = _tmp1_;

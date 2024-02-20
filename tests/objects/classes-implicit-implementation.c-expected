@@ -48,11 +48,6 @@ typedef struct _IBarIface IBarIface;
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 
 #define TYPE_BAZ (baz_get_type ())
 #define BAZ(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_BAZ, Baz))
@@ -64,11 +59,6 @@ static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 typedef struct _Baz Baz;
 typedef struct _BazClass BazClass;
 typedef struct _BazPrivate BazPrivate;
-enum  {
-	BAZ_0_PROPERTY,
-	BAZ_NUM_PROPERTIES
-};
-static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 
 #define TYPE_FOO (foo_get_type ())
 #define FOO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_FOO, Foo))
@@ -80,11 +70,6 @@ static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 
 #define TYPE_FAZ (faz_get_type ())
 #define FAZ(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_FAZ, Faz))
@@ -96,11 +81,6 @@ static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 typedef struct _Faz Faz;
 typedef struct _FazClass FazClass;
 typedef struct _FazPrivate FazPrivate;
-enum  {
-	FAZ_0_PROPERTY,
-	FAZ_NUM_PROPERTIES
-};
-static GParamSpec* faz_properties[FAZ_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 #define _vala_return_if_fail(expr, msg) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return; }

@@ -48,11 +48,6 @@ typedef struct _Iface2Iface Iface2Iface;
 typedef struct _Obj1 Obj1;
 typedef struct _Obj1Class Obj1Class;
 typedef struct _Obj1Private Obj1Private;
-enum  {
-	OBJ1_0_PROPERTY,
-	OBJ1_NUM_PROPERTIES
-};
-static GParamSpec* obj1_properties[OBJ1_NUM_PROPERTIES];
 
 #define TYPE_OBJ2 (obj2_get_type ())
 #define OBJ2(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_OBJ2, Obj2))
@@ -64,11 +59,6 @@ static GParamSpec* obj1_properties[OBJ1_NUM_PROPERTIES];
 typedef struct _Obj2 Obj2;
 typedef struct _Obj2Class Obj2Class;
 typedef struct _Obj2Private Obj2Private;
-enum  {
-	OBJ2_0_PROPERTY,
-	OBJ2_NUM_PROPERTIES
-};
-static GParamSpec* obj2_properties[OBJ2_NUM_PROPERTIES];
 
 #define TYPE_BASE (base_get_type ())
 #define BASE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_BASE, Base))
@@ -80,11 +70,6 @@ static GParamSpec* obj2_properties[OBJ2_NUM_PROPERTIES];
 typedef struct _Base Base;
 typedef struct _BaseClass BaseClass;
 typedef struct _BasePrivate BasePrivate;
-enum  {
-	BASE_0_PROPERTY,
-	BASE_NUM_PROPERTIES
-};
-static GParamSpec* base_properties[BASE_NUM_PROPERTIES];
 
 #define TYPE_IFACE (iface_get_type ())
 #define IFACE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_IFACE, Iface))
@@ -104,11 +89,6 @@ typedef struct _IfaceIface IfaceIface;
 typedef struct _Concrete Concrete;
 typedef struct _ConcreteClass ConcreteClass;
 typedef struct _ConcretePrivate ConcretePrivate;
-enum  {
-	CONCRETE_0_PROPERTY,
-	CONCRETE_NUM_PROPERTIES
-};
-static GParamSpec* concrete_properties[CONCRETE_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 #define _vala_return_if_fail(expr, msg) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return; }

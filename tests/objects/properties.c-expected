@@ -638,7 +638,7 @@ non_priv_access_instance_init (NonPrivAccess * self,
 static void
 non_priv_access_finalize (GObject * obj)
 {
-	NonPrivAccess * self;
+	G_GNUC_UNUSED NonPrivAccess * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_NON_PRIV_ACCESS, NonPrivAccess);
 	G_OBJECT_CLASS (non_priv_access_parent_class)->finalize (obj);
 }
@@ -1045,7 +1045,7 @@ sample_instance_init (Sample * self,
 static void
 sample_finalize (GObject * obj)
 {
-	Sample * self;
+	G_GNUC_UNUSED Sample * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_SAMPLE, Sample);
 	_g_free0 (self->priv->_automatic);
 	_g_free0 (self->priv->_name);
@@ -1208,7 +1208,7 @@ maman_foo_instance_init (MamanFoo * self,
 static void
 maman_foo_finalize (GObject * obj)
 {
-	MamanFoo * self;
+	G_GNUC_UNUSED MamanFoo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_FOO, MamanFoo);
 	G_OBJECT_CLASS (maman_foo_parent_class)->finalize (obj);
 }
@@ -1463,7 +1463,7 @@ maman_enum_default_instance_init (MamanEnumDefault * self,
 static void
 maman_enum_default_finalize (MamanEnumDefault * obj)
 {
-	MamanEnumDefault * self;
+	G_GNUC_UNUSED MamanEnumDefault * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_ENUM_DEFAULT, MamanEnumDefault);
 	g_signal_handlers_destroy (self);
 }
@@ -1665,7 +1665,7 @@ maman_bar_instance_init (MamanBar * self,
 static void
 maman_bar_finalize (GObject * obj)
 {
-	MamanBar * self;
+	G_GNUC_UNUSED MamanBar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_BAR, MamanBar);
 	G_OBJECT_CLASS (maman_bar_parent_class)->finalize (obj);
 }
@@ -2024,7 +2024,7 @@ maman_abiz_instance_init (MamanABiz * self,
 static void
 maman_abiz_finalize (GObject * obj)
 {
-	MamanABiz * self;
+	G_GNUC_UNUSED MamanABiz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_ABIZ, MamanABiz);
 	G_OBJECT_CLASS (maman_abiz_parent_class)->finalize (obj);
 }
@@ -2157,7 +2157,7 @@ maman_biz_instance_init (MamanBiz * self,
 static void
 maman_biz_finalize (GObject * obj)
 {
-	MamanBiz * self;
+	G_GNUC_UNUSED MamanBiz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_BIZ, MamanBiz);
 	G_OBJECT_CLASS (maman_biz_parent_class)->finalize (obj);
 }

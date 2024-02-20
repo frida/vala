@@ -79,7 +79,7 @@ _vala_main (void)
 	guint8* local_heap = NULL;
 	guint8* _tmp0_;
 	gssize local_heap_length1;
-	gssize _local_heap_size_;
+	G_GNUC_UNUSED gssize _local_heap_size_;
 	guint8 local_stack[42] = {0};
 	_tmp0_ = g_new0 (guint8, 23);
 	local_heap = _tmp0_;

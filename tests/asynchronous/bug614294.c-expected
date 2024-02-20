@@ -41,11 +41,6 @@ typedef struct _IFooIface IFooIface;
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _BarFooAsyncData BarFooAsyncData;
 
@@ -59,11 +54,6 @@ typedef struct _BarFooAsyncData BarFooAsyncData;
 typedef struct _SubBar SubBar;
 typedef struct _SubBarClass SubBarClass;
 typedef struct _SubBarPrivate SubBarPrivate;
-enum  {
-	SUB_BAR_0_PROPERTY,
-	SUB_BAR_NUM_PROPERTIES
-};
-static GParamSpec* sub_bar_properties[SUB_BAR_NUM_PROPERTIES];
 typedef struct _SubBarFooAsyncData SubBarFooAsyncData;
 
 #define TYPE_AFOO (afoo_get_type ())
@@ -76,11 +66,6 @@ typedef struct _SubBarFooAsyncData SubBarFooAsyncData;
 typedef struct _AFoo AFoo;
 typedef struct _AFooClass AFooClass;
 typedef struct _AFooPrivate AFooPrivate;
-enum  {
-	AFOO_0_PROPERTY,
-	AFOO_NUM_PROPERTIES
-};
-static GParamSpec* afoo_properties[AFOO_NUM_PROPERTIES];
 
 #define TYPE_BAZ (baz_get_type ())
 #define BAZ(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_BAZ, Baz))
@@ -92,11 +77,6 @@ static GParamSpec* afoo_properties[AFOO_NUM_PROPERTIES];
 typedef struct _Baz Baz;
 typedef struct _BazClass BazClass;
 typedef struct _BazPrivate BazPrivate;
-enum  {
-	BAZ_0_PROPERTY,
-	BAZ_NUM_PROPERTIES
-};
-static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 typedef struct _BazFooAsyncData BazFooAsyncData;
 
 #define TYPE_SUB_BAZ (sub_baz_get_type ())
@@ -109,11 +89,6 @@ typedef struct _BazFooAsyncData BazFooAsyncData;
 typedef struct _SubBaz SubBaz;
 typedef struct _SubBazClass SubBazClass;
 typedef struct _SubBazPrivate SubBazPrivate;
-enum  {
-	SUB_BAZ_0_PROPERTY,
-	SUB_BAZ_NUM_PROPERTIES
-};
-static GParamSpec* sub_baz_properties[SUB_BAZ_NUM_PROPERTIES];
 typedef struct _SubBazFooAsyncData SubBazFooAsyncData;
 typedef struct _RunData RunData;
 
@@ -428,7 +403,7 @@ bar_real_foo_finish (Bar* self,
                      GAsyncResult* _res_,
                      GError** error)
 {
-	BarFooAsyncData* _data_;
+	G_GNUC_UNUSED BarFooAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -588,7 +563,7 @@ sub_bar_foo_finish (Bar* base,
                     GAsyncResult* _res_,
                     GError** error)
 {
-	SubBarFooAsyncData* _data_;
+	G_GNUC_UNUSED SubBarFooAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -789,7 +764,7 @@ baz_foo_finish (AFoo* base,
                 GAsyncResult* _res_,
                 GError** error)
 {
-	BazFooAsyncData* _data_;
+	G_GNUC_UNUSED BazFooAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -903,7 +878,7 @@ sub_baz_foo_finish (AFoo* base,
                     GAsyncResult* _res_,
                     GError** error)
 {
-	SubBazFooAsyncData* _data_;
+	G_GNUC_UNUSED SubBazFooAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 
@@ -1008,7 +983,7 @@ run (GAsyncReadyCallback _callback_,
 void
 run_finish (GAsyncResult* _res_)
 {
-	RunData* _data_;
+	G_GNUC_UNUSED RunData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

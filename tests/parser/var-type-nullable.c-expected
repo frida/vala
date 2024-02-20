@@ -50,7 +50,7 @@ _vala_main (void)
 		{
 			gchar** foo_collection = NULL;
 			gint foo_collection_length1 = 0;
-			gint _foo_collection_size_ = 0;
+			G_GNUC_UNUSED gint _foo_collection_size_ = 0;
 			gint foo_it = 0;
 			foo_collection = _tmp3_;
 			foo_collection_length1 = 2;
@@ -78,7 +78,7 @@ _vala_main (void)
 		{
 			gchar** foo_collection = NULL;
 			gint foo_collection_length1 = 0;
-			gint _foo_collection_size_ = 0;
+			G_GNUC_UNUSED gint _foo_collection_size_ = 0;
 			gint foo_it = 0;
 			foo_collection = _tmp7_;
 			foo_collection_length1 = 2;

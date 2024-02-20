@@ -318,7 +318,7 @@ test_instance_init (Test * self,
 static void
 test_finalize (Test * obj)
 {
-	Test * self;
+	G_GNUC_UNUSED Test * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST, Test);
 	g_signal_handlers_destroy (self);
 	_g_free0 (self->a);
@@ -393,7 +393,7 @@ Test2*
 test2_construct_finish (GAsyncResult* _res_)
 {
 	Test2* result;
-	Test2NewData* _data_;
+	G_GNUC_UNUSED Test2NewData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->self;
 	_data_->self = NULL;
@@ -576,7 +576,7 @@ test2_instance_init (Test2 * self,
 static void
 test2_finalize (Test2 * obj)
 {
-	Test2 * self;
+	G_GNUC_UNUSED Test2 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST2, Test2);
 	g_signal_handlers_destroy (self);
 	_g_free0 (self->b);

@@ -30,7 +30,7 @@ _vala_main (void)
 	gchar* _tmp1_;
 	gchar** _tmp2_;
 	gint foos_length1;
-	gint _foos_size_;
+	G_GNUC_UNUSED gint _foos_size_;
 	_tmp0_ = g_strdup ("foo");
 	_tmp1_ = g_strdup ("bar");
 	_tmp2_ = g_new0 (gchar*, 2 + 1);
@@ -42,7 +42,7 @@ _vala_main (void)
 	{
 		gchar** bars = NULL;
 		gint bars_length1;
-		gint _bars_size_;
+		G_GNUC_UNUSED gint _bars_size_;
 		bars = foos;
 		bars_length1 = foos_length1;
 		_bars_size_ = bars_length1;
@@ -50,7 +50,7 @@ _vala_main (void)
 	{
 		gchar** bars = NULL;
 		gint bars_length1;
-		gint _bars_size_;
+		G_GNUC_UNUSED gint _bars_size_;
 		bars = foos;
 		bars_length1 = foos_length1;
 		_bars_size_ = bars_length1;

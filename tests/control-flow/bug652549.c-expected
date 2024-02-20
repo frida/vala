@@ -31,7 +31,7 @@ _vala_main (void)
 	{
 		gint* bar_collection = NULL;
 		gint bar_collection_length1 = 0;
-		gint _bar_collection_size_ = 0;
+		G_GNUC_UNUSED gint _bar_collection_size_ = 0;
 		gint bar_it = 0;
 		bar_collection = foo;
 		bar_collection_length1 = 2;

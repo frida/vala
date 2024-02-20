@@ -101,11 +101,6 @@ typedef struct _ParamSpecGTypeInstanceClassWithNamedCreationMethod ParamSpecGTyp
 typedef struct _SimpleGObjectClass SimpleGObjectClass;
 typedef struct _SimpleGObjectClassClass SimpleGObjectClassClass;
 typedef struct _SimpleGObjectClassPrivate SimpleGObjectClassPrivate;
-enum  {
-	SIMPLE_GOBJECTCLASS_0_PROPERTY,
-	SIMPLE_GOBJECTCLASS_NUM_PROPERTIES
-};
-static GParamSpec* simple_gobjectclass_properties[SIMPLE_GOBJECTCLASS_NUM_PROPERTIES];
 
 #define TYPE_DERIVED_GOBJECTCLASS (derived_gobjectclass_get_type ())
 #define DERIVED_GOBJECTCLASS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_DERIVED_GOBJECTCLASS, DerivedGObjectClass))
@@ -117,11 +112,6 @@ static GParamSpec* simple_gobjectclass_properties[SIMPLE_GOBJECTCLASS_NUM_PROPER
 typedef struct _DerivedGObjectClass DerivedGObjectClass;
 typedef struct _DerivedGObjectClassClass DerivedGObjectClassClass;
 typedef struct _DerivedGObjectClassPrivate DerivedGObjectClassPrivate;
-enum  {
-	DERIVED_GOBJECTCLASS_0_PROPERTY,
-	DERIVED_GOBJECTCLASS_NUM_PROPERTIES
-};
-static GParamSpec* derived_gobjectclass_properties[DERIVED_GOBJECTCLASS_NUM_PROPERTIES];
 
 #define TYPE_PUBLIC_GOBJECTCLASS (public_gobjectclass_get_type ())
 #define PUBLIC_GOBJECTCLASS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_PUBLIC_GOBJECTCLASS, PublicGObjectClass))
@@ -133,11 +123,6 @@ static GParamSpec* derived_gobjectclass_properties[DERIVED_GOBJECTCLASS_NUM_PROP
 typedef struct _PublicGObjectClass PublicGObjectClass;
 typedef struct _PublicGObjectClassClass PublicGObjectClassClass;
 typedef struct _PublicGObjectClassPrivate PublicGObjectClassPrivate;
-enum  {
-	PUBLIC_GOBJECTCLASS_0_PROPERTY,
-	PUBLIC_GOBJECTCLASS_NUM_PROPERTIES
-};
-static GParamSpec* public_gobjectclass_properties[PUBLIC_GOBJECTCLASS_NUM_PROPERTIES];
 
 #define TYPE_ABSTRACT_GOBJECTCLASS (abstract_gobjectclass_get_type ())
 #define ABSTRACT_GOBJECTCLASS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_ABSTRACT_GOBJECTCLASS, AbstractGObjectClass))
@@ -149,11 +134,6 @@ static GParamSpec* public_gobjectclass_properties[PUBLIC_GOBJECTCLASS_NUM_PROPER
 typedef struct _AbstractGObjectClass AbstractGObjectClass;
 typedef struct _AbstractGObjectClassClass AbstractGObjectClassClass;
 typedef struct _AbstractGObjectClassPrivate AbstractGObjectClassPrivate;
-enum  {
-	ABSTRACT_GOBJECTCLASS_0_PROPERTY,
-	ABSTRACT_GOBJECTCLASS_NUM_PROPERTIES
-};
-static GParamSpec* abstract_gobjectclass_properties[ABSTRACT_GOBJECTCLASS_NUM_PROPERTIES];
 
 #define TYPE_GOBJECT_CLASS_WITH_CREATION_METHOD (gobject_class_with_creation_method_get_type ())
 #define GOBJECT_CLASS_WITH_CREATION_METHOD(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_GOBJECT_CLASS_WITH_CREATION_METHOD, GObjectClassWithCreationMethod))
@@ -165,11 +145,6 @@ static GParamSpec* abstract_gobjectclass_properties[ABSTRACT_GOBJECTCLASS_NUM_PR
 typedef struct _GObjectClassWithCreationMethod GObjectClassWithCreationMethod;
 typedef struct _GObjectClassWithCreationMethodClass GObjectClassWithCreationMethodClass;
 typedef struct _GObjectClassWithCreationMethodPrivate GObjectClassWithCreationMethodPrivate;
-enum  {
-	GOBJECT_CLASS_WITH_CREATION_METHOD_0_PROPERTY,
-	GOBJECT_CLASS_WITH_CREATION_METHOD_NUM_PROPERTIES
-};
-static GParamSpec* gobject_class_with_creation_method_properties[GOBJECT_CLASS_WITH_CREATION_METHOD_NUM_PROPERTIES];
 
 #define TYPE_GOBJECT_CLASS_WITH_NAMED_CREATION_METHOD (gobject_class_with_named_creation_method_get_type ())
 #define GOBJECT_CLASS_WITH_NAMED_CREATION_METHOD(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), TYPE_GOBJECT_CLASS_WITH_NAMED_CREATION_METHOD, GObjectClassWithNamedCreationMethod))
@@ -181,11 +156,6 @@ static GParamSpec* gobject_class_with_creation_method_properties[GOBJECT_CLASS_W
 typedef struct _GObjectClassWithNamedCreationMethod GObjectClassWithNamedCreationMethod;
 typedef struct _GObjectClassWithNamedCreationMethodClass GObjectClassWithNamedCreationMethodClass;
 typedef struct _GObjectClassWithNamedCreationMethodPrivate GObjectClassWithNamedCreationMethodPrivate;
-enum  {
-	GOBJECT_CLASS_WITH_NAMED_CREATION_METHOD_0_PROPERTY,
-	GOBJECT_CLASS_WITH_NAMED_CREATION_METHOD_NUM_PROPERTIES
-};
-static GParamSpec* gobject_class_with_named_creation_method_properties[GOBJECT_CLASS_WITH_NAMED_CREATION_METHOD_NUM_PROPERTIES];
 #define _compact_class_with_destructor_free0(var) ((var == NULL) ? NULL : (var = (compact_class_with_destructor_free (var), NULL)))
 #define _compactclass_free0(var) ((var == NULL) ? NULL : (var = (compactclass_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
@@ -813,7 +783,7 @@ simple_gtype_instanceclass_instance_init (SimpleGTypeInstanceClass * self,
 static void
 simple_gtype_instanceclass_finalize (SimpleGTypeInstanceClass * obj)
 {
-	SimpleGTypeInstanceClass * self;
+	G_GNUC_UNUSED SimpleGTypeInstanceClass * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_SIMPLE_GTYPE_INSTANCECLASS, SimpleGTypeInstanceClass);
 	g_signal_handlers_destroy (self);
 }
@@ -1074,7 +1044,7 @@ public_gtype_instanceclass_instance_init (PublicGTypeInstanceClass * self,
 static void
 public_gtype_instanceclass_finalize (PublicGTypeInstanceClass * obj)
 {
-	PublicGTypeInstanceClass * self;
+	G_GNUC_UNUSED PublicGTypeInstanceClass * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_PUBLIC_GTYPE_INSTANCECLASS, PublicGTypeInstanceClass);
 	g_signal_handlers_destroy (self);
 }
@@ -1290,7 +1260,7 @@ gtype_instance_class_with_creation_method_instance_init (GTypeInstanceClassWithC
 static void
 gtype_instance_class_with_creation_method_finalize (GTypeInstanceClassWithCreationMethod * obj)
 {
-	GTypeInstanceClassWithCreationMethod * self;
+	G_GNUC_UNUSED GTypeInstanceClassWithCreationMethod * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_GTYPE_INSTANCE_CLASS_WITH_CREATION_METHOD, GTypeInstanceClassWithCreationMethod);
 	g_signal_handlers_destroy (self);
 }
@@ -1520,7 +1490,7 @@ gtype_instance_class_with_named_creation_method_instance_init (GTypeInstanceClas
 static void
 gtype_instance_class_with_named_creation_method_finalize (GTypeInstanceClassWithNamedCreationMethod * obj)
 {
-	GTypeInstanceClassWithNamedCreationMethod * self;
+	G_GNUC_UNUSED GTypeInstanceClassWithNamedCreationMethod * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_GTYPE_INSTANCE_CLASS_WITH_NAMED_CREATION_METHOD, GTypeInstanceClassWithNamedCreationMethod);
 	g_signal_handlers_destroy (self);
 }

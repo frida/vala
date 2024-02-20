@@ -35,11 +35,6 @@ typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
 enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
-enum  {
 	FOO_LAST_SIGNAL,
 	FOO_NUM_SIGNALS
 };
@@ -202,7 +197,7 @@ void
 bar_set_dummy (Bar* self,
                const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_BAR (self));
 	old_value = bar_get_dummy (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -229,7 +224,7 @@ void
 bar_set_last (Bar* self,
               const gchar* value)
 {
-	gchar* old_value;
+	const gchar* old_value;
 	g_return_if_fail (IS_BAR (self));
 	old_value = bar_get_last (self);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -264,7 +259,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (GObject * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	_g_free0 (self->priv->_dummy);
 	_g_free0 (self->priv->_last);

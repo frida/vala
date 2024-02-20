@@ -210,7 +210,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	self->priv->_bar = (_vala_array_free (self->priv->_bar, self->priv->_bar_length1, (GDestroyNotify) g_free), NULL);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
@@ -287,7 +287,7 @@ _vala_main (void)
 	gchar* _tmp2_;
 	gchar** _tmp3_;
 	gint bar_length1;
-	gint _bar_size_;
+	G_GNUC_UNUSED gint _bar_size_;
 	Foo* foo = NULL;
 	Foo* _tmp4_;
 	gchar** manam = NULL;
@@ -295,7 +295,7 @@ _vala_main (void)
 	gchar** _tmp6_;
 	gint _tmp6__length1;
 	gint manam_length1;
-	gint _manam_size_;
+	G_GNUC_UNUSED gint _manam_size_;
 	const gchar* _tmp7_;
 	_tmp0_ = g_strdup ("foo");
 	_tmp1_ = g_strdup ("bar");

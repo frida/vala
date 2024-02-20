@@ -237,7 +237,7 @@ foo_real_set_data (IFoo* base,
                    const gchar* value)
 {
 	Foo* self;
-	gchar* old_value;
+	const gchar* old_value;
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_FOO, Foo);
 	old_value = foo_real_get_data (base);
 	if (g_strcmp0 (value, old_value) != 0) {
@@ -281,7 +281,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	_g_free0 (self->priv->_data);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
@@ -423,7 +423,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (GObject * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	G_OBJECT_CLASS (bar_parent_class)->finalize (obj);
 }

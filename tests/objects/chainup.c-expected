@@ -357,7 +357,7 @@ foo_base_instance_init (FooBase * self,
 static void
 foo_base_finalize (FooBase * obj)
 {
-	FooBase * self;
+	G_GNUC_UNUSED FooBase * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO_BASE, FooBase);
 	g_signal_handlers_destroy (self);
 }

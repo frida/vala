@@ -36,11 +36,6 @@ typedef void (*MamanActionRefCallback) (gint* i);
 typedef struct _MamanBar MamanBar;
 typedef struct _MamanBarClass MamanBarClass;
 typedef struct _MamanBarPrivate MamanBarPrivate;
-enum  {
-	MAMAN_BAR_0_PROPERTY,
-	MAMAN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 #define _vala_return_if_fail(expr, msg) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return; }
 #define _vala_return_val_if_fail(expr, msg, val) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return val; }

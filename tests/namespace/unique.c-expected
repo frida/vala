@@ -244,7 +244,7 @@ g_vala_foo_instance_init (GValaFoo * self,
 static void
 g_vala_foo_finalize (GValaFoo * obj)
 {
-	GValaFoo * self;
+	G_GNUC_UNUSED GValaFoo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, G_TYPE_VALA_FOO, GValaFoo);
 	g_signal_handlers_destroy (self);
 }

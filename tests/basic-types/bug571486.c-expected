@@ -323,7 +323,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 	self->var3 = (g_free (self->var3), NULL);
@@ -382,13 +382,13 @@ _vala_main (void)
 	GObject** test = NULL;
 	GObject** _tmp2_;
 	gint test_length1;
-	gint _test_size_;
+	G_GNUC_UNUSED gint _test_size_;
 	GObject** _tmp3_;
 	gint _tmp3__length1;
 	gint* i = NULL;
 	gint* _tmp4_;
 	gint i_length1;
-	gint _i_size_;
+	G_GNUC_UNUSED gint _i_size_;
 	gint j = 0;
 	gint _tmp5_;
 	_tmp0_ = g_object_new (G_TYPE_OBJECT, NULL);

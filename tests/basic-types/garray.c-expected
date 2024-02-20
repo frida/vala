@@ -36,11 +36,6 @@
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 
 #define TYPE_FOO_STRUCT (foo_struct_get_type ())
 typedef struct _FooStruct FooStruct;
@@ -280,7 +275,7 @@ vala_g_array_remove_range (GArray* self,
 	gpointer* ga = NULL;
 	gpointer* _tmp0_;
 	gint ga_length1;
-	gint _ga_size_;
+	G_GNUC_UNUSED gint _ga_size_;
 	gpointer* _tmp6_;
 	gint _tmp6__length1;
 	gpointer* result;

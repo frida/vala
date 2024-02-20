@@ -35,11 +35,6 @@
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_option_context_free0(var) ((var == NULL) ? NULL : (var = (g_option_context_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
@@ -111,7 +106,7 @@ foo_real_local_command_line (GApplication* base,
 	GOptionContext* _tmp0_;
 	gchar** args = NULL;
 	gint args_length1;
-	gint _args_size_;
+	G_GNUC_UNUSED gint _args_size_;
 	gint _tmp4_ = 0;
 	gboolean _tmp5_;
 	GError* _inner_error0_ = NULL;
@@ -188,7 +183,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
 }
@@ -221,7 +216,7 @@ _vala_main (void)
 	gchar* _tmp0_;
 	gchar** _tmp1_;
 	gint args_length1;
-	gint _args_size_;
+	G_GNUC_UNUSED gint _args_size_;
 	Foo* app = NULL;
 	Foo* _tmp2_;
 	_tmp0_ = g_strdup ("");

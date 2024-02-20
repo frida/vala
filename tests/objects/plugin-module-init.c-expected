@@ -32,11 +32,6 @@
 typedef struct _Module Module;
 typedef struct _ModuleClass ModuleClass;
 typedef struct _ModulePrivate ModulePrivate;
-enum  {
-	MODULE_0_PROPERTY,
-	MODULE_NUM_PROPERTIES
-};
-static GParamSpec* module_properties[MODULE_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 #define _vala_return_if_fail(expr, msg) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return; }
@@ -109,7 +104,7 @@ module_instance_init (Module * self,
 static void
 module_finalize (GObject * obj)
 {
-	Module * self;
+	G_GNUC_UNUSED Module * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_MODULE, Module);
 	G_OBJECT_CLASS (module_parent_class)->finalize (obj);
 }

@@ -41,7 +41,6 @@ enum  {
 	FOO_G_DESTROY_FUNC,
 	FOO_NUM_PROPERTIES
 };
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 struct _Foo {

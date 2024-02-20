@@ -28,7 +28,7 @@ _vala_main (void)
 {
 	gchar** charsets = NULL;
 	gint charsets_length1 = 0;
-	gint _charsets_size_ = 0;
+	G_GNUC_UNUSED gint _charsets_size_ = 0;
 	gboolean is_utf8 = FALSE;
 	gchar** _tmp0_ = NULL;
 	gboolean _tmp1_;

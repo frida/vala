@@ -58,11 +58,6 @@ typedef struct _ManamIface ManamIface;
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _bar_unref0(var) ((var == NULL) ? NULL : (var = (bar_unref (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
@@ -220,7 +215,7 @@ test_value_array (void)
 	gint* iarray = NULL;
 	gint* _tmp0_;
 	gint iarray_length1;
-	gint _iarray_size_;
+	G_GNUC_UNUSED gint _iarray_size_;
 	GValue* viarray = NULL;
 	GValue _tmp1_ = {0};
 	GValue _tmp2_ = {0};
@@ -229,7 +224,7 @@ test_value_array (void)
 	GValue _tmp5_ = {0};
 	GValue* _tmp6_;
 	gint viarray_length1;
-	gint _viarray_size_;
+	G_GNUC_UNUSED gint _viarray_size_;
 	GValue* _tmp7_;
 	gint _tmp7__length1;
 	gint* _tmp8_;
@@ -240,14 +235,14 @@ test_value_array (void)
 	gchar* _tmp17_;
 	gchar** _tmp18_;
 	gint sarray_length1;
-	gint _sarray_size_;
+	G_GNUC_UNUSED gint _sarray_size_;
 	GValue* vsarray = NULL;
 	GValue _tmp19_ = {0};
 	GValue _tmp20_ = {0};
 	GValue _tmp21_ = {0};
 	GValue* _tmp22_;
 	gint vsarray_length1;
-	gint _vsarray_size_;
+	G_GNUC_UNUSED gint _vsarray_size_;
 	GValue* _tmp23_;
 	gint _tmp23__length1;
 	gchar** _tmp24_;
@@ -441,7 +436,7 @@ test_nullable_value_array (void)
 	gint* iarray = NULL;
 	gint* _tmp0_;
 	gint iarray_length1;
-	gint _iarray_size_;
+	G_GNUC_UNUSED gint _iarray_size_;
 	GValue** viarray = NULL;
 	GValue* _tmp1_ = NULL;
 	GValue* _tmp2_ = NULL;
@@ -450,7 +445,7 @@ test_nullable_value_array (void)
 	GValue* _tmp5_ = NULL;
 	GValue** _tmp6_;
 	gint viarray_length1;
-	gint _viarray_size_;
+	G_GNUC_UNUSED gint _viarray_size_;
 	GValue** _tmp7_;
 	gint _tmp7__length1;
 	gint* _tmp8_;
@@ -461,14 +456,14 @@ test_nullable_value_array (void)
 	gchar* _tmp18_;
 	gchar** _tmp19_;
 	gint sarray_length1;
-	gint _sarray_size_;
+	G_GNUC_UNUSED gint _sarray_size_;
 	GValue** vsarray = NULL;
 	GValue* _tmp20_ = NULL;
 	GValue* _tmp21_ = NULL;
 	GValue* _tmp22_ = NULL;
 	GValue** _tmp23_;
 	gint vsarray_length1;
-	gint _vsarray_size_;
+	G_GNUC_UNUSED gint _vsarray_size_;
 	GValue** _tmp24_;
 	gint _tmp24__length1;
 	gchar** _tmp25_;
@@ -787,7 +782,7 @@ bar_instance_init (Bar * self,
 static void
 bar_finalize (Bar * obj)
 {
-	Bar * self;
+	G_GNUC_UNUSED Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
 	g_signal_handlers_destroy (self);
 }
@@ -901,7 +896,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
 }
@@ -1102,7 +1097,7 @@ test_try_cast_value (void)
 	gchar* _tmp9_;
 	gchar** _tmp10_;
 	gint sarray_length1;
-	gint _sarray_size_;
+	G_GNUC_UNUSED gint _sarray_size_;
 	GValue va = {0};
 	GValue _tmp11_ = {0};
 	gchar** sarray2 = NULL;
@@ -1111,13 +1106,13 @@ test_try_cast_value (void)
 	gchar** _tmp14_;
 	gint _tmp14__length1;
 	gint sarray2_length1;
-	gint _sarray2_size_;
+	G_GNUC_UNUSED gint _sarray2_size_;
 	const gchar* _tmp15_;
 	gchar** sarray3 = NULL;
 	GValue _tmp16_;
 	gchar** _tmp17_;
 	gint sarray3_length1;
-	gint _sarray3_size_;
+	G_GNUC_UNUSED gint _sarray3_size_;
 	const gchar* _tmp18_;
 	_tmp0_.i = 42;
 	s = _tmp0_;

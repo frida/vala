@@ -70,7 +70,7 @@ bar (FooFunc func,
 	gchar* _tmp1_;
 	gchar** _tmp2_;
 	gint ia_length1;
-	gint _ia_size_;
+	G_GNUC_UNUSED gint _ia_size_;
 	_tmp0_ = g_strdup ("foo");
 	_tmp1_ = g_strdup ("bar");
 	_tmp2_ = g_new0 (gchar*, 2 + 1);

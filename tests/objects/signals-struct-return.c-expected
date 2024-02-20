@@ -39,11 +39,6 @@ typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
 enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
-enum  {
 	BAR_ON_FOO_SIGNAL,
 	BAR_ON_FOO_WITH_ARG_SIGNAL,
 	BAR_ON_BAR_SIGNAL,

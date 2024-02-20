@@ -83,12 +83,12 @@ _vala_main (void)
 	Foo _tmp1_ = {0};
 	Foo* _tmp2_;
 	gint foos_length1;
-	gint _foos_size_;
+	G_GNUC_UNUSED gint _foos_size_;
 	Foo* bars = NULL;
 	Foo _tmp3_ = {0};
 	Foo* _tmp4_;
 	gint bars_length1;
-	gint _bars_size_;
+	G_GNUC_UNUSED gint _bars_size_;
 	memset (&_tmp0_, 0, sizeof (Foo));
 	_tmp0_.s = "foo";
 	_tmp0_.i = 23;

@@ -33,11 +33,6 @@
 typedef struct _MamanA MamanA;
 typedef struct _MamanAClass MamanAClass;
 typedef struct _MamanAPrivate MamanAPrivate;
-enum  {
-	MAMAN_A_0_PROPERTY,
-	MAMAN_A_NUM_PROPERTIES
-};
-static GParamSpec* maman_a_properties[MAMAN_A_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_B (maman_b_get_type ())
 #define MAMAN_B(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_B, MamanB))
@@ -49,11 +44,6 @@ static GParamSpec* maman_a_properties[MAMAN_A_NUM_PROPERTIES];
 typedef struct _MamanB MamanB;
 typedef struct _MamanBClass MamanBClass;
 typedef struct _MamanBPrivate MamanBPrivate;
-enum  {
-	MAMAN_B_0_PROPERTY,
-	MAMAN_B_NUM_PROPERTIES
-};
-static GParamSpec* maman_b_properties[MAMAN_B_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_C (maman_c_get_type ())
 #define MAMAN_C(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_C, MamanC))
@@ -65,11 +55,6 @@ static GParamSpec* maman_b_properties[MAMAN_B_NUM_PROPERTIES];
 typedef struct _MamanC MamanC;
 typedef struct _MamanCClass MamanCClass;
 typedef struct _MamanCPrivate MamanCPrivate;
-enum  {
-	MAMAN_C_0_PROPERTY,
-	MAMAN_C_NUM_PROPERTIES
-};
-static GParamSpec* maman_c_properties[MAMAN_C_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_BAR (maman_bar_get_type ())
 #define MAMAN_BAR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_BAR, MamanBar))
@@ -81,11 +66,6 @@ static GParamSpec* maman_c_properties[MAMAN_C_NUM_PROPERTIES];
 typedef struct _MamanBar MamanBar;
 typedef struct _MamanBarClass MamanBarClass;
 typedef struct _MamanBarPrivate MamanBarPrivate;
-enum  {
-	MAMAN_BAR_0_PROPERTY,
-	MAMAN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 struct _MamanA {

@@ -34,7 +34,7 @@ struct _Block1Data {
 
 VALA_EXTERN void foo (GObject* a,
           GObject* b);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void _vala_lambda0_ (Block1Data* _data1_);
 static void __vala_lambda0__func (gpointer self);

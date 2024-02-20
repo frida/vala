@@ -171,7 +171,7 @@ Foo*
 foo_construct_finish (GAsyncResult* _res_)
 {
 	Foo* result;
-	FooNewData* _data_;
+	G_GNUC_UNUSED FooNewData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->self;
 	_data_->self = NULL;
@@ -364,7 +364,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -436,7 +436,7 @@ gchar*
 foo_finish (GAsyncResult* _res_)
 {
 	gchar* result;
-	FooData* _data_;
+	G_GNUC_UNUSED FooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;
@@ -489,7 +489,7 @@ Foo*
 bar_finish (GAsyncResult* _res_)
 {
 	Foo* result;
-	BarData* _data_;
+	G_GNUC_UNUSED BarData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;
@@ -560,7 +560,7 @@ gchar*
 baz_finish (GAsyncResult* _res_)
 {
 	gchar* result;
-	BazData* _data_;
+	G_GNUC_UNUSED BazData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	_data_->result = NULL;

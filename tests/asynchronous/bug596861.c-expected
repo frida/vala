@@ -80,7 +80,7 @@ foo_finish (GAsyncResult* _res_,
             GError** error)
 {
 	gint result;
-	FooData* _data_;
+	G_GNUC_UNUSED FooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), error);
 	if (NULL == _data_) {
 		gint _tmp0_ = 0;

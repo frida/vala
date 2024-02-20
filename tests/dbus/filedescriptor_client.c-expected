@@ -266,6 +266,7 @@ _dbus_test_test_in (Test* self,
 	gint _fd_index = 0;
 	gint _fd;
 	GUnixInputStream* i = NULL;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -284,14 +285,19 @@ _dbus_test_test_in (Test* self,
 	}
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _error;
+		goto _return;
 	}
 	result = test_test_in (self, i, &j, &error);
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _error;
+		goto _return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		goto _return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_fd_list = g_unix_fd_list_new ();
 	g_variant_builder_add (&_reply_builder, "h", g_unix_fd_list_append (_fd_list, g_unix_input_stream_get_fd (j), NULL));
@@ -304,7 +310,7 @@ _dbus_test_test_in (Test* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_error:
+	_return:
 	_g_object_unref0 (i);
 	_g_object_unref0 (j);
 	;
@@ -402,11 +408,11 @@ _vala_main (void)
 	guint8* buffer = NULL;
 	guint8* _tmp1_;
 	gint buffer_length1;
-	gint _buffer_size_;
+	G_GNUC_UNUSED gint _buffer_size_;
 	gint* pipe1 = NULL;
 	gint* _tmp2_;
 	gint pipe1_length1;
-	gint _pipe1_size_;
+	G_GNUC_UNUSED gint _pipe1_size_;
 	gint* _tmp3_;
 	gint _tmp3__length1;
 	guint8* _tmp4_;

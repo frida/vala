@@ -32,11 +32,6 @@
 typedef struct _Foo Foo;
 typedef struct _FooClass FooClass;
 typedef struct _FooPrivate FooPrivate;
-enum  {
-	FOO_0_PROPERTY,
-	FOO_NUM_PROPERTIES
-};
-static GParamSpec* foo_properties[FOO_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _Block1Data Block1Data;
 #define _g_ptr_array_unref0(var) ((var == NULL) ? NULL : (var = (g_ptr_array_unref (var), NULL)))
@@ -82,14 +77,14 @@ VALA_EXTERN gint compare_foo (Foo* a,
                   Foo* b);
 static void _vala_main (void);
 static void _g_object_unref0_ (gpointer var);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static gint __vala_lambda0__gcompare_data_func (gconstpointer a,
                                          gconstpointer b,
                                          gpointer self);
 static gint _compare_foo_gcompare_func (gconstpointer a,
                                  gconstpointer b);
-static Block2Data* block2_data_ref (Block2Data* _data2_);
+static Block2Data* block2_data_ref (Block2Data* _data2_) G_GNUC_UNUSED ;
 static void block2_data_unref (void * _userdata_);
 static gint __vala_lambda1__gcompare_data_func (gconstpointer a,
                                          gconstpointer b,
@@ -131,7 +126,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
 }
@@ -215,7 +210,7 @@ block1_data_unref (void * _userdata_)
 	Block1Data* _data1_;
 	_data1_ = (Block1Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data1_->_ref_count_)) {
-		GPtrArray* self;
+		G_GNUC_UNUSED GPtrArray* self;
 		self = _data1_->self;
 		_g_ptr_array_unref0 (self);
 		g_slice_free (Block1Data, _data1_);
@@ -227,7 +222,7 @@ _vala_lambda0_ (Block1Data* _data1_,
                 gconstpointer** a,
                 gconstpointer** b)
 {
-	GPtrArray* self;
+	G_GNUC_UNUSED GPtrArray* self;
 	gint result;
 	self = _data1_->self;
 	result = _data1_->compare_func ((gconstpointer**) (*a), (gconstpointer**) (*b));
@@ -281,7 +276,7 @@ block2_data_unref (void * _userdata_)
 	Block2Data* _data2_;
 	_data2_ = (Block2Data*) _userdata_;
 	if (g_atomic_int_dec_and_test (&_data2_->_ref_count_)) {
-		GPtrArray* self;
+		G_GNUC_UNUSED GPtrArray* self;
 		self = _data2_->self;
 		_g_ptr_array_unref0 (self);
 		g_slice_free (Block2Data, _data2_);
@@ -293,7 +288,7 @@ _vala_lambda1_ (Block2Data* _data2_,
                 gconstpointer** a,
                 gconstpointer** b)
 {
-	GPtrArray* self;
+	G_GNUC_UNUSED GPtrArray* self;
 	gint result;
 	self = _data2_->self;
 	result = _data2_->compare_func ((gconstpointer**) (*a), (gconstpointer**) (*b), _data2_->compare_func_target);

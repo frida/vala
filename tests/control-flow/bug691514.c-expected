@@ -85,7 +85,7 @@ _vala_main (void)
 	gint _tmp17_ = 0;
 	gchar** _tmp18_;
 	gint _tmp16__length1;
-	gint __tmp16__size_;
+	G_GNUC_UNUSED gint __tmp16__size_;
 	const gchar* _tmp19_ = NULL;
 	const gchar* _tmp20_;
 	gchar* _tmp21_;
@@ -94,7 +94,7 @@ _vala_main (void)
 	gint _tmp24_ = 0;
 	gchar** _tmp25_;
 	gint _tmp23__length1;
-	gint __tmp23__size_;
+	G_GNUC_UNUSED gint __tmp23__size_;
 	const gchar* _tmp26_ = NULL;
 	const gchar* _tmp27_;
 	gchar* _tmp28_;

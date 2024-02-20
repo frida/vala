@@ -57,11 +57,6 @@ typedef struct _FooSubClassInNestedNamespaceClass FooSubClassInNestedNamespaceCl
 typedef struct _MamanBar MamanBar;
 typedef struct _MamanBarClass MamanBarClass;
 typedef struct _MamanBarPrivate MamanBarPrivate;
-enum  {
-	MAMAN_BAR_0_PROPERTY,
-	MAMAN_BAR_NUM_PROPERTIES
-};
-static GParamSpec* maman_bar_properties[MAMAN_BAR_NUM_PROPERTIES];
 typedef struct _FooSubClassInNestedNamespacePrivate FooSubClassInNestedNamespacePrivate;
 typedef struct _FooSubParamSpecClassInNestedNamespace FooSubParamSpecClassInNestedNamespace;
 
@@ -318,7 +313,7 @@ global_testclass_instance_init (GlobalTestClass * self,
 static void
 global_testclass_finalize (GlobalTestClass * obj)
 {
-	GlobalTestClass * self;
+	G_GNUC_UNUSED GlobalTestClass * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_GLOBAL_TESTCLASS, GlobalTestClass);
 	g_signal_handlers_destroy (self);
 }
@@ -606,7 +601,7 @@ foo_sub_class_in_nested_namespace_instance_init (FooSubClassInNestedNamespace * 
 static void
 foo_sub_class_in_nested_namespace_finalize (FooSubClassInNestedNamespace * obj)
 {
-	FooSubClassInNestedNamespace * self;
+	G_GNUC_UNUSED FooSubClassInNestedNamespace * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, FOO_SUB_TYPE_CLASS_IN_NESTED_NAMESPACE, FooSubClassInNestedNamespace);
 	g_signal_handlers_destroy (self);
 }

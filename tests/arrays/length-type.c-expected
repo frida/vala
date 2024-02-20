@@ -82,7 +82,7 @@ test_pass (void)
 	guint8* foo = NULL;
 	guint8* _tmp0_;
 	gssize foo_length1;
-	gssize _foo_size_;
+	G_GNUC_UNUSED gssize _foo_size_;
 	guint8* _tmp1_;
 	gssize _tmp1__length1;
 	ManamFunc func = NULL;
@@ -92,7 +92,7 @@ test_pass (void)
 	guint64 _tmp3_ = 0;
 	guint8* _tmp4_;
 	guint64 bar_length1;
-	guint64 _bar_size_;
+	G_GNUC_UNUSED guint64 _bar_size_;
 	guint8* _tmp5_;
 	gssize _tmp5__length1;
 	guint8* _tmp6_;
@@ -147,7 +147,7 @@ test_ref (void)
 	guint8* a = NULL;
 	guint8* _tmp0_;
 	gssize a_length1;
-	gssize _a_size_;
+	G_GNUC_UNUSED gssize _a_size_;
 	guint8* _tmp1_;
 	gssize _tmp1__length1;
 	_tmp0_ = g_new0 (guint8, 0);
@@ -188,7 +188,7 @@ test_out (void)
 {
 	guint8* a = NULL;
 	gssize a_length1 = 0L;
-	gssize _a_size_ = 0L;
+	G_GNUC_UNUSED gssize _a_size_ = 0L;
 	guint8* _tmp0_ = NULL;
 	gssize _tmp1_ = 0;
 	bar (&_tmp0_, &_tmp1_);

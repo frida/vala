@@ -49,7 +49,6 @@ enum  {
 	BAR_G_DESTROY_FUNC,
 	BAR_NUM_PROPERTIES
 };
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);

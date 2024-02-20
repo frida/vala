@@ -122,7 +122,7 @@ _vala_main (void)
 	{
 		gchar** sa = NULL;
 		gint sa_length1 = 0;
-		gint _sa_size_ = 0;
+		G_GNUC_UNUSED gint _sa_size_ = 0;
 		gchar** _tmp4_ = NULL;
 		bar ((const gchar***) (&_tmp4_));
 		sa = _tmp4_;

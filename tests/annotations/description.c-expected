@@ -153,7 +153,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
 }
@@ -248,7 +248,7 @@ _vala_main (void)
 	guint _tmp3_ = 0;
 	GParamSpec** _tmp4_;
 	gint properties_length1;
-	gint _properties_size_;
+	G_GNUC_UNUSED gint _properties_size_;
 	GParamSpec** _tmp5_;
 	gint _tmp5__length1;
 	GTypeClass* _tmp12_;
@@ -268,7 +268,7 @@ _vala_main (void)
 	{
 		GParamSpec** p_collection = NULL;
 		gint p_collection_length1 = 0;
-		gint _p_collection_size_ = 0;
+		G_GNUC_UNUSED gint _p_collection_size_ = 0;
 		gint p_it = 0;
 		p_collection = _tmp5_;
 		p_collection_length1 = _tmp5__length1;

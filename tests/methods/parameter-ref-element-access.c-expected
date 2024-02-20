@@ -57,7 +57,7 @@ _vala_main (void)
 	gchar* _tmp1_;
 	gchar** _tmp2_;
 	gint bar_length1;
-	gint _bar_size_;
+	G_GNUC_UNUSED gint _bar_size_;
 	const gchar* _tmp3_;
 	_tmp0_ = g_strdup ("manam");
 	_tmp1_ = g_strdup ("foo");

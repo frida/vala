@@ -298,7 +298,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (GObject * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	_bar_free0 (self->priv->_bar);
 	G_OBJECT_CLASS (foo_parent_class)->finalize (obj);
@@ -438,7 +438,7 @@ faz_instance_init (Faz * self,
 static void
 faz_finalize (GObject * obj)
 {
-	Faz * self;
+	G_GNUC_UNUSED Faz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FAZ, Faz);
 	_bar_free0 (self->priv->_baz);
 	G_OBJECT_CLASS (faz_parent_class)->finalize (obj);

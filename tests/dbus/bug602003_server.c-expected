@@ -35,11 +35,6 @@
 typedef struct _Test Test;
 typedef struct _TestClass TestClass;
 typedef struct _TestPrivate TestPrivate;
-enum  {
-	TEST_0_PROPERTY,
-	TEST_NUM_PROPERTIES
-};
-static GParamSpec* test_properties[TEST_NUM_PROPERTIES];
 #define _g_variant_unref0(var) ((var == NULL) ? NULL : (var = (g_variant_unref (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
@@ -147,7 +142,7 @@ test_test_string (Test* self)
 	gchar* _tmp0_;
 	gchar** _tmp1_;
 	gint s_length1;
-	gint _s_size_;
+	G_GNUC_UNUSED gint _s_size_;
 	gchar** _tmp2_;
 	gint _tmp2__length1;
 	GVariant* _tmp6_;
@@ -225,13 +220,19 @@ _dbus_test_test_string (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	GVariant* result;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	result = test_test_string (self);
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_variant (result));
 	_g_variant_unref0 (result);

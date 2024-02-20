@@ -110,7 +110,7 @@ void
 do_foo_finish (GAsyncResult* _res_,
                Foo* result)
 {
-	DoFooAsyncData* _data_;
+	G_GNUC_UNUSED DoFooAsyncData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	*result = _data_->result;
 }

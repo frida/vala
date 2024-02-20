@@ -422,7 +422,7 @@ baz_foo_bar1_instance_init (BazFooBar1 * self,
 static void
 baz_foo_bar1_finalize (BazFooBar1 * obj)
 {
-	BazFooBar1 * self;
+	G_GNUC_UNUSED BazFooBar1 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, BAZ_FOO_TYPE_BAR1, BazFooBar1);
 	g_signal_handlers_destroy (self);
 }
@@ -649,7 +649,7 @@ baz_foo_instance_init (BazFoo * self,
 static void
 baz_foo_finalize (BazFoo * obj)
 {
-	BazFoo * self;
+	G_GNUC_UNUSED BazFoo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, BAZ_TYPE_FOO, BazFoo);
 	g_signal_handlers_destroy (self);
 }
@@ -862,7 +862,7 @@ baz_ifoo_bar2_instance_init (BazIFooBar2 * self,
 static void
 baz_ifoo_bar2_finalize (BazIFooBar2 * obj)
 {
-	BazIFooBar2 * self;
+	G_GNUC_UNUSED BazIFooBar2 * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, BAZ_IFOO_TYPE_BAR2, BazIFooBar2);
 	g_signal_handlers_destroy (self);
 }

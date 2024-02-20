@@ -19,7 +19,7 @@ _vala_main (void)
 {
 	void** foo = NULL;
 	gint foo_length1;
-	gint _foo_size_;
+	G_GNUC_UNUSED gint _foo_size_;
 	foo = NULL;
 	foo_length1 = 0;
 	_foo_size_ = foo_length1;

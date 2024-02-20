@@ -32,11 +32,6 @@
 typedef struct _Baz Baz;
 typedef struct _BazClass BazClass;
 typedef struct _BazPrivate BazPrivate;
-enum  {
-	BAZ_0_PROPERTY,
-	BAZ_NUM_PROPERTIES
-};
-static GParamSpec* baz_properties[BAZ_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _vala_assert(expr, msg) if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);
 #define _vala_return_if_fail(expr, msg) if G_LIKELY (expr) ; else { g_return_if_fail_warning (G_LOG_DOMAIN, G_STRFUNC, msg); return; }
@@ -173,7 +168,7 @@ baz_create_array (Baz* self,
 	gint _tmp0_ = 0;
 	gpointer* _tmp1_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Baz* _tmp2_;
 	Baz** _tmp3_;
 	gint _tmp3__length1;
@@ -248,7 +243,7 @@ baz_create_array2 (Baz* self,
 	gint _tmp0_ = 0;
 	gpointer* _tmp1_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Baz* _tmp2_;
 	gpointer* _tmp3_;
 	gint _tmp3__length1;
@@ -308,7 +303,7 @@ baz_get_array (Baz* self,
 	gpointer* a = NULL;
 	gpointer* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Baz* _tmp1_;
 	gpointer* _tmp2_;
 	gint _tmp2__length1;
@@ -367,7 +362,7 @@ baz_get_array2 (Baz* self,
 	gpointer* a = NULL;
 	gpointer* _tmp0_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Baz* _tmp1_;
 	Baz* _tmp2_;
 	gpointer* _tmp3_;
@@ -434,12 +429,12 @@ test_generics_array (void)
 	gint _tmp1_ = 0;
 	Baz** _tmp2_;
 	gint a_length1;
-	gint _a_size_;
+	G_GNUC_UNUSED gint _a_size_;
 	Baz** b = NULL;
 	gint _tmp3_ = 0;
 	gpointer* _tmp4_;
 	gint b_length1;
-	gint _b_size_;
+	G_GNUC_UNUSED gint _b_size_;
 	_tmp0_ = baz_new ();
 	g = _tmp0_;
 	_tmp2_ = baz_create_array (g, &_tmp1_);

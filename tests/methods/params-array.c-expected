@@ -214,7 +214,7 @@ foo_constructv (GType object_type,
 	Foo* self = NULL;
 	const gchar** strv = NULL;
 	gint strv_length1 = 0;
-	gint _strv_size_ = 0;
+	G_GNUC_UNUSED gint _strv_size_ = 0;
 	const gchar* _tmp0_;
 	const gchar* _tmp1_;
 	const gchar* _tmp2_;
@@ -278,7 +278,7 @@ foo_constructv_bar (GType object_type,
 	Foo* self = NULL;
 	gint* intv = NULL;
 	gint intv_length1 = 0;
-	gint _intv_size_ = 0;
+	G_GNUC_UNUSED gint _intv_size_ = 0;
 	gint _tmp0_;
 	gint _tmp1_;
 	gint _tmp2_;
@@ -342,7 +342,7 @@ foo_constructv_manam (GType object_type,
 	Foo* self = NULL;
 	GValue** valuev = NULL;
 	gint valuev_length1 = 0;
-	gint _valuev_size_ = 0;
+	G_GNUC_UNUSED gint _valuev_size_ = 0;
 	GValue* _tmp0_;
 	GValue* _tmp1_;
 	GValue* _tmp2_;
@@ -412,7 +412,7 @@ foo_constructv_manam_owned (GType object_type,
 	Foo* self = NULL;
 	GValue** valuev = NULL;
 	gint valuev_length1 = 0;
-	gint _valuev_size_ = 0;
+	G_GNUC_UNUSED gint _valuev_size_ = 0;
 	GValue* _tmp0_;
 	GValue* _tmp1_;
 	GValue* _tmp2_;
@@ -495,7 +495,7 @@ foo_constructv_minim (GType object_type,
 	Foo* self = NULL;
 	GVariant** variantv = NULL;
 	gint variantv_length1 = 0;
-	gint _variantv_size_ = 0;
+	G_GNUC_UNUSED gint _variantv_size_ = 0;
 	GVariant* _tmp0_;
 	gchar* _tmp1_;
 	gchar* _tmp2_;
@@ -697,7 +697,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -767,7 +767,7 @@ foo (const gchar* _first_strv,
 	va_list _va_list_strv;
 	const gchar** strv = NULL;
 	gint strv_length1 = 0;
-	gint _strv_size_ = 0;
+	G_GNUC_UNUSED gint _strv_size_ = 0;
 	const gchar* _tmp0_;
 	const gchar* _tmp1_;
 	const gchar* _tmp2_;
@@ -810,7 +810,7 @@ bar (gint _first_intv,
 	va_list _va_list_intv;
 	gint* intv = NULL;
 	gint intv_length1 = 0;
-	gint _intv_size_ = 0;
+	G_GNUC_UNUSED gint _intv_size_ = 0;
 	gint _tmp0_;
 	gint _tmp1_;
 	gint _tmp2_;
@@ -853,7 +853,7 @@ manam (GValue* _first_valuev,
 	va_list _va_list_valuev;
 	GValue** valuev = NULL;
 	gint valuev_length1 = 0;
-	gint _valuev_size_ = 0;
+	G_GNUC_UNUSED gint _valuev_size_ = 0;
 	GValue* _tmp0_;
 	GValue* _tmp1_;
 	GValue* _tmp2_;
@@ -896,7 +896,7 @@ manam_owned (GValue* _first_valuev,
 	va_list _va_list_valuev;
 	GValue** valuev = NULL;
 	gint valuev_length1 = 0;
-	gint _valuev_size_ = 0;
+	G_GNUC_UNUSED gint _valuev_size_ = 0;
 	GValue* _tmp0_;
 	GValue* _tmp1_;
 	GValue* _tmp2_;
@@ -958,7 +958,7 @@ minim (GVariant* _first_variantv,
 	va_list _va_list_variantv;
 	GVariant** variantv = NULL;
 	gint variantv_length1 = 0;
-	gint _variantv_size_ = 0;
+	G_GNUC_UNUSED gint _variantv_size_ = 0;
 	GVariant* _tmp0_;
 	gchar* _tmp1_;
 	gchar* _tmp2_;

@@ -41,11 +41,6 @@ typedef struct _IFooIface IFooIface;
 typedef struct _Bar Bar;
 typedef struct _BarClass BarClass;
 typedef struct _BarPrivate BarPrivate;
-enum  {
-	BAR_0_PROPERTY,
-	BAR_NUM_PROPERTIES
-};
-static GParamSpec* bar_properties[BAR_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 typedef struct _BarFooData BarFooData;
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
@@ -197,7 +192,7 @@ bar_foo_finish (IFoo* base,
                 GAsyncResult* _res_)
 {
 	gint result;
-	BarFooData* _data_;
+	G_GNUC_UNUSED BarFooData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 	result = _data_->result;
 	return result;

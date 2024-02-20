@@ -284,7 +284,7 @@ error_in_foreach (void)
 		gint _tmp1_ = 0;
 		gchar** _tmp2_;
 		gint _tmp0__length1;
-		gint __tmp0__size_;
+		G_GNUC_UNUSED gint __tmp0__size_;
 		_tmp2_ = get_array (&_tmp1_, &_inner_error0_);
 		_tmp0_ = _tmp2_;
 		_tmp0__length1 = _tmp1_;
@@ -295,7 +295,7 @@ error_in_foreach (void)
 		{
 			gchar** s_collection = NULL;
 			gint s_collection_length1 = 0;
-			gint _s_collection_size_ = 0;
+			G_GNUC_UNUSED gint _s_collection_size_ = 0;
 			gint s_it = 0;
 			s_collection = _tmp0_;
 			s_collection_length1 = _tmp0__length1;
@@ -329,7 +329,7 @@ error_in_foreach (void)
 		gchar* _tmp4_;
 		gchar** _tmp5_;
 		gint array_length1;
-		gint _array_size_;
+		G_GNUC_UNUSED gint _array_size_;
 		_tmp4_ = g_strdup ("bar");
 		_tmp5_ = g_new0 (gchar*, 1 + 1);
 		_tmp5_[0] = _tmp4_;
@@ -339,7 +339,7 @@ error_in_foreach (void)
 		{
 			gchar** s_collection = NULL;
 			gint s_collection_length1 = 0;
-			gint _s_collection_size_ = 0;
+			G_GNUC_UNUSED gint _s_collection_size_ = 0;
 			gint s_it = 0;
 			s_collection = array;
 			s_collection_length1 = array_length1;

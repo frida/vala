@@ -188,7 +188,7 @@ VALA_EXTERN void run (GAsyncReadyCallback _callback_,
           gpointer _user_data_);
 VALA_EXTERN void run_finish (GAsyncResult* _res_);
 static gboolean run_co (RunData* _data_);
-static Block1Data* block1_data_ref (Block1Data* _data1_);
+static Block1Data* block1_data_ref (Block1Data* _data1_) G_GNUC_UNUSED ;
 static void block1_data_unref (void * _userdata_);
 static void run_ready (GObject* source_object,
                 GAsyncResult* _res_,
@@ -442,6 +442,7 @@ _dbus_test_list_messages (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -456,7 +457,12 @@ _dbus_test_list_messages (Test* self,
 		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp4_ = result;
 	g_variant_builder_init (&_tmp5_, G_VARIANT_TYPE ("as"));
@@ -482,6 +488,7 @@ _dbus_test_post_message (Test* self,
 	GVariantIter _arguments_iter;
 	gchar* message = NULL;
 	GVariant* _tmp7_;
+	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -492,16 +499,21 @@ _dbus_test_post_message (Test* self,
 	test_post_message (self, message, &error);
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _error;
+		goto _return;
 	}
-	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	_call_message = g_dbus_method_invocation_get_message (invocation);
+	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
+		g_object_unref (invocation);
+		goto _return;
+	}
+	_reply_message = g_dbus_message_new_method_reply (_call_message);
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_error:
+	_return:
 	_g_free0 (message);
 	;
 }
@@ -520,7 +532,7 @@ _dbus_test_post_message_no_reply (Test* self,
 	message = g_variant_dup_string (_tmp8_, NULL);
 	g_variant_unref (_tmp8_);
 	test_post_message_no_reply (self, message, &error);
-	_error:
+	_return:
 	_g_free0 (message);
 	;
 }
@@ -635,7 +647,7 @@ run (GAsyncReadyCallback _callback_,
 void
 run_finish (GAsyncResult* _res_)
 {
-	RunData* _data_;
+	G_GNUC_UNUSED RunData* _data_;
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

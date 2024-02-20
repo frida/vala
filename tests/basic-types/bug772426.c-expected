@@ -67,14 +67,14 @@ _vala_main (void)
 	void* _tmp0_;
 	guint8* buffer = NULL;
 	gint buffer_length1;
-	gint _buffer_size_;
+	G_GNUC_UNUSED gint _buffer_size_;
 	GVariant* v = NULL;
 	GVariant* _tmp2_;
 	guint8* _result_ = NULL;
 	guint8* _tmp3_ = NULL;
 	gint _tmp3__length1 = 0;
 	gint _result__length1;
-	gint __result__size_;
+	G_GNUC_UNUSED gint __result__size_;
 	_tmp0_ = g_malloc ((gsize) BUFFER_LENGTH);
 	buffer_p = _tmp0_;
 	memset (buffer_p, 0x55555555, (gsize) BUFFER_LENGTH);

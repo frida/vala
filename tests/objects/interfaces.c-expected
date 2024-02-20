@@ -41,11 +41,6 @@ typedef struct _MamanIbazIface MamanIbazIface;
 typedef struct _MamanBaz MamanBaz;
 typedef struct _MamanBazClass MamanBazClass;
 typedef struct _MamanBazPrivate MamanBazPrivate;
-enum  {
-	MAMAN_BAZ_0_PROPERTY,
-	MAMAN_BAZ_NUM_PROPERTIES
-};
-static GParamSpec* maman_baz_properties[MAMAN_BAZ_NUM_PROPERTIES];
 
 #define MAMAN_TYPE_SUB_BAZ (maman_sub_baz_get_type ())
 #define MAMAN_SUB_BAZ(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), MAMAN_TYPE_SUB_BAZ, MamanSubBaz))
@@ -57,11 +52,6 @@ static GParamSpec* maman_baz_properties[MAMAN_BAZ_NUM_PROPERTIES];
 typedef struct _MamanSubBaz MamanSubBaz;
 typedef struct _MamanSubBazClass MamanSubBazClass;
 typedef struct _MamanSubBazPrivate MamanSubBazPrivate;
-enum  {
-	MAMAN_SUB_BAZ_0_PROPERTY,
-	MAMAN_SUB_BAZ_NUM_PROPERTIES
-};
-static GParamSpec* maman_sub_baz_properties[MAMAN_SUB_BAZ_NUM_PROPERTIES];
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 
 struct _MamanIbazIface {

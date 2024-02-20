@@ -154,7 +154,7 @@ foo_construct (GType object_type,
 	gpointer _tmp0_;
 	gpointer* _tmp1_;
 	gint gs_length1;
-	gint _gs_size_;
+	G_GNUC_UNUSED gint _gs_size_;
 	gconstpointer _tmp2_;
 	gpointer* _tmp3_;
 	gint _tmp3__length1;
@@ -368,7 +368,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 	self->ga = (_vala_array_free (self->ga, self->ga_length1, (GDestroyNotify) self->priv->g_destroy_func), NULL);
@@ -447,13 +447,13 @@ bar (GType g_type,
 	gpointer _tmp0_;
 	gpointer* _tmp1_;
 	gint gs_length1;
-	gint _gs_size_;
+	G_GNUC_UNUSED gint _gs_size_;
 	gconstpointer _tmp2_;
 	gpointer* gs_copy = NULL;
 	gpointer* _tmp3_;
 	gint _tmp3__length1;
 	gint gs_copy_length1;
-	gint _gs_copy_size_;
+	G_GNUC_UNUSED gint _gs_copy_size_;
 	gconstpointer _tmp4_;
 	_tmp0_ = ((g != NULL) && (g_dup_func != NULL)) ? g_dup_func ((gpointer) g) : ((gpointer) g);
 	_tmp1_ = g_new0 (gpointer, 1);

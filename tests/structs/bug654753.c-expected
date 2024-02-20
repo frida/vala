@@ -91,7 +91,7 @@ _vala_main (void)
 	Foo* array = NULL;
 	Foo* _tmp0_;
 	gint array_length1;
-	gint _array_size_;
+	G_GNUC_UNUSED gint _array_size_;
 	Foo _tmp1_;
 	Foo _tmp2_;
 	Foo _tmp3_;

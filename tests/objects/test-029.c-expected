@@ -215,7 +215,7 @@ maman_foo_instance_init (MamanFoo * self,
 static void
 maman_foo_finalize (GObject * obj)
 {
-	MamanFoo * self;
+	G_GNUC_UNUSED MamanFoo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, MAMAN_TYPE_FOO, MamanFoo);
 	G_OBJECT_CLASS (maman_foo_parent_class)->finalize (obj);
 }

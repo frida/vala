@@ -73,7 +73,7 @@ _vala_main (void)
 	gint* _tmp5_;
 	gint** _tmp6_;
 	gint foo_length1;
-	gint _foo_size_;
+	G_GNUC_UNUSED gint _foo_size_;
 	gint* _tmp7_;
 	gint _tmp8_;
 	gint* _tmp9_;

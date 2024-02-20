@@ -307,7 +307,7 @@ _vala_main (void)
 	const gchar** sa = NULL;
 	const gchar** _tmp22_;
 	gint sa_length1;
-	gint _sa_size_;
+	G_GNUC_UNUSED gint _sa_size_;
 	Manam manam = {0};
 	gint _tmp23_[2] = {0};
 	Manam _tmp24_ = {0};

@@ -439,7 +439,7 @@ foo_instance_init (Foo * self,
 static void
 foo_finalize (Foo * obj)
 {
-	Foo * self;
+	G_GNUC_UNUSED Foo * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_FOO, Foo);
 	g_signal_handlers_destroy (self);
 }
@@ -727,7 +727,7 @@ baz_instance_init (Baz * self,
 static void
 baz_finalize (Baz * obj)
 {
-	Baz * self;
+	G_GNUC_UNUSED Baz * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAZ, Baz);
 	g_signal_handlers_destroy (self);
 }

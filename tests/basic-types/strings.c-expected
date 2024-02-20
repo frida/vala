@@ -434,7 +434,7 @@ test_string_joinv (void)
 	gchar* _tmp2_;
 	gchar** _tmp3_;
 	gint sa_length1;
-	gint _sa_size_;
+	G_GNUC_UNUSED gint _sa_size_;
 	gchar* s = NULL;
 	gchar* _tmp4_;
 	const gchar* _tmp5_;
