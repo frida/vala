@@ -7,11 +7,48 @@
 #include <errno.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
-#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
-#elif defined(__clang__) && (__clang_major__ >= 16)
-#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wchar-subscripts"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#pragma GCC diagnostic ignored "-Wint-conversion"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wpointer-sign"
+#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
+#pragma GCC diagnostic ignored "-Wreturn-type"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-label"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#elif defined(__clang__)
+#pragma clang diagnostic ignored "-Wchar-subscripts"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+#pragma clang diagnostic ignored "-Wint-conversion"
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#pragma clang diagnostic ignored "-Wpointer-sign"
+#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
+#pragma clang diagnostic ignored "-Wreturn-type"
+#pragma clang diagnostic ignored "-Wsign-compare"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-label"
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
+#pragma clang diagnostic ignored "-Wtypedef-redefinition"
+#pragma clang diagnostic ignored "-Wunused-value"
+#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
+#elif defined(_MSC_VER)
+#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
+#endif
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -177,7 +214,6 @@ uint_try_parse (const gchar* str,
 	gchar* _tmp2_;
 	gint _tmp3_;
 	gint _tmp4_;
-	gulong _tmp6_;
 	gboolean result;
 	g_return_val_if_fail (str != NULL, FALSE);
 	errno = 0;
@@ -194,26 +230,25 @@ uint_try_parse (const gchar* str,
 		_tmp5_ = endptr;
 		_vala_unparsed = (const gchar*) _tmp5_;
 	}
-	_tmp6_ = ulong_result;
-	if ((((gulong) 0) <= _tmp6_) && (_tmp6_ <= ((gulong) G_MAXUINT))) {
+	if (ulong_result <= ((gulong) G_MAXUINT)) {
+		gboolean _tmp6_ = FALSE;
 		gboolean _tmp7_ = FALSE;
-		gboolean _tmp8_ = FALSE;
 		_vala__result_ = (guint) ulong_result;
 		if (errno != ERANGE) {
-			_tmp8_ = errno != EINVAL;
-		} else {
-			_tmp8_ = FALSE;
-		}
-		if (_tmp8_) {
-			const gchar* _tmp9_;
-			gchar* _tmp10_;
-			_tmp9_ = _vala_unparsed;
-			_tmp10_ = endptr;
-			_tmp7_ = _tmp9_ != _tmp10_;
+			_tmp7_ = errno != EINVAL;
 		} else {
 			_tmp7_ = FALSE;
 		}
-		result = _tmp7_;
+		if (_tmp7_) {
+			const gchar* _tmp8_;
+			gchar* _tmp9_;
+			_tmp8_ = _vala_unparsed;
+			_tmp9_ = endptr;
+			_tmp6_ = _tmp8_ != _tmp9_;
+		} else {
+			_tmp6_ = FALSE;
+		}
+		result = _tmp6_;
 		if (_result_) {
 			*_result_ = _vala__result_;
 		}
