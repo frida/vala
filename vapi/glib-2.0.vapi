@@ -223,7 +223,7 @@ public struct uint {
 		} else {
 			unparsed = (string) endptr;
 		}
-		if (uint.MIN <= ulong_result <= uint.MAX) {
+		if (ulong_result <= uint.MAX) {
 			result = (uint) ulong_result;
 			return errno != ERANGE && errno != EINVAL && unparsed != endptr;
 		} else {
