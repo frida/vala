@@ -1467,6 +1467,12 @@ if host_machine.system() == 'linux'
 	]
 endif
 
+if cc.has_argument('-Werror=discarded-qualifiers')
+	testcases += [
+		'constness' / 'bytes-get-data.vala',
+	]
+endif
+
 xfail_testcases = []
 
 if get_option('b_sanitize') == 'address'
