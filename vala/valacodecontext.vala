@@ -587,8 +587,6 @@ public class Vala.CodeContext {
 		for (int i = 16; i <= target_glib_minor; i += 2) {
 			defines.add ("GLIB_2_%d".printf (i));
 		}
-
-		add_define ("VALA_OS_" + Config.VALA_HOST_OS.up ());
 	}
 
 	/**
@@ -690,7 +688,56 @@ public class Vala.CodeContext {
 	}
 
 	public string? get_gir_path (string gir) {
-		return get_file_path (gir + ".gir", "gir-1.0", null, gir_directories);
+		const string GIR_SUFFIX = "gir-1.0";
+		string girname = gir + ".gir";
+		string path = null;
+
+		foreach (unowned string dir in gir_directories) {
+			path = Path.build_path ("/", dir, girname);
+			if (FileUtils.test (path, FileTest.EXISTS | FileTest.IS_REGULAR)) {
+				return path;
+			}
+		}
+
+		// Search $GI_GIR_PATH
+		unowned string? gi_gir_path = Environment.get_variable ("GI_GIR_PATH");
+		if (gi_gir_path != null) {
+			var gir_dirs = gi_gir_path.split (Path.SEARCHPATH_SEPARATOR_S);
+			foreach (unowned string dir in gir_dirs) {
+				path = Path.build_path ("/", dir, girname);
+				if (FileUtils.test (path, FileTest.EXISTS | FileTest.IS_REGULAR)) {
+					return path;
+				}
+			}
+		}
+
+		// Search $XDG_DATA_HOME
+		path = Path.build_path ("/", Environment.get_user_data_dir (), GIR_SUFFIX, girname);
+		if (FileUtils.test (path, FileTest.EXISTS | FileTest.IS_REGULAR)) {
+			return path;
+		}
+
+		// Search $XDG_DATA_DIRS
+		foreach (unowned string dir in Environment.get_system_data_dirs ()) {
+			path = Path.build_path ("/", dir, GIR_SUFFIX, girname);
+			if (FileUtils.test (path, FileTest.EXISTS | FileTest.IS_REGULAR)) {
+				return path;
+			}
+		}
+
+		// Search $GI_GIRDIR set by user or retrieved from gobject-introspection-1.0.pc
+		path = Path.build_path (Config.GI_GIRDIR, girname);
+		if (FileUtils.test (path, FileTest.EXISTS | FileTest.IS_REGULAR)) {
+			return path;
+		}
+
+		// Search /usr/share
+		path = Path.build_path ("/", "usr", "share", GIR_SUFFIX, girname);
+		if (FileUtils.test (path, FileTest.EXISTS | FileTest.IS_REGULAR)) {
+			return path;
+		}
+
+		return null;
 	}
 
 	public string? get_gresource_path (string gresource, string resource) {
@@ -927,6 +974,25 @@ public class Vala.CodeContext {
 		}
 		pc += package_name;
 
+		string? output = null;
+		int exit_status;
+
+		try {
+			Process.spawn_command_line_sync (pc, out output, null, out exit_status);
+			if (exit_status != 0) {
+				Report.error (null, "%s exited with status %d", pkg_config_command, exit_status);
+				return null;
+			}
+		} catch (SpawnError e) {
+			Report.error (null, e.message);
+			output = null;
+		}
+
+		return output;
+	}
+
+	public string? pkg_config_variable (string package_name, string variable_name) {
+		string pc = pkg_config_command + " --variable="+ variable_name + " " + package_name;
 		string? output = null;
 		int exit_status;
 

@@ -204,12 +204,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				string class_prefix = get_ccode_lower_case_name (current_class);
 				string prepare_func = "NULL";
 				string check_func = "NULL";
-				string closure_callback_func = "NULL";
 				foreach (Method impl in current_class.get_methods ()) {
-					if (impl.name == "closure_callback" && impl.binding == MemberBinding.STATIC) {
-						closure_callback_func = "(GSourceFunc) %s_closure_callback".printf (class_prefix);
-						continue;
-					}
 					if (!impl.overrides) {
 						continue;
 					}
@@ -227,7 +222,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 				var funcs = new CCodeDeclaration ("const GSourceFuncs");
 				funcs.modifiers = CCodeModifiers.STATIC;
-				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize, %s, NULL }".printf (prepare_func, check_func, class_prefix, class_prefix, closure_callback_func))));
+				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize}".printf (prepare_func, check_func, class_prefix, class_prefix))));
 				ccode.add_statement (funcs);
 
 				ccall.add_argument (new CCodeCastExpression (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_source_funcs")), "GSourceFuncs *"));

@@ -39,7 +39,7 @@ fi
 vapidir=$abs_top_srcdir/vapi
 run_prefix=""
 
-VALAC=$abs_top_builddir/compiler/valac$VALA_VERSION_SUFFIX$EXEEXT
+VALAC=$abs_top_builddir/compiler/valac$EXEEXT
 VALAFLAGS="$VALAFLAGS \
 	--vapidir $vapidir \
 	--enable-checking \
@@ -52,7 +52,7 @@ VALAFLAGS="$VALAFLAGS \
 	-X -pipe \
 	-X -lm \
 	-X -DGETTEXT_PACKAGE=\"valac\""
-VAPIGEN=$abs_top_builddir/vapigen/vapigen$VALA_VERSION_SUFFIX$EXEEXT
+VAPIGEN=$abs_top_builddir/vapigen/vapigen$EXEEXT
 VAPIGENFLAGS="--vapidir $vapidir"
 
 # Incorporate the TEST_CFLAGS.
@@ -127,19 +127,18 @@ function sourceend() {
 		echo "$VALAC $VALAFLAGS $PACKAGEFLAGS -o $ns$EXEEXT $SOURCEFILE" >> prepare
 		if [ $DBUSTEST -eq 1 ]; then
 			echo "UPDATE_EXPECTED=$UPDATE_EXPECTED" >> prepare
-			echo "CFILE=\$("$abs_top_srcdir/build-aux/normalize-test-ccode" ${SOURCEFILE%.*}.c)" >> prepare
 			if [ $ISSERVER -eq 1 ]; then
 				echo "if [ -n \"$UPDATE_EXPECTED\" ]; then" >> prepare
-				echo "	cp -p \$CFILE $abs_srcdir/${testfile%.*}_server.c-expected" >> prepare
+				echo "	cp -p ${SOURCEFILE%.*}.c $abs_srcdir/${testfile%.*}_server.c-expected" >> prepare
 				echo "elif [ -f $abs_srcdir/${testfile%.*}_server.c-expected ]; then" >> prepare
-				echo "	diff -wu $abs_srcdir/${testfile%.*}_server.c-expected \$CFILE || exit 1" >> prepare
+				echo "	diff -wu $abs_srcdir/${testfile%.*}_server.c-expected ${SOURCEFILE%.*}.c || exit 1" >> prepare
 				echo "fi" >> prepare
 				echo "./$ns$EXEEXT" >> check
 			else
 				echo "if [ -n \"$UPDATE_EXPECTED\" ]; then" >> prepare
-				echo "	cp -p \$CFILE $abs_srcdir/${testfile%.*}_client.c-expected" >> prepare
+				echo "	cp -p ${SOURCEFILE%.*}.c $abs_srcdir/${testfile%.*}_client.c-expected" >> prepare
 				echo "elif [ -f $abs_srcdir/${testfile%.*}_client.c-expected ]; then" >> prepare
-				echo "	diff -wu $abs_srcdir/${testfile%.*}_client.c-expected \$CFILE || exit 1" >> prepare
+				echo "	diff -wu $abs_srcdir/${testfile%.*}_client.c-expected ${SOURCEFILE%.*}.c || exit 1" >> prepare
 				echo "fi" >> prepare
 			fi
 		else
@@ -166,14 +165,13 @@ case "$testfile" in
 	cat "$abs_srcdir/$testfile" > ./$SOURCEFILE
 	PACKAGEFLAGS=$([ -z "$PACKAGES" ] || echo $PACKAGES | xargs -n 1 echo -n " --pkg")
 	$VALAC $VALAFLAGS $PACKAGEFLAGS -o $testpath$EXEEXT $SOURCEFILE
-	CFILE=$("$abs_top_srcdir/build-aux/normalize-test-ccode" ${SOURCEFILE%.*}.c)
 	if [ -n "$UPDATE_EXPECTED" ]; then
-		cp -p $CFILE $abs_srcdir/${testfile%.*}.c-expected
+		cp -p ${SOURCEFILE%.*}.c $abs_srcdir/${testfile%.*}.c-expected
 		if [ -f test.h ]; then
 			cp -p test.h $abs_srcdir/${testfile%.*}.h-expected || exit 1
 		fi
 	elif [ -f $abs_srcdir/${testfile%.*}.c-expected ]; then
-		diff -wu $abs_srcdir/${testfile%.*}.c-expected $CFILE || exit 1
+		diff -wu $abs_srcdir/${testfile%.*}.c-expected ${SOURCEFILE%.*}.c || exit 1
 		if [ -f $abs_srcdir/${testfile%.*}.h-expected ]; then
 			diff -wu $abs_srcdir/${testfile%.*}.h-expected test.h || exit 1
 		fi

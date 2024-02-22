@@ -901,8 +901,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				}
 			}
 
-			ccode.add_statement (new CCodeExpressionStatement.behind_ifdef ("GLIB_DYNAMIC_UNLOADING", new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
-
 			var main_call = new CCodeFunctionCall (new CCodeIdentifier (m.coroutine ? real_name : function.name));
 			if (m.get_parameters ().size == 1) {
 				main_call.add_argument (new CCodeIdentifier ("argv"));
@@ -914,7 +912,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				var main_loop_new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_main_loop_new"));
 				main_loop_new_call.add_argument (new CCodeConstantIdentifier ("NULL"));
 				main_loop_new_call.add_argument (new CCodeConstantIdentifier ("FALSE"));
-				ccode.add_declaration ("GMainLoop*", new CCodeVariableDeclarator ("loop", main_loop_new_call));
+				ccode.add_declaration ("GMainLoop*", new CCodeVariableDeclarator.zero ("loop", main_loop_new_call));
 
 				// add some more arguments to main_call
 				main_call.add_argument (new CCodeIdentifier (real_name + "_callback"));
