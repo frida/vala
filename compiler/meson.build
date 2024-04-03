@@ -12,8 +12,6 @@ valac_exe = executable(
 	install: true,
 )
 
-vala_name = 'vala@0@'.format(vala_version_suffix)
-
 install_symlink(
 	f'vala@vala_version_suffix@@exe_ext@',
 	pointing_to: f'@valac_name@@exe_ext@',
@@ -26,6 +24,6 @@ install_symlink(
 )
 install_symlink(
 	f'vala@exe_ext@',
-	pointing_to: f'vala@vala_version_suffix@@exe_ext@',
+	pointing_to: f'@valac_name@@exe_ext@',
 	install_dir: get_option('bindir'),
 )
