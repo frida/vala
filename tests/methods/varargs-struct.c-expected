@@ -6,9 +6,8 @@
 #include <stdarg.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__)
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
 #pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wint-conversion"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
@@ -16,7 +15,6 @@
 #pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 #pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-label"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -24,9 +22,9 @@
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #elif defined(__clang__)
 #pragma clang diagnostic ignored "-Wchar-subscripts"
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
 #pragma clang diagnostic ignored "-Wint-conversion"
 #pragma clang diagnostic ignored "-Wmissing-field-initializers"
@@ -34,7 +32,6 @@
 #pragma clang diagnostic ignored "-Wpointer-to-int-cast"
 #pragma clang diagnostic ignored "-Wreturn-type"
 #pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
 #pragma clang diagnostic ignored "-Wunused-label"
 #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -48,6 +45,9 @@
 #endif
 #if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
 #pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+#if defined(__clang__) && (__clang_major__ >= 13)
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
