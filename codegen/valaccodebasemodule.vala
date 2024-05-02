@@ -842,7 +842,6 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 		const string[] gcc_and_clang_suppressions = {
 			"char-subscripts",
-			"deprecated-declarations",
 			"incompatible-pointer-types",
 			"int-conversion",
 			"missing-field-initializers",
