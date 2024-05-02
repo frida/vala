@@ -891,7 +891,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		};
 
 		CCodeIfSection if_section;
-		if_section = new CCodeIfSection ("!defined(__clang__) && defined(__GNUC__)");
+		if_section = new CCodeIfSection ("!defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)");
 		foreach (unowned string name in gcc_and_clang_suppressions) {
 			if_section.append (new CCodePragma ("GCC", "diagnostic", "ignored \"-W" + name + "\""));
 		}
