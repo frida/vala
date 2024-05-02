@@ -850,7 +850,6 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			"pointer-to-int-cast",
 			"return-type",
 			"sign-compare",
-			"unused-but-set-variable",
 			"unused-function",
 			"unused-label",
 			"unused-parameter",
@@ -860,6 +859,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			"discarded-qualifiers",
 			"int-to-pointer-cast",
 			"strict-aliasing",
+			"unused-but-set-variable",
 		};
 		const string[] clang_only_suppressions = {
 			"int-to-void-pointer-cast",
@@ -917,6 +917,10 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 		if_section = new CCodeIfSection ("!defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)");
 		if_section.append (new CCodePragma ("GCC", "diagnostic", "ignored \"-Wcast-function-type\""));
+		vala_strict_c.append (if_section);
+
+		if_section = new CCodeIfSection ("defined(__clang__) && (__clang_major__ >= 13)");
+		if_section.append (new CCodePragma ("clang", "diagnostic", "ignored \"-Wunused-but-set-variable\""));
 		vala_strict_c.append (if_section);
 
 		decl_space.add_define (vala_strict_c);
