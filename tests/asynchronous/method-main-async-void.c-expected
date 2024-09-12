@@ -89,6 +89,7 @@ _vala_main_async (gchar** args,
 	ValaMainAsyncData* _data_;
 	_data_ = g_slice_new0 (ValaMainAsyncData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "main");
 	g_task_set_task_data (_data_->_async_result, _data_, _vala_main_async_data_free);
 	_data_->args = args;
 	_data_->args_length1 = args_length1;

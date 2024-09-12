@@ -287,6 +287,7 @@ foo_construct_async (GType object_type,
 	FooNewAsyncData* _data_;
 	_data_ = g_slice_new0 (FooNewAsyncData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.async");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_construct_async_data_free);
 	_data_->object_type = object_type;
 	foo_construct_async_co (_data_);
@@ -364,6 +365,7 @@ foo_bar (Foo* self,
 	g_return_if_fail (IS_FOO (self));
 	_data_ = g_slice_new0 (FooBarData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.bar");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_bar_data_free);
 	_tmp0_ = _foo_ref0 (self);
 	_data_->self = _tmp0_;
@@ -423,6 +425,7 @@ foo_real_baz (Foo* self,
 	Foo* _tmp0_;
 	_data_ = g_slice_new0 (FooBazData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.baz");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_real_baz_data_free);
 	_tmp0_ = _foo_ref0 (self);
 	_data_->self = _tmp0_;
@@ -723,6 +726,7 @@ bar_real_baz (Foo* base,
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_BAR, Bar);
 	_data_ = g_slice_new0 (BarBazData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Bar.baz");
 	g_task_set_task_data (_data_->_async_result, _data_, bar_real_baz_data_free);
 	_tmp0_ = _foo_ref0 (self);
 	_data_->self = _tmp0_;
@@ -829,6 +833,7 @@ manam (GAsyncReadyCallback _callback_,
 	ManamData* _data_;
 	_data_ = g_slice_new0 (ManamData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "manam");
 	g_task_set_task_data (_data_->_async_result, _data_, manam_data_free);
 	manam_co (_data_);
 }

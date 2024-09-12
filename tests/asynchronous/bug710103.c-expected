@@ -294,6 +294,7 @@ foo_bar (Foo* self,
 	g_return_if_fail (IS_FOO (self));
 	_data_ = g_slice_new0 (FooBarData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.bar");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_bar_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;
@@ -345,6 +346,7 @@ foo_construct_async (GType object_type,
 	FooNewAsyncData* _data_;
 	_data_ = g_slice_new0 (FooNewAsyncData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.async");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_construct_async_data_free);
 	_data_->object_type = object_type;
 	foo_construct_async_co (_data_);
@@ -412,6 +414,7 @@ foo_create_foo_async (GAsyncReadyCallback _callback_,
 	FooCreateFooAsyncData* _data_;
 	_data_ = g_slice_new0 (FooCreateFooAsyncData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.create_foo_async");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_create_foo_async_data_free);
 	foo_create_foo_async_co (_data_);
 }

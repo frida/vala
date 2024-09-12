@@ -167,6 +167,7 @@ ifoo_bar (IFoo* self,
 	IFoo* _tmp0_;
 	_data_ = g_slice_new0 (IfooBarData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "IFoo.bar");
 	g_task_set_task_data (_data_->_async_result, _data_, ifoo_bar_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;

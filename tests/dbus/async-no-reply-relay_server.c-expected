@@ -882,6 +882,7 @@ test_impl_real_list_messages (Test* base,
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_TEST_IMPL, TestImpl);
 	_data_ = g_slice_new0 (TestImplListMessagesData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "TestImpl.list_messages");
 	g_task_set_task_data (_data_->_async_result, _data_, test_impl_real_list_messages_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;
@@ -973,6 +974,7 @@ test_impl_real_post_message (Test* base,
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_TEST_IMPL, TestImpl);
 	_data_ = g_slice_new0 (TestImplPostMessageData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "TestImpl.post_message");
 	g_task_set_task_data (_data_->_async_result, _data_, test_impl_real_post_message_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;
@@ -1121,6 +1123,7 @@ run (GAsyncReadyCallback _callback_,
 	RunData* _data_;
 	_data_ = g_slice_new0 (RunData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "run");
 	g_task_set_task_data (_data_->_async_result, _data_, run_data_free);
 	run_co (_data_);
 }

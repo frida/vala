@@ -168,6 +168,7 @@ foo_foo (Foo* self,
 	g_return_if_fail (IS_FOO (self));
 	_data_ = g_slice_new0 (FooFooData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.foo");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_foo_data_free);
 	_tmp0_ = _foo_ref0 (self);
 	_data_->self = _tmp0_;

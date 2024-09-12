@@ -254,6 +254,7 @@ foo_async (Manam* i,
 	g_return_if_fail (IS_MANAM (i));
 	_data_ = g_slice_new0 (FooAsyncData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "foo_async");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_async_data_free);
 	_tmp0_ = _g_object_ref0 (i);
 	_g_object_unref0 (_data_->i);
@@ -331,6 +332,7 @@ run (GAsyncReadyCallback _callback_,
 	RunData* _data_;
 	_data_ = g_slice_new0 (RunData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "run");
 	g_task_set_task_data (_data_->_async_result, _data_, run_data_free);
 	run_co (_data_);
 }
