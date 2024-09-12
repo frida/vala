@@ -153,6 +153,7 @@ foo (gint in_i,
 	FooData* _data_;
 	_data_ = g_slice_new0 (FooData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "foo");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_data_free);
 	_data_->in_i = in_i;
 	foo_co (_data_);
@@ -206,6 +207,7 @@ bar (gint in_i,
 	BarData* _data_;
 	_data_ = g_slice_new0 (BarData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "bar");
 	g_task_set_task_data (_data_->_async_result, _data_, bar_data_free);
 	_data_->in_i = in_i;
 	bar_co (_data_);
@@ -262,6 +264,7 @@ run (GAsyncReadyCallback _callback_,
 	RunData* _data_;
 	_data_ = g_slice_new0 (RunData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "run");
 	g_task_set_task_data (_data_->_async_result, _data_, run_data_free);
 	run_co (_data_);
 }

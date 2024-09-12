@@ -331,6 +331,7 @@ test_test_void (Test* self,
 	g_return_if_fail (IS_TEST (self));
 	_data_ = g_slice_new0 (TestTestVoidData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Test.test_void");
 	g_task_set_task_data (_data_->_async_result, _data_, test_test_void_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;
@@ -409,6 +410,7 @@ test_test_int (Test* self,
 	g_return_if_fail (IS_TEST (self));
 	_data_ = g_slice_new0 (TestTestIntData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Test.test_int");
 	g_task_set_task_data (_data_->_async_result, _data_, test_test_int_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;
@@ -492,6 +494,7 @@ test_test_string (Test* self,
 	g_return_if_fail (s != NULL);
 	_data_ = g_slice_new0 (TestTestStringData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Test.test_string");
 	g_task_set_task_data (_data_->_async_result, _data_, test_test_string_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;
@@ -580,6 +583,7 @@ test_test_cancellable (Test* self,
 	g_return_if_fail ((cancellable == NULL) || G_TYPE_CHECK_INSTANCE_TYPE (cancellable, g_cancellable_get_type ()));
 	_data_ = g_slice_new0 (TestTestCancellableData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), cancellable, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Test.test_cancellable");
 	g_task_set_task_data (_data_->_async_result, _data_, test_test_cancellable_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;

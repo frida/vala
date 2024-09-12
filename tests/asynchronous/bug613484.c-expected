@@ -159,6 +159,7 @@ do_foo_async (Foo* foo,
 	g_return_if_fail (value != NULL);
 	_data_ = g_slice_new0 (DoFooAsyncData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "do_foo_async");
 	g_task_set_task_data (_data_->_async_result, _data_, do_foo_async_data_free);
 	_tmp0_ = *foo;
 	_data_->foo = _tmp0_;

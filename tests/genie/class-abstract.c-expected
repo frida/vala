@@ -421,6 +421,7 @@ test2_construct (GType object_type,
 	Test2NewData* _data_;
 	_data_ = g_slice_new0 (Test2NewData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Test2.new");
 	g_task_set_task_data (_data_->_async_result, _data_, test2_construct_data_free);
 	_data_->object_type = object_type;
 	test2_construct_co (_data_);

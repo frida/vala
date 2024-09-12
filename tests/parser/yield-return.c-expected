@@ -199,6 +199,7 @@ foo_construct (GType object_type,
 	FooNewData* _data_;
 	_data_ = g_slice_new0 (FooNewData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.new");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_construct_data_free);
 	_data_->object_type = object_type;
 	foo_construct_co (_data_);
@@ -465,6 +466,7 @@ foo (GAsyncReadyCallback _callback_,
 	FooData* _data_;
 	_data_ = g_slice_new0 (FooData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "foo");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_data_free);
 	foo_co (_data_);
 }
@@ -518,6 +520,7 @@ bar (GAsyncReadyCallback _callback_,
 	BarData* _data_;
 	_data_ = g_slice_new0 (BarData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "bar");
 	g_task_set_task_data (_data_->_async_result, _data_, bar_data_free);
 	bar_co (_data_);
 }
@@ -589,6 +592,7 @@ baz (GAsyncReadyCallback _callback_,
 	BazData* _data_;
 	_data_ = g_slice_new0 (BazData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "baz");
 	g_task_set_task_data (_data_->_async_result, _data_, baz_data_free);
 	baz_co (_data_);
 }

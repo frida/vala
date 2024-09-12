@@ -274,6 +274,7 @@ bar_real_foo (IFoo* base,
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_BAR, Bar);
 	_data_ = g_slice_new0 (BarFooData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Bar.foo");
 	g_task_set_task_data (_data_->_async_result, _data_, bar_real_foo_data_free);
 	_tmp0_ = _bar_ref0 (self);
 	_data_->self = _tmp0_;
@@ -552,6 +553,7 @@ foo_bar (Foo* self,
 	g_return_if_fail (IS_FOO (self));
 	_data_ = g_slice_new0 (FooBarData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Foo.bar");
 	g_task_set_task_data (_data_->_async_result, _data_, foo_bar_data_free);
 	_tmp0_ = _bar_ref0 (self);
 	_data_->self = _tmp0_;

@@ -97,6 +97,7 @@ do_foo (GAsyncReadyCallback _callback_,
 	DoFooData* _data_;
 	_data_ = g_slice_new0 (DoFooData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "do_foo");
 	g_task_set_task_data (_data_->_async_result, _data_, do_foo_data_free);
 	do_foo_co (_data_);
 }

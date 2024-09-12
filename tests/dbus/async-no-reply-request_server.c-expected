@@ -273,6 +273,7 @@ test_list_messages (Test* self,
 	g_return_if_fail (IS_TEST (self));
 	_data_ = g_slice_new0 (TestListMessagesData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Test.list_messages");
 	g_task_set_task_data (_data_->_async_result, _data_, test_list_messages_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;
@@ -362,6 +363,7 @@ test_post_message (Test* self,
 	g_return_if_fail (message != NULL);
 	_data_ = g_slice_new0 (TestPostMessageData);
 	_data_->_async_result = g_task_new (G_OBJECT (self), NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Test.post_message");
 	g_task_set_task_data (_data_->_async_result, _data_, test_post_message_data_free);
 	_tmp0_ = _g_object_ref0 (self);
 	_data_->self = _tmp0_;

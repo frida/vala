@@ -276,6 +276,7 @@ generator_helper (Generator* self,
 	g_return_if_fail (IS_GENERATOR (self));
 	_data_ = g_slice_new0 (GeneratorHelperData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Generator.helper");
 	g_task_set_task_data (_data_->_async_result, _data_, generator_helper_data_free);
 	_tmp0_ = _generator_ref0 (self);
 	_data_->self = _tmp0_;
@@ -375,6 +376,7 @@ generator_feed (Generator* self,
 	g_return_if_fail (IS_GENERATOR (self));
 	_data_ = g_slice_new0 (GeneratorFeedData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "Generator.feed");
 	g_task_set_task_data (_data_->_async_result, _data_, generator_feed_data_free);
 	_tmp0_ = _generator_ref0 (self);
 	_data_->self = _tmp0_;
@@ -700,6 +702,7 @@ int_generator_real_generate (Generator* base,
 	self = G_TYPE_CHECK_INSTANCE_CAST (base, TYPE_INT_GENERATOR, IntGenerator);
 	_data_ = g_slice_new0 (IntGeneratorGenerateData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_name (_data_->_async_result, "IntGenerator.generate");
 	g_task_set_task_data (_data_->_async_result, _data_, int_generator_real_generate_data_free);
 	_tmp0_ = _generator_ref0 (self);
 	_data_->self = _tmp0_;
