@@ -261,6 +261,20 @@ public class Vala.GAsyncModule : GtkModule {
 
 		ccode.add_assignment (new CCodeMemberAccess.pointer (data_var, "_async_result"), create_result);
 
+		var full_method_name = new StringBuilder ();
+		full_method_name.append (m.name.has_prefix (".") ? m.name.substring (1) : m.name);
+		Vala.Symbol? symbol = m.parent_symbol;
+		while (symbol != null) {
+			if (symbol.name != null)
+				full_method_name.prepend (symbol.name + ".");
+			symbol = symbol.parent_symbol;
+		}
+
+		var set_name = new CCodeFunctionCall (new CCodeIdentifier ("g_task_set_name"));
+		set_name.add_argument (new CCodeMemberAccess.pointer (data_var, "_async_result"));
+		set_name.add_argument (new CCodeConstant ("\"%s\"".printf (full_method_name.str)));
+		ccode.add_expression (set_name);
+
 		var attach_data_call = new CCodeFunctionCall (new CCodeIdentifier ("g_task_set_task_data"));
 
 		attach_data_call.add_argument (new CCodeMemberAccess.pointer (data_var, "_async_result"));
