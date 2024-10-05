@@ -399,8 +399,19 @@ namespace LibUSB {
 		public LibUSB.Error get_config_descriptor (uint8 config_index, out ConfigDescriptor config);
 		public LibUSB.Error get_config_descriptor_by_value (uint8 ConfigurationValue, out ConfigDescriptor config);
 		public LibUSB.Error get_device_descriptor (out DeviceDescriptor desc);
+		public LibUSB.Error get_device_string (DeviceStringType string_type, char[] data);
 		public unowned Device get_parent ();
 	}
+
+	[CCode (cname = "enum libusb_device_string_type", cprefix = "LIBUSB_DEVICE_STRING_", has_type_id = false)]
+	public enum DeviceStringType {
+		MANUFACTURER,
+		PRODUCT,
+		SERIAL_NUMBER
+	}
+
+	[CCode (cname = "LIBUSB_DEVICE_STRING_BYTES_MAX")]
+	public const uint DEVICE_STRING_BYTES_MAX;
 
 	[CCode (cname = "enum libusb_log_level", cprefix = "LIBUSB_LOG_LEVEL_", has_type_id = false)]
 	public enum LogLevel {
