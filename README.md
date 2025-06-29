@@ -44,8 +44,7 @@ More information about Vala is available at [https://wiki.gnome.org/Projects/Val
 Instructions on how to build the latest version of Vala.
 These can be modified to build a specific release.
 
-**NOTE** For the frida build, meson should be used instead of
-autoconf and make!
+**NOTE** For the Frida build, Meson should be used instead of autotools.
 
 ### Step One:
 Install the following packages:
