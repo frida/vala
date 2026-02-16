@@ -642,6 +642,8 @@ namespace Soup {
 		public void send_text (string text);
 		public void set_keepalive_interval (uint interval);
 		public void set_max_incoming_payload_size (uint64 max_incoming_payload_size);
+		public void pause_input ();
+		public void resume_input ();
 		public Soup.WebsocketConnectionType connection_type { get; construct; }
 		public void* extensions { get; construct; }
 		public GLib.IOStream io_stream { get; construct; }
