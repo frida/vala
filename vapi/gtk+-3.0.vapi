@@ -2757,6 +2757,7 @@ namespace Gtk {
 		public virtual signal void populate_popup (Gtk.Menu popup);
 		[Version (since = "2.20")]
 		public signal void preedit_changed (string preedit);
+		public virtual signal void toggle_direction ();
 		public virtual signal void toggle_overwrite ();
 	}
 	[CCode (cheader_filename = "gtk/gtk.h,gtk/gtk-a11y.h", type_id = "gtk_entry_accessible_get_type ()")]
@@ -5140,8 +5141,7 @@ namespace Gtk {
 		public void set_parent (Gtk.Window? parent);
 		[Version (since = "2.14")]
 		public void set_screen (Gdk.Screen screen);
-		[NoAccessorMethod]
-		public bool is_showing { get; }
+		public bool is_showing { [CCode (cname = "gtk_mount_operation_is_showing")] get; }
 		public Gtk.Window parent { get; set; }
 		public Gdk.Screen screen { get; set; }
 	}
@@ -7336,9 +7336,8 @@ namespace Gtk {
 		public void set_tooltip_text (string text);
 		[Version (since = "2.10")]
 		public void set_visible (bool visible);
-		[NoAccessorMethod]
 		[Version (since = "2.12")]
-		public bool embedded { get; }
+		public bool embedded { [CCode (cname = "gtk_status_icon_is_embedded")] get; }
 		[NoAccessorMethod]
 		public string file { set; }
 		[NoAccessorMethod]
@@ -7588,7 +7587,7 @@ namespace Gtk {
 		[Version (since = "3.0")]
 		public void render_arrow (Cairo.Context cr, double angle, double x, double y, double size);
 		[CCode (cheader_filename = "gtk/gtk.h", cname = "gtk_render_background")]
-		[Version (since = "3.0.")]
+		[Version (since = "3.0")]
 		public void render_background (Cairo.Context cr, double x, double y, double width, double height);
 		[CCode (cheader_filename = "gtk/gtk.h", cname = "gtk_render_background_get_clip")]
 		[Version (since = "3.20")]
@@ -10216,17 +10215,14 @@ namespace Gtk {
 		public Gdk.Gravity gravity { get; set; }
 		[Version (deprecated = true, deprecated_since = "3.14", since = "3.0")]
 		public bool has_resize_grip { get; set; }
-		[NoAccessorMethod]
-		public bool has_toplevel_focus { get; }
+		public bool has_toplevel_focus { [CCode (cname = "gtk_window_has_toplevel_focus")] get; }
 		[Version (since = "3.4")]
 		public bool hide_titlebar_when_maximized { get; set; }
 		public Gdk.Pixbuf icon { get; set; }
 		[Version (since = "2.6")]
 		public string icon_name { get; set; }
-		[NoAccessorMethod]
-		public bool is_active { get; }
-		[NoAccessorMethod]
-		public bool is_maximized { get; }
+		public bool is_active { [CCode (cname = "gtk_window_is_active")] get; }
+		public bool is_maximized { [CCode (cname = "gtk_window_is_maximized")] get; }
 		[Version (since = "2.20")]
 		public bool mnemonics_visible { get; set; }
 		public bool modal { get; set; }
@@ -10404,7 +10400,6 @@ namespace Gtk {
 		public bool get_use_alpha ();
 		public abstract void set_rgba (Gdk.RGBA color);
 		public void set_use_alpha (bool use_alpha);
-		[ConcreteAccessor]
 		public abstract Gdk.RGBA rgba { get; set; }
 		public bool use_alpha { get; set; }
 		public virtual signal void color_activated (Gdk.RGBA color);

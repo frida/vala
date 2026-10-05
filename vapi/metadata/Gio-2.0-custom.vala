@@ -123,7 +123,7 @@ namespace GLib {
 
 	[CCode (cheader_filename = "gio/gio.h", type_id = "g_settings_get_type ()")]
 	public class Settings : GLib.Object {
-		public void bind_with_mapping (string key, GLib.Object object, string property, GLib.SettingsBindFlags flags, GLib.SettingsBindGetMappingShared get_mapping, GLib.SettingsBindSetMappingShared set_mapping, void* user_data, GLib.DestroyNotify? notify);
+		public void bind_with_mapping (string key, GLib.Object object, string property, GLib.SettingsBindFlags flags, GLib.SettingsBindGetMappingShared? get_mapping, GLib.SettingsBindSetMappingShared? set_mapping, void* user_data, GLib.DestroyNotify? notify);
 	}
 
 	public class SimpleAsyncResult : GLib.Object {
@@ -224,5 +224,5 @@ namespace GLib {
 	[CCode (cheader_filename = "gio/gio.h", has_target = false, cname = "GSettingsBindGetMapping")]
 	public delegate bool SettingsBindGetMappingShared (GLib.Value value, GLib.Variant variant, void* user_data);
 	[CCode (cheader_filename = "gio/gio.h", has_target = false, cname = "GSettingsBindSetMapping")]
-	public delegate GLib.Variant SettingsBindSetMappingShared (GLib.Value value, GLib.VariantType expected_type, void* user_data);
+	public delegate GLib.Variant? SettingsBindSetMappingShared ([CCode (type = "const GValue*")] GLib.Value value, GLib.VariantType expected_type, void* user_data);
 }

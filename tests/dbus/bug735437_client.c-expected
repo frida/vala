@@ -10,48 +10,11 @@
 #include <string.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
-#pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-#pragma GCC diagnostic ignored "-Wreturn-type"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-label"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#elif defined(__clang__)
-#pragma clang diagnostic ignored "-Wchar-subscripts"
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic ignored "-Wpointer-sign"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-label"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
-#pragma clang diagnostic ignored "-Wtypedef-redefinition"
-#pragma clang diagnostic ignored "-Wunused-value"
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-#elif defined(_MSC_VER)
-#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
-#endif
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-#if defined(__clang__) && (__clang_major__ >= 13)
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -287,11 +250,8 @@ test_proxy_array (Test* self,
                   gint* result_length1,
                   GError** error)
 {
-	GDBusMessage *_message;
-	GVariant *_arguments;
-	GVariantBuilder _arguments_builder;
-	GDBusMessage *_reply_message;
 	GVariant *_reply;
+	GVariantBuilder _arguments_builder;
 	GVariantIter _reply_iter;
 	gdouble* _result = NULL;
 	gint _result_length1;
@@ -302,22 +262,11 @@ test_proxy_array (Test* self,
 	gint _tmp1__length1;
 	GVariantIter _tmp2_;
 	GVariant* _tmp3_;
-	G_DBUS_ERROR;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "Array");
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	_reply_message = g_dbus_connection_send_message_with_reply_sync (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, error);
-	g_object_unref (_message);
-	if (!_reply_message) {
+	_reply = g_dbus_proxy_call_sync ((GDBusProxy *) self, "Array", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, NULL, error);
+	if (!_reply) {
 		return NULL;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		g_object_unref (_reply_message);
-		return NULL;
-	}
-	_reply = g_dbus_message_get_body (_reply_message);
 	g_variant_iter_init (&_reply_iter, _reply);
 	_result_length1 = 0;
 	_tmp0_ = g_variant_iter_next_value (&_reply_iter);
@@ -338,7 +287,7 @@ test_proxy_array (Test* self,
 	_result = _tmp1_;
 	g_variant_unref (_tmp0_);
 	*result_length1 = _result_length1;
-	g_object_unref (_reply_message);
+	g_variant_unref (_reply);
 	return _result;
 }
 
@@ -348,11 +297,8 @@ test_proxy_multi_array (Test* self,
                         gint* result_length2,
                         GError** error)
 {
-	GDBusMessage *_message;
-	GVariant *_arguments;
-	GVariantBuilder _arguments_builder;
-	GDBusMessage *_reply_message;
 	GVariant *_reply;
+	GVariantBuilder _arguments_builder;
 	GVariantIter _reply_iter;
 	gdouble* _result = NULL;
 	gint _result_length1;
@@ -364,22 +310,11 @@ test_proxy_multi_array (Test* self,
 	gint _tmp5__length1;
 	GVariantIter _tmp6_;
 	GVariant* _tmp7_;
-	G_DBUS_ERROR;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "MultiArray");
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	_reply_message = g_dbus_connection_send_message_with_reply_sync (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, error);
-	g_object_unref (_message);
-	if (!_reply_message) {
+	_reply = g_dbus_proxy_call_sync ((GDBusProxy *) self, "MultiArray", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, NULL, error);
+	if (!_reply) {
 		return NULL;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		g_object_unref (_reply_message);
-		return NULL;
-	}
-	_reply = g_dbus_message_get_body (_reply_message);
 	g_variant_iter_init (&_reply_iter, _reply);
 	_result_length1 = 0;
 	_result_length2 = 0;
@@ -411,7 +346,7 @@ test_proxy_multi_array (Test* self,
 	g_variant_unref (_tmp4_);
 	*result_length1 = _result_length1;
 	*result_length2 = _result_length2;
-	g_object_unref (_reply_message);
+	g_variant_unref (_reply);
 	return _result;
 }
 
@@ -422,11 +357,8 @@ test_proxy_multi_array2 (Test* self,
                          gint* result_length3,
                          GError** error)
 {
-	GDBusMessage *_message;
-	GVariant *_arguments;
-	GVariantBuilder _arguments_builder;
-	GDBusMessage *_reply_message;
 	GVariant *_reply;
+	GVariantBuilder _arguments_builder;
 	GVariantIter _reply_iter;
 	gchar** _result = NULL;
 	gint _result_length1;
@@ -439,22 +371,11 @@ test_proxy_multi_array2 (Test* self,
 	gint _tmp11__length1;
 	GVariantIter _tmp12_;
 	GVariant* _tmp13_;
-	G_DBUS_ERROR;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "MultiArray2");
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	_reply_message = g_dbus_connection_send_message_with_reply_sync (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, error);
-	g_object_unref (_message);
-	if (!_reply_message) {
+	_reply = g_dbus_proxy_call_sync ((GDBusProxy *) self, "MultiArray2", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, NULL, error);
+	if (!_reply) {
 		return NULL;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		g_object_unref (_reply_message);
-		return NULL;
-	}
-	_reply = g_dbus_message_get_body (_reply_message);
 	g_variant_iter_init (&_reply_iter, _reply);
 	_result_length1 = 0;
 	_result_length2 = 0;
@@ -498,7 +419,7 @@ test_proxy_multi_array2 (Test* self,
 	*result_length1 = _result_length1;
 	*result_length2 = _result_length2;
 	*result_length3 = _result_length3;
-	g_object_unref (_reply_message);
+	g_variant_unref (_reply);
 	return _result;
 }
 
@@ -517,7 +438,6 @@ _dbus_test_array (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -532,12 +452,7 @@ _dbus_test_array (Test* self,
 		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp18_ = result;
 	g_variant_builder_init (&_tmp19_, G_VARIANT_TYPE ("ad"));
@@ -561,7 +476,6 @@ _dbus_test_multi_array (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -577,12 +491,7 @@ _dbus_test_multi_array (Test* self,
 		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp21_ = result;
 	g_variant_builder_init (&_tmp22_, G_VARIANT_TYPE ("aad"));
@@ -612,7 +521,6 @@ _dbus_test_multi_array2 (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -629,12 +537,7 @@ _dbus_test_multi_array2 (Test* self,
 		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_tmp26_ = result;
 	g_variant_builder_init (&_tmp27_, G_VARIANT_TYPE ("aaas"));
@@ -697,10 +600,6 @@ test_dbus_interface_get_property (GDBusConnection* connection,
                                   GError** error,
                                   gpointer user_data)
 {
-	gpointer* data;
-	gpointer object;
-	data = user_data;
-	object = data[0];
 	return NULL;
 }
 
@@ -714,10 +613,6 @@ test_dbus_interface_set_property (GDBusConnection* connection,
                                   GError** error,
                                   gpointer user_data)
 {
-	gpointer* data;
-	gpointer object;
-	data = user_data;
-	object = data[0];
 	return FALSE;
 }
 

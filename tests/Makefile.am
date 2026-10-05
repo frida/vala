@@ -85,6 +85,7 @@ TESTS = \
 	basic-types/glists_remove.vala \
 	basic-types/gptrarray.vala \
 	basic-types/gvariants.vala \
+	basic-types/gvariants-hashtable-boxed.vala \
 	basic-types/gvariants-hashtable-deserialize-missing-type-arguments.test \
 	basic-types/gvariants-hashtable-serialize-missing-type-arguments.test \
 	basic-types/gvariants-unboxing-safe.vala \
@@ -176,6 +177,9 @@ TESTS = \
 	arrays/slice-invalid-start.test \
 	arrays/slice-invalid-stop.test \
 	arrays/slice-no-array.test \
+	arrays/transfer-container-field.test \
+	arrays/transfer-container-local.test \
+	arrays/transfer-container-return.test \
 	chainup/base-arguments.test \
 	chainup/base-class-invalid.test \
 	chainup/base-enum-invalid.test \
@@ -209,10 +213,13 @@ TESTS = \
 	methods/extern.vala \
 	methods/iterator.vala \
 	methods/local-functions.vala \
+	methods/local-functions-to-delegate.vala \
 	methods/parameter-fixed-array-initializer.vala \
 	methods/parameter-out-free-on-error.vala \
+	methods/parameter-out-array-resize-null-terminated.vala \
 	methods/parameter-ref-array-resize.vala \
 	methods/parameter-ref-array-resize-captured.vala \
+	methods/parameter-ref-array-resize-null-terminated.vala \
 	methods/parameter-ref-delegate.vala \
 	methods/parameter-ref-element-access.vala \
 	methods/preconditions-temp-variables.vala \
@@ -486,6 +493,7 @@ TESTS = \
 	delegates/params-array-with-throws.vala \
 	delegates/reference_transfer.vala \
 	delegates/return-array-null-terminated.vala \
+	delegates/scope-async.vala \
 	delegates/variadic.vala \
 	delegates/wrapper.vala \
 	delegates/bug519949.test \
@@ -807,6 +815,7 @@ TESTS = \
 	generics/arrays-not-supported-2.test \
 	generics/arrays-not-supported-3.test \
 	generics/class-property-override.vala \
+	generics/conditional-expression.vala \
 	generics/constructor-chain-up.vala \
 	generics/delegate-return-type-missing.test \
 	generics/floating-type-cast.vala \
@@ -862,9 +871,7 @@ TESTS = \
 	dbus/async-bus.test \
 	dbus/async-connection.test \
 	dbus/async-errors.test \
-	dbus/async-no-reply-request.test \
-	dbus/async-no-reply-response.test \
-	dbus/async-no-reply-relay.test \
+	dbus/async-no-reply.test \
 	dbus/connection.test \
 	dbus/dbus-name-missing.test \
 	dbus/dynamic-method.test \
@@ -872,10 +879,13 @@ TESTS = \
 	dbus/generics.test \
 	dbus/no-reply.test \
 	dbus/signals.test \
+	dbus/special-parameters-1.vala \
+	dbus/special-parameters-2.test \
 	dbus/filedescriptor.test \
 	dbus/filedescriptor-async.test \
 	dbus/filedescriptor-errors.test \
 	dbus/dicts.test \
+	dbus/type-mismatch.test \
 	dbus/bug596862.vala \
 	dbus/bug602003.test \
 	dbus/bug735437.test \
@@ -884,6 +894,7 @@ TESTS = \
 	dbus/bug792277.vala \
 	dbus/rawvariants.test \
 	dbus/interface-info.test \
+	dbus/property-access.test \
 	gir/bug651773.gir \
 	gir/bug667751.gir \
 	gir/bug742012.gir \
@@ -903,23 +914,32 @@ TESTS = \
 	gir/delegate-array-length-type.gir \
 	gir/delegate-closure-destroy-index-conflict.gir \
 	gir/delegate-error-pos.gir \
+	gir/dev_t.gir \
+	gir/doc-format.gir \
 	gir/enum.gir \
 	gir/errordomain.gir \
+	gir/gid_t.gir \
 	gir/gtype-struct-name.gir \
 	gir/instance-parameter-owned.gir \
 	gir/method-array-length-type.gir \
 	gir/method-array-return.gir \
 	gir/method-class.gir \
 	gir/method-nowrapper.gir \
+	gir/off_t.gir \
 	gir/parameter-array-length-type.gir \
 	gir/parameter-array-out.gir \
 	gir/parameter-nullable-out-simple-type.gir \
+	gir/pid_t.gir \
+	gir/property-getter-setter.gir \
 	gir/property-non-readable.gir \
 	gir/signal-virtual.gir \
 	gir/record-copy-free-func.gir \
+	gir/socklen_t.gir \
 	gir/symbol-redefined.gir \
 	gir/symbol-type-csuffix.gir \
 	gir/symbol-without-name.gir \
+	gir/time_t.gir \
+	gir/uid_t.gir \
 	gir/union.gir \
 	gir/union-transparent.gir \
 	girwriter/class-final.test \
@@ -957,8 +977,10 @@ TESTS = \
 	scanner/regex-escape-x-digit-length.test \
 	scanner/regex-escape-x-empty.test \
 	scanner/regex-escape-x.vala \
+	scanner/regex-modifier-o.vala \
 	scanner/regex-multiple-i.test \
 	scanner/regex-multiple-m.test \
+	scanner/regex-multiple-o.test \
 	scanner/regex-multiple-s.test \
 	scanner/regex-multiple-x.test \
 	scanner/string-escape-u-digit-length.test \
@@ -1062,6 +1084,7 @@ TESTS = \
 	parser/switch-section-missing-colon.test \
 	parser/switch-section-outside-switch.test \
 	parser/template.vala \
+	parser/try-catch-format-string.test \
 	parser/try-catch-in-switch-case-invalid.test \
 	parser/tuple.vala \
 	parser/unsupported-property-async.test \
@@ -1116,6 +1139,7 @@ TESTS = \
 	semantic/assignment-signal-incompatible-method.test \
 	semantic/assignment-signal-incompatible-type.test \
 	semantic/assignment-invalid-type.test \
+	semantic/assignment-invalid-type-2.test \
 	semantic/cast-gvalue-unsupported.test \
 	semantic/cast-gvariant-unsupported.test \
 	semantic/cast-void-not-allowed.test \
@@ -1131,6 +1155,7 @@ TESTS = \
 	semantic/class-compact-field-lock.test \
 	semantic/class-compact-field-private.test \
 	semantic/class-compact-derived-instance-field.test \
+	semantic/class-compact-inheritance.test \
 	semantic/class-compact-interface.test \
 	semantic/class-compact-method-baseaccess.test \
 	semantic/class-compact-property-baseaccess.test \
@@ -1154,6 +1179,7 @@ TESTS = \
 	semantic/compare-type-check.vala \
 	semantic/conditional-expression-incompatible.test \
 	semantic/conditional-expression-no-block.test \
+	semantic/conditional-expression-ownership.vala \
 	semantic/constant-extern.test \
 	semantic/constant-pointer.test \
 	semantic/constant-reassignment-element.test \

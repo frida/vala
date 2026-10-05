@@ -10,48 +10,11 @@
 #include <unistd.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
-#pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-#pragma GCC diagnostic ignored "-Wreturn-type"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-label"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#elif defined(__clang__)
-#pragma clang diagnostic ignored "-Wchar-subscripts"
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic ignored "-Wpointer-sign"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-label"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
-#pragma clang diagnostic ignored "-Wtypedef-redefinition"
-#pragma clang diagnostic ignored "-Wunused-value"
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-#elif defined(_MSC_VER)
-#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
-#endif
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-#if defined(__clang__) && (__clang_major__ >= 13)
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -176,9 +139,6 @@ static void test_proxy_g_signal (GDBusProxy* proxy,
                           const gchar* sender_name,
                           const gchar* signal_name,
                           GVariant* parameters);
-static void _vala_g_async_ready_callback (GObject *source_object,
-                                   GAsyncResult *res,
-                                   void *user_data);
 static void test_proxy_test_in_async (Test* self,
                                GUnixInputStream* i,
                                GAsyncReadyCallback _callback_,
@@ -321,40 +281,18 @@ test_proxy_init (TestProxy* self)
 }
 
 static void
-_vala_g_async_ready_callback (GObject *source_object,
-                              GAsyncResult *res,
-                              void *user_data)
-{
-	g_task_return_pointer (user_data, g_object_ref (res), g_object_unref);
-	g_object_unref (user_data);
-}
-
-static void
 test_proxy_test_in_async (Test* self,
                           GUnixInputStream* i,
                           GAsyncReadyCallback _callback_,
                           gpointer _user_data_)
 {
 	GUnixFDList* _fd_list;
-	GDBusMessage *_message;
-	GVariant *_arguments;
 	GVariantBuilder _arguments_builder;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "TestIn");
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	_fd_list = g_unix_fd_list_new ();
 	g_variant_builder_add (&_arguments_builder, "h", g_unix_fd_list_append (_fd_list, g_unix_input_stream_get_fd (i), NULL));
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	g_dbus_message_set_unix_fd_list (_message, _fd_list);
+	g_dbus_proxy_call_with_unix_fd_list ((GDBusProxy *) self, "TestIn", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, _fd_list, NULL, _callback_, _user_data_);
 	g_object_unref (_fd_list);
-	if (_callback_ != NULL) {
-		g_dbus_connection_send_message_with_reply (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, _vala_g_async_ready_callback, g_task_new ((GObject *) self, NULL, _callback_, _user_data_));
-	} else {
-		g_dbus_message_set_flags (_message, G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED);
-		g_dbus_connection_send_message (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
-	}
-	g_object_unref (_message);
 }
 
 static GUnixInputStream*
@@ -364,56 +302,55 @@ test_proxy_test_in_finish (Test* self,
                            GError** error)
 {
 	GUnixFDList* _fd_list;
-	GAsyncResult *_inner_res;
-	GDBusMessage *_reply_message;
+	GUnixFDList* _out_fd_list;
+	GVariant *_reply;
 	gint _fd_index = 0;
 	gint _fd;
-	GVariant *_reply;
 	GVariantIter _reply_iter;
 	GUnixInputStream* _vala_j = NULL;
 	GUnixInputStream* _result = NULL;
-	_inner_res = g_task_propagate_pointer ((GTask *) _res_, NULL);
-	_reply_message = g_dbus_connection_send_message_with_reply_finish (g_dbus_proxy_get_connection ((GDBusProxy *) self), _inner_res, error);
-	g_object_unref (_inner_res);
-	if (!_reply_message) {
+	_reply = g_dbus_proxy_call_with_unix_fd_list_finish ((GDBusProxy *) self, &_out_fd_list, _res_, error);
+	if (!_reply) {
 		return NULL;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		g_object_unref (_reply_message);
-		return NULL;
-	}
-	_reply = g_dbus_message_get_body (_reply_message);
 	g_variant_iter_init (&_reply_iter, _reply);
-	_fd_list = g_dbus_message_get_unix_fd_list (_reply_message);
-	if (_fd_list) {
+	if (_out_fd_list) {
 		g_variant_iter_next (&_reply_iter, "h", &_fd_index);
-		_fd = g_unix_fd_list_get (_fd_list, _fd_index, error);
+		_fd = g_unix_fd_list_get (_out_fd_list, _fd_index, error);
 		if (_fd >= 0) {
 			_vala_j = (GUnixInputStream *) g_unix_input_stream_new (_fd, TRUE);
 		}
 	} else {
-		g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "FD List is NULL");
+		g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "No file descriptor returned");
 	}
 	*j = _vala_j;
 	if (error && (*error)) {
-		g_object_unref (_reply_message);
+		g_variant_unref (_reply);
+		if (_out_fd_list) {
+			g_object_unref (_out_fd_list);
+		}
 		return NULL;
 	}
-	_fd_list = g_dbus_message_get_unix_fd_list (_reply_message);
-	if (_fd_list) {
+	if (_out_fd_list) {
 		g_variant_iter_next (&_reply_iter, "h", &_fd_index);
-		_fd = g_unix_fd_list_get (_fd_list, _fd_index, error);
+		_fd = g_unix_fd_list_get (_out_fd_list, _fd_index, error);
 		if (_fd >= 0) {
 			_result = (GUnixInputStream *) g_unix_input_stream_new (_fd, TRUE);
 		}
 	} else {
-		g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "FD List is NULL");
+		g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "No file descriptor returned");
 	}
 	if (error && (*error)) {
-		g_object_unref (_reply_message);
+		g_variant_unref (_reply);
+		if (_out_fd_list) {
+			g_object_unref (_out_fd_list);
+		}
 		return NULL;
 	}
-	g_object_unref (_reply_message);
+	g_variant_unref (_reply);
+	if (_out_fd_list) {
+		g_object_unref (_out_fd_list);
+	}
 	return _result;
 }
 
@@ -434,42 +371,26 @@ _dbus_test_test_in (Test* self,
 	gint _fd_index = 0;
 	gint _fd;
 	TestTestInReadyData* _ready_data;
-	gboolean _fire_and_forget;
-	GAsyncReadyCallback _callback_func;
-	gpointer _callback_data;
 	GError* error = NULL;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	_ready_data = g_slice_new0 (TestTestInReadyData);
 	_ready_data->_invocation_ = invocation;
-	_fire_and_forget = FALSE;
-	_callback_func = (GAsyncReadyCallback) _dbus_test_test_in_ready;
-	_callback_data = _ready_data;
-	if ((g_dbus_message_get_flags (g_dbus_method_invocation_get_message (invocation)) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) && G_IS_DBUS_PROXY (self)) {
-		_fire_and_forget = TRUE;
-		_callback_func = NULL;
-		_callback_data = NULL;
-	}
-	_fd_list = g_dbus_message_get_unix_fd_list (g_dbus_method_invocation_get_message (invocation));
-	if (_fd_list) {
+	if (g_dbus_message_get_unix_fd_list (g_dbus_method_invocation_get_message (invocation))) {
 		g_variant_iter_next (&_arguments_iter, "h", &_fd_index);
-		_fd = g_unix_fd_list_get (_fd_list, _fd_index, &error);
+		_fd = g_unix_fd_list_get (g_dbus_message_get_unix_fd_list (g_dbus_method_invocation_get_message (invocation)), _fd_index, &error);
 		if (_fd >= 0) {
 			_ready_data->i = (GUnixInputStream *) g_unix_input_stream_new (_fd, TRUE);
 		}
 	} else {
-		g_set_error_literal (&error, G_IO_ERROR, G_IO_ERROR_FAILED, "FD List is NULL");
+		g_set_error_literal (&error, G_IO_ERROR, G_IO_ERROR_FAILED, "No file descriptor returned");
 	}
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _return;
+		goto _error;
 	}
-	test_test_in (self, _ready_data->i, _callback_func, _callback_data);
-	_return:
-	if (_fire_and_forget) {
-		g_object_unref (_ready_data->_invocation_);
-		_g_object_unref0 (_ready_data->i);
-		g_slice_free (TestTestInReadyData, _ready_data);
-	}
+	test_test_in (self, _ready_data->i, (GAsyncReadyCallback) _dbus_test_test_in_ready, _ready_data);
+	_error:
+	;
 }
 
 static void
@@ -481,7 +402,6 @@ _dbus_test_test_in_ready (GObject * source_object,
 	GDBusMethodInvocation* invocation;
 	GUnixFDList* _fd_list;
 	GError* error = NULL;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -492,14 +412,9 @@ _dbus_test_test_in_ready (GObject * source_object,
 	result = test_test_in_finish ((Test*) source_object, _res_, &j, &error);
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _return;
+		goto _error;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		goto _return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_fd_list = g_unix_fd_list_new ();
 	g_variant_builder_add (&_reply_builder, "h", g_unix_fd_list_append (_fd_list, g_unix_input_stream_get_fd (j), NULL));
@@ -512,7 +427,7 @@ _dbus_test_test_in_ready (GObject * source_object,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_return:
+	_error:
 	_g_object_unref0 (_ready_data->i);
 	_g_object_unref0 (j);
 	g_slice_free (TestTestInReadyData, _ready_data);
@@ -548,10 +463,6 @@ test_dbus_interface_get_property (GDBusConnection* connection,
                                   GError** error,
                                   gpointer user_data)
 {
-	gpointer* data;
-	gpointer object;
-	data = user_data;
-	object = data[0];
 	return NULL;
 }
 
@@ -565,10 +476,6 @@ test_dbus_interface_set_property (GDBusConnection* connection,
                                   GError** error,
                                   gpointer user_data)
 {
-	gpointer* data;
-	gpointer object;
-	data = user_data;
-	object = data[0];
 	return FALSE;
 }
 
@@ -617,7 +524,7 @@ run (GAsyncReadyCallback _callback_,
 	RunData* _data_;
 	_data_ = g_slice_new0 (RunData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
-	g_task_set_name (_data_->_async_result, "run");
+	g_task_set_source_tag (_data_->_async_result, run);
 	g_task_set_task_data (_data_->_async_result, _data_, run_data_free);
 	run_co (_data_);
 }
@@ -626,6 +533,8 @@ void
 run_finish (GAsyncResult* _res_)
 {
 	RunData* _data_;
+	g_return_if_fail (G_IS_TASK (_res_));
+	g_return_if_fail (g_async_result_is_tagged (_res_, run));
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

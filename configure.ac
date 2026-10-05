@@ -2,7 +2,7 @@ AC_PREREQ([2.65])
 AC_INIT([vala], m4_esyscmd([build-aux/git-version-gen --prefix '' .tarball-version]),
 	[https://gitlab.gnome.org/GNOME/vala/issues],
 	[vala],
-	[https://wiki.gnome.org/Projects/Vala])
+	[https://vala.dev])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS(config.h)
@@ -44,10 +44,6 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 
 AC_CANONICAL_HOST
-
-VALA_HOST_OS=`echo $host_os | cut -f1 -d'-'`
-AC_SUBST(VALA_HOST_OS)
-AC_DEFINE_UNQUOTED(VALA_HOST_OS, "$VALA_HOST_OS", [Define to the host OS name])
 
 # Detect the target system
 build_linux=no
@@ -125,6 +121,7 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=implicit \
 -Werror=implicit-fallthrough \
 -Werror=pointer-arith \
+-Werror=pointer-sign \
 -Werror=redundant-decls \
 -Werror=return-local-addr \
 -Werror=return-stack-address \
@@ -138,6 +135,7 @@ TEST_EXTRA_CFLAGS="-Werror=init-self \
 -Werror=compare-distinct-pointer-types \
 -Werror=empty-body \
 -Werror=comment \
+-Werror=null-dereference \
 -Werror=strict-overflow \
 -Werror=shift-overflow \
 -Wformat=2 \
@@ -251,6 +249,10 @@ if test x$enable_valadoc = xyes; then
 	)
 	LIBADD="$cgraph_tmp_LIBADD"
 	CFLAGS="$cgraph_tmp_CFLAGS"
+	PKG_CHECK_MODULES(LIBGVC13, [libgvc >= 13.0.0], [
+		VALAFLAGS="$VALAFLAGS -D LIBGVC_13_0_0"
+		CFLAGS="$CFLAGS -DLIBGVC_13_0_0"
+	], [1])
 fi
 AM_CONDITIONAL(HAVE_CGRAPH, test "$have_cgraph" = "yes")
 AM_CONDITIONAL(ENABLE_VALADOC, test x$enable_valadoc = xyes)
@@ -260,9 +262,6 @@ AM_CONDITIONAL(HAVE_G_IR_COMPILER, test "$G_IR_COMPILER" != :)
 
 AC_PATH_PROG([JING], [jing], :)
 AM_CONDITIONAL(HAVE_JING, test "$JING" != :)
-
-AC_PATH_PROG([XSLTPROC], [xsltproc], :)
-AM_CONDITIONAL(HAVE_XSLTPROC, test "$XSLTPROC" != :)
 
 AC_CHECK_PROGS([SPHINXBUILD], [sphinx-build sphinx-build3 sphinx-build2], [no])
 AM_CONDITIONAL(HAVE_SPHINXBUILD, [test "x$SPHINXBUILD" != xno])

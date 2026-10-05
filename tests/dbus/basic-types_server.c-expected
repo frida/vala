@@ -8,48 +8,11 @@
 #include <glib.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
-#pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-#pragma GCC diagnostic ignored "-Wreturn-type"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-label"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#elif defined(__clang__)
-#pragma clang diagnostic ignored "-Wchar-subscripts"
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic ignored "-Wpointer-sign"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-label"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
-#pragma clang diagnostic ignored "-Wtypedef-redefinition"
-#pragma clang diagnostic ignored "-Wunused-value"
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-#elif defined(_MSC_VER)
-#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
-#endif
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-#if defined(__clang__) && (__clang_major__ >= 13)
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -76,10 +39,12 @@ enum  {
 	TEST_0_PROPERTY,
 	TEST_TEST_PROPERTY_PROPERTY,
 	TEST_TEST_INT_PROPERTY_PROPERTY,
+	TEST_TEST_SIGNATURE_PROPERTY_PROPERTY,
 	TEST_NUM_PROPERTIES
 };
 static GParamSpec* test_properties[TEST_NUM_PROPERTIES];
 #define _g_free0(var) (var = (g_free (var), NULL))
+#define _g_variant_type_free0(var) ((var == NULL) ? NULL : (var = (g_variant_type_free (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_variant_unref0(var) ((var == NULL) ? NULL : (var = (g_variant_unref (var), NULL)))
 #define _g_main_loop_unref0(var) ((var == NULL) ? NULL : (var = (g_main_loop_unref (var), NULL)))
@@ -100,6 +65,7 @@ struct _TestClass {
 struct _TestPrivate {
 	gchar* _test_property;
 	gint _test_int_property;
+	GVariantType* _test_signature_property;
 };
 
 static gint Test_private_offset;
@@ -120,6 +86,9 @@ VALA_EXTERN gint test_test_int (Test* self,
 VALA_EXTERN gchar* test_test_string (Test* self,
                          const gchar* s,
                          gchar** t);
+VALA_EXTERN GVariantType* test_test_signature (Test* self,
+                                   const GVariantType* tp1,
+                                   GVariantType** tp2);
 VALA_EXTERN Test* test_new (void);
 VALA_EXTERN Test* test_construct (GType object_type);
 VALA_EXTERN gchar* test_get_test_property (Test* self);
@@ -128,6 +97,9 @@ VALA_EXTERN void test_set_test_property (Test* self,
 VALA_EXTERN gint test_get_test_int_property (Test* self);
 VALA_EXTERN void test_set_test_int_property (Test* self,
                                  gint value);
+VALA_EXTERN GVariantType* test_get_test_signature_property (Test* self);
+VALA_EXTERN void test_set_test_signature_property (Test* self,
+                                       const GVariantType* value);
 static void test_finalize (GObject * obj);
 static GType test_get_type_once (void);
 static void _vala_test_get_property (GObject * object,
@@ -147,6 +119,9 @@ static void _dbus_test_test_int (Test* self,
 static void _dbus_test_test_string (Test* self,
                              GVariant* _parameters_,
                              GDBusMethodInvocation* invocation);
+static void _dbus_test_test_signature (Test* self,
+                                GVariant* _parameters_,
+                                GDBusMethodInvocation* invocation);
 static void test_dbus_interface_method_call (GDBusConnection* connection,
                                       const gchar* sender,
                                       const gchar* object_path,
@@ -164,6 +139,7 @@ static GVariant* test_dbus_interface_get_property (GDBusConnection* connection,
                                             gpointer user_data);
 static GVariant* _dbus_test_get_test_property (Test* self);
 static GVariant* _dbus_test_get_test_int_property (Test* self);
+static GVariant* _dbus_test_get_test_signature_property (Test* self);
 static gboolean test_dbus_interface_set_property (GDBusConnection* connection,
                                            const gchar* sender,
                                            const gchar* object_path,
@@ -176,6 +152,8 @@ static void _dbus_test_set_test_property (Test* self,
                                    GVariant* _value);
 static void _dbus_test_set_test_int_property (Test* self,
                                        GVariant* _value);
+static void _dbus_test_set_test_signature_property (Test* self,
+                                             GVariant* _value);
 static void _test_unregister_object (gpointer user_data);
 VALA_EXTERN void client_exit (GPid pid,
                   gint status);
@@ -206,11 +184,18 @@ static const GDBusArgInfo _test_dbus_arg_info_test_string_result = {-1, "result"
 static const GDBusArgInfo * const _test_dbus_arg_info_test_string_in[] = {&_test_dbus_arg_info_test_string_s, NULL};
 static const GDBusArgInfo * const _test_dbus_arg_info_test_string_out[] = {&_test_dbus_arg_info_test_string_t, &_test_dbus_arg_info_test_string_result, NULL};
 static const GDBusMethodInfo _test_dbus_method_info_test_string = {-1, "TestString", (GDBusArgInfo **) (&_test_dbus_arg_info_test_string_in), (GDBusArgInfo **) (&_test_dbus_arg_info_test_string_out), NULL};
-static const GDBusMethodInfo * const _test_dbus_method_info[] = {&_test_dbus_method_info_test_void, &_test_dbus_method_info_test_int, &_test_dbus_method_info_test_string, NULL};
+static const GDBusArgInfo _test_dbus_arg_info_test_signature_tp1 = {-1, "tp1", "g", NULL};
+static const GDBusArgInfo _test_dbus_arg_info_test_signature_tp2 = {-1, "tp2", "g", NULL};
+static const GDBusArgInfo _test_dbus_arg_info_test_signature_result = {-1, "result", "g", NULL};
+static const GDBusArgInfo * const _test_dbus_arg_info_test_signature_in[] = {&_test_dbus_arg_info_test_signature_tp1, NULL};
+static const GDBusArgInfo * const _test_dbus_arg_info_test_signature_out[] = {&_test_dbus_arg_info_test_signature_tp2, &_test_dbus_arg_info_test_signature_result, NULL};
+static const GDBusMethodInfo _test_dbus_method_info_test_signature = {-1, "TestSignature", (GDBusArgInfo **) (&_test_dbus_arg_info_test_signature_in), (GDBusArgInfo **) (&_test_dbus_arg_info_test_signature_out), NULL};
+static const GDBusMethodInfo * const _test_dbus_method_info[] = {&_test_dbus_method_info_test_void, &_test_dbus_method_info_test_int, &_test_dbus_method_info_test_string, &_test_dbus_method_info_test_signature, NULL};
 static const GDBusSignalInfo * const _test_dbus_signal_info[] = {NULL};
 static const GDBusPropertyInfo _test_dbus_property_info_test_property = {-1, "TestProperty", "s", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE, NULL};
 static const GDBusPropertyInfo _test_dbus_property_info_test_int_property = {-1, "TestIntProperty", "i", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE, NULL};
-static const GDBusPropertyInfo * const _test_dbus_property_info[] = {&_test_dbus_property_info_test_property, &_test_dbus_property_info_test_int_property, NULL};
+static const GDBusPropertyInfo _test_dbus_property_info_test_signature_property = {-1, "TestSignatureProperty", "g", G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE, NULL};
+static const GDBusPropertyInfo * const _test_dbus_property_info[] = {&_test_dbus_property_info_test_property, &_test_dbus_property_info_test_int_property, &_test_dbus_property_info_test_signature_property, NULL};
 static const GDBusInterfaceInfo _test_dbus_interface_info = {-1, "org.example.Test", (GDBusMethodInfo **) (&_test_dbus_method_info), (GDBusSignalInfo **) (&_test_dbus_signal_info), (GDBusPropertyInfo **) (&_test_dbus_property_info), NULL};
 static const GDBusInterfaceVTable _test_dbus_interface_vtable = {test_dbus_interface_method_call, test_dbus_interface_get_property, test_dbus_interface_set_property};
 
@@ -233,7 +218,7 @@ test_test_int (Test* self,
 {
 	gint _vala_j = 0;
 	gint result;
-	g_return_val_if_fail (IS_TEST (self), 0);
+	g_return_val_if_fail (IS_TEST (self), -1);
 	_vala_assert (i == 42, "i == 42");
 	_vala_j = 23;
 	result = 11;
@@ -264,6 +249,78 @@ test_test_string (Test* self,
 		*t = _vala_t;
 	} else {
 		_g_free0 (_vala_t);
+	}
+	return result;
+}
+
+static gpointer
+_g_variant_type_copy0 (gpointer self)
+{
+	return self ? g_variant_type_copy (self) : NULL;
+}
+
+GVariantType*
+test_test_signature (Test* self,
+                     const GVariantType* tp1,
+                     GVariantType** tp2)
+{
+	GVariantType* _vala_tp2 = NULL;
+	gchar* _tmp0_;
+	gchar* _tmp1_;
+	const GVariantType* _tmp2_;
+	GVariantType* _tmp3_;
+	const GVariantType* _tmp4_;
+	GVariantType* _tmp5_;
+	const GVariantType* _tmp6_;
+	GVariantType* _tmp7_;
+	GVariantType** _tmp8_;
+	GVariantType** _tmp9_;
+	gint _tmp9__length1;
+	GVariantType* _tmp10_;
+	const GVariantType* _tmp11_;
+	GVariantType* _tmp12_;
+	GVariantType* _tmp13_;
+	GVariantType* _tmp14_;
+	GVariantType* _tmp15_;
+	GVariantType* _tmp16_;
+	GVariantType* _tmp17_;
+	GVariantType* result;
+	g_return_val_if_fail (IS_TEST (self), NULL);
+	g_return_val_if_fail (tp1 != NULL, NULL);
+	_tmp0_ = g_variant_type_dup_string (tp1);
+	_tmp1_ = _tmp0_;
+	_vala_assert (g_strcmp0 (_tmp1_, "a(bgha{sv})") == 0, "tp1.dup_string () == \"a(bgha{sv})\"");
+	_g_free0 (_tmp1_);
+	_tmp2_ = G_VARIANT_TYPE_INT32;
+	_tmp3_ = _g_variant_type_copy0 (_tmp2_);
+	_tmp4_ = G_VARIANT_TYPE_BOOLEAN;
+	_tmp5_ = _g_variant_type_copy0 (_tmp4_);
+	_tmp6_ = G_VARIANT_TYPE_UINT64;
+	_tmp7_ = _g_variant_type_copy0 (_tmp6_);
+	_tmp8_ = g_new0 (GVariantType*, 3 + 1);
+	_tmp8_[0] = _tmp3_;
+	_tmp8_[1] = _tmp5_;
+	_tmp8_[2] = _tmp7_;
+	_tmp9_ = _tmp8_;
+	_tmp9__length1 = 3;
+	_tmp10_ = g_variant_type_new_tuple (_tmp9_, 3);
+	_g_variant_type_free0 (_vala_tp2);
+	_vala_tp2 = _tmp10_;
+	_tmp9_ = (_vala_array_free (_tmp9_, _tmp9__length1, (GDestroyNotify) g_variant_type_free), NULL);
+	_tmp11_ = G_VARIANT_TYPE_STRING_ARRAY;
+	_tmp12_ = g_variant_type_new_array (_tmp11_);
+	_tmp13_ = _tmp12_;
+	_tmp14_ = g_variant_type_new_array (_tmp13_);
+	_tmp15_ = _tmp14_;
+	_tmp16_ = g_variant_type_new_array (_tmp15_);
+	_tmp17_ = _tmp16_;
+	_g_variant_type_free0 (_tmp15_);
+	_g_variant_type_free0 (_tmp13_);
+	result = _tmp17_;
+	if (tp2) {
+		*tp2 = _vala_tp2;
+	} else {
+		_g_variant_type_free0 (_vala_tp2);
 	}
 	return result;
 }
@@ -316,7 +373,7 @@ gint
 test_get_test_int_property (Test* self)
 {
 	gint result;
-	g_return_val_if_fail (IS_TEST (self), 0);
+	g_return_val_if_fail (IS_TEST (self), -1);
 	result = self->priv->_test_int_property;
 	return result;
 }
@@ -334,6 +391,36 @@ test_set_test_int_property (Test* self,
 	}
 }
 
+GVariantType*
+test_get_test_signature_property (Test* self)
+{
+	GVariantType* result;
+	const GVariantType* _tmp0_;
+	GVariantType* _tmp1_;
+	g_return_val_if_fail (IS_TEST (self), NULL);
+	_tmp0_ = self->priv->_test_signature_property;
+	_tmp1_ = _g_variant_type_copy0 (_tmp0_);
+	result = _tmp1_;
+	return result;
+}
+
+void
+test_set_test_signature_property (Test* self,
+                                  const GVariantType* value)
+{
+	GVariantType* old_value;
+	g_return_if_fail (IS_TEST (self));
+	old_value = test_get_test_signature_property (self);
+	if (old_value != value) {
+		GVariantType* _tmp0_;
+		_tmp0_ = _g_variant_type_copy0 (value);
+		_g_variant_type_free0 (self->priv->_test_signature_property);
+		self->priv->_test_signature_property = _tmp0_;
+		g_object_notify_by_pspec ((GObject *) self, test_properties[TEST_TEST_SIGNATURE_PROPERTY_PROPERTY]);
+	}
+	_g_variant_type_free0 (old_value);
+}
+
 static void
 test_class_init (TestClass * klass,
                  gpointer klass_data)
@@ -345,6 +432,7 @@ test_class_init (TestClass * klass,
 	G_OBJECT_CLASS (klass)->finalize = test_finalize;
 	g_object_class_install_property (G_OBJECT_CLASS (klass), TEST_TEST_PROPERTY_PROPERTY, test_properties[TEST_TEST_PROPERTY_PROPERTY] = g_param_spec_string ("test-property", "test-property", "test-property", NULL, G_PARAM_STATIC_STRINGS | G_PARAM_READABLE | G_PARAM_WRITABLE));
 	g_object_class_install_property (G_OBJECT_CLASS (klass), TEST_TEST_INT_PROPERTY_PROPERTY, test_properties[TEST_TEST_INT_PROPERTY_PROPERTY] = g_param_spec_int ("test-int-property", "test-int-property", "test-int-property", G_MININT, G_MAXINT, 0, G_PARAM_STATIC_STRINGS | G_PARAM_READABLE | G_PARAM_WRITABLE));
+	g_object_class_install_property (G_OBJECT_CLASS (klass), TEST_TEST_SIGNATURE_PROPERTY_PROPERTY, test_properties[TEST_TEST_SIGNATURE_PROPERTY_PROPERTY] = g_param_spec_boxed ("test-signature-property", "test-signature-property", "test-signature-property", G_TYPE_VARIANT_TYPE, G_PARAM_STATIC_STRINGS | G_PARAM_READABLE | G_PARAM_WRITABLE));
 }
 
 static void
@@ -360,6 +448,7 @@ test_finalize (GObject * obj)
 	Test * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_TEST, Test);
 	_g_free0 (self->priv->_test_property);
+	_g_variant_type_free0 (self->priv->_test_signature_property);
 	G_OBJECT_CLASS (test_parent_class)->finalize (obj);
 }
 
@@ -401,6 +490,9 @@ _vala_test_get_property (GObject * object,
 		case TEST_TEST_INT_PROPERTY_PROPERTY:
 		g_value_set_int (value, test_get_test_int_property (self));
 		break;
+		case TEST_TEST_SIGNATURE_PROPERTY_PROPERTY:
+		g_value_take_boxed (value, test_get_test_signature_property (self));
+		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
@@ -422,6 +514,9 @@ _vala_test_set_property (GObject * object,
 		case TEST_TEST_INT_PROPERTY_PROPERTY:
 		test_set_test_int_property (self, g_value_get_int (value));
 		break;
+		case TEST_TEST_SIGNATURE_PROPERTY_PROPERTY:
+		test_set_test_signature_property (self, g_value_get_boxed (value));
+		break;
 		default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 		break;
@@ -435,18 +530,12 @@ _dbus_test_test_void (Test* self,
 {
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
 	test_test_void (self);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	_reply = g_variant_builder_end (&_reply_builder);
 	g_dbus_message_set_body (_reply_message, _reply);
@@ -464,7 +553,6 @@ _dbus_test_test_int (Test* self,
 	GVariantIter _arguments_iter;
 	gint i = 0;
 	GVariant* _tmp0_;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -475,12 +563,7 @@ _dbus_test_test_int (Test* self,
 	i = g_variant_get_int32 (_tmp0_);
 	g_variant_unref (_tmp0_);
 	result = test_test_int (self, i, &j);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (j));
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
@@ -500,7 +583,6 @@ _dbus_test_test_string (Test* self,
 	GVariantIter _arguments_iter;
 	gchar* s = NULL;
 	GVariant* _tmp1_;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -511,12 +593,7 @@ _dbus_test_test_string (Test* self,
 	s = g_variant_dup_string (_tmp1_, NULL);
 	g_variant_unref (_tmp1_);
 	result = test_test_string (self, s, &t);
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (t));
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_string (result));
@@ -528,6 +605,43 @@ _dbus_test_test_string (Test* self,
 	g_object_unref (_reply_message);
 	_g_free0 (s);
 	_g_free0 (t);
+}
+
+static void
+_dbus_test_test_signature (Test* self,
+                           GVariant* _parameters_,
+                           GDBusMethodInvocation* invocation)
+{
+	GError* error = NULL;
+	GVariantIter _arguments_iter;
+	GVariantType* tp1 = NULL;
+	GVariant* _tmp2_;
+	GDBusMessage* _reply_message = NULL;
+	GVariant* _reply;
+	GVariantBuilder _reply_builder;
+	GVariantType* tp2 = NULL;
+	gchar* _tmp3_;
+	GVariantType* result;
+	gchar* _tmp4_;
+	g_variant_iter_init (&_arguments_iter, _parameters_);
+	_tmp2_ = g_variant_iter_next_value (&_arguments_iter);
+	tp1 = g_variant_type_new (g_variant_get_string (_tmp2_, NULL));
+	g_variant_unref (_tmp2_);
+	result = test_test_signature (self, tp1, &tp2);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
+	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
+	_tmp3_ = g_variant_type_dup_string (tp2);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_from_data (G_VARIANT_TYPE_SIGNATURE, _tmp3_, strlen (_tmp3_) + 1, TRUE, g_free, _tmp3_));
+	_tmp4_ = g_variant_type_dup_string (result);
+	g_variant_builder_add_value (&_reply_builder, g_variant_new_from_data (G_VARIANT_TYPE_SIGNATURE, _tmp4_, strlen (_tmp4_) + 1, TRUE, g_free, _tmp4_));
+	_g_variant_type_free0 (result);
+	_reply = g_variant_builder_end (&_reply_builder);
+	g_dbus_message_set_body (_reply_message, _reply);
+	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
+	g_object_unref (invocation);
+	g_object_unref (_reply_message);
+	_g_variant_type_free0 (tp1);
+	_g_variant_type_free0 (tp2);
 }
 
 static void
@@ -550,6 +664,8 @@ test_dbus_interface_method_call (GDBusConnection* connection,
 		_dbus_test_test_int (object, parameters, invocation);
 	} else if (strcmp (method_name, "TestString") == 0) {
 		_dbus_test_test_string (object, parameters, invocation);
+	} else if (strcmp (method_name, "TestSignature") == 0) {
+		_dbus_test_test_signature (object, parameters, invocation);
 	} else {
 		g_object_unref (invocation);
 	}
@@ -577,6 +693,19 @@ _dbus_test_get_test_int_property (Test* self)
 }
 
 static GVariant*
+_dbus_test_get_test_signature_property (Test* self)
+{
+	GVariantType* result;
+	GVariant* _reply;
+	gchar* _tmp5_;
+	result = test_get_test_signature_property (self);
+	_tmp5_ = g_variant_type_dup_string (result);
+	_reply = g_variant_new_from_data (G_VARIANT_TYPE_SIGNATURE, _tmp5_, strlen (_tmp5_) + 1, TRUE, g_free, _tmp5_);
+	_g_variant_type_free0 (result);
+	return _reply;
+}
+
+static GVariant*
 test_dbus_interface_get_property (GDBusConnection* connection,
                                   const gchar* sender,
                                   const gchar* object_path,
@@ -593,6 +722,8 @@ test_dbus_interface_get_property (GDBusConnection* connection,
 		return _dbus_test_get_test_property (object);
 	} else if (strcmp (property_name, "TestIntProperty") == 0) {
 		return _dbus_test_get_test_int_property (object);
+	} else if (strcmp (property_name, "TestSignatureProperty") == 0) {
+		return _dbus_test_get_test_signature_property (object);
 	}
 	return NULL;
 }
@@ -616,6 +747,16 @@ _dbus_test_set_test_int_property (Test* self,
 	test_set_test_int_property (self, value);
 }
 
+static void
+_dbus_test_set_test_signature_property (Test* self,
+                                        GVariant* _value)
+{
+	GVariantType* value = NULL;
+	value = g_variant_type_new (g_variant_get_string (_value, NULL));
+	test_set_test_signature_property (self, value);
+	_g_variant_type_free0 (value);
+}
+
 static gboolean
 test_dbus_interface_set_property (GDBusConnection* connection,
                                   const gchar* sender,
@@ -635,6 +776,9 @@ test_dbus_interface_set_property (GDBusConnection* connection,
 		return TRUE;
 	} else if (strcmp (property_name, "TestIntProperty") == 0) {
 		_dbus_test_set_test_int_property (object, value);
+		return TRUE;
+	} else if (strcmp (property_name, "TestSignatureProperty") == 0) {
+		_dbus_test_set_test_signature_property (object, value);
 		return TRUE;
 	}
 	return FALSE;

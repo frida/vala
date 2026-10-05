@@ -556,7 +556,7 @@ public class Vala.GirParser : CodeVisitor {
 		// objecttypesymbol-specific
 		public List<DataType> inherited_types;
 
-		public bool deprecated = false;
+		public bool? deprecated = null;
 		public uint64 deprecated_version = 0;
 		public string? deprecated_since = null;
 		public string? deprecated_replacement = null;
@@ -1041,22 +1041,32 @@ public class Vala.GirParser : CodeVisitor {
 
 					// find virtual/abstract accessors to handle abstract properties properly
 
+					var getter_name = girdata["getter"];
 					Node getter = null;
-					var getters = parent.lookup_all ("get_%s".printf (name));
-					if (getters != null) {
-						foreach (var g in getters) {
-							if ((getter == null || !g.merged) && g.get_cname () == "%sget_%s".printf (parent.get_lower_case_cprefix (), name)) {
-								getter = g;
+					if (getter_name != null) {
+						getter = parent.lookup (getter_name);
+					} else {
+						var getters = parent.lookup_all ("get_%s".printf (name));
+						if (getters != null) {
+							foreach (var g in getters) {
+								if ((getter == null || !g.merged) && g.get_cname () == "%sget_%s".printf (parent.get_lower_case_cprefix (), name)) {
+									getter = g;
+								}
 							}
 						}
 					}
 
+					var setter_name = girdata["setter"];
 					Node setter = null;
-					var setters = parent.lookup_all ("set_%s".printf (name));
-					if (setters != null) {
-						foreach (var s in setters) {
-							if ((setter == null || !s.merged) && s.get_cname () == "%sset_%s".printf (parent.get_lower_case_cprefix (), name)) {
-								setter = s;
+					if (setter_name != null) {
+						setter = parent.lookup (setter_name);
+					} else {
+						var setters = parent.lookup_all ("set_%s".printf (name));
+						if (setters != null) {
+							foreach (var s in setters) {
+								if ((setter == null || !s.merged) && s.get_cname () == "%sset_%s".printf (parent.get_lower_case_cprefix (), name)) {
+									setter = s;
+								}
 							}
 						}
 					}
@@ -1084,6 +1094,9 @@ public class Vala.GirParser : CodeVisitor {
 									prop.set_attribute ("ConcreteAccessor", true);
 								}
 							}
+							if (getter.get_cname () != "%sget_%s".printf (parent.get_lower_case_cprefix (), name)) {
+								prop.get_accessor.set_attribute_string ("CCode", "cname", getter.get_cname ());
+							}
 						} else {
 							prop.set_attribute ("NoAccessorMethod", true);
 						}
@@ -1103,6 +1116,9 @@ public class Vala.GirParser : CodeVisitor {
 									prop.set_attribute ("ConcreteAccessor", true);
 									prop.set_attribute ("NoAccessorMethod", false);
 								}
+							}
+							if (setter.get_cname () != "%sset_%s".printf (parent.get_lower_case_cprefix (), name)) {
+								prop.set_accessor.set_attribute_string ("CCode", "cname", setter.get_cname ());
 							}
 						} else {
 							prop.set_attribute ("NoAccessorMethod", true);
@@ -1264,7 +1280,7 @@ public class Vala.GirParser : CodeVisitor {
 				}
 				if (metadata.has_argument (ArgumentType.DEPRECATED)) {
 					deprecated = metadata.get_bool (ArgumentType.DEPRECATED, true);
-					if (!deprecated) {
+					if (deprecated == false) {
 						deprecated_since = null;
 						deprecated_replacement = null;
 					}
@@ -1322,13 +1338,13 @@ public class Vala.GirParser : CodeVisitor {
 				foreach (var node in members) {
 					if (this.deprecated_version > 0 && node.deprecated_version > 0) {
 						if (this.deprecated_version <= node.deprecated_version) {
-							node.deprecated = false;
+							node.deprecated = null;
 							node.deprecated_since = null;
 							node.deprecated_replacement = null;
 						}
 					}
-					if (node.deprecated) {
-						node.symbol.version.deprecated = true;
+					if (node.deprecated != null) {
+						node.symbol.version.deprecated = node.deprecated;
 					}
 					if (node.deprecated_since != null) {
 						node.symbol.version.deprecated_since = node.deprecated_since;
@@ -2103,6 +2119,9 @@ public class Vala.GirParser : CodeVisitor {
 				}
 			} else if (reader.name == "c:include") {
 				parse_c_include ();
+			} else if (reader.name == "doc:format") {
+				//TODO Handle this format information properly
+				skip_element ();
 			} else {
 				// error
 				Report.error (get_current_src (), "unknown child element `%s' in `repository'", reader.name);
@@ -2221,6 +2240,8 @@ public class Vala.GirParser : CodeVisitor {
 	void parse_namespace () {
 		start_element ("namespace");
 
+		//TODO Handle all given prefixes instead of taking the first one
+
 		string? cprefix = reader.get_attribute ("c:identifier-prefixes");
 		if (cprefix != null) {
 			int idx = cprefix.index_of (",");
@@ -2282,10 +2303,14 @@ public class Vala.GirParser : CodeVisitor {
 
 		if (ns_metadata.has_argument (ArgumentType.CPREFIX)) {
 			cprefix = ns_metadata.get_string (ArgumentType.CPREFIX);
+			//NOTE Explicitly patch our girdata while not all prefixes are handled
+			current.girdata["c:identifier-prefixes"] = cprefix;
 		}
 
 		if (ns_metadata.has_argument (ArgumentType.LOWER_CASE_CPREFIX)) {
 			lower_case_cprefix = ns_metadata.get_string (ArgumentType.LOWER_CASE_CPREFIX);
+			//NOTE Explicitly patch our girdata while not all prefixes are handled
+			current.girdata["c:symbol-prefixes"] = lower_case_cprefix.substring (0, lower_case_cprefix.length - 1);
 		} else if (lower_case_cprefix != null) {
 			lower_case_cprefix += "_";
 		}
@@ -2715,8 +2740,12 @@ public class Vala.GirParser : CodeVisitor {
 			bool changed;
 			type = element_get_type (type, direction == "out" || direction == "inout", ref no_array_length, ref array_null_terminated, out changed);
 			if (!changed) {
-				// discard ctype, duplicated information
-				ctype = null;
+				if (metadata.has_argument (ArgumentType.CTYPE)) {
+					ctype = metadata.get_string (ArgumentType.CTYPE);
+				} else {
+					// discard ctype, duplicated information
+					ctype = null;
+				}
 			}
 
 			param = new Parameter (name, type, get_src (begin));
@@ -2885,14 +2914,28 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (type_name == "gushort") {
 				type_name = "ushort";
 			} else if (type_name == "gint") {
-				type_name = "int";
+				if (ctype != null && ctype.has_prefix ("dev_t")) {
+					type_name = "dev_t";
+				} else if (ctype != null && ctype.has_prefix ("pid_t")) {
+					type_name = "pid_t";
+				} else {
+					type_name = "int";
+				}
 			} else if (type_name == "guint") {
-				type_name = "uint";
+				if (ctype != null && ctype.has_prefix ("gid_t")) {
+					type_name = "gid_t";
+				} else if (ctype != null && ctype.has_prefix ("uid_t")) {
+					type_name = "uid_t";
+				} else {
+					type_name = "uint";
+				}
 			} else if (type_name == "glong") {
 				if (ctype != null && ctype.has_prefix ("gssize")) {
 					type_name = "ssize_t";
 				} else if (ctype != null && ctype.has_prefix ("gintptr")) {
 					type_name = "intptr";
+				} else if (ctype != null && ctype.has_prefix ("time_t")) {
+					type_name = "time_t";
 				} else {
 					type_name = "long";
 				}
@@ -2913,7 +2956,11 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (type_name == "guint16") {
 				type_name = "uint16";
 			} else if (type_name == "gint32") {
-				type_name = "int32";
+				if (ctype != null && ctype.has_prefix ("socklen_t")) {
+					type_name = "socklen_t";
+				} else {
+					type_name = "int32";
+				}
 			} else if (type_name == "guint32") {
 				type_name = "uint32";
 			} else if (type_name == "gint64") {
@@ -2929,7 +2976,11 @@ public class Vala.GirParser : CodeVisitor {
 			} else if (type_name == "GLib.offset") {
 				type_name = "int64";
 			} else if (type_name == "gsize") {
-				type_name = "size_t";
+				if (ctype != null && ctype.has_prefix ("off_t")) {
+					type_name = "off_t";
+				} else {
+					type_name = "size_t";
+				}
 			} else if (type_name == "gssize") {
 				type_name = "ssize_t";
 			} else if (type_name == "guintptr") {

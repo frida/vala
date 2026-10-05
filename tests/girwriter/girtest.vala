@@ -72,7 +72,11 @@ namespace GirTest {
 	public enum EnumTest {
 		VALUE1,
 		VALUE2,
-		VALUE3 = 4711
+		VALUE3 = 4711;
+
+		public int enum_method () {
+			return this;
+		}
 	}
 
 	[Flags]
@@ -130,7 +134,7 @@ namespace GirTest {
 	}
 
 	public interface InterfaceTest : Object {
-		public abstract int property { get; construct set; }
+		public abstract int property { get; construct set; default = 23; }
 		internal abstract string internal_property { get; set; }
 		public virtual void int8_in (int8 param) {
 		}
@@ -206,7 +210,7 @@ namespace GirTest {
 
 		public string? nullable_field;
 
-		public string some_property { get; construct set; }
+		public string some_property { get; construct set; default = "foo"; }
 
 		public string write_only_property { set; }
 

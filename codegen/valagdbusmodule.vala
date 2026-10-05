@@ -216,23 +216,17 @@ public class Vala.GDBusModule : GVariantModule {
 		return null;
 	}
 
-	public void receive_dbus_value (DataType type, CCodeExpression message_expr, CCodeExpression iter_expr, CCodeExpression target_expr, Symbol? sym, CCodeExpression? error_expr = null, out bool may_fail = null) {
-		var fd_list = new CCodeFunctionCall (new CCodeIdentifier ("g_dbus_message_get_unix_fd_list"));
-		fd_list.add_argument (message_expr);
-
+	public void receive_dbus_value (DataType type, CCodeExpression? fd_list_expr, CCodeExpression iter_expr, CCodeExpression target_expr, Symbol? sym, CCodeExpression? error_expr = null, out bool may_fail = null) {
 		var fd_var = new CCodeIdentifier ("_fd");
 
 		var stream = create_from_file_descriptor (type, fd_var);
 		if (stream != null) {
-			var fd_list_var = new CCodeIdentifier ("_fd_list");
-
 			var fd = new CCodeFunctionCall (new CCodeIdentifier ("g_unix_fd_list_get"));
-			fd.add_argument (fd_list_var);
+			fd.add_argument (fd_list_expr);
 			fd.add_argument (new CCodeIdentifier ("_fd_index"));
 			fd.add_argument (error_expr);
 
-			ccode.add_assignment (fd_list_var, fd_list);
-			ccode.open_if (fd_list_var);
+			ccode.open_if (fd_list_expr);
 
 			var get_fd = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_iter_next"));
 			get_fd.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, iter_expr));
@@ -253,13 +247,14 @@ public class Vala.GDBusModule : GVariantModule {
 			set_error.add_argument (error_expr);
 			set_error.add_argument (new CCodeIdentifier ("G_IO_ERROR"));
 			set_error.add_argument (new CCodeIdentifier ("G_IO_ERROR_FAILED"));
-			set_error.add_argument (new CCodeConstant ("\"FD List is NULL\""));
+			set_error.add_argument (new CCodeConstant ("\"No file descriptor returned\""));
 			ccode.add_expression (set_error);
 			ccode.close ();
 		} else {
 			read_expression (type, iter_expr, target_expr, sym, error_expr, out may_fail);
 		}
 	}
+
 	CCodeExpression get_method_info (ObjectTypeSymbol sym) {
 		var infos = new CCodeInitializerList ();
 
@@ -276,11 +271,15 @@ public class Vala.GDBusModule : GVariantModule {
 			var out_args_info = new CCodeInitializerList ();
 
 			foreach (Parameter param in m.get_parameters ()) {
-				if (param.variable_type is ObjectType && param.variable_type.type_symbol.get_full_name () == "GLib.Cancellable") {
-					continue;
-				}
-				if (param.variable_type is ObjectType && param.variable_type.type_symbol.get_full_name () == "GLib.BusName") {
-					continue;
+				if (param.variable_type is ObjectType) {
+					var full_name = param.variable_type.type_symbol.get_full_name ();
+					switch (full_name) {
+					case "GLib.Cancellable":
+					case "GLib.BusName":
+					case "GLib.DBusConnection":
+					case "GLib.DBusMethodInvocation":
+						continue;
+					}
 				}
 
 				var info = new CCodeInitializerList ();
@@ -429,11 +428,13 @@ public class Vala.GDBusModule : GVariantModule {
 			info.append (new CCodeConstant ("-1"));
 			info.append (new CCodeConstant ("\"%s\"".printf (get_dbus_name_for_member (prop))));
 			info.append (new CCodeConstant ("\"%s\"".printf (prop.property_type.get_type_signature (prop))));
-			if (prop.get_accessor != null && prop.set_accessor != null) {
+			var readable = prop.get_accessor != null && prop.get_accessor.access != SymbolAccessibility.PRIVATE;
+			var writable = prop.set_accessor != null && prop.set_accessor.access != SymbolAccessibility.PRIVATE && prop.set_accessor.writable;
+			if (readable && writable) {
 				info.append (new CCodeConstant ("G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE"));
-			} else if (prop.get_accessor != null) {
+			} else if (readable) {
 				info.append (new CCodeConstant ("G_DBUS_PROPERTY_INFO_FLAGS_READABLE"));
-			} else if (prop.set_accessor != null) {
+			} else if (writable) {
 				info.append (new CCodeConstant ("G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE"));
 			} else {
 				info.append (new CCodeConstant ("G_DBUS_PROPERTY_INFO_FLAGS_NONE"));

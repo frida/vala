@@ -157,9 +157,6 @@ static void test_proxy_g_signal (GDBusProxy* proxy,
                           const gchar* sender_name,
                           const gchar* signal_name,
                           GVariant* parameters);
-static void _vala_g_async_ready_callback (GObject *source_object,
-                                   GAsyncResult *res,
-                                   void *user_data);
 static void test_proxy_list_messages_async (Test* self,
                                      GAsyncReadyCallback _callback_,
                                      gpointer _user_data_);
@@ -357,34 +354,13 @@ test_proxy_init (TestProxy* self)
 }
 
 static void
-_vala_g_async_ready_callback (GObject *source_object,
-                              GAsyncResult *res,
-                              void *user_data)
-{
-	g_task_return_pointer (user_data, g_object_ref (res), g_object_unref);
-	g_object_unref (user_data);
-}
-
-static void
 test_proxy_list_messages_async (Test* self,
                                 GAsyncReadyCallback _callback_,
                                 gpointer _user_data_)
 {
-	GDBusMessage *_message;
-	GVariant *_arguments;
 	GVariantBuilder _arguments_builder;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "ListMessages");
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	if (_callback_ != NULL) {
-		g_dbus_connection_send_message_with_reply (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, _vala_g_async_ready_callback, g_task_new ((GObject *) self, NULL, _callback_, _user_data_));
-	} else {
-		g_dbus_message_set_flags (_message, G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED);
-		g_dbus_connection_send_message (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
-	}
-	g_object_unref (_message);
+	g_dbus_proxy_call ((GDBusProxy *) self, "ListMessages", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, NULL, _callback_, _user_data_);
 }
 
 static gchar**
@@ -393,8 +369,6 @@ test_proxy_list_messages_finish (Test* self,
                                  gint* result_length1,
                                  GError** error)
 {
-	GAsyncResult *_inner_res;
-	GDBusMessage *_reply_message;
 	GVariant *_reply;
 	GVariantIter _reply_iter;
 	gchar** _result = NULL;
@@ -406,17 +380,10 @@ test_proxy_list_messages_finish (Test* self,
 	gint _tmp1__length1;
 	GVariantIter _tmp2_;
 	GVariant* _tmp3_;
-	_inner_res = g_task_propagate_pointer ((GTask *) _res_, NULL);
-	_reply_message = g_dbus_connection_send_message_with_reply_finish (g_dbus_proxy_get_connection ((GDBusProxy *) self), _inner_res, error);
-	g_object_unref (_inner_res);
-	if (!_reply_message) {
+	_reply = g_dbus_proxy_call_finish ((GDBusProxy *) self, _res_, error);
+	if (!_reply) {
 		return NULL;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		g_object_unref (_reply_message);
-		return NULL;
-	}
-	_reply = g_dbus_message_get_body (_reply_message);
 	g_variant_iter_init (&_reply_iter, _reply);
 	_result_length1 = 0;
 	_tmp0_ = g_variant_iter_next_value (&_reply_iter);
@@ -438,7 +405,7 @@ test_proxy_list_messages_finish (Test* self,
 	_result = _tmp1_;
 	g_variant_unref (_tmp0_);
 	*result_length1 = _result_length1;
-	g_object_unref (_reply_message);
+	g_variant_unref (_reply);
 	return _result;
 }
 
@@ -448,22 +415,10 @@ test_proxy_post_message_async (Test* self,
                                GAsyncReadyCallback _callback_,
                                gpointer _user_data_)
 {
-	GDBusMessage *_message;
-	GVariant *_arguments;
 	GVariantBuilder _arguments_builder;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "PostMessage");
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_arguments_builder, g_variant_new_string (message));
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	if (_callback_ != NULL) {
-		g_dbus_connection_send_message_with_reply (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, _vala_g_async_ready_callback, g_task_new ((GObject *) self, NULL, _callback_, _user_data_));
-	} else {
-		g_dbus_message_set_flags (_message, G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED);
-		g_dbus_connection_send_message (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
-	}
-	g_object_unref (_message);
+	g_dbus_proxy_call ((GDBusProxy *) self, "PostMessage", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, NULL, _callback_, _user_data_);
 }
 
 static void
@@ -471,19 +426,12 @@ test_proxy_post_message_finish (Test* self,
                                 GAsyncResult* _res_,
                                 GError** error)
 {
-	GAsyncResult *_inner_res;
-	GDBusMessage *_reply_message;
-	_inner_res = g_task_propagate_pointer ((GTask *) _res_, NULL);
-	_reply_message = g_dbus_connection_send_message_with_reply_finish (g_dbus_proxy_get_connection ((GDBusProxy *) self), _inner_res, error);
-	g_object_unref (_inner_res);
-	if (!_reply_message) {
+	GVariant *_reply;
+	_reply = g_dbus_proxy_call_finish ((GDBusProxy *) self, _res_, error);
+	if (!_reply) {
 		return;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		g_object_unref (_reply_message);
-		return;
-	}
-	g_object_unref (_reply_message);
+	g_variant_unref (_reply);
 }
 
 static void
@@ -631,10 +579,6 @@ test_dbus_interface_get_property (GDBusConnection* connection,
                                   GError** error,
                                   gpointer user_data)
 {
-	gpointer* data;
-	gpointer object;
-	data = user_data;
-	object = data[0];
 	return NULL;
 }
 
@@ -648,10 +592,6 @@ test_dbus_interface_set_property (GDBusConnection* connection,
                                   GError** error,
                                   gpointer user_data)
 {
-	gpointer* data;
-	gpointer object;
-	data = user_data;
-	object = data[0];
 	return FALSE;
 }
 
@@ -700,6 +640,7 @@ run (GAsyncReadyCallback _callback_,
 	RunData* _data_;
 	_data_ = g_slice_new0 (RunData);
 	_data_->_async_result = g_task_new (NULL, NULL, _callback_, _user_data_);
+	g_task_set_source_tag (_data_->_async_result, run);
 	g_task_set_task_data (_data_->_async_result, _data_, run_data_free);
 	run_co (_data_);
 }
@@ -708,6 +649,8 @@ void
 run_finish (GAsyncResult* _res_)
 {
 	RunData* _data_;
+	g_return_if_fail (G_IS_TASK (_res_));
+	g_return_if_fail (g_async_result_is_tagged (_res_, run));
 	_data_ = g_task_propagate_pointer (G_TASK (_res_), NULL);
 }
 

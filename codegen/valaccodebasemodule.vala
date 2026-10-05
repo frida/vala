@@ -837,90 +837,16 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		decl_space.add_define (extern_define);
 	}
 
-	void append_c_compiler_warning_suppressions (CCodeFile decl_space) {
+	void append_c_compiler_mitigations (CCodeFile decl_space) {
 		var vala_strict_c = new CCodeIfSection ("!defined(VALA_STRICT_C)");
 
-		const string[] gcc_and_clang_suppressions = {
-			"char-subscripts",
-			"incompatible-pointer-types",
-			"int-conversion",
-			"missing-field-initializers",
-			"pointer-sign",
-			"pointer-to-int-cast",
-			"return-type",
-			"sign-compare",
-			"unused-function",
-			"unused-label",
-			"unused-parameter",
-			"unused-variable",
-		};
-		const string[] gcc_only_suppressions = {
-			"discarded-qualifiers",
-			"int-to-pointer-cast",
-			"strict-aliasing",
-			"unused-but-set-variable",
-		};
-		const string[] clang_only_suppressions = {
-			"int-to-void-pointer-cast",
-			"typedef-redefinition",
-			"unused-value",
-			"void-pointer-to-int-cast",
-		};
-		const uint[] msvc_suppressions = {
-			4022, // 'function': pointer mismatch for actual parameter 'number'
-			4047, // 'operator': 'identifier1' differs in levels of indirection from 'identifier2'
-			4057, // 'operator': 'identifier1' indirection to slightly different base types from 'identifier2'
-			4090, // 'operation': different 'modifier' qualifiers
-			4100, // 'identifier': unreferenced formal parameter
-			4102, // 'label': unreferenced label
-			4113, // 'identifier1' differs in parameter lists from 'identifier2'
-			4127, // conditional expression is constant
-			4133, // 'type': incompatible types - from 'type1' to 'type2'
-			4152, // non standard extension, function/data ptr conversion in expression
-			4189, // 'identifier': local variable is initialized but not referenced
-			4244, // 'argument': conversion from 'type1' to 'type2', possible loss of data
-			4267, // 'var': conversion from 'size_t' to 'type', possible loss of data
-			4305, // 'context': truncation from 'type1' to 'type2'
-			4311, // 'variable': pointer truncation from 'type' to 'type'
-			4312, // 'operation': conversion from 'type1' to 'type2' of greater size
-			4389, // 'equality-operator': signed/unsigned mismatch
-			4456, // declaration of 'identifier' hides previous local declaration
-			4702, // unreachable code
-			4715, // 'function': not all control paths return a value
-		};
-
 		CCodeIfSection if_section;
-		if_section = new CCodeIfSection ("!defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)");
-		foreach (unowned string name in gcc_and_clang_suppressions) {
-			if_section.append (new CCodePragma ("GCC", "diagnostic", "ignored \"-W" + name + "\""));
-		}
-		foreach (unowned string name in gcc_only_suppressions) {
-			if_section.append (new CCodePragma ("GCC", "diagnostic", "ignored \"-W" + name + "\""));
-		}
+		if_section = new CCodeIfSection ("!defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)");
 		vala_strict_c.append (if_section);
-		if_section = if_section.append_else ("defined(__clang__)");
-		foreach (unowned string name in gcc_and_clang_suppressions) {
-			if_section.append (new CCodePragma ("clang", "diagnostic", "ignored \"-W" + name + "\""));
-		}
-		foreach (unowned string name in clang_only_suppressions) {
-			if_section.append (new CCodePragma ("clang", "diagnostic", "ignored \"-W" + name + "\""));
-		}
-		if_section = if_section.append_else ("defined(_MSC_VER)");
-		var directive = new StringBuilder.sized (128);
-		directive.append ("(disable:");
-		foreach (uint id in msvc_suppressions) {
-			directive.append_printf (" %u", id);
-		}
-		directive.append_c (')');
-		if_section.append (new CCodePragma ("warning", directive.str));
-
-		if_section = new CCodeIfSection ("!defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)");
-		if_section.append (new CCodePragma ("GCC", "diagnostic", "ignored \"-Wcast-function-type\""));
-		vala_strict_c.append (if_section);
-
-		if_section = new CCodeIfSection ("defined(__clang__) && (__clang_major__ >= 13)");
-		if_section.append (new CCodePragma ("clang", "diagnostic", "ignored \"-Wunused-but-set-variable\""));
-		vala_strict_c.append (if_section);
+		if_section.append (new CCodePragma ("GCC", "diagnostic", "warning \"-Wincompatible-pointer-types\""));
+		if_section = if_section.append_else ("defined(__clang__) && (__clang_major__ >= 16)");
+		if_section.append (new CCodePragma ("clang", "diagnostic", "ignored \"-Wincompatible-function-pointer-types\""));
+		if_section.append (new CCodePragma ("clang", "diagnostic", "ignored \"-Wincompatible-pointer-types\""));
 
 		decl_space.add_define (vala_strict_c);
 	}
@@ -965,7 +891,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			return;
 		}
 
-		append_c_compiler_warning_suppressions (cfile);
+		append_c_compiler_mitigations (cfile);
 
 		if (requires_assert) {
 			cfile.add_type_declaration (new CCodeMacroReplacement.with_expression ("_vala_assert(expr, msg)", new CCodeConstant ("if G_LIKELY (expr) ; else g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, msg);")));
@@ -2658,7 +2584,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 	public CCodeExpression get_this_interface_cexpression (Interface iface, TargetValue? instance = null) {
 		unowned Class? cl = current_class;
-		if (cl != null && cl.implements (iface)) {
+		if (instance == null && cl != null && cl.implements (iface)) {
 			return new CCodeIdentifier ("%s_%s_parent_iface".printf (get_ccode_lower_case_name (cl), get_ccode_lower_case_name (iface)));
 		}
 
@@ -3760,9 +3686,10 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			free_call.add_argument (new CCodeMemberAccess.pointer (new CCodeIdentifier("node"), "data"));
 
 			var data_isnull = new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, new CCodeMemberAccess.pointer (new CCodeIdentifier("node"), "data"), new CCodeConstant ("NULL"));
-			var ccomma_data = new CCodeCommaExpression ();
-			ccomma_data.append_expression (new CCodeConditionalExpression (data_isnull, new CCodeConstant ("NULL"), free_call));
-			ccode.add_expression (ccomma_data);
+			var ccomma_free = new CCodeCommaExpression ();
+			ccomma_free.append_expression (free_call);
+			ccomma_free.append_expression (new CCodeConstant ("NULL"));
+			ccode.add_expression (new CCodeConditionalExpression (data_isnull, new CCodeConstant ("NULL"), ccomma_free));
 
 			ccode.add_return (new CCodeConstant ("FALSE"));
 
@@ -3780,10 +3707,10 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			element_free_call.add_argument (new CCodeIdentifier ("free_func"));
 
 			var free_func_isnull = new CCodeBinaryExpression (CCodeBinaryOperator.EQUALITY, new CCodeIdentifier ("free_func"), new CCodeConstant ("NULL"));
-			var ccomma = new CCodeCommaExpression ();
-			ccomma.append_expression (new CCodeConditionalExpression (free_func_isnull, new CCodeConstant ("NULL"), element_free_call));
-
-			ccode.add_expression (ccomma);
+			var ccomma_element_free = new CCodeCommaExpression ();
+			ccomma_element_free.append_expression (element_free_call);
+			ccomma_element_free.append_expression (new CCodeConstant ("NULL"));
+			ccode.add_expression (new CCodeConditionalExpression (free_func_isnull, new CCodeConstant ("NULL"), ccomma_element_free));
 
 			var cfreecall = new CCodeFunctionCall (new CCodeIdentifier (get_ccode_free_function (gnode_type)));
 			cfreecall.add_argument (new CCodeIdentifier ("self"));
@@ -4568,6 +4495,9 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		if (parts[1].contains ("x")) {
 			flags += " | G_REGEX_EXTENDED";
 		}
+		if (parts[1].contains ("o")) {
+			flags += " | G_REGEX_OPTIMIZE";
+		}
 
 		var cdecl = new CCodeDeclaration ("GRegex*");
 
@@ -4581,10 +4511,15 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 
 			push_function (fun);
 
-			var once_enter_call = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_enter"));
-			if (context.require_glib_version (2, 68)) {
+			CCodeFunctionCall once_enter_call;
+			if (context.require_glib_version (2, 80)) {
+				once_enter_call = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_enter_pointer"));
+				once_enter_call.add_argument (new CCodeConstant ("re"));
+			} else if (context.require_glib_version (2, 68)) {
+				once_enter_call	= new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_enter"));
 				once_enter_call.add_argument (new CCodeConstant ("(gsize*) re"));
 			} else {
+				once_enter_call = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_enter"));
 				once_enter_call.add_argument (new CCodeConstant ("(volatile gsize*) re"));
 			}
 			ccode.open_if (once_enter_call);
@@ -4596,13 +4531,20 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 			regex_new_call.add_argument (new CCodeConstant ("NULL"));
 			ccode.add_assignment (new CCodeIdentifier ("GRegex* val"), regex_new_call);
 
-			var once_leave_call = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_leave"));
-			if (context.require_glib_version (2, 68)) {
+			CCodeFunctionCall once_leave_call;
+			if (context.require_glib_version (2, 80)) {
+				once_leave_call = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_leave_pointer"));
+				once_leave_call.add_argument (new CCodeConstant ("re"));
+				once_leave_call.add_argument (new CCodeConstant ("val"));
+			} else if (context.require_glib_version (2, 68)) {
+				once_leave_call	= new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_leave"));
 				once_leave_call.add_argument (new CCodeConstant ("(gsize*) re"));
+				once_leave_call.add_argument (new CCodeConstant ("(gsize) val"));
 			} else {
+				once_leave_call = new CCodeFunctionCall (new CCodeIdentifier ("g_once_init_leave"));
 				once_leave_call.add_argument (new CCodeConstant ("(volatile gsize*) re"));
+				once_leave_call.add_argument (new CCodeConstant ("(gsize) val"));
 			}
-			once_leave_call.add_argument (new CCodeConstant ("(gsize) val"));
 			ccode.add_expression (once_leave_call);
 
 			ccode.close ();
@@ -6627,7 +6569,7 @@ public abstract class Vala.CCodeBaseModule : CodeGenerator {
 		if (type.type_symbol != null && !type.nullable
 		    && (on_error ? get_ccode_default_value_on_error (type.type_symbol) : get_ccode_default_value (type.type_symbol)) != "") {
 		    CCodeExpression val = new CCodeConstant (on_error ? get_ccode_default_value_on_error (type.type_symbol) : get_ccode_default_value (type.type_symbol));
-		    if (!initializer_expression && st != null && st.get_fields ().size > 0) {
+		    if (st != null && st.get_fields ().size > 0) {
 				val = new CCodeCastExpression (val, get_ccode_name (st));
 			}
 			return val;

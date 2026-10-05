@@ -62,6 +62,11 @@ TreeStore
 
 // Better deprecation notices
 
+// Not deprecated
+StyleContext
+  .add_provider_for_display deprecated=false
+  .remove_provider_for_display deprecated=false
+
 // Factory method of abstract type
 ATContext
   .create symbol_type="function"
@@ -232,6 +237,8 @@ TreeSelection
 // Symbol name conflicts
 ApplicationWindow
   .get_id new
+AccessibleText
+  .get_attributes name="get_accessible_text_attributes"
 Constraint
   .new_constant name="const"
 DragSource
@@ -283,6 +290,13 @@ value_take_expression.value ref
 BuildableParser skip
 
 // Backwards compatibility
+Calendar
+  // gtk4 < 4.14
+  .day no_accessor_method
+  .month no_accessor_method
+  .year no_accessor_method
+DropTarget
+  .drop#property skip
 EntryBuffer
   .new.initial_chars type="uint8[]?" array_length_idx=1
   .emit_inserted_text.chars type="uint8[]" array_length_idx=2
@@ -344,6 +358,8 @@ Widget
 TreeModel
   .get_value return_void
   .rows_reordered skip
+ordering_from_cmpfunc skip=false
+Ordering.from_cmpfunc skip=false
 show_about_dialog skip=false
 show_uri_full parent="Gtk.Window" symbol_type="method" instance_idx=0 finish_name="gtk_show_uri_full_finish"
 show_uri_full_finish parent="Gtk.Window" symbol_type="method" instance_idx=0
@@ -357,6 +373,8 @@ test_init.argvp unowned
 ///////////////////
 GLArea
   .create_context skip=false
+IMContext
+  .activate_osk#method vfunc_name="activate_osk_with_event" skip=false
 Notebook
   .create_window skip=false
 PrintOperation

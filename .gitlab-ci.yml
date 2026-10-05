@@ -1,8 +1,11 @@
-include: "https://gitlab.gnome.org/GNOME/citemplates/raw/master/flatpak/flatpak_ci_initiative.yml"
+include:
+  - project: "gnome/citemplates"
+    file: "flatpak/flatpak_ci_initiative.yml"
+
 
 .flatpak rules:
   rules:
-    - if: $CI_COMMIT_BRANCH == "main" && $REPO_TOKEN && ($CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule")
+    - if: $CI_COMMIT_BRANCH == "main" && $REPO_TOKEN_FILE && ($CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "schedule")
 
 .vars-extension:
   extends: ".flatpak rules"
@@ -13,45 +16,71 @@ include: "https://gitlab.gnome.org/GNOME/citemplates/raw/master/flatpak/flatpak_
     BUNDLE: "vala-extension.flatpak"
     EXPORT_RUNTIME: "--runtime"
     RUN_TESTS: "no"
+    MESON_DIST: "no"
 
-.vars-22.08:
+.vars-26.08beta:
   extends: [".vars-extension"]
-  # Use the image from the last stable runtime that includes 22.08 sdk
-  image: 'quay.io/gnome_infrastructure/gnome-runtime-images:gnome-44'
+  # Use the image from the last stable runtime that includes 26.08beta sdk
+  image: 'quay.io/gnome_infrastructure/gnome-runtime-images:gnome-master'
   variables:
-    BRANCH: "22.08"
-
-.vars-23.08:
-  extends: [".vars-extension"]
-  variables:
-    BRANCH: "23.08"
+    BRANCH: "26.08beta"
   before_script:
-    - sed -i "s/22.08/$BRANCH/g" $MANIFEST_PATH
+    - sed -i "s/24.08/$BRANCH/g" $MANIFEST_PATH
 
-flatpak-extension@22.08@x86_64:
-  extends: [".flatpak@x86_64", ".vars-22.08"]
+.vars-25.08:
+  extends: [".vars-extension"]
+  # Use the image from the last stable runtime that includes 25.08 sdk
+  image: 'quay.io/gnome_infrastructure/gnome-runtime-images:gnome-50'
+  variables:
+    BRANCH: "25.08"
+  before_script:
+    - sed -i "s/24.08/$BRANCH/g" $MANIFEST_PATH
 
-flatpak-extension@23.08@x86_64:
-  extends: [".flatpak@x86_64", ".vars-23.08"]
+.vars-24.08:
+  extends: [".vars-extension"]
+  # Use the image from the last stable runtime that includes 24.08 sdk
+  image: 'quay.io/gnome_infrastructure/gnome-runtime-images:gnome-48'
+  variables:
+    BRANCH: "24.08"
 
-flatpak-extension@22.08@aarch64:
-  extends: [".flatpak@aarch64", ".vars-22.08"]
+flatpak-extension@26.08beta@x86_64:
+  extends: [".flatpak@x86_64", ".vars-26.08beta"]
 
-flatpak-extension@23.08@aarch64:
-  extends: [".flatpak@aarch64", ".vars-23.08"]
+flatpak-extension@25.08@x86_64:
+  extends: [".flatpak@x86_64", ".vars-25.08"]
 
-nightly@22.08@x86_64:
+flatpak-extension@24.08@x86_64:
+  extends: [".flatpak@x86_64", ".vars-24.08"]
+
+flatpak-extension@26.08beta@aarch64:
+  extends: [".flatpak@aarch64", ".vars-26.08beta"]
+
+flatpak-extension@25.08@aarch64:
+  extends: [".flatpak@aarch64", ".vars-25.08"]
+
+flatpak-extension@24.08@aarch64:
+  extends: [".flatpak@aarch64", ".vars-24.08"]
+
+nightly@26.08beta@x86_64:
   extends: [".publish_nightly", ".flatpak rules"]
-  needs: ["flatpak-extension@22.08@x86_64"]
+  needs: ["flatpak-extension@26.08beta@x86_64"]
 
-nightly@23.08@x86_64:
+nightly@25.08@x86_64:
   extends: [".publish_nightly", ".flatpak rules"]
-  needs: ["flatpak-extension@23.08@x86_64"]
+  needs: ["flatpak-extension@25.08@x86_64"]
 
-nightly@22.08@aarch64:
+nightly@24.08@x86_64:
   extends: [".publish_nightly", ".flatpak rules"]
-  needs: ["flatpak-extension@22.08@aarch64"]
+  needs: ["flatpak-extension@24.08@x86_64"]
 
-nightly@23.08@aarch64:
+nightly@26.08beta@aarch64:
   extends: [".publish_nightly", ".flatpak rules"]
-  needs: ["flatpak-extension@23.08@aarch64"]
+  needs: ["flatpak-extension@26.08beta@aarch64"]
+
+nightly@25.08@aarch64:
+  extends: [".publish_nightly", ".flatpak rules"]
+  needs: ["flatpak-extension@25.08@aarch64"]
+
+nightly@24.08@aarch64:
+  extends: [".publish_nightly", ".flatpak rules"]
+  needs: ["flatpak-extension@24.08@aarch64"]

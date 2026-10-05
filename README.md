@@ -37,14 +37,12 @@ bindings generator for access to Vala libraries from applications
 written in e.g. C# as the Vala parser is written as a library, so that
 all compile-time information is available when generating a binding.
 
-More information about Vala is available at [https://wiki.gnome.org/Projects/Vala/](https://wiki.gnome.org/Projects/Vala/)
+More information about Vala is available at [https://vala.dev](https://vala.dev)
 
 
 ## Building Vala
 Instructions on how to build the latest version of Vala.
 These can be modified to build a specific release.
-
-**NOTE** For the Frida build, Meson should be used instead of autotools.
 
 ### Step One:
 Install the following packages:
@@ -52,6 +50,7 @@ Install the following packages:
  * a C compiler, e.g. GCC
  * a C library, e.g. glibc
  * glib (>= 2.56)
+ * gobject-introspection
  * flex
  * bison
  * Graphviz (libgvc) (>= 2.16) to build valadoc
@@ -64,8 +63,8 @@ Install the following packages:
 These additional packages are needed to generate the documentation:
 
  * help2man when updating the man pages
- * xsltproc
- * weasyprint for PDF generation
+ * sphinx, python-furo
+ * latexmk, texlive for PDF generation
 
 ### Step Two:
 Decide where the Vala compiler is to be found.
@@ -86,7 +85,7 @@ to bootstrap `valac`.
 
 Current releases of source tarballs can be downloaded via:
 
-https://wiki.gnome.org/Projects/Vala
+https://download.gnome.org/sources/vala/
 
 or the vala-bootstrap module is available at:
 
@@ -94,10 +93,10 @@ https://gitlab.gnome.org/Archive/vala-bootstrap
 
 
 Here is an example on how to download and compile from a Vala release tarball.
-In this example it is release version 0.48.19:
+In this example it is release version 0.48.25:
 
 ```sh
-curl --silent --show-error --location https://download.gnome.org/sources/vala/0.48/vala-0.48.19.tar.xz --output vala-bootstrap.tar.xz
+curl --silent --show-error --location https://download.gnome.org/sources/vala/0.48/vala-0.48.25.tar.xz --output vala-bootstrap.tar.xz
 tar --extract --file vala-bootstrap.tar.xz
 cd vala-bootstrap
 ./configure --prefix=/opt/vala-bootstrap
@@ -151,10 +150,10 @@ git clean -dfx
 make && sudo make install
 ```
 
-If you wish to build a specific release, for example 0.54.1:
+If you wish to build a specific release, for example 0.56.17:
 
 ```sh
-git checkout 0.54.1
+git checkout 0.56.17
 git clean -dfx
 ./autogen.sh
 make && sudo make install

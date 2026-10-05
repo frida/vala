@@ -8,48 +8,11 @@
 #include <gobject/gvaluecollector.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
-#pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-#pragma GCC diagnostic ignored "-Wreturn-type"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-label"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#elif defined(__clang__)
-#pragma clang diagnostic ignored "-Wchar-subscripts"
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic ignored "-Wpointer-sign"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-label"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
-#pragma clang diagnostic ignored "-Wtypedef-redefinition"
-#pragma clang diagnostic ignored "-Wunused-value"
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-#elif defined(_MSC_VER)
-#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
-#endif
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-#if defined(__clang__) && (__clang_major__ >= 13)
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -123,11 +86,7 @@ struct _FooPrivate {
 	gpointer _deleg_v_target;
 	GDestroyNotify _deleg_v_target_destroy_notify;
 	Manam _deleg_no_target;
-	gpointer _deleg_no_target_target;
-	GDestroyNotify _deleg_no_target_target_destroy_notify;
 	Manam _deleg_no_target_v;
-	gpointer _deleg_no_target_v_target;
-	GDestroyNotify _deleg_no_target_v_target_destroy_notify;
 };
 
 struct _ParamSpecFoo {
@@ -147,11 +106,7 @@ struct _BarClass {
 
 struct _BarPrivate {
 	Manam _deleg;
-	gpointer _deleg_target;
-	GDestroyNotify _deleg_target_destroy_notify;
 	Manam _deleg_v;
-	gpointer _deleg_v_target;
-	GDestroyNotify _deleg_v_target_destroy_notify;
 };
 
 static gint Foo_private_offset;
@@ -340,7 +295,7 @@ foo_get_deleg_no_target (Foo* self)
 	gpointer _tmp0__target;
 	g_return_val_if_fail (IS_FOO (self), NULL);
 	_tmp0_ = self->priv->_deleg_no_target;
-	_tmp0__target = self->priv->_deleg_no_target_target;
+	_tmp0__target = NULL;
 	result = _tmp0_;
 	return result;
 }
@@ -350,13 +305,7 @@ foo_set_deleg_no_target (Foo* self,
                          Manam value)
 {
 	g_return_if_fail (IS_FOO (self));
-	(self->priv->_deleg_no_target_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_no_target_target_destroy_notify (self->priv->_deleg_no_target_target), NULL);
-	self->priv->_deleg_no_target = NULL;
-	self->priv->_deleg_no_target_target = NULL;
-	self->priv->_deleg_no_target_target_destroy_notify = NULL;
 	self->priv->_deleg_no_target = value;
-	self->priv->_deleg_no_target_target = NULL;
-	self->priv->_deleg_no_target_target_destroy_notify = NULL;
 }
 
 Manam
@@ -380,7 +329,7 @@ foo_real_get_deleg_no_target_v (Foo* base)
 	gpointer _tmp0__target;
 	self = base;
 	_tmp0_ = self->priv->_deleg_no_target_v;
-	_tmp0__target = self->priv->_deleg_no_target_v_target;
+	_tmp0__target = NULL;
 	result = _tmp0_;
 	return result;
 }
@@ -403,13 +352,7 @@ foo_real_set_deleg_no_target_v (Foo* base,
 {
 	Foo* self;
 	self = base;
-	(self->priv->_deleg_no_target_v_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_no_target_v_target_destroy_notify (self->priv->_deleg_no_target_v_target), NULL);
-	self->priv->_deleg_no_target_v = NULL;
-	self->priv->_deleg_no_target_v_target = NULL;
-	self->priv->_deleg_no_target_v_target_destroy_notify = NULL;
 	self->priv->_deleg_no_target_v = value;
-	self->priv->_deleg_no_target_v_target = NULL;
-	self->priv->_deleg_no_target_v_target_destroy_notify = NULL;
 }
 
 static void
@@ -580,14 +523,6 @@ foo_finalize (Foo * obj)
 	self->priv->_deleg_v = NULL;
 	self->priv->_deleg_v_target = NULL;
 	self->priv->_deleg_v_target_destroy_notify = NULL;
-	(self->priv->_deleg_no_target_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_no_target_target_destroy_notify (self->priv->_deleg_no_target_target), NULL);
-	self->priv->_deleg_no_target = NULL;
-	self->priv->_deleg_no_target_target = NULL;
-	self->priv->_deleg_no_target_target_destroy_notify = NULL;
-	(self->priv->_deleg_no_target_v_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_no_target_v_target_destroy_notify (self->priv->_deleg_no_target_v_target), NULL);
-	self->priv->_deleg_no_target_v = NULL;
-	self->priv->_deleg_no_target_v_target = NULL;
-	self->priv->_deleg_no_target_v_target_destroy_notify = NULL;
 }
 
 static GType
@@ -662,7 +597,7 @@ bar_get_deleg (Bar* self)
 	gpointer _tmp0__target;
 	g_return_val_if_fail (IS_BAR (self), NULL);
 	_tmp0_ = self->priv->_deleg;
-	_tmp0__target = self->priv->_deleg_target;
+	_tmp0__target = NULL;
 	result = _tmp0_;
 	return result;
 }
@@ -675,13 +610,7 @@ bar_set_deleg (Bar* self,
 	g_return_if_fail (IS_BAR (self));
 	old_value = bar_get_deleg (self);
 	if (old_value != value) {
-		(self->priv->_deleg_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_target_destroy_notify (self->priv->_deleg_target), NULL);
-		self->priv->_deleg = NULL;
-		self->priv->_deleg_target = NULL;
-		self->priv->_deleg_target_destroy_notify = NULL;
 		self->priv->_deleg = value;
-		self->priv->_deleg_target = NULL;
-		self->priv->_deleg_target_destroy_notify = NULL;
 		g_object_notify_by_pspec ((GObject *) self, bar_properties[BAR_DELEG_PROPERTY]);
 	}
 }
@@ -707,7 +636,7 @@ bar_real_get_deleg_v (Bar* base)
 	gpointer _tmp0__target;
 	self = base;
 	_tmp0_ = self->priv->_deleg_v;
-	_tmp0__target = self->priv->_deleg_v_target;
+	_tmp0__target = NULL;
 	result = _tmp0_;
 	return result;
 }
@@ -733,13 +662,7 @@ bar_real_set_deleg_v (Bar* base,
 	self = base;
 	old_value = bar_real_get_deleg_v (base);
 	if (old_value != value) {
-		(self->priv->_deleg_v_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_v_target_destroy_notify (self->priv->_deleg_v_target), NULL);
-		self->priv->_deleg_v = NULL;
-		self->priv->_deleg_v_target = NULL;
-		self->priv->_deleg_v_target_destroy_notify = NULL;
 		self->priv->_deleg_v = value;
-		self->priv->_deleg_v_target = NULL;
-		self->priv->_deleg_v_target_destroy_notify = NULL;
 		g_object_notify_by_pspec ((GObject *) self, bar_properties[BAR_DELEG_V_PROPERTY]);
 	}
 }
@@ -771,14 +694,6 @@ bar_finalize (GObject * obj)
 {
 	Bar * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, TYPE_BAR, Bar);
-	(self->priv->_deleg_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_target_destroy_notify (self->priv->_deleg_target), NULL);
-	self->priv->_deleg = NULL;
-	self->priv->_deleg_target = NULL;
-	self->priv->_deleg_target_destroy_notify = NULL;
-	(self->priv->_deleg_v_target_destroy_notify == NULL) ? NULL : (self->priv->_deleg_v_target_destroy_notify (self->priv->_deleg_v_target), NULL);
-	self->priv->_deleg_v = NULL;
-	self->priv->_deleg_v_target = NULL;
-	self->priv->_deleg_v_target_destroy_notify = NULL;
 	G_OBJECT_CLASS (bar_parent_class)->finalize (obj);
 }
 

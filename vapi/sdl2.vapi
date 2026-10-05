@@ -1548,7 +1548,7 @@ namespace SDL {
 		SET, CUR, END
 	}// RWFlags
 
-	[CCode (cname = "SDL_RWops", free_function = "SDL_FreeRW", cheader_filename = "SDL2/SDL_rwops.h")]
+	[CCode (cname = "SDL_RWops", free_function = "SDL_RWclose", cheader_filename = "SDL2/SDL_rwops.h")]
 	[Compact]
 	public class RWops {
 
@@ -2300,7 +2300,7 @@ namespace SDL {
 			public int save_bmp_rw (RWops dst, int freedst = 0);
 
 			public int save_bmp (string file) {
-				return save_bmp_rw (new SDL.RWops.from_file (file, "wb"), 1);
+				return save_bmp_rw (new SDL.RWops.from_file (file, "wb"));
 			}
 
 			[CCode (cname = "SDL_SetSurfaceRLE")]
@@ -3685,7 +3685,7 @@ namespace SDL {
 		[SimpleType]
 		[IntegerType (rank = 6)]
 		[CCode (cname = "SDL_JoystickID", cheader_filename = "SDL2/SDL_joystick.h")]
-		public struct JoystickID {}// JoystickID
+		public struct JoystickID : int32 {}// JoystickID
 
 		[Version (since = "2.0.4")]
 		[CCode (cname = "SDL_JoystickPowerLevel", cprefix = "SDL_JOYSTICK_POWER_", cheader_filename = "SDL2/SDL_joystick.h")]
@@ -4377,7 +4377,7 @@ namespace SDL {
 		public static unowned AudioSpec? load_rw (RWops src, int freesrc, ref AudioSpec spec, [CCode (array_length = false)] out uint8[] audio_buf, out uint32 audio_len);
 
 		public static unowned AudioSpec? load (string file, ref AudioSpec spec, out uint8[] audio_buf, out uint32 audio_len) {
-			return load_rw (new SDL.RWops.from_file (file, "rb"), 1,
+			return load_rw (new SDL.RWops.from_file (file, "rb"), 0,
 			ref spec, out audio_buf, out audio_len);
 		}
 

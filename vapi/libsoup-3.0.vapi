@@ -34,10 +34,8 @@ namespace Soup {
 		public virtual bool update (Soup.Message msg, GLib.HashTable<void*,void*> auth_header);
 		[NoAccessorMethod]
 		public string authority { owned get; set; }
-		[NoAccessorMethod]
-		public virtual bool is_authenticated { get; }
-		[NoAccessorMethod]
-		public bool is_cancelled { get; }
+		public virtual bool is_authenticated { [CCode (cname = "soup_auth_is_authenticated")] get; }
+		public bool is_cancelled { [CCode (cname = "soup_auth_is_cancelled")] get; }
 		[NoAccessorMethod]
 		public bool is_for_proxy { get; set; }
 		[NoAccessorMethod]
@@ -642,8 +640,6 @@ namespace Soup {
 		public void send_text (string text);
 		public void set_keepalive_interval (uint interval);
 		public void set_max_incoming_payload_size (uint64 max_incoming_payload_size);
-		public void pause_input ();
-		public void resume_input ();
 		public Soup.WebsocketConnectionType connection_type { get; construct; }
 		public void* extensions { get; construct; }
 		public GLib.IOStream io_stream { get; construct; }

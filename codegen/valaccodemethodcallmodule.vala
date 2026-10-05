@@ -204,12 +204,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 				string class_prefix = get_ccode_lower_case_name (current_class);
 				string prepare_func = "NULL";
 				string check_func = "NULL";
-				string closure_callback_func = "NULL";
 				foreach (Method impl in current_class.get_methods ()) {
-					if (impl.name == "closure_callback" && impl.binding == MemberBinding.STATIC) {
-						closure_callback_func = "(GSourceFunc) %s_closure_callback".printf (class_prefix);
-						continue;
-					}
 					if (!impl.overrides) {
 						continue;
 					}
@@ -227,7 +222,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 				var funcs = new CCodeDeclaration ("const GSourceFuncs");
 				funcs.modifiers = CCodeModifiers.STATIC;
-				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize, %s, NULL }".printf (prepare_func, check_func, class_prefix, class_prefix, closure_callback_func))));
+				funcs.add_declarator (new CCodeVariableDeclarator ("_source_funcs", new CCodeConstant ("{ %s, %s, %s_real_dispatch, %s_finalize, NULL, NULL}".printf (prepare_func, check_func, class_prefix, class_prefix))));
 				ccode.add_statement (funcs);
 
 				ccall.add_argument (new CCodeCastExpression (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, new CCodeIdentifier ("_source_funcs")), "GSourceFuncs *"));
@@ -590,7 +585,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		if (m != null && m.return_type is ArrayType && async_call != ccall) {
 			var array_type = (ArrayType) m.return_type;
 			for (int dim = 1; dim <= array_type.rank; dim++) {
-				if (get_ccode_array_null_terminated (m)) {
+				if (get_ccode_array_null_terminated (m) && !get_ccode_array_length (m)) {
 					// handle calls to methods returning null-terminated arrays
 					var temp_var = get_temp_variable (itype.get_return_type (), true, null, false);
 					var temp_ref = get_variable_cexpression (temp_var.name);
@@ -657,7 +652,7 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 		if (deleg != null && deleg.return_type is ArrayType) {
 			var array_type = (ArrayType) deleg.return_type;
 			for (int dim = 1; dim <= array_type.rank; dim++) {
-				if (get_ccode_array_null_terminated (deleg)) {
+				if (get_ccode_array_null_terminated (deleg) && !get_ccode_array_length (deleg)) {
 					// handle calls to methods returning null-terminated arrays
 					var temp_var = get_temp_variable (itype.get_return_type (), true, null, false);
 					var temp_ref = get_variable_cexpression (temp_var.name);
@@ -985,9 +980,22 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 
 			var unary = arg as UnaryExpression;
 
+			// handle ref null terminated arrays
+			if (unary != null && unary.operator == UnaryOperator.REF
+			    && unary.inner.symbol_reference != null && get_ccode_array_length (unary.inner.symbol_reference)) {
+				if (param != null && get_ccode_array_null_terminated (param) && !get_ccode_array_length (param)
+				    && param.variable_type is ArrayType && ((ArrayType) param.variable_type).rank == 1) {
+					requires_array_length = true;
+					var len_call = new CCodeFunctionCall (new CCodeIdentifier ("_vala_array_length"));
+					len_call.add_argument (get_cvalue_ (unary.inner.target_value));
+					ccode.add_assignment (get_array_length_cvalue (unary.inner.target_value, 1), len_call);
+				}
+			}
+
 			// update possible stale _*_size_ variable
-			if (unary != null && unary.operator == UnaryOperator.REF) {
-				if (param != null && get_ccode_array_length (param) && param.variable_type is ArrayType
+			if (unary != null && unary.operator == UnaryOperator.REF
+			    && unary.inner.symbol_reference != null && get_ccode_array_length (unary.inner.symbol_reference)) {
+				if (param != null && param.variable_type is ArrayType
 				    && !((ArrayType) param.variable_type).fixed_length && ((ArrayType) param.variable_type).rank == 1) {
 					unowned Variable? array_var = unary.inner.symbol_reference as Variable;
 					if ((array_var is LocalVariable || array_var is Field) && array_var.is_internal_symbol ()
@@ -1015,7 +1023,8 @@ public class Vala.CCodeMethodCallModule : CCodeAssignmentModule {
 			store_value (unary.inner.target_value, transform_value (unary.target_value, unary.inner.value_type, arg), expr.source_reference);
 
 			// handle out null terminated arrays
-			if (param != null && get_ccode_array_null_terminated (param)) {
+			if (param != null && get_ccode_array_null_terminated (param) && !get_ccode_array_length (param)
+			    && unary.inner.symbol_reference != null && get_ccode_array_length (unary.inner.symbol_reference)) {
 				requires_array_length = true;
 				var len_call = new CCodeFunctionCall (new CCodeIdentifier ("_vala_array_length"));
 				len_call.add_argument (get_cvalue_ (unary.inner.target_value));

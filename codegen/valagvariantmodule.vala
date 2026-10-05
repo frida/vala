@@ -52,7 +52,7 @@ public class Vala.GVariantModule : GValueModule {
 	string get_dbus_value (EnumValue value, string default_value) {
 		var dbus_value = value.get_attribute_string ("DBus", "value");
 		if (dbus_value != null) {
-			return dbus_value;;
+			return dbus_value;
 		}
 		return default_value;
 	}
@@ -172,13 +172,8 @@ public class Vala.GVariantModule : GValueModule {
 			if (is_basic_type) {
 				type_expr = new CCodeIdentifier ("G_VARIANT_TYPE_" + basic_type.type_name.ascii_up ());
 			} else {
-				var gvariant_type_type = new ObjectType ((Class) root_symbol.scope.lookup ("GLib").scope.lookup ("VariantType"));
-				var type_temp = get_temp_variable (gvariant_type_type, true, expr, true);
-				emit_temp_var (type_temp);
-				type_expr = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_type_new"));
-				((CCodeFunctionCall) type_expr).add_argument (new CCodeIdentifier ("\"%s\"".printf (signature)));
-				store_value (get_local_cvalue (type_temp), new GLibValue (gvariant_type_type, type_expr), expr.source_reference);
-				type_expr = get_variable_cexpression (type_temp.name);
+				type_expr = new CCodeFunctionCall (new CCodeIdentifier ("G_VARIANT_TYPE"));
+				((CCodeFunctionCall) type_expr).add_argument (new CCodeConstant ("\"%s\"".printf (signature)));
 			}
 			ccheck.add_argument (type_expr);
 			ccode.open_if (new CCodeBinaryExpression (CCodeBinaryOperator.AND, new CCodeIdentifier ("value"), ccheck));
@@ -187,28 +182,8 @@ public class Vala.GVariantModule : GValueModule {
 		CCodeExpression func_result = deserialize_expression (target_type, new CCodeIdentifier ("value"), new CCodeIdentifier ("*result"));
 
 		if (expr.is_silent_cast) {
-			if (is_basic_type && basic_type.is_string) {
-				ccode.add_return (func_result);
-			} else {
-				if (!is_basic_type) {
-					var type_free = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_type_free"));
-					type_free.add_argument (type_expr);
-					ccode.add_expression (type_free);
-				}
-				var temp_type = expr.target_type.copy ();
-				if (!expr.target_type.is_real_struct_type ()) {
-					temp_type.nullable = false;
-				}
-				var temp_value = create_temp_value (temp_type, false, expr);
-				store_value (temp_value, new GLibValue (temp_type, func_result), expr.source_reference);
-				ccode.add_return (get_cvalue_ (transform_value (temp_value, expr.target_type, expr)));
-			}
+			ccode.add_return (func_result);
 			ccode.add_else ();
-			if (!is_basic_type) {
-				var type_free = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_type_free"));
-				type_free.add_argument (type_expr);
-				ccode.add_expression (type_free);
-			}
 			ccode.add_return (new CCodeConstant ("NULL"));
 			ccode.close ();
 		} else if (target_type.is_real_non_null_struct_type ()) {
@@ -314,13 +289,20 @@ public class Vala.GVariantModule : GValueModule {
 		var get_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_get_" + basic_type.type_name));
 		get_call.add_argument (variant_expr);
 
+		bool is_signature = basic_type.signature == "g";
+
 		if (basic_type.is_string) {
-			if (transfer) {
+			if (transfer || is_signature) {
 				get_call.call = new CCodeIdentifier ("g_variant_get_string");
 			} else {
 				get_call.call = new CCodeIdentifier ("g_variant_dup_string");
 			}
 			get_call.add_argument (new CCodeConstant ("NULL"));
+		}
+		if (is_signature) {
+			var type_new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_type_new"));
+			type_new_call.add_argument (get_call);
+			return type_new_call;
 		}
 
 		return get_call;
@@ -452,7 +434,7 @@ public class Vala.GVariantModule : GValueModule {
 		iter_call.add_argument (variant_expr);
 		ccode.add_expression (iter_call);
 
-		bool field_found = false;;
+		bool field_found = false;
 
 		foreach (Field f in st.get_fields ()) {
 			if (f.binding != MemberBinding.INSTANCE) {
@@ -497,30 +479,20 @@ public class Vala.GVariantModule : GValueModule {
 		} else if (key_type.type_symbol == gvariant_type) {
 			hash_table_new.add_argument (new CCodeIdentifier ("g_variant_hash"));
 			hash_table_new.add_argument (new CCodeIdentifier ("g_variant_equal"));
+		} else if (key_type.type_symbol == int64_type.type_symbol || key_type.type_symbol == uint64_type.type_symbol) {
+			hash_table_new.add_argument (new CCodeIdentifier ("g_int64_hash"));
+			hash_table_new.add_argument (new CCodeIdentifier ("g_int64_equal"));
+		} else if (key_type.type_symbol == double_type.type_symbol) {
+			hash_table_new.add_argument (new CCodeIdentifier ("g_double_hash"));
+			hash_table_new.add_argument (new CCodeIdentifier ("g_double_equal"));
 		} else {
 			hash_table_new.add_argument (new CCodeIdentifier ("g_direct_hash"));
 			hash_table_new.add_argument (new CCodeIdentifier ("g_direct_equal"));
 		}
 
-		if (key_type.type_symbol.is_subtype_of (string_type.type_symbol)) {
-			hash_table_new.add_argument (new CCodeIdentifier ("g_free"));
-		} else if (key_type.type_symbol == gvariant_type) {
-			hash_table_new.add_argument (new CCodeCastExpression (new CCodeIdentifier ("g_variant_unref"), "GDestroyNotify"));
-		} else if (key_type.type_symbol.get_full_name () == "GLib.HashTable") {
-			hash_table_new.add_argument (new CCodeCastExpression (new CCodeIdentifier ("g_hash_table_unref"), "GDestroyNotify"));
-		} else {
-			hash_table_new.add_argument (new CCodeConstant ("NULL"));
-		}
+		hash_table_new.add_argument (new CCodeCastExpression (get_destroy_func_expression (key_type), "GDestroyNotify"));
+		hash_table_new.add_argument (new CCodeCastExpression (get_destroy_func_expression (value_type), "GDestroyNotify"));
 
-		if (value_type.type_symbol.is_subtype_of (string_type.type_symbol)) {
-			hash_table_new.add_argument (new CCodeIdentifier ("g_free"));
-		} else if (value_type.type_symbol == gvariant_type) {
-			hash_table_new.add_argument (new CCodeCastExpression (new CCodeIdentifier ("g_variant_unref"), "GDestroyNotify"));
-		} else if (value_type.type_symbol.get_full_name () == "GLib.HashTable") {
-			hash_table_new.add_argument (new CCodeCastExpression (new CCodeIdentifier ("g_hash_table_unref"), "GDestroyNotify"));
-		} else {
-			hash_table_new.add_argument (new CCodeConstant ("NULL"));
-		}
 		ccode.add_assignment (new CCodeIdentifier (temp_name), hash_table_new);
 
 		var iter_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_iter_init"));
@@ -553,6 +525,28 @@ public class Vala.GVariantModule : GValueModule {
 		return new CCodeIdentifier (temp_name);
 	}
 
+	private CCodeExpression memdup_value_type (ValueType type, owned CCodeExpression expr) {
+		var csizeof = new CCodeFunctionCall (new CCodeIdentifier ("sizeof"));
+		csizeof.add_argument (new CCodeIdentifier (get_ccode_name (type.type_symbol)));
+		CCodeFunctionCall cdup;
+		if (context.require_glib_version (2, 68)) {
+			cdup = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup2"));
+		} else {
+			requires_memdup2 = true;
+			cdup = new CCodeFunctionCall (new CCodeIdentifier ("_vala_memdup2"));
+		}
+		if (!(expr is CCodeIdentifier)) {
+			string temp_name = "_tmp%d_".printf (next_temp_var_id++);
+			ccode.add_declaration (get_ccode_name (type.type_symbol), new CCodeVariableDeclarator (temp_name));
+			var cident = new CCodeIdentifier (temp_name);
+			ccode.add_assignment (cident, expr);
+			expr = (owned) cident;
+		}
+		cdup.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, expr));
+		cdup.add_argument (csizeof);
+		return cdup;
+	}
+
 	public override CCodeExpression? deserialize_expression (DataType type, CCodeExpression variant_expr, CCodeExpression? expr, CCodeExpression? error_expr = null, out bool may_fail = null) {
 		BasicTypeInfo basic_type;
 		CCodeExpression result = null;
@@ -562,26 +556,21 @@ public class Vala.GVariantModule : GValueModule {
 			result = deserialize_basic (basic_type, variant_expr, true);
 			result = generate_enum_value_from_string (type as EnumValueType, result, error_expr);
 			may_fail = true;
+			if (type.nullable) {
+				result = memdup_value_type ((ValueType) type, (owned) result);
+			}
 		} else if (get_basic_type_info (type.get_type_signature (), out basic_type)) {
 			result = deserialize_basic (basic_type, variant_expr);
+			if (!basic_type.is_string && type.nullable) {
+				result = memdup_value_type ((ValueType) type, (owned) result);
+			}
 		} else if (type is ArrayType) {
 			result = deserialize_array ((ArrayType) type, variant_expr, expr);
 		} else if (type.type_symbol is Struct) {
 			unowned Struct st = (Struct) type.type_symbol;
 			result = deserialize_struct (st, variant_expr);
 			if (result != null && type.nullable) {
-				var csizeof = new CCodeFunctionCall (new CCodeIdentifier ("sizeof"));
-				csizeof.add_argument (new CCodeIdentifier (get_ccode_name (st)));
-				CCodeFunctionCall cdup;
-				if (context.require_glib_version (2, 68)) {
-					cdup = new CCodeFunctionCall (new CCodeIdentifier ("g_memdup2"));
-				} else {
-					requires_memdup2 = true;
-					cdup = new CCodeFunctionCall (new CCodeIdentifier ("_vala_memdup2"));
-				}
-				cdup.add_argument (new CCodeUnaryExpression (CCodeUnaryOperator.ADDRESS_OF, result));
-				cdup.add_argument (csizeof);
-				result = cdup;
+				result = memdup_value_type ((ValueType) type, (owned) result);
 			}
 		} else if (type is ObjectType) {
 			if (type.type_symbol.get_full_name () == "GLib.Variant") {
@@ -590,6 +579,10 @@ public class Vala.GVariantModule : GValueModule {
 				result = variant_get;
 			} else if (type.type_symbol.get_full_name () == "GLib.HashTable") {
 				result = deserialize_hash_table ((ObjectType) type, variant_expr);
+			} else if (type.type_symbol.get_full_name () == "GLib.VariantDict") {
+				var ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_dict_new"));
+				ccall.add_argument (variant_expr);
+				result = ccall;
 			}
 		}
 
@@ -681,6 +674,29 @@ public class Vala.GVariantModule : GValueModule {
 	}
 
 	CCodeExpression? serialize_basic (BasicTypeInfo basic_type, CCodeExpression expr) {
+		if (basic_type.signature == "g") {
+			string temp_name = "_tmp%d_".printf (next_temp_var_id++);
+			ccode.add_declaration ("gchar*", new CCodeVariableDeclarator (temp_name));
+			var ctemp = new CCodeIdentifier (temp_name);
+			var dup_string_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_type_dup_string"));
+			dup_string_call.add_argument (expr);
+			ccode.add_assignment (ctemp, dup_string_call);
+
+			// Avoid g_variant_new_signature, since it takes an unowned string, and
+			// we want to transfer ownership of ours.
+			var strlen_call = new CCodeFunctionCall (new CCodeIdentifier ("strlen"));
+			strlen_call.add_argument (ctemp);
+			var csize = new CCodeBinaryExpression (CCodeBinaryOperator.PLUS, strlen_call, new CCodeConstant ("1"));
+			var new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_new_from_data"));
+			new_call.add_argument (new CCodeConstant ("G_VARIANT_TYPE_SIGNATURE"));
+			new_call.add_argument (ctemp);
+			new_call.add_argument (csize);
+			new_call.add_argument (new CCodeConstant ("TRUE"));
+			new_call.add_argument (new CCodeIdentifier ("g_free"));
+			new_call.add_argument (ctemp);
+			return new_call;
+		}
+
 		var new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_new_" + basic_type.type_name));
 		new_call.add_argument (expr);
 		return new_call;
@@ -875,10 +891,18 @@ public class Vala.GVariantModule : GValueModule {
 		CCodeExpression result = null;
 		if (is_string_marshalled_enum (type.type_symbol)) {
 			get_basic_type_info ("s", out basic_type);
-			result = generate_enum_value_to_string (type as EnumValueType, expr);
+			var enum_expr = expr;
+			if (type.nullable) {
+				enum_expr = new CCodeUnaryExpression (CCodeUnaryOperator.POINTER_INDIRECTION, enum_expr);
+			}
+			result = generate_enum_value_to_string (type as EnumValueType, enum_expr);
 			result = serialize_basic (basic_type, result);
 		} else if (get_basic_type_info (type.get_type_signature (), out basic_type)) {
-			result = serialize_basic (basic_type, expr);
+			var b_expr = expr;
+			if (!basic_type.is_string && type.nullable) {
+				b_expr = new CCodeUnaryExpression (CCodeUnaryOperator.POINTER_INDIRECTION, expr);
+			}
+			result = serialize_basic (basic_type, b_expr);
 		} else if (type is ArrayType) {
 			result = serialize_array ((ArrayType) type, expr);
 		} else if (type.type_symbol is Struct) {
@@ -894,6 +918,10 @@ public class Vala.GVariantModule : GValueModule {
 				result = variant_new;
 			} else if (type.type_symbol.get_full_name () == "GLib.HashTable") {
 				result = serialize_hash_table ((ObjectType) type, expr);
+			} else if (type.type_symbol.get_full_name () == "GLib.VariantDict") {
+				var ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_variant_dict_end"));
+				ccall.add_argument (expr);
+				result = ccall;
 			}
 		}
 

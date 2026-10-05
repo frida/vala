@@ -6,48 +6,11 @@
 #include <string.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
-#pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-#pragma GCC diagnostic ignored "-Wreturn-type"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-label"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#elif defined(__clang__)
-#pragma clang diagnostic ignored "-Wchar-subscripts"
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic ignored "-Wpointer-sign"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-label"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
-#pragma clang diagnostic ignored "-Wtypedef-redefinition"
-#pragma clang diagnostic ignored "-Wunused-value"
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-#elif defined(_MSC_VER)
-#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
-#endif
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-#if defined(__clang__) && (__clang_major__ >= 13)
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -134,7 +97,7 @@ struct _FooClassClass {
 };
 
 struct _FooClassPrivate {
-	gint _bar;
+	gint _bar G_GNUC_DEPRECATED ;
 };
 
 struct _AFoo {
@@ -170,8 +133,8 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (FooClass, g_object_unref)
 VALA_EXTERN gint fooclass_foov (FooClass* self) G_GNUC_DEPRECATED ;
 VALA_EXTERN gint fooclass_foo (FooClass* self) G_GNUC_DEPRECATED ;
 static gint fooclass_real_foov (FooClass* self) G_GNUC_DEPRECATED ;
-VALA_EXTERN FooClass* fooclass_new (void);
-VALA_EXTERN FooClass* fooclass_construct (GType object_type);
+VALA_EXTERN FooClass* fooclass_new (void) G_GNUC_DEPRECATED ;
+VALA_EXTERN FooClass* fooclass_construct (GType object_type) G_GNUC_DEPRECATED ;
 VALA_EXTERN gint fooclass_get_bar (FooClass* self) G_GNUC_DEPRECATED ;
 VALA_EXTERN void fooclass_set_bar (FooClass* self,
                        gint value) G_GNUC_DEPRECATED ;
@@ -190,7 +153,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (AFoo, g_object_unref)
 VALA_EXTERN gint afoo_fooa (AFoo* self) G_GNUC_DEPRECATED ;
 VALA_EXTERN gint afoo_foo (AFoo* self) G_GNUC_DEPRECATED ;
 static gint afoo_real_fooa (AFoo* self) G_GNUC_DEPRECATED ;
-VALA_EXTERN AFoo* afoo_construct (GType object_type);
+VALA_EXTERN AFoo* afoo_construct (GType object_type) G_GNUC_DEPRECATED ;
 static GType afoo_get_type_once (void);
 VALA_EXTERN GType ifoo_get_type (void) G_GNUC_CONST ;
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (IFoo, g_object_unref)
@@ -269,7 +232,7 @@ gint
 fooclass_foo (FooClass* self)
 {
 	gint result;
-	g_return_val_if_fail (IS_FOOCLASS (self), 0);
+	g_return_val_if_fail (IS_FOOCLASS (self), -1);
 	result = 42;
 	return result;
 }
@@ -286,7 +249,7 @@ gint
 fooclass_foov (FooClass* self)
 {
 	FooClassClass* _klass_;
-	g_return_val_if_fail (IS_FOOCLASS (self), 0);
+	g_return_val_if_fail (IS_FOOCLASS (self), -1);
 	_klass_ = FOOCLASS_GET_CLASS (self);
 	if (_klass_->foov) {
 		return _klass_->foov (self);
@@ -312,7 +275,7 @@ gint
 fooclass_get_bar (FooClass* self)
 {
 	gint result;
-	g_return_val_if_fail (IS_FOOCLASS (self), 0);
+	g_return_val_if_fail (IS_FOOCLASS (self), -1);
 	result = self->priv->_bar;
 	return result;
 }
@@ -425,7 +388,7 @@ gint
 afoo_foo (AFoo* self)
 {
 	gint result;
-	g_return_val_if_fail (IS_AFOO (self), 0);
+	g_return_val_if_fail (IS_AFOO (self), -1);
 	result = 42;
 	return result;
 }
@@ -442,7 +405,7 @@ gint
 afoo_fooa (AFoo* self)
 {
 	AFooClass* _klass_;
-	g_return_val_if_fail (IS_AFOO (self), 0);
+	g_return_val_if_fail (IS_AFOO (self), -1);
 	_klass_ = AFOO_GET_CLASS (self);
 	if (_klass_->fooa) {
 		return _klass_->fooa (self);

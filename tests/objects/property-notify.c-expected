@@ -7,48 +7,11 @@
 #include <glib.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
-#pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-#pragma GCC diagnostic ignored "-Wreturn-type"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-label"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#elif defined(__clang__)
-#pragma clang diagnostic ignored "-Wchar-subscripts"
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic ignored "-Wpointer-sign"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-label"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
-#pragma clang diagnostic ignored "-Wtypedef-redefinition"
-#pragma clang diagnostic ignored "-Wunused-value"
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-#elif defined(_MSC_VER)
-#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
-#endif
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-#if defined(__clang__) && (__clang_major__ >= 13)
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -373,9 +336,14 @@ _vala_main (void)
 	Foo* foo = NULL;
 	Foo* _tmp0_;
 	GValue _tmp1_ = {0};
+	GValue _tmp2_ = {0};
 	_tmp0_ = foo_new ();
 	foo = _tmp0_;
 	g_signal_connect (G_TYPE_CHECK_INSTANCE_CAST (foo, G_TYPE_OBJECT, GObject), "notify::foo", (GCallback) _fail_g_object_notify, NULL);
+	g_value_init (&_tmp1_, G_TYPE_STRING);
+	g_value_set_string (&_tmp1_, "foo");
+	g_object_set_property (G_TYPE_CHECK_INSTANCE_CAST (foo, G_TYPE_OBJECT, GObject), "foo", &_tmp1_);
+	G_IS_VALUE (&_tmp1_) ? (g_value_unset (&_tmp1_), NULL) : NULL;
 	foo_set_foo (foo, "foo");
 	counter = 0;
 	g_signal_connect (G_TYPE_CHECK_INSTANCE_CAST (foo, G_TYPE_OBJECT, GObject), "notify::bar", (GCallback) _count_g_object_notify, NULL);
@@ -383,10 +351,10 @@ _vala_main (void)
 	_vala_assert (counter == 1, "counter == 1");
 	counter = 0;
 	g_signal_connect (G_TYPE_CHECK_INSTANCE_CAST (foo, G_TYPE_OBJECT, GObject), "notify::manam", (GCallback) _count_g_object_notify, NULL);
-	g_value_init (&_tmp1_, G_TYPE_STRING);
-	g_value_set_string (&_tmp1_, "manam");
-	g_object_set_property (G_TYPE_CHECK_INSTANCE_CAST (foo, G_TYPE_OBJECT, GObject), "manam", &_tmp1_);
-	G_IS_VALUE (&_tmp1_) ? (g_value_unset (&_tmp1_), NULL) : NULL;
+	g_value_init (&_tmp2_, G_TYPE_STRING);
+	g_value_set_string (&_tmp2_, "manam");
+	g_object_set_property (G_TYPE_CHECK_INSTANCE_CAST (foo, G_TYPE_OBJECT, GObject), "manam", &_tmp2_);
+	G_IS_VALUE (&_tmp2_) ? (g_value_unset (&_tmp2_), NULL) : NULL;
 	_vala_assert (counter == 1, "counter == 1");
 	_g_object_unref0 (foo);
 }

@@ -571,10 +571,6 @@ public class Vala.Class : ObjectTypeSymbol {
 			context.analyzer.check_type (type);
 		}
 
-		foreach (TypeParameter p in get_type_parameters ()) {
-			p.check (context);
-		}
-
 		if (base_class != null && base_class.is_singleton) {
 			error = true;
 			Report.error (source_reference, "`%s' cannot inherit from SingleInstance class `%s'", get_full_name (), base_class.get_full_name ());
@@ -608,6 +604,12 @@ public class Vala.Class : ObjectTypeSymbol {
 				Report.error (source_reference, "Sealed class `%s' cannot be abstract", get_full_name ());
 				return false;
 			}
+		}
+
+		if (base_class != null && !base_class.is_compact && has_attribute ("Compact")) {
+			error = true;
+			Report.error (source_reference, "Compact class `%s' cannot inherit from non-compact class `%s'", get_full_name (), base_class.get_full_name ());
+			return false;
 		}
 
 		/* process enums first to avoid order problems in C code */

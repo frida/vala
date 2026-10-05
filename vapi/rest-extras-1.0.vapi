@@ -2,7 +2,7 @@
 
 [CCode (cprefix = "Rest", gir_namespace = "RestExtras", gir_version = "1.0", lower_case_cprefix = "rest_")]
 namespace Rest {
-	[CCode (cheader_filename = "rest-extras/flickr-proxy.h", cname = "FlickrProxy", lower_case_cprefix = "rest_extras_flickr_proxy_", type_id = "flickr_proxy_get_type ()")]
+	[CCode (cheader_filename = "rest-extras/flickr-proxy.h", cname = "FlickrProxy", type_id = "flickr_proxy_get_type ()")]
 	public class FlickrProxy : Rest.Proxy {
 		[CCode (cname = "flickr_proxy_new", has_construct_function = false, type = "RestProxy*")]
 		public FlickrProxy (string api_key, string shared_secret);
@@ -26,21 +26,18 @@ namespace Rest {
 		public string sign (GLib.HashTable<void*,void*> @params);
 		[CCode (cname = "flickr_proxy_new_with_token", has_construct_function = false, type = "RestProxy*")]
 		public FlickrProxy.with_token (string api_key, string shared_secret, string token);
-		[NoAccessorMethod]
-		public string api_key { owned get; construct; }
-		[NoAccessorMethod]
-		public string shared_secret { owned get; construct; }
-		[NoAccessorMethod]
-		public string token { owned get; set; }
+		public string api_key { [CCode (cname = "flickr_proxy_get_api_key")] get; construct; }
+		public string shared_secret { [CCode (cname = "flickr_proxy_get_shared_secret")] get; construct; }
+		public string token { [CCode (cname = "flickr_proxy_get_token")] get; [CCode (cname = "flickr_proxy_set_token")] set; }
 	}
-	[CCode (cheader_filename = "rest-extras/flickr-proxy-call.h", cname = "FlickrProxyCall", lower_case_cprefix = "rest_extras_flickr_proxy_call_", type_id = "flickr_proxy_call_get_type ()")]
+	[CCode (cheader_filename = "rest-extras/flickr-proxy-call.h", cname = "FlickrProxyCall", type_id = "flickr_proxy_call_get_type ()")]
 	public class FlickrProxyCall : Rest.ProxyCall {
 		[CCode (has_construct_function = false)]
 		protected FlickrProxyCall ();
 		[NoAccessorMethod]
 		public bool upload { construct; }
 	}
-	[CCode (cheader_filename = "rest-extras/lastfm-proxy.h", cname = "LastfmProxy", lower_case_cprefix = "rest_extras_lastfm_proxy_", type_id = "lastfm_proxy_get_type ()")]
+	[CCode (cheader_filename = "rest-extras/lastfm-proxy.h", cname = "LastfmProxy", type_id = "lastfm_proxy_get_type ()")]
 	public class LastfmProxy : Rest.Proxy {
 		[CCode (cname = "lastfm_proxy_new", has_construct_function = false, type = "RestProxy*")]
 		public LastfmProxy (string api_key, string secret);
@@ -60,19 +57,16 @@ namespace Rest {
 		public string sign (GLib.HashTable<void*,void*> @params);
 		[CCode (cname = "lastfm_proxy_new_with_session", has_construct_function = false, type = "RestProxy*")]
 		public LastfmProxy.with_session (string api_key, string secret, string session_key);
-		[NoAccessorMethod]
-		public string api_key { owned get; construct; }
-		[NoAccessorMethod]
-		public string secret { owned get; construct; }
-		[NoAccessorMethod]
-		public string session_key { owned get; set; }
+		public string api_key { [CCode (cname = "lastfm_proxy_get_api_key")] get; construct; }
+		public string secret { [CCode (cname = "lastfm_proxy_get_secret")] get; construct; }
+		public string session_key { [CCode (cname = "lastfm_proxy_get_session_key")] get; [CCode (cname = "lastfm_proxy_set_session_key")] set; }
 	}
-	[CCode (cheader_filename = "rest-extras/lastfm-proxy-call.h", cname = "LastfmProxyCall", lower_case_cprefix = "rest_extras_lastfm_proxy_call_", type_id = "lastfm_proxy_call_get_type ()")]
+	[CCode (cheader_filename = "rest-extras/lastfm-proxy-call.h", cname = "LastfmProxyCall", type_id = "lastfm_proxy_call_get_type ()")]
 	public class LastfmProxyCall : Rest.ProxyCall {
 		[CCode (has_construct_function = false)]
 		protected LastfmProxyCall ();
 	}
-	[CCode (cheader_filename = "rest-extras/youtube-proxy.h", cname = "YoutubeProxy", lower_case_cprefix = "rest_extras_youtube_proxy_", type_id = "youtube_proxy_get_type ()")]
+	[CCode (cheader_filename = "rest-extras/youtube-proxy.h", cname = "YoutubeProxy", type_id = "youtube_proxy_get_type ()")]
 	public class YoutubeProxy : Rest.Proxy {
 		[CCode (cname = "youtube_proxy_new", has_construct_function = false, type = "RestProxy*")]
 		public YoutubeProxy (string developer_key);

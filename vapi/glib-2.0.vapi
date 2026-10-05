@@ -223,7 +223,7 @@ public struct uint {
 		} else {
 			unparsed = (string) endptr;
 		}
-		if (ulong_result <= uint.MAX) {
+		if (uint.MIN <= ulong_result <= uint.MAX) {
 			result = (uint) ulong_result;
 			return errno != ERANGE && errno != EINVAL && unparsed != endptr;
 		} else {
@@ -1018,6 +1018,49 @@ public struct double {
 	}
 }
 
+//FIXME [GIR (name = "off_t")]
+[GIR (name = "gsize")]
+[CCode (cheader_filename = "sys/types.h", has_type_id = false, default_value = "0")]
+[IntegerType (rank = 9)]
+public struct off_t {
+}
+
+//FIXME [GIR (name = "pid_t")]
+[GIR (name = "gint")]
+[IntegerType (rank = 9)]
+[CCode (cheader_filename = "sys/types.h", has_type_id = false, default_value = "0")]
+public struct pid_t {
+}
+
+//FIXME [GIR (name = "uid_t")]
+[GIR (name = "guint")]
+[IntegerType (rank = 9)]
+[CCode (cheader_filename = "sys/types.h", has_type_id = false, default_value = "0")]
+public struct uid_t {
+}
+
+//FIXME [GIR (name = "gid_t")]
+[GIR (name = "guint")]
+[IntegerType (rank = 9)]
+[CCode (cheader_filename = "sys/types.h", has_type_id = false, default_value = "0")]
+public struct gid_t {
+}
+
+//FIXME [GIR (name = "dev_t")]
+[GIR (name = "gint")]
+[IntegerType (rank = 9)]
+[CCode (cheader_filename = "sys/types.h", has_type_id = false, default_value = "0")]
+public struct dev_t {
+}
+
+//FIXME [GIR (name = "socklen_t")]
+[GIR (name = "gint32")]
+[IntegerType (rank = 9)]
+[CCode (cheader_filename = "sys/socket.h", has_type_id = false, default_value = "0")]
+public struct socklen_t {
+}
+
+//FIXME [GIR (name = "time_t")]
 [GIR (name = "glong")]
 [CCode (cheader_filename = "time.h", has_type_id = false, default_value = "0")]
 [IntegerType (rank = 8)]
@@ -2044,14 +2087,14 @@ namespace GLib {
 		public static uint add (uint interval, owned SourceFunc function, [CCode (pos = 0.1)] int priority = Priority.DEFAULT);
 		public static uint add_full (int priority, uint interval, owned SourceFunc function);
 		[Version (since = "2.74")]
-		public static uint add_once (uint interval, SourceOnceFunc function);
+		public static uint add_once (uint interval, [CCode (scope = "async")] owned SourceOnceFunc function);
 		[Version (since = "2.14")]
 		[CCode (cname = "g_timeout_add_seconds_full")]
 		public static uint add_seconds (uint interval, owned SourceFunc function, [CCode (pos = 0.1)] int priority = Priority.DEFAULT);
 		[Version (since = "2.14")]
 		public static uint add_seconds_full (int priority, uint interval, owned SourceFunc function);
 		[Version (since = "2.78")]
-		public static uint add_seconds_once (uint interval, SourceOnceFunc function);
+		public static uint add_seconds_once (uint interval, [CCode (scope = "async")] owned SourceOnceFunc function);
 	}
 
 	[CCode (cname = "GSource")]
@@ -2064,7 +2107,7 @@ namespace GLib {
 		public static uint add (owned SourceFunc function, [CCode (pos = 0.1)] int priority = Priority.DEFAULT_IDLE);
 		public static uint add_full (int priority, owned SourceFunc function);
 		[Version (since = "2.74")]
-		public static uint add_once (SourceOnceFunc function);
+		public static uint add_once ([CCode (scope = "async")] owned SourceOnceFunc function);
 		public static bool remove_by_data (void* data);
 	}
 
@@ -2269,8 +2312,6 @@ namespace GLib {
 
 		[CCode (cname = "g_usleep")]
 		public static void usleep (ulong microseconds);
-
-		public static bool garbage_collect ();
 	}
 
 	[Version (since = "2.32")]
@@ -2967,7 +3008,7 @@ namespace GLib {
 	[CCode (array_length = false, array_null_terminated = true)]
 	public string[] strdupv ([CCode (array_length = false, array_null_terminated = true)] string[] str_array);
 
-	public void strfreev (string** str_array);
+	public void strfreev ([CCode (array_length = false, array_null_terminated = true)] owned string[] str_array);
 	[Version (since = "2.6")]
 	public uint strv_length ([CCode (array_length = false, array_null_terminated = true)] string[] str_array);
 	[Version (since = "2.44")]
@@ -2984,7 +3025,7 @@ namespace GLib {
 	public static string convert_with_iconv (string str, ssize_t len, IConv converter, out size_t bytes_read = null, out size_t bytes_written = null) throws ConvertError;
 	public static bool get_charset (out unowned string charset);
 	[Version (since = "2.62")]
-	public static bool get_console_charset ([CCode (array_length = false, array_null_terminated = true)] out unowned string[] charsets);
+	public static bool get_console_charset (out unowned string charset);
 	public static bool get_filename_charsets ([CCode (array_length = false, array_null_terminated = true)] out unowned string[] charsets);
 
 	[SimpleType]
@@ -2992,7 +3033,7 @@ namespace GLib {
 	public struct IConv {
 		public static IConv open (string to_codeset, string from_codeset);
 		[CCode (cname = "g_iconv")]
-		public size_t iconv ([CCode (array_length = false)] ref char[] inbuf, ref size_t inbytes_left, [CCode (array_length = false)] ref char[] outbuf, ref size_t outbytes_left);
+		public size_t iconv ([CCode (array_length = false, array_null_terminated = true)] ref char[] inbuf, ref size_t inbytes_left, [CCode (array_length = false, array_null_terminated = true)] ref char[] outbuf, ref size_t outbytes_left);
 		public int close ();
 	}
 
@@ -4019,9 +4060,9 @@ namespace GLib {
 		public static FileStream? fdopen (int fildes, string mode);
 		[CCode (cname = "fprintf")]
 		[PrintfFormat ()]
-		public void printf (string format, ...);
+		public int printf (string format, ...);
 		[CCode (cname = "vfprintf")]
-		public void vprintf (string format, va_list args);
+		public int vprintf (string format, va_list args);
 		[CCode (cname = "fputc", instance_pos = -1)]
 		public int putc (char c);
 		[CCode (cname = "fputs", instance_pos = -1)]
@@ -4070,16 +4111,12 @@ namespace GLib {
 			if (ret == null) {
 				return null;
 			} else {
-				return ((!)(ret)).str;
+				return (owned) ((!)(ret)).str;
 			}
 		}
 	}
 
-#if VALA_OS_WINDOWS
-	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,sys/utime.h", has_type_id = false)]
-#else
 	[CCode (cname = "struct utimbuf", cheader_filename = "sys/types.h,utime.h", has_type_id = false)]
-#endif
 	public struct UTimBuf {
 		time_t actime;       /* access time */
 		time_t modtime;      /* modification time */
@@ -4097,7 +4134,7 @@ namespace GLib {
 		[CCode (cname = "g_file_set_contents")]
 		public static bool set_data (string filename, [CCode (type = "const char*", array_length_type = "gsize")] uint8[] contents) throws FileError;
 		public static bool test (string filename, FileTest test);
-		public static int open_tmp (string tmpl, out string name_used) throws FileError;
+		public static int open_tmp (string? tmpl, out string name_used) throws FileError;
 		[Version (since = "2.4")]
 		public static string read_link (string filename) throws FileError;
 		public static int error_from_errno (int err_no);
@@ -4125,11 +4162,7 @@ namespace GLib {
 		[CCode (cname = "symlink", cheader_filename = "unistd.h")]
 		public static int symlink (string oldpath, string newpath);
 
-#if VALA_OS_WINDOWS
-		[CCode (cname = "_close", cheader_filename = "io.h")]
-#else
 		[CCode (cname = "close", cheader_filename = "unistd.h")]
-#endif
 		public static int close (int fd);
 
 		[Version (since = "2.36")]
@@ -4554,6 +4587,8 @@ namespace GLib {
 	[CCode (cprefix = "G_REGEX_", has_type_id = false)]
 	[Flags]
 	public enum RegexCompileFlags {
+		[Version (since = "2.74")]
+		DEFAULT,
 		CASELESS,
 		MULTILINE,
 		DOTALL,
@@ -4570,6 +4605,7 @@ namespace GLib {
 		NEWLINE_CRLF,
 		NEWLINE_ANYCRLF,
 		BSR_ANYCRLF,
+		[Version (deprecated_since = "2.74")]
 		JAVASCRIPT_COMPAT
 	}
 
@@ -4577,6 +4613,8 @@ namespace GLib {
 	[CCode (cprefix = "G_REGEX_MATCH_", has_type_id = false)]
 	[Flags]
 	public enum RegexMatchFlags {
+		[Version (since = "2.74")]
+		DEFAULT,
 		ANCHORED,
 		NOTBOL,
 		NOTEOL,
@@ -4612,6 +4650,8 @@ namespace GLib {
 		public int get_capture_count ();
 		public int get_string_number (string name);
 		public static string escape_string (string str, int length = -1);
+		[Version (since = "2.30")]
+		public static string escape_nul (char[] str);
 		public static bool match_simple (string pattern, string str, RegexCompileFlags compile_options = 0, RegexMatchFlags match_options = 0);
 		public bool match (string str, RegexMatchFlags match_options = 0, out MatchInfo match_info = null);
 		public bool match_full (string str, ssize_t string_len = -1, int start_position = 0, RegexMatchFlags match_options = 0, out MatchInfo match_info = null) throws RegexError;
@@ -4650,9 +4690,6 @@ namespace GLib {
 		[CCode (array_length = false, array_null_terminated = true)]
 		public string[] fetch_all ();
 	}
-
-	/* Simple XML Subset Parser
-	   See http://live.gnome.org/Vala/MarkupSample for an example */
 
 	[CCode (has_type_id = false)]
 	public errordomain MarkupError {
@@ -5635,7 +5672,7 @@ namespace GLib {
 		[CCode (cname = "g_hash_table_new_full", simple_generics = true)]
 		public GenericSet (HashFunc<T>? hash_func, EqualFunc<T>? equal_func, GLib.DestroyNotify? always_pass_null_here = null);
 		public bool add (owned T value);
-		public bool contains (T valule);
+		public bool contains (T value);
 		public bool remove (T value);
 		public void remove_all ();
 		public GLib.List<unowned T> get_values ();
@@ -6435,7 +6472,7 @@ namespace GLib {
 	[Compact]
 	[Immutable]
 	[Version (since = "2.24")]
-	[CCode (copy_function = "g_variant_type_copy", free_function = "g_variant_type_free", type_id = "G_TYPE_VARIANT_TYPE")]
+	[CCode (copy_function = "g_variant_type_copy", free_function = "g_variant_type_free", type_id = "G_TYPE_VARIANT_TYPE", type_signature = "g")]
 	public class VariantType {
 		[CCode (cname = "G_VARIANT_TYPE_BOOLEAN")]
 		public static VariantType BOOLEAN;
@@ -6733,7 +6770,7 @@ namespace GLib {
 	}
 
 	[Version (since = "2.40")]
-	[Compact, CCode (ref_function = "g_variant_dict_ref", unref_function = "g_variant_dict_unref", type_id = "G_TYPE_VARIANT_DICT")]
+	[Compact, CCode (ref_function = "g_variant_dict_ref", unref_function = "g_variant_dict_unref", type_id = "G_TYPE_VARIANT_DICT", type_signature = "a{sv}")]
 	public class VariantDict {
 		public VariantDict (GLib.Variant? from_asv = null);
 		public bool lookup (string key, string format_string, ...);
@@ -7019,6 +7056,8 @@ namespace GLib {
 		OTHER_LETTER,
 		TITLECASE_LETTER,
 		UPPERCASE_LETTER,
+		SPACING_MARK,
+		[Version (deprecated_since = "2.30", replacement = "SPACING_MARK")]
 		COMBINING_MARK,
 		ENCLOSING_MARK,
 		NON_SPACING_MARK,
@@ -7101,11 +7140,4 @@ namespace GLib {
 		ALL_COMPOSE,
 		NFKC
 	}
-}
-
-[CCode (cheader_filename = "glib.h", lower_case_cprefix = "glib_", gir_namespace = "GLib", gir_version = "2.0")]
-namespace GLibFork {
-	public static void prepare_to_fork ();
-	public static void recover_from_fork_in_parent ();
-	public static void recover_from_fork_in_child ();
 }

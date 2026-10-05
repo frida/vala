@@ -1,6 +1,6 @@
 /* gnu.vapi
  *
- * Copyright (C) 2020 Reuben Thomas
+ * Copyright (C) 2020, 2024 Reuben Thomas
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -56,6 +56,39 @@ namespace Gnu {
 	[PrintfFormat]
 	public void error (int status, int errnum, string format, ...);
 
+	/**
+	 * Provides the values for the 'operation' argument of 'flock'.
+	 */
+	[CCode (cname = "int", cprefix = "LOCK_", cheader_filename = "sys/file.h", has_type_id = false)]
+	public enum FlockOperation {
+		SH,
+		EX,
+		UN
+	}
+	[CCode (cheader_filename = "sys/file.h")]
+	public int flock (int fd, FlockOperation operation);
+
 	[CCode (cheader_filename = "quote.h")]
 	public string quote (string arg);
+
+	[CCode (cheader_filename = "relocatable.h", cname = "relocate", type ="const char*")]
+	char* _gnulib_relocate (char* path);
+	[CCode (cname = "_vala_gnulib_relocate")]
+	public string relocate (string path) {
+		char* newpath = _gnulib_relocate (path);
+		if (newpath != path) {
+			// If relocate malloced, then return the value, defeating Vala's
+			// attempt to strdup it.
+			return (string) (owned) newpath;
+		} else {
+			// Otherwise, allow Vala to strdup the non-malloced return value.
+			return (string) newpath;
+		}
+	}
+
+	[CCode (cheader_filename = "relocatable.h")]
+	public void set_relocation_prefix (string orig_prefix, string curr_prefix);
+
+	[CCode (cheader_filename = "relocatable.h")]
+	public string compute_curr_prefix (string orig_installprefix, string orig_installdir, string curr_pathname);
 }

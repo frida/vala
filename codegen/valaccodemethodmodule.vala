@@ -831,7 +831,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			} else {
 				vardecl = new CCodeVariableDeclarator ("result");
 			}
-			ccode.add_declaration (get_ccode_name (m.return_type), vardecl);
+			ccode.add_declaration (get_creturn_type (m, get_ccode_name (m.return_type)), vardecl);
 		}
 
 		pop_context ();
@@ -901,8 +901,6 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				}
 			}
 
-			ccode.add_statement (new CCodeExpressionStatement.behind_ifdef ("GLIB_DYNAMIC_UNLOADING", new CCodeFunctionCall (new CCodeIdentifier ("glib_init"))));
-
 			var main_call = new CCodeFunctionCall (new CCodeIdentifier (m.coroutine ? real_name : function.name));
 			if (m.get_parameters ().size == 1) {
 				main_call.add_argument (new CCodeIdentifier ("argv"));
@@ -914,7 +912,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 				var main_loop_new_call = new CCodeFunctionCall (new CCodeIdentifier ("g_main_loop_new"));
 				main_loop_new_call.add_argument (new CCodeConstantIdentifier ("NULL"));
 				main_loop_new_call.add_argument (new CCodeConstantIdentifier ("FALSE"));
-				ccode.add_declaration ("GMainLoop*", new CCodeVariableDeclarator ("loop", main_loop_new_call));
+				ccode.add_declaration ("GMainLoop*", new CCodeVariableDeclarator.zero ("loop", main_loop_new_call));
 
 				// add some more arguments to main_call
 				main_call.add_argument (new CCodeIdentifier (real_name + "_callback"));
@@ -1212,7 +1210,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 			} else {
 				vardecl = new CCodeVariableDeclarator ("result");
 			}
-			ccode.add_declaration (get_ccode_name (m.return_type), vardecl);
+			ccode.add_declaration (get_creturn_type (m, get_ccode_name (m.return_type)), vardecl);
 		}
 
 		// add a typecheck statement for "self"
@@ -1323,7 +1321,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 		} else {
 			ccheck.call = new CCodeIdentifier ("_vala_return_val_if_fail");
 
-			var cdefault = default_value_for_type (ret_type, false);
+			var cdefault = default_value_for_type (ret_type, false, true);
 			if (cdefault != null) {
 				ccheck.add_argument (cdefault);
 			} else {

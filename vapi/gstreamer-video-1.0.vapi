@@ -84,6 +84,7 @@ namespace Gst {
 		[GIR (name = "VideoChromaResample")]
 		public class ChromaResample {
 			[CCode (cname = "gst_video_chroma_resample_new", has_construct_function = false)]
+			[Version (deprecated = false)]
 			public ChromaResample (Gst.Video.ChromaMethod method, Gst.Video.ChromaSite site, Gst.Video.ChromaFlags flags, Gst.Video.Format format, int h_factor, int v_factor);
 			public void free ();
 			public void get_info (out uint n_lines, out int offset);

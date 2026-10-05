@@ -196,7 +196,7 @@ public class Vala.LocalVariable : Variable {
 			if (initializer.value_type is MethodType) {
 				if (!(initializer is MemberAccess) && !(initializer is LambdaExpression)) {
 					error = true;
-					Report.error (source_reference, "expression type not allowed as initializer");
+					Report.error (initializer.source_reference, "expression type not allowed as initializer");
 					return false;
 				}
 
@@ -211,12 +211,12 @@ public class Vala.LocalVariable : Variable {
 					}
 				} else {
 					error = true;
-					Report.error (source_reference, "expression type not allowed as initializer");
+					Report.error (initializer.source_reference, "expression type not allowed as initializer");
 					return false;
 				}
 			} else if (initializer.value_type == null) {
 				error = true;
-				Report.error (source_reference, "expression type not allowed as initializer");
+				Report.error (initializer.source_reference, "expression type not allowed as initializer");
 				return false;
 			}
 
@@ -242,14 +242,10 @@ public class Vala.LocalVariable : Variable {
 				return false;
 			}
 
-			if (initializer.value_type.is_disposable ()) {
-				/* rhs transfers ownership of the expression */
-				if (!(variable_type is PointerType) && !variable_type.value_owned) {
-					/* lhs doesn't own the value */
-					error = true;
-					Report.error (source_reference, "Invalid assignment from owned expression to unowned variable");
-					return false;
-				}
+			if (!initializer.value_type.transfer_compatible (variable_type)) {
+				error = true;
+				Report.error (source_reference, "Invalid assignment from owned expression to unowned variable");
+				return false;
 			}
 		}
 

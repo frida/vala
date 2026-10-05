@@ -920,9 +920,9 @@ namespace Gst {
 		public bool @foreach (Gst.CapsForeachFunc func);
 		public static Gst.Caps? from_string (string string);
 		[CCode (has_construct_function = false)]
-		public Caps.full (params Gst.Structure[] structure);
+		public Caps.full (params owned Gst.Structure[] structure);
 		[CCode (has_construct_function = false)]
-		public Caps.full_valist (Gst.Structure structure, va_list var_args);
+		public Caps.full_valist (owned Gst.Structure structure, va_list var_args);
 		[Version (since = "1.2")]
 		public unowned Gst.CapsFeatures? get_features (uint index);
 		public uint get_size ();
@@ -2105,21 +2105,6 @@ namespace Gst {
 	public sealed class ParamFraction : GLib.ParamSpec {
 		[CCode (has_construct_function = false)]
 		protected ParamFraction ();
-	}
-	[CCode (cheader_filename = "gst/gst.h", has_type_id = false)]
-	[Compact]
-	public class ParamSpecArray : GLib.ParamSpec {
-		public weak GLib.ParamSpec element_spec;
-	}
-	[CCode (cheader_filename = "gst/gst.h", has_type_id = false)]
-	[Compact]
-	public class ParamSpecFraction : GLib.ParamSpec {
-		public int def_den;
-		public int def_num;
-		public int max_den;
-		public int max_num;
-		public int min_den;
-		public int min_num;
 	}
 	[CCode (cheader_filename = "gst/gst.h", free_function = "gst_parse_context_free", type_id = "gst_parse_context_get_type ()")]
 	[Compact]

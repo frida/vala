@@ -1,9 +1,10 @@
-<repository version="1.2" xmlns="http://www.gtk.org/introspection/core/1.0" xmlns:c="http://www.gtk.org/introspection/c/1.0" xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+<repository version="1.2" xmlns="http://www.gtk.org/introspection/core/1.0" xmlns:c="http://www.gtk.org/introspection/c/1.0" xmlns:doc="http://www.gtk.org/introspection/doc/1.0" xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
 <include name="GObject" version="2.0"/>
 <include name="GLib" version="2.0"/>
 <include name="Gio" version="2.0"/>
 <package name="girtest"/>
 <c:include name="girtest.h"/>
+<doc:format name="unknown"/>
 <namespace name="GirTest" version="1.0" shared-library="girtest" c:prefix="GirTest" c:identifier-prefixes="GirTest" c:symbol-prefixes="gir_test">
 	<function name="nested_function" c:identifier="gir_test_nested_function">
 		<return-value transfer-ownership="full">
@@ -15,6 +16,16 @@
 		<member name="value2" c:identifier="GIR_TEST_ENUM_TEST_VALUE2" value="1"/>
 		<member name="value3" c:identifier="GIR_TEST_ENUM_TEST_VALUE3" value="4711"/>
 	</enumeration>
+	<function name="enum_test_enum_method" c:identifier="gir_test_enum_test_enum_method">
+		<return-value transfer-ownership="full">
+			<type name="gint" c:type="gint"/>
+		</return-value>
+		<parameters>
+			<parameter name="self" transfer-ownership="none">
+				<type name="GirTest.EnumTest" c:type="GirTestEnumTest"/>
+			</parameter>
+		</parameters>
+	</function>
 	<bitfield name="FlagsTest" c:type="GirTestFlagsTest" glib:type-name="GirTestFlagsTest" glib:get-type="gir_test_flags_test_get_type">
 		<member name="value1" c:identifier="GIR_TEST_FLAGS_TEST_VALUE1" value="1"/>
 		<member name="value2" c:identifier="GIR_TEST_FLAGS_TEST_VALUE2" value="2"/>
@@ -979,7 +990,7 @@
 				</parameter>
 			</parameters>
 		</virtual-method>
-		<property name="some-property" writable="1" construct="1">
+		<property name="some-property" writable="1" construct="1" default-value="foo">
 			<type name="utf8" c:type="gchar*"/>
 		</property>
 		<method name="get_some_property" c:identifier="gir_test_object_test_get_some_property">
@@ -1914,7 +1925,7 @@
 		<field name="priv" readable="0" private="1">
 			<type name="DeprecatedClassTestPrivate" c:type="GirTestDeprecatedClassTestPrivate*"/>
 		</field>
-		<constructor name="new" c:identifier="gir_test_deprecated_class_test_new">
+		<constructor name="new" c:identifier="gir_test_deprecated_class_test_new" deprecated="1">
 			<return-value transfer-ownership="full">
 				<type name="GirTest.DeprecatedClassTest" c:type="GirTestDeprecatedClassTest*"/>
 			</return-value>
@@ -2458,7 +2469,7 @@
 				<type name="none" c:type="void"/>
 			</return-value>
 		</function>
-		<property name="property" writable="1" construct="1">
+		<property name="property" writable="1" construct="1" default-value="23">
 			<type name="gint" c:type="gint"/>
 		</property>
 		<method name="get_property" c:identifier="gir_test_interface_test_get_property">

@@ -5,15 +5,6 @@ Gio name="GLib"
 *.*.cancellable#parameter nullable default=null
 *.*.io_priority#parameter default=GLib.Priority.DEFAULT
 
-// Needs to be in gio-unix-2.0
-DesktopAppInfo* skip
-DesktopAppLaunchCallback skip
-FileDescriptorBased* skip
-Unix* skip
-UnixSocketAddressType skip=false
-UnixFDList skip=false cheader_filename="gio/gunixfdlist.h"
-unix_* skip
-// UnixSocketAddress.abstract#property skip
 DBusConnection
 	.call_with_unix_fd_list*.fd_list default=null
 	.call_with_unix_fd_list*.out_fd_list nullable default=null
@@ -33,16 +24,20 @@ bus_* parent="GLib.Bus" name="bus_(.*)"
 bus_get skip
 bus_get_sync skip
 bus_get_finish skip
+bus_own_name skip
 bus_own_name_with_closures name="own_name"
   .bus_acquired_closure type="owned GLib.BusAcquiredCallback?" default=null
   .name_acquired_closure type="owned GLib.BusNameAcquiredCallback?" default=null
   .name_lost_closure type="owned GLib.BusNameLostCallback?" default=null
+bus_own_name_on_connection skip
 bus_own_name_on_connection_with_closures name="own_name_on_connection"
   .name_acquired_closure type="owned GLib.BusNameAcquiredCallback?" default=null
   .name_lost_closure type="owned GLib.BusNameLostCallback?" default=null
+bus_watch_name_on_connection skip
 bus_watch_name_on_connection_with_closures name="watch_name_on_connection"
   .name_appeared_closure type="owned GLib.BusNameAppearedCallback?" default=null
   .name_vanished_closure type="owned GLib.BusNameVanishedCallback?" default=null
+bus_watch_name skip
 bus_watch_name_with_closures name="watch_name"
   .name_appeared_closure type="owned GLib.BusNameAppearedCallback?" default=null
   .name_vanished_closure type="owned GLib.BusNameVanishedCallback?" default=null
@@ -105,6 +100,7 @@ DBusConnection
   .send_message_with_reply_finish throws="GLib.IOError"
   .send_message_with_reply_sync throws="GLib.IOError"
 DBusInterfaceSkeleton
+  .get_info nullable
   .get_vtable skip=false nullable unowned=false
 DBusMessage
   .new_* skip=false symbol_type="constructor"
@@ -131,10 +127,14 @@ DBusServer
 Drive
   .get_sort_key#virtual_method virtual
 File
+  .copy_async_with_closures.*#parameter default=()
   .load_bytes.etag_out default=null
   .load_contents.cancellable#parameter default=()
   .monitor_dir* throws="GLib.IOError"
   .monitor_file throws="GLib.IOError"
+  .move_async_with_closures.*#parameter default=()
+  .replace_contents.contents ctype="const char*"
+  .replace_contents_async.contents ctype="const char*"
   .replace_contents_bytes_async finish_name="g_file_replace_contents_finish"
 IOExtension
   .ref_class skip=false
@@ -236,9 +236,12 @@ Socket
   .condition_wait throws="GLib.IOError"
   .connection_factory_create_connection parent="GLib.SocketConnection" name="factory_create_connection" symbol_type="function"
   .create_source skip=false type="GLib.SocketSource"
-  .receive.buffer out=false
-  .receive_from.buffer out=false
-  .receive_with_blocking.buffer out=false
+  .receive.buffer out=false ctype="gchar*"
+  .receive_from.buffer out=false ctype="gchar*"
+  .receive_with_blocking.buffer out=false ctype="gchar*"
+  .send.buffer ctype="const gchar*"
+  .send_to.buffer ctype="const gchar*"
+  .send_with_blocking.buffer ctype="const gchar*"
 SocketControlMessage
   .serialize.data type="uint8[]"
 SocketListener
@@ -263,6 +266,8 @@ Task
 TlsPassword
   .set_value#virtual_method.value owned
   .set_value#virtual_method.destroy default=GLib.free
+UnixSocketAddress
+  .new_abstract replacement="UnixSocketAddress.with_type"
 Vfs
   .deserialize_icon skip=false unowned=false
   // TODO: should probably be a simple generic
@@ -308,12 +313,12 @@ TlsFileDatabase
 TlsServerConnection
   .new nullable
 InputMessage
-  .control_messages type="GLib.SocketControlMessage***"
+  .address type="GLib.SocketAddress**"
+  .control_messages type="GLib.SocketControlMessage**"
   .num_control_messages type="uint*"
 OutputMessage
   .vectors array
-  .control_messages type="GLib.SocketControlMessage***"
-  .num_control_messages type="uint*"
+  .control_messages nullable
 DBusError errordomain
 DBusSubtreeEnumerateFunc unowned=false skip=false
 pollable_source_new parent="GLib.PollableSource" symbol_type="constructor" name="new"
@@ -321,6 +326,8 @@ pollable_source_new_full parent="GLib.PollableSource" symbol_type="constructor" 
   .child_source default=null
 pollable_stream_read
   .buffer type="uint8[]" array_length_idx=2
+SettingsBindSetMapping
+  .value ctype="const GValue*"
 
 
 content_types_get_registered parent="GLib.ContentType" name="list_registered"
@@ -372,6 +379,9 @@ File
   .measure_disk_usage#virtual_method virtual
 
 // Back compat
+ApplicationCommandLine
+  .print_literal no_wrapper since=()
+  .printerr_literal no_wrapper since=()
 TlsCertificate abstract=false
 DataInputStream
   .read_line type="string?"
@@ -401,6 +411,7 @@ Application
 Converter
   .convert.inbuf nullable=false
 DBusSubtreeVTable.enumerate skip=false
+dbus_error_register_error_domain.quark_volatile ref
 DtlsConnection
   .get_channel_binding_data#method virtual vfunc_name="get_binding_data" throws="GLib.TlsChannelBindingError"
 File

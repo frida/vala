@@ -7,10 +7,12 @@ Program: client
 interface Test : Object {
 	public abstract string test_property { owned get; set; }
 	public abstract int test_int_property { get; set; }
+	public abstract VariantType test_signature_property { owned get; set; }
 
 	public abstract void test_void () throws IOError;
 	public abstract int test_int (int i, out int j) throws IOError;
 	public abstract string test_string (string s, out string t) throws IOError;
+	public abstract VariantType test_signature (VariantType tp1, out VariantType tp2) throws IOError;
 }
 
 void main () {
@@ -29,6 +31,11 @@ void main () {
 	assert (t == "world");
 	assert (u == "vala");
 
+	VariantType tp1, tp2;
+	tp1 = test.test_signature (new VariantType ("a(bgha{sv})"), out tp2);
+	assert (tp1.dup_string () == "aaaas");
+	assert (tp2.dup_string () == "(ibt)");
+
 	test.test_property = "hello";
 	t = test.test_property;
 	assert (t == "hello");
@@ -36,6 +43,10 @@ void main () {
 	test.test_int_property = 42;
 	j = test.test_int_property;
 	assert (j == 42);
+
+	test.test_signature_property = tp2;
+	tp1 = test.test_signature_property;
+	assert (tp1.equal (tp2));
 }
 
 Program: server
@@ -44,6 +55,7 @@ Program: server
 class Test : Object {
 	public string test_property { owned get; set; }
 	public int test_int_property { get; set; }
+	public VariantType test_signature_property { owned get; set; }
 
 	public void test_void () {
 	}
@@ -58,6 +70,12 @@ class Test : Object {
 		assert (s == "hello");
 		t = "world";
 		return "vala";
+	}
+
+	public VariantType test_signature (VariantType tp1, out VariantType tp2) {
+		assert (tp1.dup_string () == "a(bgha{sv})");
+		tp2 = new VariantType.tuple ({ VariantType.INT32, VariantType.BOOLEAN, VariantType.UINT64 });
+		return new VariantType.array (new VariantType.array (new VariantType.array (VariantType.STRING_ARRAY)));
 	}
 }
 

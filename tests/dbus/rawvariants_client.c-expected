@@ -8,48 +8,11 @@
 #include <string.h>
 
 #if !defined(VALA_STRICT_C)
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 5)
-#pragma GCC diagnostic ignored "-Wchar-subscripts"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
-#pragma GCC diagnostic ignored "-Wreturn-type"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wunused-function"
-#pragma GCC diagnostic ignored "-Wunused-label"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-#elif defined(__clang__)
-#pragma clang diagnostic ignored "-Wchar-subscripts"
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 14)
+#pragma GCC diagnostic warning "-Wincompatible-pointer-types"
+#elif defined(__clang__) && (__clang_major__ >= 16)
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
 #pragma clang diagnostic ignored "-Wincompatible-pointer-types"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic ignored "-Wpointer-sign"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma clang diagnostic ignored "-Wsign-compare"
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-label"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wunused-variable"
-#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
-#pragma clang diagnostic ignored "-Wtypedef-redefinition"
-#pragma clang diagnostic ignored "-Wunused-value"
-#pragma clang diagnostic ignored "-Wvoid-pointer-to-int-cast"
-#elif defined(_MSC_VER)
-#pragma warning (disable: 4022 4047 4057 4090 4100 4102 4113 4127 4133 4152 4189 4244 4267 4305 4311 4312 4389 4456 4702 4715)
-#endif
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-#if defined(__clang__) && (__clang_major__ >= 13)
-#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 #endif
 #if !defined(VALA_EXTERN)
@@ -316,7 +279,7 @@ test_test_method (Test* self,
                   GError** error)
 {
 	TestIface* _iface_;
-	g_return_val_if_fail (IS_TEST (self), 0);
+	g_return_val_if_fail (IS_TEST (self), -1);
 	_iface_ = TEST_GET_INTERFACE (self);
 	if (_iface_->test_method) {
 		return _iface_->test_method (self, j, k, error);
@@ -425,38 +388,24 @@ test_proxy_test_method (Test* self,
                         gint k,
                         GError** error)
 {
-	GDBusMessage *_message;
-	GVariant *_arguments;
-	GVariantBuilder _arguments_builder;
-	GDBusMessage *_reply_message;
 	GVariant *_reply;
+	GVariantBuilder _arguments_builder;
 	GVariantIter _reply_iter;
 	gint _result = 0;
-	GVariant* _tmp3_;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "TestMethod");
+	GVariant* _tmp2_;
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_arguments_builder, g_variant_new_int32 (j));
 	g_variant_builder_add_value (&_arguments_builder, g_variant_new_int32 (k));
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	_reply_message = g_dbus_connection_send_message_with_reply_sync (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, error);
-	g_object_unref (_message);
-	if (!_reply_message) {
-		gint _tmp1_ = 0;
+	_reply = g_dbus_proxy_call_sync ((GDBusProxy *) self, "TestMethod", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, NULL, error);
+	if (!_reply) {
+		gint _tmp1_ = -1;
 		return _tmp1_;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		gint _tmp2_ = 0;
-		g_object_unref (_reply_message);
-		return _tmp2_;
-	}
-	_reply = g_dbus_message_get_body (_reply_message);
 	g_variant_iter_init (&_reply_iter, _reply);
-	_tmp3_ = g_variant_iter_next_value (&_reply_iter);
-	_result = g_variant_get_int32 (_tmp3_);
-	g_variant_unref (_tmp3_);
-	g_object_unref (_reply_message);
+	_tmp2_ = g_variant_iter_next_value (&_reply_iter);
+	_result = g_variant_get_int32 (_tmp2_);
+	g_variant_unref (_tmp2_);
+	g_variant_unref (_reply);
 	return _result;
 }
 
@@ -478,8 +427,17 @@ test_dbus_proxy_get_test_property (Test* self)
 		if (!_reply) {
 			return NULL;
 		}
+		if (G_UNLIKELY (!g_variant_is_of_type (_reply, G_VARIANT_TYPE ("(v)")))) {
+			g_variant_unref (_reply);
+			return NULL;
+		}
 		g_variant_get (_reply, "(v)", &_inner_reply);
 		g_variant_unref (_reply);
+	}
+	if (G_UNLIKELY (!g_variant_is_of_type (_inner_reply, G_VARIANT_TYPE ("s")))) {
+		g_warning ("Expected property %s.%s to be of type '%s', but received '%s'", "org.example.Test", "TestProperty", "s", g_variant_get_type_string (_inner_reply));
+		g_variant_unref (_inner_reply);
+		return NULL;
 	}
 	_result = g_variant_dup_string (_inner_reply, NULL);
 	g_variant_unref (_inner_reply);
@@ -523,32 +481,26 @@ _dbus_test_test_method (Test* self,
 	GError* error = NULL;
 	GVariantIter _arguments_iter;
 	gint j = 0;
-	GVariant* _tmp4_;
+	GVariant* _tmp3_;
 	gint k = 0;
-	GVariant* _tmp5_;
-	GDBusMessage* _call_message;
+	GVariant* _tmp4_;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
 	gint result;
 	g_variant_iter_init (&_arguments_iter, _parameters_);
+	_tmp3_ = g_variant_iter_next_value (&_arguments_iter);
+	j = g_variant_get_int32 (_tmp3_);
+	g_variant_unref (_tmp3_);
 	_tmp4_ = g_variant_iter_next_value (&_arguments_iter);
-	j = g_variant_get_int32 (_tmp4_);
+	k = g_variant_get_int32 (_tmp4_);
 	g_variant_unref (_tmp4_);
-	_tmp5_ = g_variant_iter_next_value (&_arguments_iter);
-	k = g_variant_get_int32 (_tmp5_);
-	g_variant_unref (_tmp5_);
 	result = test_test_method (self, j, k, &error);
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
 		return;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, g_variant_new_int32 (result));
 	_reply = g_variant_builder_end (&_reply_builder);
@@ -803,33 +755,20 @@ test_raw_proxy_test_method (TestRaw* self,
                             GVariant* k,
                             GError** error)
 {
-	GDBusMessage *_message;
-	GVariant *_arguments;
-	GVariantBuilder _arguments_builder;
-	GDBusMessage *_reply_message;
 	GVariant *_reply;
+	GVariantBuilder _arguments_builder;
 	GVariantIter _reply_iter;
 	GVariant* _result = NULL;
-	G_IO_ERROR;
-	_message = g_dbus_message_new_method_call (g_dbus_proxy_get_name ((GDBusProxy *) self), g_dbus_proxy_get_object_path ((GDBusProxy *) self), "org.example.Test", "TestMethod");
 	g_variant_builder_init (&_arguments_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_arguments_builder, j);
 	g_variant_builder_add_value (&_arguments_builder, k);
-	_arguments = g_variant_builder_end (&_arguments_builder);
-	g_dbus_message_set_body (_message, _arguments);
-	_reply_message = g_dbus_connection_send_message_with_reply_sync (g_dbus_proxy_get_connection ((GDBusProxy *) self), _message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, g_dbus_proxy_get_default_timeout ((GDBusProxy *) self), NULL, NULL, error);
-	g_object_unref (_message);
-	if (!_reply_message) {
+	_reply = g_dbus_proxy_call_sync ((GDBusProxy *) self, "TestMethod", g_variant_builder_end (&_arguments_builder), G_DBUS_CALL_FLAGS_NONE, -1, NULL, error);
+	if (!_reply) {
 		return NULL;
 	}
-	if (g_dbus_message_to_gerror (_reply_message, error)) {
-		g_object_unref (_reply_message);
-		return NULL;
-	}
-	_reply = g_dbus_message_get_body (_reply_message);
 	g_variant_iter_init (&_reply_iter, _reply);
 	_result = g_variant_iter_next_value (&_reply_iter);
-	g_object_unref (_reply_message);
+	g_variant_unref (_reply);
 	return _result;
 }
 
@@ -851,8 +790,17 @@ test_raw_dbus_proxy_get_test_property (TestRaw* self)
 		if (!_reply) {
 			return NULL;
 		}
+		if (G_UNLIKELY (!g_variant_is_of_type (_reply, G_VARIANT_TYPE ("(v)")))) {
+			g_variant_unref (_reply);
+			return NULL;
+		}
 		g_variant_get (_reply, "(v)", &_inner_reply);
 		g_variant_unref (_reply);
+	}
+	if (G_UNLIKELY (!g_variant_is_of_type (_inner_reply, G_VARIANT_TYPE ("s")))) {
+		g_warning ("Expected property %s.%s to be of type '%s', but received '%s'", "org.example.Test", "TestProperty", "s", g_variant_get_type_string (_inner_reply));
+		g_variant_unref (_inner_reply);
+		return NULL;
 	}
 	_result = _inner_reply;
 	return _result;
@@ -896,7 +844,6 @@ _dbus_test_raw_test_method (TestRaw* self,
 	GVariantIter _arguments_iter;
 	GVariant* j = NULL;
 	GVariant* k = NULL;
-	GDBusMessage* _call_message;
 	GDBusMessage* _reply_message = NULL;
 	GVariant* _reply;
 	GVariantBuilder _reply_builder;
@@ -907,14 +854,9 @@ _dbus_test_raw_test_method (TestRaw* self,
 	result = test_raw_test_method (self, j, k, &error);
 	if (error) {
 		g_dbus_method_invocation_take_error (invocation, error);
-		goto _return;
+		goto _error;
 	}
-	_call_message = g_dbus_method_invocation_get_message (invocation);
-	if (g_dbus_message_get_flags (_call_message) & G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED) {
-		g_object_unref (invocation);
-		goto _return;
-	}
-	_reply_message = g_dbus_message_new_method_reply (_call_message);
+	_reply_message = g_dbus_message_new_method_reply (g_dbus_method_invocation_get_message (invocation));
 	g_variant_builder_init (&_reply_builder, G_VARIANT_TYPE_TUPLE);
 	g_variant_builder_add_value (&_reply_builder, result);
 	_g_variant_unref0 (result);
@@ -923,7 +865,7 @@ _dbus_test_raw_test_method (TestRaw* self,
 	g_dbus_connection_send_message (g_dbus_method_invocation_get_connection (invocation), _reply_message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 	g_object_unref (invocation);
 	g_object_unref (_reply_message);
-	_return:
+	_error:
 	_g_variant_unref0 (j);
 	_g_variant_unref0 (k);
 	;

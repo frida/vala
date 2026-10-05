@@ -1,0 +1,75 @@
+Packages: gio-2.0
+D-Bus
+
+Program: client
+
+[DBus (name = "org.example.Test.Manager")]
+interface Manager : Object {
+	public abstract ObjectPath get_unit (string name) throws Error;
+}
+
+[DBus (name = "org.example.Test.Unit")]
+interface Unit : Object {
+	public abstract string name { owned get; }
+}
+
+void main () {
+	// client
+	Manager manager = Bus.get_proxy_sync (SESSION, "org.example.Test", "/org/example/test/Manager");
+	var unit_path = manager.get_unit ("example.service");
+	assert (unit_path == "/org/example/test/Manager/0");
+	// Proxy for the same connection, same name.
+	unowned DBusProxy manager_proxy = (DBusProxy) manager;
+	Unit unit = manager_proxy.get_connection ().get_proxy_sync (manager_proxy.get_name_owner (), unit_path);
+	assert (unit.name == "example.service");
+}
+
+Program: server
+
+[DBus (name = "org.example.Test.Manager")]
+class Manager : Object {
+	private uint next_unit_id = 0;
+
+	public ObjectPath get_unit (string name, DBusConnection connection, DBusMethodInvocation invocation) {
+		// If exposed under different object paths (perhaps on different connections), we can
+		// know the one we're accessed htrough this time.
+		unowned string my_object_path = invocation.get_object_path ();
+		uint unit_id = next_unit_id++;
+		string unit_object_path = @"$my_object_path/$unit_id";
+		var unit = new Unit () { name = name };
+		// Register the unit object on the same connection that the request is made on.
+		connection.register_object (unit_object_path, unit);
+		return new ObjectPath (unit_object_path);
+	}
+}
+
+[DBus (name = "org.example.Test.Unit")]
+class Unit : Object {
+	public string name { get; construct set; }
+}
+
+MainLoop main_loop;
+
+void client_exit (Pid pid, int status) {
+	// client finished, terminate server
+	assert (status == 0);
+	main_loop.quit ();
+}
+
+void main () {
+	var conn = Bus.get_sync (SESSION);
+	conn.register_object ("/org/example/test/Manager", new Manager ());
+
+	// try to register service in session bus
+	var request_result = conn.call_sync ("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "RequestName",
+	                                      new Variant ("(su)", "org.example.Test", 0x4), null, 0, -1);
+	assert ((uint) request_result.get_child_value (0) == 1);
+
+	// server ready, spawn client
+	Pid client_pid;
+	Process.spawn_async (null, { "dbus_special_parameters_2_client" }, null, SpawnFlags.DO_NOT_REAP_CHILD, null, out client_pid);
+	ChildWatch.add (client_pid, client_exit);
+
+	main_loop = new MainLoop ();
+	main_loop.run ();
+}

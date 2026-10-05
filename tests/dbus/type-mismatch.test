@@ -1,0 +1,107 @@
+Packages: gio-2.0
+D-Bus
+
+Program: client
+
+[DBus (name = "org.example.Test")]
+interface Test : Object {
+	public abstract string test_property { owned get; set; }
+
+	public abstract async string out_mismatch (int a, HashTable<string, int> b, out Variant c) throws Error;
+	public abstract async string in_mismatch (int a, HashTable<string, int> b, out Variant c) throws Error;
+	public abstract async string out_mismatch_nothrow (int a, HashTable<string, int> b, out Variant c);
+
+	public signal void test_signal (int a, string b);
+}
+
+async void main () {
+	// Disable warnings being fatal.
+	Log.set_always_fatal (LogLevelFlags.LEVEL_CRITICAL);
+
+	// client
+	Test test = Bus.get_proxy_sync (BusType.SESSION, "org.example.Test", "/org/example/test", DBusProxyFlags.DO_NOT_LOAD_PROPERTIES);
+
+	string s = test.test_property;
+	assert (s == null);
+
+	test.test_signal.connect (() => {
+		assert_not_reached ();
+	});
+
+	var b = new HashTable<string, int> (null, null);
+	Variant c;
+	bool caught_error = false;
+	try {
+		s = yield test.out_mismatch (42, b, out c);
+	} catch (IOError.INVALID_ARGUMENT ex) {
+		caught_error = true;
+	}
+	assert (caught_error);
+
+	caught_error = false;
+	try {
+		s = yield test.in_mismatch (42, b, out c);
+	} catch (DBusError.INVALID_ARGS ex) {
+		caught_error = true;
+	}
+	assert (caught_error);
+
+	s = yield test.out_mismatch_nothrow (42, b, out c);
+	assert (s == null);
+}
+
+Program: server
+
+[DBus (name = "org.example.Test")]
+class Test : Object {
+	public int test_property { get; set; default = 42; }
+
+	public int out_mismatch (int a, HashTable<string, int> b, out Variant c) throws Error {
+		test_signal.emit ("out_mismatch");
+		c = 1;
+		return 42;
+	}
+
+	public string in_mismatch (int64 a, HashTable<string, int> b, out Variant c) throws Error {
+		test_signal.emit ("in_mismatch");
+		c = 1;
+		return "string";
+	}
+
+	public int out_mismatch_nothrow (int a, HashTable<string, int> b, out Variant c) {
+		test_signal.emit ("out_mismatch_nothrow");
+		c = 1;
+		return 42;
+	}
+
+	public signal void test_signal (string s);
+}
+
+MainLoop main_loop;
+
+void client_exit (Pid pid, int status) {
+	// client finished, terminate server
+	assert (status == 0);
+	main_loop.quit ();
+}
+
+void main () {
+	// Disable warnings being fatal.
+	Log.set_always_fatal (LogLevelFlags.LEVEL_CRITICAL);
+
+	var conn = Bus.get_sync (BusType.SESSION);
+	conn.register_object ("/org/example/test", new Test ());
+
+	// try to register service in session bus
+	var request_result = conn.call_sync ("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "RequestName",
+	                                      new Variant ("(su)", "org.example.Test", 0x4), null, 0, -1);
+	assert ((uint) request_result.get_child_value (0) == 1);
+
+	// server ready, spawn client
+	Pid client_pid;
+	Process.spawn_async (null, { "dbus_type_mismatch_client" }, null, SpawnFlags.DO_NOT_REAP_CHILD, null, out client_pid);
+	ChildWatch.add (client_pid, client_exit);
+
+	main_loop = new MainLoop ();
+	main_loop.run ();
+}
