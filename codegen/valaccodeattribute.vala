@@ -1471,7 +1471,7 @@ public class Vala.CCodeAttribute : AttributeCache {
 	}
 
 	private string get_default_default_value_on_error () {
-		if (sym is Struct) {
+		if (sym is Struct && (ccode == null || !ccode.has_argument ("default_value"))) {
 			unowned Struct? base_st = ((Struct) sym).base_struct;
 			if (base_st != null) {
 				return get_ccode_default_value_on_error (base_st);
