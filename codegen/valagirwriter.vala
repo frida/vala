@@ -1755,7 +1755,7 @@ public class Vala.GIRWriter : CodeVisitor {
 
 		string? gir_name = sym.get_attribute_string ("GIR", "name");
 
-		if (gir_name == null && sym is Namespace) {
+		if (gir_name == null && sym is Namespace && sym.parent_symbol != null && sym.parent_symbol.name == null) {
 			gir_name = sym.get_attribute_string ("CCode", "gir_namespace");
 		}
 		if (gir_name == null) {
@@ -1804,8 +1804,7 @@ public class Vala.GIRWriter : CodeVisitor {
 					if (gir_fullname != null) {
 						return gir_fullname;
 					}
-					var type_name = type_symbol.get_attribute_string ("GIR", "name") ?? type_symbol.name;
-					return "%s.%s".printf (external.ns, type_name);
+					return "%s.%s".printf (external.ns, get_gir_name_in_namespace (type_symbol));
 				} else {
 					unannotated_namespaces.add(ns);
 				}
@@ -1813,6 +1812,14 @@ public class Vala.GIRWriter : CodeVisitor {
 		}
 
 		return get_full_gir_name (type_symbol);
+	}
+
+	private string get_gir_name_in_namespace (Symbol symbol) {
+		string gir_name = symbol.get_attribute_string ("GIR", "name") ?? symbol.name;
+		for (unowned Symbol ns = symbol.parent_symbol; ns.parent_symbol.name != null; ns = ns.parent_symbol) {
+			gir_name = (ns.get_attribute_string ("GIR", "name") ?? ns.name).concat (gir_name);
+		}
+		return gir_name;
 	}
 
 	private string? literal_expression_to_value_string (Expression literal) {

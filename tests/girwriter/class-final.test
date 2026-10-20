@@ -26,7 +26,7 @@ Output:
 		</field>
 		<constructor name="new" c:identifier="test_test_foo_new">
 			<return-value transfer-ownership="full">
-				<type name="Test.Foo" c:type="TestTestFoo*"/>
+				<type name="Test.TestFoo" c:type="TestTestFoo*"/>
 			</return-value>
 		</constructor>
 	</class>
@@ -36,22 +36,22 @@ Output:
 		</field>
 	</record>
 	<record name="TestFooPrivate" c:type="TestTestFooPrivate" disguised="1"/>
-	<class name="TestBar" c:type="TestTestBar" c:symbol-prefix="bar" glib:type-name="TestTestBar" glib:get-type="test_test_bar_get_type" glib:type-struct="TestBarClass" parent="Test.Foo" final="1">
+	<class name="TestBar" c:type="TestTestBar" c:symbol-prefix="bar" glib:type-name="TestTestBar" glib:get-type="test_test_bar_get_type" glib:type-struct="TestBarClass" parent="Test.TestFoo" final="1">
 		<field name="parent_instance" readable="0" private="1">
-			<type name="Test.Foo" c:type="TestTestFoo"/>
+			<type name="Test.TestFoo" c:type="TestTestFoo"/>
 		</field>
 		<field name="priv" readable="0" private="1">
 			<type name="TestBarPrivate" c:type="TestTestBarPrivate*"/>
 		</field>
 		<constructor name="new" c:identifier="test_test_bar_new">
 			<return-value transfer-ownership="full">
-				<type name="Test.Bar" c:type="TestTestBar*"/>
+				<type name="Test.TestBar" c:type="TestTestBar*"/>
 			</return-value>
 		</constructor>
 	</class>
 	<record name="TestBarClass" c:type="TestTestBarClass" glib:is-gtype-struct-for="TestBar">
 		<field name="parent_class" readable="0" private="1">
-			<type name="Test.FooClass" c:type="TestTestFooClass"/>
+			<type name="Test.TestFooClass" c:type="TestTestFooClass"/>
 		</field>
 	</record>
 	<record name="TestBarPrivate" c:type="TestTestBarPrivate" disguised="1"/>
