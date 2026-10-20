@@ -130,6 +130,22 @@
 		<field name="delegate_field_target_destroy_notify">
 			<type name="GLib.DestroyNotify" c:type="GDestroyNotify"/>
 		</field>
+		<method name="method_with_nested_delegate" c:identifier="gir_test_sub_type_test_method_with_nested_delegate">
+			<return-value transfer-ownership="full">
+				<type name="none" c:type="void"/>
+			</return-value>
+			<parameters>
+				<instance-parameter name="self" transfer-ownership="none">
+					<type name="GirTest.SubTypeTest" c:type="GirTestSubTypeTest*"/>
+				</instance-parameter>
+				<parameter name="d" transfer-ownership="none" closure="1" scope="call">
+					<type name="GirTest.SubTypeTestNestedDelegate" c:type="GirTestSubTypeTestNestedDelegate"/>
+				</parameter>
+				<parameter name="d_target" transfer-ownership="none" nullable="1">
+					<type name="gpointer" c:type="void*"/>
+				</parameter>
+			</parameters>
+		</method>
 		<constructor name="new" c:identifier="gir_test_sub_type_test_new">
 			<return-value transfer-ownership="full">
 				<type name="GirTest.SubTypeTest" c:type="GirTestSubTypeTest*"/>
@@ -142,6 +158,19 @@
 		</field>
 	</record>
 	<record name="SubTypeTestPrivate" c:type="GirTestSubTypeTestPrivate" disguised="1"/>
+	<callback name="SubTypeTestNestedDelegate" c:type="GirTestSubTypeTestNestedDelegate">
+		<return-value transfer-ownership="full">
+			<type name="none" c:type="void"/>
+		</return-value>
+		<parameters>
+			<parameter name="i" transfer-ownership="none">
+				<type name="gint" c:type="gint"/>
+			</parameter>
+			<parameter name="user_data" transfer-ownership="none" closure="1">
+				<type name="gpointer" c:type="void*"/>
+			</parameter>
+		</parameters>
+	</callback>
 	<class name="ObjectTest" c:type="GirTestObjectTest" c:symbol-prefix="object_test" glib:type-name="GirTestObjectTest" glib:get-type="gir_test_object_test_get_type" glib:type-struct="ObjectTestClass" parent="GObject.Object">
 		<field name="parent_instance" readable="0" private="1">
 			<type name="GObject.Object" c:type="GObject"/>

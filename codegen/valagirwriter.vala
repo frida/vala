@@ -1285,6 +1285,11 @@ public class Vala.GIRWriter : CodeVisitor {
 			return;
 		}
 
+		if (!(hierarchy[0] is Namespace)) {
+			deferred.add (cb);
+			return;
+		}
+
 		write_indent ();
 		buffer.append_printf ("<callback name=\"%s\"", get_gir_name (cb));
 		buffer.append_printf (" c:type=\"%s\"", get_ccode_name (cb));

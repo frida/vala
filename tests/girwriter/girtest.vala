@@ -188,6 +188,11 @@ namespace GirTest {
 	public class SubTypeTest : TypeTest {
 		public string[] array_field;
 		public DelegateTest delegate_field;
+
+		public delegate void NestedDelegate (int i);
+
+		public void method_with_nested_delegate (NestedDelegate d) {
+		}
 	}
 
 	public class ObjectTest : Object {

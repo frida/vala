@@ -169,6 +169,7 @@ namespace GirTest {
 		public GirTest.DelegateTest delegate_field;
 		[CCode (has_construct_function = false)]
 		public SubTypeTest ();
+		public void method_with_nested_delegate (GirTest.SubTypeTestNestedDelegate d);
 	}
 	[CCode (cheader_filename = "girtest.h", ref_function = "gir_test_typetest_ref", type_id = "gir_test_typetest_get_type ()", unref_function = "gir_test_typetest_unref")]
 	public class TypeTest {
@@ -282,6 +283,8 @@ namespace GirTest {
 	public delegate bool DelegateTest (void* a, void* b);
 	[CCode (cheader_filename = "girtest.h", cname = "GirTestNamedDelegate", has_target = false)]
 	public delegate void RenamedDelegate ();
+	[CCode (cheader_filename = "girtest.h", instance_pos = 1.9)]
+	public delegate void SubTypeTestNestedDelegate (int i);
 	[CCode (cheader_filename = "girtest.h", cname = "GIR_TEST_CHAR_LITERAL")]
 	public const int8 CHAR_LITERAL;
 	[CCode (cheader_filename = "girtest.h", cname = "GIR_TEST_CONSTANT_NUMBER")]
